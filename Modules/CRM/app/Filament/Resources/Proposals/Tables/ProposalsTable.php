@@ -2,10 +2,10 @@
 
 namespace Modules\CRM\Filament\Resources\Proposals\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\Action;
 use Filament\Tables\Table;
 
 class ProposalsTable
@@ -40,6 +40,46 @@ class ProposalsTable
                 //
             ])
             ->recordActions([
+                Action::make('createPA')
+                    ->label('Create Profitability Analysis')
+                    ->icon('heroicon-o-presentation-chart-line')
+                    ->color('info')
+                    ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => $record->status === 'approved')
+                    ->form([
+                        \Filament\Forms\Components\Select::make('work_scheme_id')
+                            ->relationship('workScheme', 'name', modifyQueryUsing: fn ($query) => $query->from('work_schemes'))
+                            ->label('Select Work Scheme')
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                    ])
+                    ->action(function (\Modules\CRM\Models\Proposal $record, array $data) {
+                        $existingPa = \Modules\Finance\Models\ProfitabilityAnalysis::where('proposal_id', $record->id)->first();
+
+                        if ($existingPa) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('PA Already Exists')
+                                ->body('Redirecting to the existing Profitability Analysis.')
+                                ->warning()
+                                ->send();
+
+                            return redirect(\Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::getUrl('edit', ['record' => $existingPa]));
+                        }
+
+                        $pa = \Modules\Finance\Models\ProfitabilityAnalysis::create([
+                            'proposal_id' => $record->id,
+                            'client_id' => $record->client_id,
+                            'work_scheme_id' => $data['work_scheme_id'],
+                            'status' => 'draft',
+                        ]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Profitability Analysis Created')
+                            ->success()
+                            ->send();
+
+                        return redirect(\Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::getUrl('edit', ['record' => $pa]));
+                    }),
                 Action::make('convertToContract')
                     ->label('Convert to Contract')
                     ->icon('heroicon-o-document-duplicate')

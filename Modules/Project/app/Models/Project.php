@@ -32,7 +32,19 @@ class Project extends Model
         'project_area_id',
         'start_date',
         'end_date',
+        'proposal_id',
+        'profitability_analysis_id',
     ];
+
+    public function proposal(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\Modules\CRM\Models\Proposal::class);
+    }
+
+    public function profitabilityAnalysis(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\Modules\Finance\Models\ProfitabilityAnalysis::class);
+    }
 
     protected function casts(): array
     {

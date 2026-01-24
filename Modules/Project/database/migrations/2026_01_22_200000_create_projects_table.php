@@ -18,6 +18,8 @@ return new class extends Migration
             $table->string('status')->default('planning');
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->foreignId('contract_id')->nullable()->constrained('contracts')->onDelete('set null');
+            $table->foreignId('proposal_id')->nullable()->constrained('proposals')->onDelete('set null');
+            $table->foreignId('profitability_analysis_id')->nullable()->constrained('profitability_analyses')->onDelete('set null');
             $table->string('project_number')->nullable();
             $table->foreignId('work_scheme_id')->nullable()->constrained('work_schemes')->onDelete('set null');
             $table->foreignId('product_cluster_id')->nullable()->constrained('product_clusters')->onDelete('set null');

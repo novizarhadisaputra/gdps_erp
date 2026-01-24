@@ -24,14 +24,14 @@ class ProjectObserver
 
     protected function generateProjectCode(Project $project): string
     {
+        $clientCode = $project->client?->code ?? 'UNK';
+        $projectNumber = str_pad($project->project_number ?? '01', 2, '0', STR_PAD_LEFT);
+        $areaCode = $project->projectArea?->code ?? 'UNK';
         $schemeCode = $project->workScheme?->code ?? '00';
         $clusterCode = $project->productCluster?->code ?? 'UNK';
         $taxCode = $project->tax?->code ?? 'P0';
-        $clientCode = $project->client?->code ?? 'UNK';
-        $areaCode = $project->projectArea?->code ?? 'UNK';
-        $projectNumber = str_pad($project->project_number ?? '0001', 4, '0', STR_PAD_LEFT);
 
-        return "{$schemeCode}{$clusterCode}{$taxCode}{$clientCode}{$areaCode}{$projectNumber}";
+        return "{$clientCode}{$projectNumber}{$areaCode}{$schemeCode}{$clusterCode}{$taxCode}";
     }
 
     /**
