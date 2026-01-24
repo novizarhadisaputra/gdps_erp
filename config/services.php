@@ -15,11 +15,7 @@ return [
     */
 
     'postmark' => [
-        'key' => env('POSTMARK_API_KEY'),
-    ],
-
-    'resend' => [
-        'key' => env('RESEND_API_KEY'),
+        'token' => env('POSTMARK_TOKEN'),
     ],
 
     'ses' => [
@@ -28,11 +24,21 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'resend' => [
+        'key' => env('RESEND_KEY'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
+    ],
+
+    'sso' => [
+        'auth_url' => env('SSO_AUTH_URL', 'https://auth-sso.garudapratama.com/api/v1/auth/login'),
+        'staffing_url' => env('SSO_STAFFING_URL', 'https://staffing.garudapratama.com/api/v1/employees/by-email-or-code'),
+        'refresh_url' => env('SSO_REFRESH_URL', 'https://auth-sso.garudapratama.com/api/v1/auth/refresh'),
     ],
 
 ];

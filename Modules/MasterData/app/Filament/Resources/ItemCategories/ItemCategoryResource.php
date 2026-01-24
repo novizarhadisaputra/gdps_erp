@@ -1,0 +1,43 @@
+<?php
+
+namespace Modules\MasterData\Filament\Resources\ItemCategories;
+
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
+use Modules\MasterData\Filament\Resources\ItemCategories\Pages\CreateItemCategory;
+use Modules\MasterData\Filament\Resources\ItemCategories\Pages\EditItemCategory;
+use Modules\MasterData\Filament\Resources\ItemCategories\Pages\ListItemCategories;
+use Modules\MasterData\Filament\Resources\ItemCategories\Schemas\ItemCategoryForm;
+use Modules\MasterData\Filament\Resources\ItemCategories\Tables\ItemCategoriesTable;
+use Modules\MasterData\Models\ItemCategory;
+
+class ItemCategoryResource extends Resource
+{
+    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+
+    protected static ?string $model = ItemCategory::class;
+
+    protected static ?int $navigationSort = 4;
+
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-tag';
+
+    protected static string | \UnitEnum | null $navigationGroup = 'Procurement Master';
+
+    public static function form(Schema $schema): Schema
+    {
+        return ItemCategoryForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return ItemCategoriesTable::configure($table);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListItemCategories::route('/'),
+        ];
+    }
+}
