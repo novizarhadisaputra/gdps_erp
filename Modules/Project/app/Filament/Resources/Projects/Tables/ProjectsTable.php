@@ -38,26 +38,28 @@ class ProjectsTable
                 \Filament\Tables\Columns\TextColumn::make('workScheme.name')
                     ->label('Skema Kerja')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('productCluster.name')
                     ->label('Cluster')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('tax.name')
                     ->label('Pajak')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('projectArea.name')
                     ->label('Area')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('paymentTerm.name')
                     ->label('TOP')
                     ->searchable()
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 \Filament\Tables\Columns\TextColumn::make('projectType.name')
                     ->label('Project Type')
                     ->searchable()
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 \Filament\Tables\Columns\TextColumn::make('billingOption.name')
                     ->label('Option')

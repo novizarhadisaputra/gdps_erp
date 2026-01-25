@@ -12,6 +12,11 @@ class ItemCategoryForm
     {
         return $schema
             ->components([
+                TextInput::make('code')
+                    ->label('Category Code')
+                    ->unique(ignoreRecord: true)
+                    ->maxLength(10)
+                    ->placeholder('Leave empty for auto-generate'),
                 TextInput::make('name')
                     ->required()
                     ->unique(ignoreRecord: true)

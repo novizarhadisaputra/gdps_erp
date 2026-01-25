@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('proposals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('work_scheme_id')->nullable()->constrained()->onDelete('set null');
             $table->string('proposal_number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected, converted

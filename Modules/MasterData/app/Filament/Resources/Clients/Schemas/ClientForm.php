@@ -46,6 +46,14 @@ class ClientForm
                 TextInput::make('address')
                     ->label('Alamat')
                     ->maxLength(500),
+                Select::make('status')
+                    ->label('Status')
+                    ->options([
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                    ])
+                    ->required()
+                    ->default('active'),
             ]);
     }
 }

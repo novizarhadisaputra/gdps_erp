@@ -2,9 +2,11 @@
 
 namespace Modules\MasterData\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
 class Item extends Model
 {
     protected $fillable = [

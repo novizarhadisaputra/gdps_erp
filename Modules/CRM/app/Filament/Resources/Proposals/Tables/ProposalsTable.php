@@ -17,6 +17,10 @@ class ProposalsTable
                 \Filament\Tables\Columns\TextColumn::make('client.name')
                     ->searchable()
                     ->sortable(),
+                \Filament\Tables\Columns\TextColumn::make('workScheme.name')
+                    ->label('Scheme')
+                    ->searchable()
+                    ->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('proposal_number')
                     ->searchable()
                     ->sortable(),
@@ -31,13 +35,26 @@ class ProposalsTable
                         'approved' => 'success',
                         'rejected' => 'danger',
                         'converted' => 'warning',
+                        default => 'gray',
                     }),
                 \Filament\Tables\Columns\TextColumn::make('submission_date')
                     ->date()
                     ->sortable(),
             ])
             ->filters([
-                //
+                \Filament\Tables\Filters\SelectFilter::make('client_id')
+                    ->relationship('client', 'name')
+                    ->label('Client')
+                    ->searchable()
+                    ->preload(),
+                \Filament\Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'draft' => 'Draft',
+                        'submitted' => 'Submitted',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
+                        'converted' => 'Converted',
+                    ]),
             ])
             ->recordActions([
                 Action::make('createPA')
@@ -47,8 +64,9 @@ class ProposalsTable
                     ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => $record->status === 'approved')
                     ->form([
                         \Filament\Forms\Components\Select::make('work_scheme_id')
-                            ->relationship('workScheme', 'name', modifyQueryUsing: fn ($query) => $query->from('work_schemes'))
+                            ->relationship('workScheme', 'name')
                             ->label('Select Work Scheme')
+                            ->default(fn ($record) => $record->work_scheme_id)
                             ->required()
                             ->searchable()
                             ->preload(),

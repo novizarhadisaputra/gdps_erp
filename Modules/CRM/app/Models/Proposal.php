@@ -13,6 +13,7 @@ class Proposal extends Model
 
     protected $fillable = [
         'client_id',
+        'work_scheme_id',
         'proposal_number',
         'amount',
         'status',
@@ -22,6 +23,11 @@ class Proposal extends Model
     public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\Modules\MasterData\Models\Client::class);
+    }
+
+    public function workScheme(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\WorkScheme::class);
     }
 
     public function contracts(): \Illuminate\Database\Eloquent\Relations\HasMany
