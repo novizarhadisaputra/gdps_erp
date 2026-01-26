@@ -51,6 +51,7 @@ class MasterCodeSeeder extends Seeder
         }
 
         // Companies
+        // Companies
         $companies = [
             ['code' => 'ABB', 'name' => 'PT Anugerah Bangun Bersama'],
             ['code' => 'ACE', 'name' => 'PT Anugrah Cita Era Food'],
@@ -163,9 +164,32 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'WAD', 'name' => 'PT Wira Adirajasa Dirgantara'],
             ['code' => 'ATF', 'name' => 'PT ARTHA UTAMA FOODINDO'],
             ['code' => 'KMG', 'name' => 'Keumseong LLC'],
+            ['code' => 'GDPS', 'name' => 'PT Garuda Daya Pratama Sejahtera'],
+            ['code' => 'GAP', 'name' => 'PT Gapura Angkasa'],
         ];
+
         foreach ($companies as $data) {
-            \Modules\MasterData\Models\Client::updateOrCreate(['code' => $data['code']], $data);
+            $fullName = $data['name'];
+            $legalEntityType = null;
+            $cleanName = $fullName;
+
+            $types = ['PT', 'CV', 'UD', 'Yayasan', 'Koperasi', 'Firma'];
+            foreach ($types as $type) {
+                if (str_starts_with($fullName, $type.' ')) {
+                    $legalEntityType = $type;
+                    $cleanName = trim(substr($fullName, strlen($type)));
+                    break;
+                }
+            }
+
+            \Modules\MasterData\Models\Client::updateOrCreate(
+                ['code' => $data['code']],
+                [
+                    'name' => $cleanName,
+                    'legal_entity_type' => $legalEntityType,
+                    'status' => 'active',
+                ]
+            );
         }
 
         // Project Areas

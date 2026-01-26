@@ -18,6 +18,7 @@ class ClientFactory extends Factory
     {
         return [
             'code' => $this->faker->unique()->bothify('CL-####'),
+            'legal_entity_type' => $this->faker->randomElement(['PT', 'CV', 'UD', 'Firma', 'Koperasi', 'Yayasan', 'Individual']),
             'name' => $this->faker->company(),
             'email' => $this->faker->companyEmail(),
             'phone' => $this->faker->phoneNumber(),

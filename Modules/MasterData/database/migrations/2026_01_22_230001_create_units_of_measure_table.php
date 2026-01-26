@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('units_of_measure', function (Blueprint $table) {
             $table->id();
+            $table->string('unit_id')->nullable()->index();
             $table->string('name')->unique();
             $table->string('code')->unique(); // e.g., pcs, ltr
             $table->timestamps();

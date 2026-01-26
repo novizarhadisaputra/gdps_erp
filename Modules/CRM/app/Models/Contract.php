@@ -20,6 +20,11 @@ class Contract extends Model
         'reminder_status',
     ];
 
+    protected static function newFactory(): \Modules\CRM\Database\Factories\ContractFactory
+    {
+        return \Modules\CRM\Database\Factories\ContractFactory::new();
+    }
+
     public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\Modules\MasterData\Models\Client::class);

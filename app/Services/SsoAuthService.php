@@ -18,7 +18,7 @@ class SsoAuthService
         try {
             $response = Http::asForm()
                 ->withHeaders([
-                    'Authorization' => 'Basic Z2Rwcy1zcGFjZS1hcHA6MzlhYWRhNTEtNGZlMC00MDk4LTg2NTctNTk3OTg5YTI4ZTA4',
+                    'Authorization' => config('services.sso.client_token'),
                 ])
                 ->post(config('services.sso.auth_url'), [
                     'email' => $email,
@@ -81,6 +81,9 @@ class SsoAuthService
     {
         try {
             $response = Http::asForm()
+                ->withHeaders([
+                    'Authorization' => config('services.sso.client_token'),
+                ])
                 ->post(config('services.sso.refresh_url'), [
                     'refresh_token' => $refreshToken,
                 ]);

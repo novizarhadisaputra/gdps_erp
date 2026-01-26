@@ -12,5 +12,5 @@ class MasterDataCluster extends Cluster
 
     protected static ?string $navigationLabel = 'Master Data';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 }

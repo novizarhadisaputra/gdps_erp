@@ -16,14 +16,14 @@ class ProjectForm
                 Placeholder::make('code')
                     ->label('Project Code Preview')
                     ->content(function (\Filament\Schemas\Components\Utilities\Get $get): string {
+                        $client = \Modules\MasterData\Models\Client::find($get('client_id'))?->code ?? 'UNK';
+                        $seq = str_pad($get('project_number') ?? '01', 2, '0', STR_PAD_LEFT);
+                        $area = \Modules\MasterData\Models\ProjectArea::find($get('project_area_id'))?->code ?? 'UNK';
                         $scheme = \Modules\MasterData\Models\WorkScheme::find($get('work_scheme_id'))?->code ?? '00';
                         $cluster = \Modules\MasterData\Models\ProductCluster::find($get('product_cluster_id'))?->code ?? 'UNK';
                         $tax = \Modules\MasterData\Models\Tax::find($get('tax_id'))?->code ?? 'P0';
-                        $client = \Modules\MasterData\Models\Client::find($get('client_id'))?->code ?? 'UNK';
-                        $area = \Modules\MasterData\Models\ProjectArea::find($get('project_area_id'))?->code ?? 'UNK';
-                        $seq = str_pad($get('project_number') ?? '0001', 4, '0', STR_PAD_LEFT);
 
-                        return "{$scheme}{$cluster}{$tax}{$client}{$area}{$seq}";
+                        return "{$client}{$seq}{$area}{$scheme}{$cluster}{$tax}";
                     })
                     ->columnSpanFull(),
                 TextInput::make('name')
@@ -56,8 +56,8 @@ class ProjectForm
                 TextInput::make('project_number')
                     ->required()
                     ->numeric()
-                    ->default('0001')
-                    ->label('Sequence (e.g. 0001)')
+                    ->default('01')
+                    ->label('Sequence (e.g. 01)')
                     ->live(),
                 Select::make('project_area_id')
                     ->relationship('projectArea', 'name')

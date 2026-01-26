@@ -2,10 +2,13 @@
 
 namespace Modules\Project\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProjectInformation extends Model
 {
+    use HasFactory;
+
     protected $table = 'project_informations';
 
     protected $fillable = [
@@ -73,6 +76,11 @@ class ProjectInformation extends Model
             'manpower_engineer' => 'integer',
             'manpower_security' => 'integer',
         ];
+    }
+
+    protected static function newFactory(): \Modules\Project\Database\Factories\ProjectInformationFactory
+    {
+        return \Modules\Project\Database\Factories\ProjectInformationFactory::new();
     }
 
     public function project(): \Illuminate\Database\Eloquent\Relations\BelongsTo

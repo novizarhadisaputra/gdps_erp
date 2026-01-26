@@ -12,5 +12,5 @@ class ProjectCluster extends Cluster
 
     protected static ?string $navigationLabel = 'Project';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
 }

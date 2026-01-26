@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('billing_options', function (Blueprint $table) {
             $table->id();
+            $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
             $table->string('name');
             $table->boolean('is_active')->default(true);

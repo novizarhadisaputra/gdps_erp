@@ -18,18 +18,24 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::updateOrCreate(
-            ['email' => 'test@example.com'],
+            ['email' => 'rajabannisa.wahyuni@garudapratama.com'],
             [
-                'name' => 'Test User',
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'name' => 'System Administrator',
+                'password' => \Illuminate\Support\Facades\Hash::make('gdps2019!'),
                 'email_verified_at' => now(),
             ]
         );
 
         $this->call([
+            ShieldSeeder::class,
             \Modules\MasterData\Database\Seeders\MasterDataDatabaseSeeder::class,
             \Modules\CRM\Database\Seeders\CRMDatabaseSeeder::class,
             \Modules\Project\Database\Seeders\ProjectDatabaseSeeder::class,
         ]);
+
+        $admin = User::query()->where('email', '=', 'rajabannisa.wahyuni@garudapratama.com')->first();
+        if ($admin) {
+            $admin->assignRole('super_admin');
+        }
     }
 }

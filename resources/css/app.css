@@ -1,11 +1,106 @@
 @import 'tailwindcss';
+@import '../../vendor/filament/support/resources/css/index.css';
+@import '../../vendor/filament/notifications/resources/css/index.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/filament/**/*.blade.php';
 @source '../../storage/framework/views/*.php';
+@source '../../Modules/**/*.blade.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Primary Palette (Mapped to Amber) */
+    --color-primary-50: var(--color-amber-50);
+    --color-primary-100: var(--color-amber-100);
+    --color-primary-200: var(--color-amber-200);
+    --color-primary-300: var(--color-amber-300);
+    --color-primary-400: var(--color-amber-400);
+    --color-primary-500: var(--color-amber-500);
+    --color-primary-600: var(--color-amber-600);
+    --color-primary-700: var(--color-amber-700);
+    --color-primary-800: var(--color-amber-800);
+    --color-primary-900: var(--color-amber-900);
+    --color-primary-950: var(--color-amber-950);
+
+    /* Danger Palette (Mapped to Red) */
+    --color-danger-50: var(--color-red-50);
+    --color-danger-100: var(--color-red-100);
+    --color-danger-200: var(--color-red-200);
+    --color-danger-300: var(--color-red-300);
+    --color-danger-400: var(--color-red-400);
+    --color-danger-500: var(--color-red-500);
+    --color-danger-600: var(--color-red-600);
+    --color-danger-700: var(--color-red-700);
+    --color-danger-800: var(--color-red-800);
+    --color-danger-900: var(--color-red-900);
+    --color-danger-950: var(--color-red-950);
+
+    /* Gray Palette */
+    --color-gray-50: var(--color-slate-50);
+    --color-gray-100: var(--color-slate-100);
+    --color-gray-200: var(--color-slate-200);
+    --color-gray-300: var(--color-slate-300);
+    --color-gray-400: var(--color-slate-400);
+    --color-gray-500: var(--color-slate-500);
+    --color-gray-600: var(--color-slate-600);
+    --color-gray-700: var(--color-slate-700);
+    --color-gray-800: var(--color-slate-800);
+    --color-gray-900: var(--color-slate-900);
+    --color-gray-950: var(--color-slate-950);
+
+    /* Success Palette (Mapped to Emerald) */
+    --color-success-50: var(--color-emerald-50);
+    --color-success-100: var(--color-emerald-100);
+    --color-success-200: var(--color-emerald-200);
+    --color-success-300: var(--color-emerald-300);
+    --color-success-400: var(--color-emerald-400);
+    --color-success-500: var(--color-emerald-500);
+    --color-success-600: var(--color-emerald-600);
+    --color-success-700: var(--color-emerald-700);
+    --color-success-800: var(--color-emerald-800);
+    --color-success-900: var(--color-emerald-900);
+    --color-success-950: var(--color-emerald-950);
+
+    /* Warning Palette (Mapped to Orange) */
+    --color-warning-50: var(--color-orange-50);
+    --color-warning-100: var(--color-orange-100);
+    --color-warning-200: var(--color-orange-200);
+    --color-warning-300: var(--color-orange-300);
+    --color-warning-400: var(--color-orange-400);
+    --color-warning-500: var(--color-orange-500);
+    --color-warning-600: var(--color-orange-600);
+    --color-warning-700: var(--color-orange-700);
+    --color-warning-800: var(--color-orange-800);
+    --color-warning-900: var(--color-orange-900);
+    --color-warning-950: var(--color-orange-950);
+
+    /* Info Palette (Mapped to Sky) */
+    --color-info-50: var(--color-sky-50);
+    --color-info-100: var(--color-sky-100);
+    --color-info-200: var(--color-sky-200);
+    --color-info-300: var(--color-sky-300);
+    --color-info-400: var(--color-sky-400);
+    --color-info-500: var(--color-sky-500);
+    --color-info-600: var(--color-sky-600);
+    --color-info-700: var(--color-sky-700);
+    --color-info-800: var(--color-sky-800);
+    --color-info-900: var(--color-sky-900);
+    --color-info-950: var(--color-sky-950);
+
+    /* Dynamic Color Palette (Fallbacks) */
+    --color-color-50: var(--color-primary-50);
+    --color-color-100: var(--color-primary-100);
+    --color-color-200: var(--color-primary-200);
+    --color-color-300: var(--color-primary-300);
+    --color-color-400: var(--color-primary-400);
+    --color-color-500: var(--color-primary-500);
+    --color-color-600: var(--color-primary-600);
+    --color-color-700: var(--color-primary-700);
+    --color-color-800: var(--color-primary-800);
+    --color-color-900: var(--color-primary-900);
+    --color-color-950: var(--color-primary-950);
 }

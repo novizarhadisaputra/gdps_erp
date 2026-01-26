@@ -11,7 +11,13 @@ class ProjectObserver
      */
     public function saving(Project $project): void
     {
-        $project->code = $this->generateProjectCode($project);
+        // Only generate or update the project code if:
+        // 1. The record is being created (id is null)
+        // 2. OR the current status is still 'planning'
+        // This ensures that once a project goes live (Active, etc.), its identity remains immutable.
+        if (! $project->exists || $project->status === 'planning') {
+            $project->code = $this->generateProjectCode($project);
+        }
     }
 
     /**
@@ -19,9 +25,15 @@ class ProjectObserver
      */
     public function created(Project $project): void
     {
+        // Automatically initialize project information record upon project creation
         $project->information()->create();
     }
 
+    /**
+     * Generate a structured project code based on its metadata.
+     * Format: {ClientCode}{Sequence}{AreaCode}{WorkSchemeCode}{ProductClusterCode}{TaxCode}
+     * Example: QGA01CGK02BCLP2
+     */
     protected function generateProjectCode(Project $project): string
     {
         $clientCode = $project->client?->code ?? 'UNK';

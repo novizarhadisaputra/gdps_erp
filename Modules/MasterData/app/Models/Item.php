@@ -3,13 +3,18 @@
 namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\MasterData\Traits\HasUnitScoping;
 
 #[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
 class Item extends Model
 {
+    use HasFactory, HasUnitScoping;
+
     protected $fillable = [
+        'unit_id',
         'item_category_id',
         'unit_of_measure_id',
         'code',
@@ -21,6 +26,11 @@ class Item extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected static function newFactory(): \Modules\MasterData\Database\Factories\ItemFactory
+    {
+        return \Modules\MasterData\Database\Factories\ItemFactory::new();
+    }
 
     public function category(): BelongsTo
     {

@@ -22,8 +22,7 @@ class Unit extends Model
         'id',
         'code',
         'name',
-        'description',
-        'is_active',
+        'superior_unit',
     ];
 
     /**

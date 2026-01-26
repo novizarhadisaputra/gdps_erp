@@ -7,11 +7,12 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * Determine if the user can access the Filament panel.
@@ -91,7 +92,7 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        return $this->token_expires_at->subMinutes(5)->isPast();
+        return $this->token_expires_at->isBefore(now()->addMinutes(5));
     }
 
     /**

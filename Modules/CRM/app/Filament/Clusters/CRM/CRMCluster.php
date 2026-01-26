@@ -14,5 +14,5 @@ class CRMCluster extends Cluster
 
     protected static ?string $title = 'CRM';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 }

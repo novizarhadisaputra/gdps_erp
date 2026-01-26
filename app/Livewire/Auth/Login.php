@@ -7,6 +7,9 @@ use App\Services\SsoAuthService;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Auth\Events\Login as LoginEvent;
+use Illuminate\Validation\ValidationException;
+use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Services\UnitService;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -36,59 +39,78 @@ class Login extends Component
         try {
             $ssoService = app(SsoAuthService::class);
 
-            // Step 1: Authenticate with SSO
-            $authData = $ssoService->login($this->email, $this->password);
+            // Step 1: Attempt SSO Authentication
+            try {
+                $authData = $ssoService->login($this->email, $this->password);
 
-            // Step 2: Get employee data
-            $employeeData = $ssoService->getEmployeeData(
-                $this->email,
-                $authData['accessToken']
-            );
+                // Step 2: Get employee data from SSO
+                $employeeData = $ssoService->getEmployeeData(
+                    $this->email,
+                    $authData['accessToken']
+                );
 
-            // Step 3: Create or update user
-            $user = User::where('email', '=', $this->email)->first();
+                // Step 3: Create or update user from SSO data
+                $user = User::updateOrCreate(
+                    ['email' => $this->email],
+                    [
+                        'name' => $employeeData['NAMA'] ?? $this->email,
+                        'employee_code' => $employeeData['NOPEG'] ?? null,
+                        'company' => $employeeData['PERUSAHAAN'] ?? null,
+                        'unit_id' => $employeeData['ORGANISASI_ID'] ?? null,
+                        'unit' => $employeeData['ORGANISASI'] ?? null,
+                        'position_id' => $employeeData['POSISI_ID'] ?? null,
+                        'position' => $employeeData['POSISI'] ?? null,
+                        'mobile_phone' => $employeeData['MOBILE_PHONE'] ?? null,
+                        'access_token' => $authData['accessToken'],
+                        'refresh_token' => $authData['refreshToken'],
+                        'token_expires_at' => now()->addSeconds($authData['expiresIn']),
+                    ]
+                );
 
-            $user = User::updateOrCreate(
-                ['email' => $this->email],
-                [
-                    'name' => $employeeData['NAMA'] ?? $this->email,
-                    'password' => $user?->password ?? bcrypt(str()->random(32)),
-                    'employee_code' => $employeeData['NOPEG'] ?? null,
-                    'company' => $employeeData['PERUSAHAAN'] ?? null,
-                    'unit_id' => $employeeData['ORGANISASI_ID'] ?? null,
-                    'unit' => $employeeData['ORGANISASI'] ?? null,
-                    'position_id' => $employeeData['POSISI_ID'] ?? null,
-                    'position' => $employeeData['POSISI'] ?? null,
-                    'mobile_phone' => $employeeData['MOBILE_PHONE'] ?? null,
-                    'access_token' => $authData['accessToken'],
-                    'refresh_token' => $authData['refreshToken'],
-                    'token_expires_at' => now()->addSeconds($authData['expiresIn']),
-                ]
-            );
+                // Step 4: Sync to local Employees master data
+                Employee::updateOrCreate(
+                    ['code' => $user->employee_code],
+                    [
+                        'unit_id' => $user->unit_id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'position' => $user->position,
+                        'department' => $user->unit,
+                        'status' => 'active',
+                    ]
+                );
 
-            // Step 4: Authenticate user in Laravel via Filament's guard
-            \Log::info('Proceeding to login user', ['email' => $this->email]);
+                // Step 5: Refresh and Warm-up Units Cache
+                UnitService::clearCache();
+                app(UnitService::class)->getAllUnits();
+
+                // Assign default role for new SSO users if they don't have one
+                if ($user->roles()->count() === 0) {
+                    $user->assignRole('panel_user');
+                }
+
+                Filament::auth()->login($user, $this->remember);
+            } catch (\Exception $ssoException) {
+                // Step 4: Fallback to Local Authentication if SSO fails
+                if (! Filament::auth()->attempt([
+                    'email' => $this->email,
+                    'password' => $this->password,
+                ], $this->remember)) {
+                    throw new \Exception('Invalid credentials (SSO & Local fallback failed).');
+                }
+
+                $user = User::query()->where('email', $this->email)->first();
+            }
 
             session()->regenerate();
-
-            Filament::auth()->login($user, $this->remember);
 
             // Fire Login event for plugins like Shield or Logger
             event(new LoginEvent('web', $user, $this->remember));
 
-            \Log::info('User login successful', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'is_authed' => Filament::auth()->check(),
-                'filament_url' => Filament::getUrl(),
-            ]);
-
-            // Handle redirect via RedirectResponse
             return redirect()->to(Filament::getUrl());
         } catch (\Exception $e) {
             \Log::error('Login process failed', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             Notification::make()
@@ -97,10 +119,11 @@ class Login extends Component
                 ->danger()
                 ->send();
 
-            $this->addError('email', 'Authentication failed');
+            throw ValidationException::withMessages([
+                'email' => $e->getMessage(),
+            ]);
         }
 
-        return null;
     }
 
     public function render()

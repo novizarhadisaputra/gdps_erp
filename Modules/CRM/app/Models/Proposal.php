@@ -20,6 +20,11 @@ class Proposal extends Model
         'submission_date',
     ];
 
+    protected static function newFactory(): \Modules\CRM\Database\Factories\ProposalFactory
+    {
+        return \Modules\CRM\Database\Factories\ProposalFactory::new();
+    }
+
     public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(\Modules\MasterData\Models\Client::class);

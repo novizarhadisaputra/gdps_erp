@@ -10,6 +10,11 @@ class ProfitabilityAnalysis extends Model
 {
     use HasFactory;
 
+    protected static function newFactory()
+    {
+        return \Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory::new();
+    }
+
     /**
      * The attributes that are mass assignable.
      */

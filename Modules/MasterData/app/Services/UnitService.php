@@ -3,28 +3,46 @@
 namespace Modules\MasterData\Services;
 
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Modules\MasterData\Models\Unit;
 
 class UnitService
 {
+    public const CACHE_KEY = 'all_units_collection';
+
     protected string $baseUrl;
+
+    public static function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+    }
 
     public function __construct()
     {
-        $this->baseUrl = 'https://staffing.garudapratama.com/api/v1/units';
+        $this->baseUrl = config('services.sso.unit_url', 'https://staffing.garudapratama.com/api/v1/units');
     }
 
     /**
-     * Fetch units from the external API.
+     * Fetch all units from the external API with global caching.
+     * This focuses on performance by minimizing API calls for the entire dataset.
      */
-    public function getUnits(int $page = 1, int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    public function getAllUnits(): Collection
     {
+        $cacheKey = self::CACHE_KEY;
+
+        // 1. Get from cache first
+        $cached = Cache::get($cacheKey);
+        if ($cached instanceof Collection && $cached->isNotEmpty()) {
+            return $cached;
+        }
+
+        // 2. Cache is empty or null, fetch from API
         $user = \Illuminate\Support\Facades\Auth::user();
         $accessToken = null;
 
         if ($user && $user instanceof \App\Models\User) {
-            // Check if token needs refresh
             if ($user->needsTokenRefresh() && $user->refresh_token) {
                 try {
                     $ssoService = app(\App\Services\SsoAuthService::class);
@@ -36,61 +54,85 @@ class UnitService
                         'token_expires_at' => now()->addSeconds($tokenData['expires_in']),
                     ]);
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Failed to refresh token in UnitService', [
+                    \Illuminate\Support\Facades\Log::error('Failed to refresh token in UnitService::getAllUnits', [
                         'user_id' => $user->id,
                         'error' => $e->getMessage(),
                     ]);
+
+                    // If token is already expired and refresh failed, don't use the expired token
+                    if ($user->isTokenExpired()) {
+                        $accessToken = null;
+
+                        return collect([]); // Early return as we know it will fail with 401
+                    }
                 }
             }
-            $accessToken = $user->access_token;
+            $accessToken = $accessToken ?? $user->access_token;
         }
 
         $request = Http::asJson();
         if ($accessToken) {
-            $request->withToken($accessToken);
+            $request = $request->withToken($accessToken);
         }
 
-        $response = $request->get($this->baseUrl, [
-            'page' => $page,
-            'per_page' => $perPage,
-            'search' => $search,
-        ]);
-
-        if ($response->failed()) {
-            \Illuminate\Support\Facades\Log::error('API Request failed in UnitService', [
-                'status' => $response->status(),
-                'body' => $response->body(),
+        try {
+            $response = $request->get($this->baseUrl, [
+                'per_page' => 1000,
             ]);
 
-            return new LengthAwarePaginator([], 0, $perPage, $page);
+            if ($response->successful()) {
+                $json = $response->json();
+                $data = $json['data'] ?? (isset($json[0]) ? $json : []);
+
+                $units = collect($data)->map(function ($item) {
+                    return new Unit([
+                        'id' => $item['id'] ?? $item['ORGANISASI_ID'] ?? null,
+                        'code' => $item['code_name'] ?? $item['code'] ?? $item['ORGANISASI_CODE'] ?? $item['ORGANISASI_KODE'] ?? $item['KODE'] ?? null,
+                        'name' => $item['name'] ?? $item['ORGANISASI_NAMA'] ?? null,
+                        'superior_unit' => $item['superior_unit'] ?? null,
+                    ]);
+                });
+
+                // 3. Success: Cache for 1 hour (even if empty, because it's a valid API response)
+                Cache::put($cacheKey, $units, now()->addHour());
+
+                return $units;
+            } else {
+                \Illuminate\Support\Facades\Log::warning('API Request unsuccessful in UnitService::getAllUnits', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Exception in UnitService::getAllUnits', [
+                'message' => $e->getMessage(),
+            ]);
         }
 
-        $data = $response->json();
+        // 4. Failure: Don't cache or cache very briefly (1 min) to allow retry
+        // Returns the cached (stale/empty) value or an empty collection if nothing exists
+        return $cached ?? collect([]);
+    }
 
-        if (! ($data['success'] ?? true)) {
-            \Illuminate\Support\Facades\Log::warning('API returned success=false in UnitService', [
-                'message' => $data['message'] ?? 'No error message provided',
-                'data' => $data,
-            ]);
+    /**
+     * @deprecated Use getAllUnits and paginate manually in the table records() closure.
+     */
+    public function getUnits(int $page = 1, int $perPage = 10, ?string $search = null): LengthAwarePaginator
+    {
+        $allUnits = $this->getAllUnits();
 
-            return new LengthAwarePaginator([], 0, $perPage, $page);
+        if ($search) {
+            $allUnits = $allUnits->filter(function (Unit $unit) use ($search) {
+                return str_contains(strtolower($unit->name ?? ''), strtolower($search)) ||
+                       str_contains(strtolower($unit->code ?? ''), strtolower($search));
+            });
         }
 
-        // Assuming the API returns a standard Laravel pagination structure or similar
-        // Adjust these keys based on actual API response
-        $items = collect($data['data'] ?? [])->map(function ($item) {
-            return new Unit([
-                'id' => $item['id'] ?? $item['ORGANISASI_ID'] ?? null,
-                'code' => $item['code'] ?? $item['ORGANISASI_CODE'] ?? null,
-                'name' => $item['name'] ?? $item['ORGANISASI_NAMA'] ?? null,
-                'description' => $item['description'] ?? null,
-                'is_active' => $item['is_active'] ?? true,
-            ]);
-        });
+        $items = $allUnits->forPage($page, $perPage)->values();
 
         return new LengthAwarePaginator(
             $items,
-            $data['total'] ?? $data['meta']['total'] ?? $items->count(),
+            $allUnits->count(),
             $perPage,
             $page,
             ['path' => request()->url(), 'query' => request()->query()]

@@ -36,9 +36,11 @@ return [
     ],
 
     'sso' => [
-        'auth_url' => env('SSO_AUTH_URL', 'https://auth-sso.garudapratama.com/api/v1/auth/login'),
-        'staffing_url' => env('SSO_STAFFING_URL', 'https://staffing.garudapratama.com/api/v1/employees/by-email-or-code'),
-        'refresh_url' => env('SSO_REFRESH_URL', 'https://auth-sso.garudapratama.com/api/v1/auth/refresh'),
+        'client_token' => env('SSO_CLIENT_TOKEN', 'Basic Z2Rwcy1zcGFjZS1hcHA6MzlhYWRhNTEtNGZlMC00MDk4LTg2NTctNTk3OTg5YTI4ZTA4'),
+        'auth_url' => env('SSO_AUTH_HOST', 'https://auth-sso.garudapratama.com').'/api/v1/auth/login',
+        'staffing_url' => env('SSO_STAFFING_HOST', 'https://staffing.garudapratama.com').'/api/v1/employees/by-email-or-code',
+        'refresh_url' => env('SSO_AUTH_HOST', 'https://auth-sso.garudapratama.com').'/api/v1/auth/refresh',
+        'unit_url' => env('SSO_STAFFING_HOST', 'https://staffing.garudapratama.com').'/api/v1/units',
     ],
 
 ];

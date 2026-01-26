@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
+            $table->string('unit_id')->nullable()->index();
             $table->foreignId('item_category_id')->constrained('item_categories')->onDelete('cascade');
             $table->foreignId('unit_of_measure_id')->constrained('units_of_measure')->onDelete('cascade');
             $table->string('code')->unique();
