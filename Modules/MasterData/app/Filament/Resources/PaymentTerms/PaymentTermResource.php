@@ -2,13 +2,9 @@
 
 namespace Modules\MasterData\Filament\Resources\PaymentTerms;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\PaymentTerms\Pages\CreatePaymentTerm;
-use Modules\MasterData\Filament\Resources\PaymentTerms\Pages\EditPaymentTerm;
 use Modules\MasterData\Filament\Resources\PaymentTerms\Pages\ListPaymentTerms;
 use Modules\MasterData\Filament\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Resources\PaymentTerms\Tables\PaymentTermsTable;
@@ -20,9 +16,11 @@ class PaymentTermResource extends Resource
 
     protected static ?string $model = PaymentTerm::class;
 
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 3;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance';
 
     public static function form(Schema $schema): Schema
     {

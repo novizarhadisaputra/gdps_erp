@@ -2,13 +2,9 @@
 
 namespace Modules\MasterData\Filament\Resources\ProductClusters;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\ProductClusters\Pages\CreateProductCluster;
-use Modules\MasterData\Filament\Resources\ProductClusters\Pages\EditProductCluster;
 use Modules\MasterData\Filament\Resources\ProductClusters\Pages\ListProductClusters;
 use Modules\MasterData\Filament\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Resources\ProductClusters\Tables\ProductClustersTable;
@@ -20,9 +16,11 @@ class ProductClusterResource extends Resource
 
     protected static ?string $model = ProductCluster::class;
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 1;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-group';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Project Structure';
 
     public static function form(Schema $schema): Schema
     {

@@ -5,8 +5,6 @@ namespace Modules\MasterData\Filament\Resources\Items;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\Items\Pages\CreateItem;
-use Modules\MasterData\Filament\Resources\Items\Pages\EditItem;
 use Modules\MasterData\Filament\Resources\Items\Pages\ListItems;
 use Modules\MasterData\Filament\Resources\Items\Schemas\ItemForm;
 use Modules\MasterData\Filament\Resources\Items\Tables\ItemsTable;
@@ -18,11 +16,11 @@ class ItemResource extends Resource
 
     protected static ?string $model = Item::class;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-cube';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Procurement Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Product & Inventory';
 
     public static function form(Schema $schema): Schema
     {

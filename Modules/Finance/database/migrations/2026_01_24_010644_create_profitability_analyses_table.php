@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('profitability_analyses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('proposal_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('client_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
+            $table->foreignId('general_information_id')->nullable()->constrained('general_informations')->onDelete('set null');
+            $table->unsignedBigInteger('proposal_id')->nullable();
             $table->foreignId('work_scheme_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('product_cluster_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('tax_id')->nullable()->constrained()->onDelete('set null');
@@ -25,8 +26,7 @@ return new class extends Migration
             $table->decimal('management_fee', 15, 2)->default(0);
             $table->decimal('margin_percentage', 5, 2)->default(0);
 
-            $table->json('manpower_details')->nullable();
-            $table->json('material_details')->nullable();
+            $table->json('analysis_details')->nullable();
 
             $table->integer('project_number')->nullable();
             $table->string('status')->default('draft'); // draft, approved, rejected, converted

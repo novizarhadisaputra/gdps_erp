@@ -19,24 +19,39 @@ class ProjectInformationObserver
         // Sync from Contract if available
         if ($project->contract_id) {
             $contract = $project->contract;
-            $info->revenue_per_month = $contract->proposal?->amount; // Mapping amount to revenue as proxy
+            $info->revenue_per_month = $contract->proposal?->amount;
             $info->start_date = $info->start_date ?? now();
             $info->end_date = $info->end_date ?? $contract->expiry_date;
         }
 
-        // Sync PIC from Client
-        if ($project->client_id) {
-            $client = $project->client;
-            $info->pic_client_name = $info->pic_client_name ?? $client->name;
-            // Assuming we might add phone/email to Client later,
-            // for now we use client name as a placeholder for PIC
+        // Sync PIC from Customer
+        if ($project->customer_id) {
+            $customer = $project->customer;
+            $info->pic_customer_name = $info->pic_customer_name ?? $customer->name;
         }
     }
 
     /**
      * Handle the ProjectInformation "created" event.
      */
-    public function updated(ProjectInformation $projectinformation): void {}
+    public function created(ProjectInformation $info): void
+    {
+        // Upload to 3rd party Risk Register
+        app(\Modules\Project\Services\RiskRegisterService::class)->uploadProjectInfo($info);
+    }
+
+    /**
+     * Handle the ProjectInformation "updated" event.
+     */
+    public function updated(ProjectInformation $info): void
+    {
+        if ($info->wasChanged(['start_date', 'end_date'])) {
+            $info->project()->update([
+                'start_date' => $info->start_date,
+                'end_date' => $info->end_date,
+            ]);
+        }
+    }
 
     /**
      * Handle the ProjectInformation "deleted" event.

@@ -21,9 +21,9 @@ class ItemFactory extends Factory
         return [
             'item_category_id' => ItemCategory::factory(),
             'unit_of_measure_id' => UnitOfMeasure::factory(),
-            'code' => $this->faker->unique()->bothify('ITEM-####'),
-            'name' => $this->faker->word(),
-            'description' => $this->faker->sentence(),
+            'code' => 'ITEM-' . mt_rand(1000, 9999) . '-' . microtime(true),
+            'name' => 'Item ' . mt_rand(1, 1000),
+            'description' => 'Item Description',
             'is_active' => true,
         ];
     }

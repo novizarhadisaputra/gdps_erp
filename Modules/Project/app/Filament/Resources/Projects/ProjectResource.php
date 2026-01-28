@@ -6,6 +6,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\Project\Filament\Resources\Projects\Pages\ListProjects;
+use Modules\Project\Filament\Resources\Projects\Pages\ProjectBoard;
 use Modules\Project\Filament\Resources\Projects\Schemas\ProjectForm;
 use Modules\Project\Filament\Resources\Projects\Tables\ProjectsTable;
 use Modules\Project\Models\Project;
@@ -40,7 +41,8 @@ class ProjectResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListProjects::route('/'),
+            'index' => ProjectBoard::route('/'),
+            'list' => ListProjects::route('/list'),
         ];
     }
 }

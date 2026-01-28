@@ -20,10 +20,14 @@ class Item extends Model
         'code',
         'name',
         'description',
+        'price',
+        'depreciation_rate',
         'is_active',
     ];
 
     protected $casts = [
+        'price' => 'decimal:2',
+        'depreciation_rate' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
@@ -40,5 +44,22 @@ class Item extends Model
     public function unitOfMeasure(): BelongsTo
     {
         return $this->belongsTo(UnitOfMeasure::class, 'unit_of_measure_id');
+    }
+
+    public function itemPrices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ItemPrice::class);
+    }
+
+    public function getPriceForArea(?int $areaId = null): float
+    {
+        if ($areaId) {
+            $areaPrice = $this->itemPrices->where('project_area_id', $areaId)->first();
+            if ($areaPrice) {
+                return (float) $areaPrice->price;
+            }
+        }
+
+        return (float) $this->price;
     }
 }

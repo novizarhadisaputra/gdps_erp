@@ -2,13 +2,9 @@
 
 namespace Modules\MasterData\Filament\Resources\WorkSchemes;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\WorkSchemes\Pages\CreateWorkScheme;
-use Modules\MasterData\Filament\Resources\WorkSchemes\Pages\EditWorkScheme;
 use Modules\MasterData\Filament\Resources\WorkSchemes\Pages\ListWorkSchemes;
 use Modules\MasterData\Filament\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Filament\Resources\WorkSchemes\Tables\WorkSchemesTable;
@@ -20,9 +16,11 @@ class WorkSchemeResource extends Resource
 
     protected static ?string $model = WorkScheme::class;
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 4;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Project Structure';
 
     public static function form(Schema $schema): Schema
     {

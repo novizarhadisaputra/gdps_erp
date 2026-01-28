@@ -17,9 +17,9 @@ class ItemCategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => $this->faker->unique()->bothify('CAT-####'),
-            'name' => $this->faker->word(),
-            'description' => $this->faker->sentence(),
+            'code' => 'CAT-' . mt_rand(100, 999),
+            'name' => 'Category ' . mt_rand(1, 100),
+            'description' => 'Category Description',
         ];
     }
 }

@@ -8,10 +8,9 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\CreateProfitabilityAnalysis;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\EditProfitabilityAnalysis;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Tables\ProfitabilityAnalysesTable;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 
@@ -35,6 +34,11 @@ class ProfitabilityAnalysisResource extends Resource
         return ProfitabilityAnalysesTable::configure($table);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return ProfitabilityAnalysisInfolist::configure($schema);
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -46,8 +50,6 @@ class ProfitabilityAnalysisResource extends Resource
     {
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
-            'create' => CreateProfitabilityAnalysis::route('/create'),
-            'edit' => EditProfitabilityAnalysis::route('/{record}/edit'),
         ];
     }
 }

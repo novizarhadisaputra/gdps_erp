@@ -2,13 +2,9 @@
 
 namespace Modules\MasterData\Filament\Resources\ProjectAreas;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\ProjectAreas\Pages\CreateProjectArea;
-use Modules\MasterData\Filament\Resources\ProjectAreas\Pages\EditProjectArea;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Pages\ListProjectAreas;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Tables\ProjectAreasTable;
@@ -20,9 +16,11 @@ class ProjectAreaResource extends Resource
 
     protected static ?string $model = ProjectArea::class;
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 2;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Project Structure';
 
     public static function form(Schema $schema): Schema
     {

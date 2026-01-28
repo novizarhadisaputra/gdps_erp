@@ -2,7 +2,13 @@
 
 namespace Modules\CRM\Filament\Resources\Contracts\Schemas;
 
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\ContractStatus;
+use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
 
 class ContractForm
 {
@@ -10,28 +16,28 @@ class ContractForm
     {
         return $schema
             ->components([
-                \Filament\Forms\Components\Select::make('client_id')
-                    ->relationship('client', 'name')
+                Select::make('customer_id')
+                    ->relationship('customer', 'name')
                     ->searchable()
                     ->preload()
-                    ->required(),
-                \Filament\Forms\Components\Select::make('proposal_id')
+                    ->required()
+                    ->createOptionForm(CustomerForm::schema()),
+                Select::make('proposal_id')
                     ->relationship('proposal', 'proposal_number')
                     ->searchable()
                     ->preload(),
-                \Filament\Forms\Components\TextInput::make('contract_number')
+                TextInput::make('contract_number')
                     ->required()
                     ->unique(ignoreRecord: true),
-                \Filament\Forms\Components\DatePicker::make('expiry_date'),
-                \Filament\Forms\Components\Select::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'active' => 'Active',
-                        'expired' => 'Expired',
-                        'terminated' => 'Terminated',
-                    ])
+                DatePicker::make('expiry_date'),
+                ToggleButtons::make('status')
+                    ->options(ContractStatus::class)
+                    ->default(ContractStatus::Draft)
+                    ->hiddenOn('create')
+                    ->disabled()
+                    ->inline()
                     ->required(),
-                \Filament\Forms\Components\Select::make('reminder_status')
+                Select::make('reminder_status')
                     ->options([
                         '6_month' => '6 Months Before',
                         '3_month' => '3 Months Before',

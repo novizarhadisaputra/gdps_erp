@@ -13,16 +13,12 @@ class ProjectInformation extends Model
 
     protected $fillable = [
         'project_id',
-        'pic_client_name',
-        'pic_client_phone',
-        'risk_management',
         'direct_cost',
         'process_date',
         'status',
         'start_date',
         'end_date',
         'description',
-        'feasibility_study',
         'profitability_analysis',
         'payment_term_id',
         'project_type_id',
@@ -36,17 +32,10 @@ class ProjectInformation extends Model
         'operational_visit_schedule',
         'bapp_cut_off_date',
         'revenue_per_month',
-        'pic_finance_name',
-        'pic_finance_phone',
-        'pic_finance_email',
         'max_invoice_send_date',
-        'material_equipment_details',
         'management_fee_per_month',
         'ppn_percentage',
-        'manpower_cleaner',
-        'manpower_leader_cleaner',
-        'manpower_engineer',
-        'manpower_security',
+        'analysis_details',
         'remuneration_details',
         'payroll_date',
         'overtime_cut_off_date',
@@ -55,7 +44,6 @@ class ProjectInformation extends Model
     protected function casts(): array
     {
         return [
-            'risk_management' => 'array',
             'process_date' => 'date',
             'start_date' => 'date',
             'end_date' => 'date',
@@ -67,14 +55,9 @@ class ProjectInformation extends Model
             'revenue_per_month' => 'decimal:2',
             'management_fee_per_month' => 'decimal:2',
             'ppn_percentage' => 'decimal:2',
-            'feasibility_study' => 'array',
             'profitability_analysis' => 'array',
-            'material_equipment_details' => 'array',
+            'analysis_details' => 'array',
             'remuneration_details' => 'array',
-            'manpower_cleaner' => 'integer',
-            'manpower_leader_cleaner' => 'integer',
-            'manpower_engineer' => 'integer',
-            'manpower_security' => 'integer',
         ];
     }
 

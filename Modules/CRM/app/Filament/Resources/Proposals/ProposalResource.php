@@ -7,16 +7,16 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Resources\Proposals\Pages\CreateProposal;
-use Modules\CRM\Filament\Resources\Proposals\Pages\EditProposal;
+use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Resources\Proposals\Pages\ListProposals;
 use Modules\CRM\Filament\Resources\Proposals\Schemas\ProposalForm;
+use Modules\CRM\Filament\Resources\Proposals\Schemas\ProposalInfolist;
 use Modules\CRM\Filament\Resources\Proposals\Tables\ProposalsTable;
 use Modules\CRM\Models\Proposal;
 
 class ProposalResource extends Resource
 {
-    protected static ?string $cluster = \Modules\CRM\Filament\Clusters\CRM\CRMCluster::class;
+    protected static ?string $cluster = CRMCluster::class;
 
     protected static ?string $model = Proposal::class;
 
@@ -32,6 +32,11 @@ class ProposalResource extends Resource
     public static function table(Table $table): Table
     {
         return ProposalsTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return ProposalInfolist::configure($schema);
     }
 
     public static function getRelations(): array

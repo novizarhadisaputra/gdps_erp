@@ -18,7 +18,7 @@ class ProjectFactory extends Factory
     {
         return [
             'name' => $this->faker->sentence(3),
-            'client_id' => \Modules\MasterData\Models\Client::factory(),
+            'customer_id' => \Modules\MasterData\Models\Customer::factory(),
             'project_number' => '0001',
             'work_scheme_id' => \Modules\MasterData\Models\WorkScheme::factory(),
             'product_cluster_id' => \Modules\MasterData\Models\ProductCluster::factory(),

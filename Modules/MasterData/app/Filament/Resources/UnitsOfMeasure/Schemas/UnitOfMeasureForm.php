@@ -10,15 +10,22 @@ class UnitOfMeasureForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
-                TextInput::make('name')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(255),
-                TextInput::make('code')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->maxLength(10),
-            ]);
+            ->components(static::schema());
+    }
+
+    public static function schema(): array
+    {
+        return [
+            TextInput::make('name')
+                ->required()
+                ->unique(ignoreRecord: true)
+                ->maxLength(255)
+                ->placeholder('Kilogram'),
+            TextInput::make('code')
+                ->required()
+                ->unique(ignoreRecord: true)
+                ->maxLength(10)
+                ->placeholder('KG'),
+        ];
     }
 }

@@ -2,13 +2,9 @@
 
 namespace Modules\MasterData\Filament\Resources\ProjectTypes;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\ProjectTypes\Pages\CreateProjectType;
-use Modules\MasterData\Filament\Resources\ProjectTypes\Pages\EditProjectType;
 use Modules\MasterData\Filament\Resources\ProjectTypes\Pages\ListProjectTypes;
 use Modules\MasterData\Filament\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Resources\ProjectTypes\Tables\ProjectTypesTable;
@@ -20,9 +16,11 @@ class ProjectTypeResource extends Resource
 
     protected static ?string $model = ProjectType::class;
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 3;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Project Structure';
 
     public static function form(Schema $schema): Schema
     {

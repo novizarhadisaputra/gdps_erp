@@ -2,7 +2,14 @@
 
 namespace Modules\CRM\Filament\Resources\Proposals\Schemas;
 
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\ProposalStatus;
+use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
+use Modules\MasterData\Filament\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 
 class ProposalForm
 {
@@ -10,28 +17,32 @@ class ProposalForm
     {
         return $schema
             ->components([
-                \Filament\Forms\Components\Select::make('client_id')
-                    ->relationship('client', 'name')
+                Select::make('customer_id')
+                    ->relationship('customer', 'name')
                     ->searchable()
                     ->preload()
-                    ->required(),
-                \Filament\Forms\Components\TextInput::make('proposal_number')
+                    ->required()
+                    ->createOptionForm(CustomerForm::schema()),
+                Select::make('work_scheme_id')
+                    ->relationship('workScheme', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm(WorkSchemeForm::schema()),
+                TextInput::make('proposal_number')
                     ->required()
                     ->unique(ignoreRecord: true),
-                \Filament\Forms\Components\TextInput::make('amount')
+                TextInput::make('amount')
                     ->numeric()
                     ->prefix('IDR')
                     ->required(),
-                \Filament\Forms\Components\Select::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'submitted' => 'Submitted',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
-                        'converted' => 'Converted',
-                    ])
+                ToggleButtons::make('status')
+                    ->options(ProposalStatus::class)
+                    ->default(ProposalStatus::Draft)
+                    ->hiddenOn('create')
+                    ->disabled()
+                    ->inline()
                     ->required(),
-                \Filament\Forms\Components\DatePicker::make('submission_date'),
+                DatePicker::make('submission_date'),
             ]);
     }
 }

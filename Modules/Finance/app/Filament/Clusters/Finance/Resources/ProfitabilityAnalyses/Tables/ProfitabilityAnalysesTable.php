@@ -4,11 +4,18 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Modules\Finance\Classes\ProjectGenerationService;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 
 class ProfitabilityAnalysesTable
 {
@@ -20,8 +27,8 @@ class ProfitabilityAnalysesTable
                     ->label('Proposal')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('client.name')
-                    ->label('Client')
+                TextColumn::make('customer.name')
+                    ->label('Customer')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('workScheme.name')
@@ -46,8 +53,9 @@ class ProfitabilityAnalysesTable
                     }),
             ])
             ->filters([
-                SelectFilter::make('client_id')
-                    ->relationship('client', 'name'),
+                SelectFilter::make('customer_id')
+                    ->label('Customer')
+                    ->relationship('customer', 'name'),
                 SelectFilter::make('status')
                     ->options([
                         'draft' => 'Draft',
@@ -57,21 +65,49 @@ class ProfitabilityAnalysesTable
                     ]),
             ])
             ->recordActions([
+                ViewAction::make()
+                    ->modalFooterActions([
+                        Action::make('Submit')
+                            ->color('info')
+                            ->icon('heroicon-o-paper-airplane')
+                            ->requiresConfirmation()
+                            ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'submitted']))
+                            ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'draft'),
+
+                        Action::make('Approve')
+                            ->color('success')
+                            ->icon('heroicon-o-check')
+                            ->requiresConfirmation()
+                            ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'approved']))
+                            ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'submitted'),
+
+                        Action::make('Reject')
+                            ->color('danger')
+                            ->icon('heroicon-o-x-mark')
+                            ->requiresConfirmation()
+                            ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'rejected']))
+                            ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'submitted'),
+                    ]),
                 EditAction::make(),
                 Action::make('generateProject')
                     ->label('Generate Project')
                     ->icon('heroicon-o-plus-circle')
                     ->color('success')
-                    ->hidden(fn ($record) => $record->status === 'converted')
+                    ->visible(fn ($record) => ! $record->project()->exists() &&
+                        $record->status === 'approved' &&
+                        $record->revenue_per_month !== null &&
+                        $record->margin_percentage !== null &&
+                        ! empty($record->analysis_details)
+                    )
                     ->form([
-                        \Filament\Forms\Components\Placeholder::make('summary')
-                            ->content(fn ($record) => "You are about to generate a Project for '{$record->client?->name}'. This will consume the next sequence number for this client and work scheme."),
-                        \Filament\Forms\Components\TextInput::make('project_name_override')
+                        Placeholder::make('summary')
+                            ->content(fn ($record) => "You are about to generate a Project for '{$record->customer?->name}'. This will consume the next sequence number for this customer and work scheme."),
+                        TextInput::make('project_name_override')
                             ->label('Project Name (Optional)')
-                            ->placeholder(fn ($record) => $record->proposal?->proposal_number ?? 'Project for '.$record->client?->name),
+                            ->placeholder(fn ($record) => $record->proposal?->proposal_number ?? 'Project for '.$record->customer?->name),
                     ])
                     ->action(function ($record, array $data) {
-                        $service = app(\Modules\Finance\Classes\ProjectGenerationService::class);
+                        $service = app(ProjectGenerationService::class);
 
                         // We could pass the override name to the service if needed
                         $project = $service->generateFromPA($record);
@@ -80,12 +116,49 @@ class ProfitabilityAnalysesTable
                             $project->update(['name' => $data['project_name_override']]);
                         }
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Project Generated')
                             ->body("Project Code: {$project->code}")
                             ->success()
                             ->send();
                     }),
+                Action::make('createProposal')
+                    ->label('Create Proposal')
+                    ->icon('heroicon-o-document-plus')
+                    ->color('primary')
+                    ->visible(fn (ProfitabilityAnalysis $record) => ! $record->proposal_id && $record->status === 'approved')
+                    ->form([
+                        TextInput::make('proposal_number')
+                            ->required()
+                            ->unique('proposals', 'proposal_number'),
+                        TextInput::make('amount')
+                            ->default(fn (ProfitabilityAnalysis $record) => $record->revenue_per_month)
+                            ->numeric()
+                            ->prefix('IDR')
+                            ->required(),
+                        \Filament\Forms\Components\DatePicker::make('submission_date')
+                            ->default(now())
+                            ->required(),
+                    ])
+                    ->action(function (ProfitabilityAnalysis $record, array $data) {
+                        $proposal = \Modules\CRM\Models\Proposal::create([
+                            'customer_id' => $record->customer_id,
+                            'profitability_analysis_id' => $record->id,
+                            'work_scheme_id' => $record->work_scheme_id,
+                            'proposal_number' => $data['proposal_number'],
+                            'amount' => $data['amount'],
+                            'submission_date' => $data['submission_date'],
+                            'status' => \Modules\CRM\Enums\ProposalStatus::Draft,
+                        ]);
+
+                        $record->update(['proposal_id' => $proposal->id]);
+
+                        Notification::make()
+                            ->title('Proposal Created')
+                            ->success()
+                            ->send();
+                    }),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

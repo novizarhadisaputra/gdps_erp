@@ -2,13 +2,9 @@
 
 namespace Modules\MasterData\Filament\Resources\Taxes;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\Taxes\Pages\CreateTax;
-use Modules\MasterData\Filament\Resources\Taxes\Pages\EditTax;
 use Modules\MasterData\Filament\Resources\Taxes\Pages\ListTaxes;
 use Modules\MasterData\Filament\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Resources\Taxes\Tables\TaxesTable;
@@ -20,9 +16,11 @@ class TaxResource extends Resource
 
     protected static ?string $model = Tax::class;
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-receipt-percent';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance';
 
     public static function form(Schema $schema): Schema
     {

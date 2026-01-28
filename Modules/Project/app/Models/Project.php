@@ -18,7 +18,7 @@ class Project extends Model
         'code',
         'name',
         'status',
-        'client_id',
+        'customer_id',
         'contract_id',
         'project_number',
         'work_scheme_id',
@@ -66,9 +66,9 @@ class Project extends Model
         return $this->belongsTo(\Modules\CRM\Models\Contract::class);
     }
 
-    public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Client::class);
+        return $this->belongsTo(\Modules\MasterData\Models\Customer::class);
     }
 
     public function workScheme(): \Illuminate\Database\Eloquent\Relations\BelongsTo

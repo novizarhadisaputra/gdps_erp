@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ariaieboy/filament-currency": "^2.0",
         "barryvdh/laravel-dompdf": "^3.0",
         "bezhansalleh/filament-shield": "^4.0",
         "coolsam/modules": "^5.0",

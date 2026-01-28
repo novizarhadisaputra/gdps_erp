@@ -51,7 +51,7 @@ class MasterCodeSeeder extends Seeder
         }
 
         // Companies
-        // Companies
+        /*
         $companies = [
             ['code' => 'ABB', 'name' => 'PT Anugerah Bangun Bersama'],
             ['code' => 'ACE', 'name' => 'PT Anugrah Cita Era Food'],
@@ -182,7 +182,7 @@ class MasterCodeSeeder extends Seeder
                 }
             }
 
-            \Modules\MasterData\Models\Client::updateOrCreate(
+            \Modules\MasterData\Models\Customer::updateOrCreate(
                 ['code' => $data['code']],
                 [
                     'name' => $cleanName,
@@ -191,6 +191,7 @@ class MasterCodeSeeder extends Seeder
                 ]
             );
         }
+        */
 
         // Project Areas
         $areas = [
@@ -357,6 +358,118 @@ class MasterCodeSeeder extends Seeder
         ];
         foreach ($areas as $data) {
             \Modules\MasterData\Models\ProjectArea::updateOrCreate(['name' => $data['name']], $data);
+        }
+        // Payment Terms
+        $paymentTerms = [
+            ['code' => 'TOP<30', 'name' => '<30 Hari Kalender'],
+            ['code' => 'TOP30', 'name' => '30 Hari Kalender'],
+            ['code' => 'TOP60', 'name' => '60 Hari Kalender'],
+            ['code' => 'TOP90', 'name' => '90 Hari Kalender'],
+        ];
+        foreach ($paymentTerms as $data) {
+            \Modules\MasterData\Models\PaymentTerm::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Project Types
+        $projectTypes = [
+            ['code' => 'HC', 'name' => 'Headcount'],
+            ['code' => 'BRG', 'name' => 'Borongan'],
+            ['code' => 'OTH', 'name' => 'Others'],
+        ];
+        foreach ($projectTypes as $data) {
+            \Modules\MasterData\Models\ProjectType::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Units of Measure
+        $uoms = [
+            ['code' => 'PRS', 'name' => 'Person'],
+            ['code' => 'LOT', 'name' => 'Lot'],
+            ['code' => 'PCS', 'name' => 'Pieces'],
+            ['code' => 'SET', 'name' => 'Set'],
+            ['code' => 'BOX', 'name' => 'Box'],
+            ['code' => 'LTR', 'name' => 'Liter'],
+            ['code' => 'ROLL', 'name' => 'Roll'],
+        ];
+        foreach ($uoms as $data) {
+            \Modules\MasterData\Models\UnitOfMeasure::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Item Categories
+        $categories = [
+            ['code' => 'MP', 'name' => 'Manpower'],
+            ['code' => 'MT', 'name' => 'Material'],
+            ['code' => 'EQ', 'name' => 'Equipment'],
+        ];
+        foreach ($categories as $data) {
+            \Modules\MasterData\Models\ItemCategory::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Items
+        $items = [
+            // Manpower
+            ['category' => 'Manpower', 'name' => 'Cleaner', 'code' => 'MP-CLN', 'uom' => 'PRS'],
+            ['category' => 'Manpower', 'name' => 'Leader Cleaner', 'code' => 'MP-LDR', 'uom' => 'PRS'],
+            ['category' => 'Manpower', 'name' => 'Team Leader', 'code' => 'MP-TL', 'uom' => 'PRS'],
+            ['category' => 'Manpower', 'name' => 'Engineer', 'code' => 'MP-ENG', 'uom' => 'PRS'],
+            ['category' => 'Manpower', 'name' => 'Security', 'code' => 'MP-SEC', 'uom' => 'PRS'],
+            ['category' => 'Manpower', 'name' => 'Satpam', 'code' => 'MP-SAT', 'uom' => 'PRS'],
+            ['category' => 'Manpower', 'name' => 'Teknisi', 'code' => 'MP-TEK', 'uom' => 'PRS'],
+
+            // Materials
+            ['category' => 'Material', 'name' => 'Sabun Cuci Tangan', 'code' => 'MT-SBT', 'uom' => 'LTR'],
+            ['category' => 'Material', 'name' => 'Cairan Pembersih Lantai', 'code' => 'MT-CPL', 'uom' => 'LTR'],
+            ['category' => 'Material', 'name' => 'Tissue Roll', 'code' => 'MT-TSR', 'uom' => 'ROLL'],
+        ];
+
+        foreach ($items as $itemData) {
+            $category = \Modules\MasterData\Models\ItemCategory::where('name', $itemData['category'])->first();
+            $uom = \Modules\MasterData\Models\UnitOfMeasure::where('code', $itemData['uom'])->first();
+
+            if ($category && $uom) {
+                \Modules\MasterData\Models\Item::updateOrCreate(
+                    ['code' => $itemData['code']],
+                    [
+                        'item_category_id' => $category->id,
+                        'unit_of_measure_id' => $uom->id,
+                        'name' => $itemData['name'],
+                        'is_active' => true,
+                    ]
+                );
+            }
+        }
+
+        // Billing Options
+        $billingOptions = [
+            ['code' => 'BILL', 'name' => 'Ditagihkan'],
+            ['code' => 'NB_CMP', 'name' => 'Tidak Ditagihkan (Dibebankan oleh Perusahaan)'],
+            ['code' => 'NB_TAD', 'name' => 'Tidak Ditagihkan (Dibebankan ke TAD)'],
+            ['code' => 'RMB', 'name' => 'Reimburse'],
+            ['code' => 'RMB_FEE', 'name' => 'Reimburse + Management Fee'],
+            ['code' => 'NB', 'name' => 'Tidak Ditagihkan'],
+            ['code' => 'OTH_BAPP', 'name' => 'Other BAPP'],
+        ];
+        foreach ($billingOptions as $data) {
+            \Modules\MasterData\Models\BillingOption::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Employees (OPREP & AMS)
+        $employees = [
+            'Hasim', 'Nawiri', 'Odith', 'Raka Purnama', 'Frengki', 'Lukas', 'Rohimin',
+            'Acep', 'Zai', 'Rangga', 'Doni', 'Widodo', 'Luberta', 'Anjar Mohammad',
+            'Emilia Maya', 'komang Evy', 'Asmudarwis', 'Dian Hadi', 'Seprian', 'Wahyu',
+            'Iwan', 'Yunais',
+            'Intan Fitriya', 'Faisal Jamil', 'Rizka Nugraha',
+        ];
+
+        foreach ($employees as $name) {
+            \Modules\MasterData\Models\Employee::firstOrCreate(
+                ['name' => $name],
+                [
+                    'code' => strtoupper(substr(str_replace(' ', '', $name), 0, 3)).rand(100, 999),
+                    'email' => strtolower(str_replace(' ', '.', $name)).'@example.com',
+                    'status' => 'active',
+                ]
+            );
         }
     }
 }

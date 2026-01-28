@@ -10,6 +10,13 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Filament\Resources\BillingOptions\Schemas\BillingOptionForm;
+use Modules\MasterData\Filament\Resources\Employees\Schemas\EmployeeForm;
+use Modules\MasterData\Filament\Resources\Items\Schemas\ItemForm;
+use Modules\MasterData\Filament\Resources\PaymentTerms\Schemas\PaymentTermForm;
+use Modules\MasterData\Filament\Resources\ProjectTypes\Schemas\ProjectTypeForm;
+use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\ItemCategory;
 
 class ProjectInformationForm
 {
@@ -42,13 +49,6 @@ class ProjectInformationForm
                                 DatePicker::make('start_date')->native(false),
                                 DatePicker::make('end_date')->after('start_date')->native(false),
 
-                                // PIC Section
-                                TextInput::make('pic_client_name')->label('Nama Klien (PIC)'),
-                                TextInput::make('pic_client_phone')->label('Nomor Telp (PIC)')->tel(),
-                                TextInput::make('pic_finance_name')->label('Nama Keuangan (PIC)'),
-                                TextInput::make('pic_finance_phone')->label('No. Telp Keuangan (PIC)')->tel(),
-                                TextInput::make('pic_finance_email')->label('Email Keuangan (PIC)')->email(),
-
                                 // Operational & Financial Details
                                 TextInput::make('operational_visit_schedule')->label('Jadwal Kunjungan Operasional'),
                                 DatePicker::make('bapp_cut_off_date')->label('Tanggal Cut Off BAPP')->native(false),
@@ -56,16 +56,15 @@ class ProjectInformationForm
                                 DatePicker::make('max_invoice_send_date')->label('Tanggal Maks. Pengiriman Invoice')->native(false),
 
                                 TextInput::make('direct_cost')
-                                    ->numeric()
-                                    ->prefix('IDR')
-                                    ->label('Nilai Direct Cost/month'),
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->label('Nilai Direct Cost/month')
+                                    ->helperText('Contoh: 80,000,000'),
                                 TextInput::make('revenue_per_month')
-                                    ->numeric()
-                                    ->prefix('IDR')
-                                    ->label('Nilai Revenue / bulan'),
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->label('Nilai Revenue / bulan')
+                                    ->helperText('Contoh: 100,000,000'),
                                 TextInput::make('management_fee_per_month')
-                                    ->numeric()
-                                    ->prefix('IDR')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                                     ->label('Management Fee / month'),
                                 TextInput::make('ppn_percentage')
                                     ->numeric()
@@ -73,61 +72,57 @@ class ProjectInformationForm
                                     ->default(11)
                                     ->label('PPN (%)'),
 
-                                Select::make('payment_term_id')->relationship('paymentTerm', 'name')->label('ToP')->searchable()->preload(),
-                                Select::make('project_type_id')->relationship('projectType', 'name')->searchable()->preload(),
-                                Select::make('billing_option_id')->relationship('billingOption', 'name')->searchable()->preload(),
-                                Select::make('oprep_id')->relationship('oprep', 'name')->label('Nama Oprep')->searchable()->preload(),
-                                Select::make('ams_id')->relationship('ams', 'name')->label('Nama AMS')->searchable()->preload(),
+                                Select::make('payment_term_id')->relationship('paymentTerm', 'name')->label('ToP')->searchable()->preload()->createOptionForm(PaymentTermForm::schema()),
+                                Select::make('project_type_id')->relationship('projectType', 'name')->searchable()->preload()->createOptionForm(ProjectTypeForm::schema()),
+                                Select::make('billing_option_id')->relationship('billingOption', 'name')->searchable()->preload()->createOptionForm(BillingOptionForm::schema()),
+                                Select::make('oprep_id')->relationship('oprep', 'name')->label('Nama Oprep')->searchable()->preload()->createOptionForm(EmployeeForm::schema()),
+                                Select::make('ams_id')->relationship('ams', 'name')->label('Nama AMS')->searchable()->preload()->createOptionForm(EmployeeForm::schema()),
 
                                 Textarea::make('description')->columnSpanFull()->rows(3),
                                 Textarea::make('remarks')->columnSpanFull()->rows(2),
                             ])
                             ->columns(2),
                         Tab::make('Materials & Manpower')
-                            ->schema([
-                                // Manpower Section
-                                TextInput::make('manpower_cleaner')->numeric()->label('Cleaner')->default(0),
-                                TextInput::make('manpower_leader_cleaner')->numeric()->label('Leader Cleaner')->default(0),
-                                TextInput::make('manpower_engineer')->numeric()->label('Engineer')->default(0),
-                                TextInput::make('manpower_security')->numeric()->label('Security')->default(0),
+                            ->schema(function () {
+                                $schemas = [];
+                                $categories = ItemCategory::where('is_active', true)->get();
 
-                                // Materials & Equipment (JSON)
-                                Repeater::make('material_equipment_details')
-                                    ->schema([
-                                        Select::make('item_id')
-                                            ->label('Item')
-                                            ->options(\Modules\MasterData\Models\Item::pluck('name', 'id'))
-                                            ->required()
-                                            ->searchable()
-                                            ->preload(),
-                                        TextInput::make('specification')->placeholder('e.g., Laki-laki, 3 layer'),
-                                        TextInput::make('quantity')->numeric()->default(1),
-                                        TextInput::make('notes'),
-                                    ])
-                                    ->columns(2)
-                                    ->columnSpanFull()
-                                    ->addActionLabel('Add Material/Equipment'),
+                                foreach ($categories as $category) {
+                                    $isManpower = $category->name === 'Manpower';
+                                    $schemas[] = Repeater::make("analysis_details.{$category->id}")
+                                        ->label($category->name.' Details')
+                                        ->live()
+                                        ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set))
+                                        ->schema([
+                                            Select::make('item_id')
+                                                ->label('Item')
+                                                ->searchable()
+                                                ->preload()
+                                                ->options(fn () => Item::where('item_category_id', $category->id)->pluck('name', 'id'))
+                                                ->createOptionForm(ItemForm::schema())
+                                                ->createOptionUsing(function (array $data) use ($category): int {
+                                                    $data['item_category_id'] = $category->id;
 
-                                // Risk & Feasibility
-                                Repeater::make('risk_management')
-                                    ->schema([
-                                        TextInput::make('risk_item')->required(),
-                                        TextInput::make('mitigation')->required(),
-                                    ])
-                                    ->columns(2)
-                                    ->columnSpanFull()
-                                    ->addActionLabel('Add Risk Item'),
-                                Repeater::make('feasibility_study')
-                                    ->schema([
-                                        TextInput::make('item')->required(),
-                                        TextInput::make('value')->required(),
-                                        Textarea::make('notes')->rows(2),
-                                    ])
-                                    ->columns(2)
-                                    ->columnSpanFull()
-                                    ->addActionLabel('Add Feasibility Item'),
-                            ])
-                            ->columns(2),
+                                                    return Item::create($data)->id;
+                                                })
+                                                ->required(),
+                                            TextInput::make('quantity')
+                                                ->label($isManpower ? 'Count' : 'Quantity')
+                                                ->numeric()->default(1)
+                                                ->live(onBlur: true)
+                                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                            TextInput::make('price')
+                                                ->label($isManpower ? 'Salary' : 'Price')
+                                                ->numeric()->prefix('IDR')
+                                                ->live(onBlur: true)
+                                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                            TextInput::make('notes'),
+                                        ])->columns(4)
+                                        ->addActionLabel("Add {$category->name}");
+                                }
+
+                                return $schemas;
+                            }),
                         Tab::make('Remuneration')
                             ->schema([
                                 DatePicker::make('payroll_date')->label('Tanggal Penggajian TAD')->native(false),
@@ -169,5 +164,19 @@ class ProjectInformationForm
                     ])
                     ->columnSpanFull(),
             ]);
+    }
+
+    protected static function calculateDirectCost($get, $set): void
+    {
+        $analysisDetails = $get('analysis_details') ?? [];
+        $totalDirectCost = 0;
+
+        foreach ($analysisDetails as $categoryId => $items) {
+            $totalDirectCost += collect($items)->reduce(function ($carry, $item) {
+                return $carry + (($item['quantity'] ?? 0) * ($item['price'] ?? 0));
+            }, 0);
+        }
+
+        $set('direct_cost', $totalDirectCost);
     }
 }

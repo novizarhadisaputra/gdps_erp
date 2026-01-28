@@ -5,8 +5,6 @@ namespace Modules\MasterData\Filament\Resources\UnitsOfMeasure;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Pages\CreateUnitOfMeasure;
-use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Pages\EditUnitOfMeasure;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Pages\ListUnitsOfMeasure;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Tables\UnitsOfMeasureTable;
@@ -18,11 +16,11 @@ class UnitOfMeasureResource extends Resource
 
     protected static ?string $model = UnitOfMeasure::class;
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 3;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-scale';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Procurement Master';
+    protected static string|\UnitEnum|null $navigationGroup = 'Product & Inventory';
 
     public static function form(Schema $schema): Schema
     {

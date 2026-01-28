@@ -22,6 +22,11 @@ class ProjectPlugin implements Plugin
 
     public function boot(Panel $panel): void
     {
-        // TODO: Implement boot() method.
+        $module = $this->getModule();
+        $panel
+            ->discoverResources(in: $module->appPath('Filament'.DIRECTORY_SEPARATOR.'Resources'), for: $module->appNamespace('\\Filament\\Resources'))
+            ->discoverClusters(in: $module->appPath('Filament'.DIRECTORY_SEPARATOR.'Clusters'), for: $module->appNamespace('\\Filament\\Clusters'))
+            ->discoverPages(in: $module->appPath('Filament'.DIRECTORY_SEPARATOR.'Clusters'.DIRECTORY_SEPARATOR.'Project'.DIRECTORY_SEPARATOR.'Pages'), for: $module->appNamespace('\\Filament\\Clusters\\Project\\Pages'))
+            ->discoverWidgets(in: $module->appPath('Filament'.DIRECTORY_SEPARATOR.'Clusters'.DIRECTORY_SEPARATOR.'Project'.DIRECTORY_SEPARATOR.'Widgets'), for: $module->appNamespace('\\Filament\\Clusters\\Project\\Widgets'));
     }
 }

@@ -4,33 +4,41 @@ namespace Modules\CRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-// use Modules\CRM\Database\Factories\ContractFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CRM\Database\Factories\ContractFactory;
+use Modules\CRM\Enums\ContractStatus;
+use Modules\MasterData\Models\Customer;
 
 class Contract extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'client_id',
+        'customer_id',
         'proposal_id',
         'contract_number',
         'expiry_date',
         'status',
         'reminder_status',
+        'termination_reason',
     ];
 
-    protected static function newFactory(): \Modules\CRM\Database\Factories\ContractFactory
+    protected $casts = [
+        'status' => ContractStatus::class,
+        'expiry_date' => 'date',
+    ];
+
+    protected static function newFactory(): ContractFactory
     {
-        return \Modules\CRM\Database\Factories\ContractFactory::new();
+        return ContractFactory::new();
     }
 
-    public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Client::class);
+        return $this->belongsTo(Customer::class);
     }
 
-    public function proposal(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
     }

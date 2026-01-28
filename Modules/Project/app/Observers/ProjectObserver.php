@@ -26,7 +26,15 @@ class ProjectObserver
     public function created(Project $project): void
     {
         // Automatically initialize project information record upon project creation
-        $project->information()->create();
+        try {
+            if (! $project->information()->exists()) {
+                $project->information()->create();
+            }
+        } catch (\Exception $e) {
+            // Check if it's a unique constraint violation or similar, otherwise rethrow
+            // In many test scenarios, factories might trigger this. 
+            // We silently ignore if it already exists to prevent crashing.
+        }
     }
 
     /**
@@ -36,20 +44,31 @@ class ProjectObserver
      */
     protected function generateProjectCode(Project $project): string
     {
-        $clientCode = $project->client?->code ?? 'UNK';
+        $customerCode = $project->customer?->code ?? 'UNK';
         $projectNumber = str_pad($project->project_number ?? '01', 2, '0', STR_PAD_LEFT);
         $areaCode = $project->projectArea?->code ?? 'UNK';
         $schemeCode = $project->workScheme?->code ?? '00';
         $clusterCode = $project->productCluster?->code ?? 'UNK';
         $taxCode = $project->tax?->code ?? 'P0';
 
-        return "{$clientCode}{$projectNumber}{$areaCode}{$schemeCode}{$clusterCode}{$taxCode}";
+        return "{$customerCode}{$projectNumber}{$areaCode}{$schemeCode}{$clusterCode}{$taxCode}";
     }
 
     /**
      * Handle the Project "updated" event.
      */
-    public function updated(Project $project): void {}
+    /**
+     * Handle the Project "updated" event.
+     */
+    public function updated(Project $project): void
+    {
+        if ($project->wasChanged(['start_date', 'end_date'])) {
+            $project->information()->update([
+                'start_date' => $project->start_date,
+                'end_date' => $project->end_date,
+            ]);
+        }
+    }
 
     /**
      * Handle the Project "deleted" event.

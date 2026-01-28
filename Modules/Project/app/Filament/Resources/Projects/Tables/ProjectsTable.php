@@ -4,8 +4,9 @@ namespace Modules\Project\Filament\Resources\Projects\Tables;
 
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Table;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -21,8 +22,8 @@ class ProjectsTable
                 \Filament\Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('client.name')
-                    ->label('Client')
+                \Filament\Tables\Columns\TextColumn::make('customer.name')
+                    ->label('Customer')
                     ->searchable()
                     ->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('status')
@@ -89,9 +90,9 @@ class ProjectsTable
                         'on hold' => 'On Hold',
                         'cancelled' => 'Cancelled',
                     ]),
-                \Filament\Tables\Filters\SelectFilter::make('client_id')
-                    ->relationship('client', 'name')
-                    ->label('Client')
+                \Filament\Tables\Filters\SelectFilter::make('customer_id')
+                    ->relationship('customer', 'name')
+                    ->label('Customer')
                     ->searchable()
                     ->preload(),
                 \Filament\Tables\Filters\SelectFilter::make('project_area_id')
@@ -100,18 +101,20 @@ class ProjectsTable
                     ->searchable()
                     ->preload(),
             ])
-            ->recordActions([
+            ->actions([
+                ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    \Filament\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make(),
+                ]),
             ])
             ->headerActions([
                 ExcelImportAction::make()
                     ->color('info'),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ExportBulkAction::make(),
-                ]),
             ]);
     }
 }

@@ -7,16 +7,16 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Resources\Contracts\Pages\CreateContract;
-use Modules\CRM\Filament\Resources\Contracts\Pages\EditContract;
+use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Resources\Contracts\Pages\ListContracts;
 use Modules\CRM\Filament\Resources\Contracts\Schemas\ContractForm;
+use Modules\CRM\Filament\Resources\Contracts\Schemas\ContractInfolist;
 use Modules\CRM\Filament\Resources\Contracts\Tables\ContractsTable;
 use Modules\CRM\Models\Contract;
 
 class ContractResource extends Resource
 {
-    protected static ?string $cluster = \Modules\CRM\Filament\Clusters\CRM\CRMCluster::class;
+    protected static ?string $cluster = CRMCluster::class;
 
     protected static ?string $model = Contract::class;
 
@@ -32,6 +32,11 @@ class ContractResource extends Resource
     public static function table(Table $table): Table
     {
         return ContractsTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return ContractInfolist::configure($schema);
     }
 
     public static function getRelations(): array

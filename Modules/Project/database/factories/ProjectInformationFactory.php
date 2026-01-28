@@ -19,9 +19,7 @@ class ProjectInformationFactory extends Factory
     {
         return [
             'project_id' => Project::factory(),
-            'pic_client_name' => $this->faker->name(),
-            'pic_client_phone' => $this->faker->phoneNumber(),
-            'status' => 'draft',
+            'status' => 'planning',
             'start_date' => now(),
             'end_date' => now()->addYear(),
         ];

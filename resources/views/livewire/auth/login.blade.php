@@ -20,10 +20,7 @@
                         class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
                         <div
                             class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
+                            <x-heroicon-o-presentation-chart-bar class="h-6 w-6" />
                         </div>
                         <h3 class="font-bold text-gray-900">CRM & Sales</h3>
                         <p class="text-xs text-gray-500 mt-1 leading-relaxed">Manage Lead Pipelines, Proposal
@@ -34,10 +31,7 @@
                         class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
                         <div
                             class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                            <x-heroicon-o-banknotes class="h-6 w-6" />
                         </div>
                         <h3 class="font-bold text-gray-900">Finance Core</h3>
                         <p class="text-xs text-gray-500 mt-1 leading-relaxed">SAP compatible General Ledger, automated
@@ -48,10 +42,7 @@
                         class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
                         <div
                             class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                            </svg>
+                            <x-heroicon-o-clipboard-document-check class="h-6 w-6" />
                         </div>
                         <h3 class="font-bold text-gray-900">Project Management</h3>
                         <p class="text-xs text-gray-500 mt-1 leading-relaxed">Master PI verification, automated Project
@@ -62,10 +53,7 @@
                         class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
                         <div
                             class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
+                            <x-heroicon-o-truck class="h-6 w-6" />
                         </div>
                         <h3 class="font-bold text-gray-900">Logistics & Asset</h3>
                         <p class="text-xs text-gray-500 mt-1 leading-relaxed">Procurement lifecycle (PR/PO), Multi-site
@@ -79,10 +67,7 @@
                 <div class="text-center lg:text-left lg:hidden">
                     <div
                         class="mx-auto h-16 w-16 lg:mx-0 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                        <x-heroicon-o-computer-desktop class="h-10 w-10 text-white" />
                     </div>
                     <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
                         GDPS ERP System
@@ -108,10 +93,7 @@
                             <div class="relative">
                                 <div
                                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
-                                    </svg>
+                                    <x-heroicon-o-envelope class="h-5 w-5" />
                                 </div>
                                 <input wire:model="email" id="email" type="email" required autocomplete="email"
                                     class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 @error('email') border-red-500 @enderror"
@@ -130,29 +112,19 @@
                             <div class="relative">
                                 <div
                                     class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
+                                    <x-heroicon-o-lock-closed class="h-5 w-5" />
                                 </div>
                                 <input wire:model="password" id="password" :type="show ? 'text' : 'password'" required
                                     autocomplete="current-password"
                                     class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 @error('password') border-red-500 @enderror"
                                     placeholder="••••••••">
                                 <button type="button" @click="show = !show"
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-amber-600 transition-colors">
-                                    <svg x-show="!show" class="h-5 w-5" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    <svg x-show="show" class="h-5 w-5" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24" x-cloak>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                    </svg>
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-amber-600 transition-colors cursor-pointer focus:outline-none">
+                                    {{-- Eye Icon (Show Password) --}}
+                                    <x-heroicon-o-eye x-show="!show" class="h-5 w-5" />
+
+                                    {{-- Eye Slash Icon (Hide Password) --}}
+                                    <x-heroicon-o-eye-slash x-show="show" x-cloak class="h-5 w-5" />
                                 </button>
                             </div>
                             @error('password')
@@ -170,13 +142,20 @@
                         </div>
 
                         {{-- Submit Button --}}
-                        <button type="submit"
-                            class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-200 shadow-lg hover:shadow-xl">
-                            <span>Sign in to Dashboard</span>
-                            <svg class="h-4 w-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        <button type="submit" wire:loading.attr="disabled"
+                            class="w-full flex justify-center items-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span wire:loading.remove>Sign in to Dashboard</span>
+                            <x-heroicon-o-arrow-right wire:loading.remove class="h-4 w-4 ml-2" />
+
+                            <svg wire:loading class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
                             </svg>
+                            <span wire:loading class="ml-2">Signing in...</span>
                         </button>
                     </form>
                 </div>
@@ -187,8 +166,7 @@
                         &copy; {{ date('Y') }} PT Garuda Daya Pratama Sejahtera
                     </p>
                     <div class="mt-2 flex justify-center space-x-4">
-                        <a href="#"
-                            class="text-xs text-gray-400 hover:text-amber-600 transition-colors">Internal
+                        <a href="#" class="text-xs text-gray-400 hover:text-amber-600 transition-colors">Internal
                             Portal</a>
                         <span class="text-gray-300">•</span>
                         <a href="#"

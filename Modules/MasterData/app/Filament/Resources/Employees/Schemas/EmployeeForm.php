@@ -12,34 +12,44 @@ class EmployeeForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
-                Section::make()
-                    ->schema([
-                        TextInput::make('code')
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255),
-                        TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
-                        TextInput::make('email')
-                            ->email()
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            ->maxLength(255),
-                        TextInput::make('position')
-                            ->maxLength(255),
-                        TextInput::make('department')
-                            ->maxLength(255),
-                        Select::make('status')
-                            ->options([
-                                'active' => 'Active',
-                                'inactive' => 'Inactive',
-                            ])
-                            ->required()
-                            ->default('active'),
-                    ])
-                    ->columns(2),
-            ]);
+            ->components(static::schema());
+    }
+
+    public static function schema(): array
+    {
+        return [
+            Section::make()
+                ->schema([
+                    TextInput::make('code')
+                        ->required()
+                        ->unique(ignoreRecord: true)
+                        ->maxLength(255)
+                        ->placeholder('EMP001'),
+                    TextInput::make('name')
+                        ->required()
+                        ->maxLength(255)
+                        ->placeholder('John Doe'),
+                    TextInput::make('email')
+                        ->email()
+                        ->required()
+                        ->unique(ignoreRecord: true)
+                        ->maxLength(255)
+                        ->placeholder('john.doe@example.com'),
+                    TextInput::make('position')
+                        ->maxLength(255)
+                        ->placeholder('Senior Developer'),
+                    TextInput::make('department')
+                        ->maxLength(255)
+                        ->placeholder('IT Department'),
+                    Select::make('status')
+                        ->options([
+                            'active' => 'Active',
+                            'inactive' => 'Inactive',
+                        ])
+                        ->required()
+                        ->default('active'),
+                ])
+                ->columns(2),
+        ];
     }
 }

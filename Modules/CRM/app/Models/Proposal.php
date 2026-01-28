@@ -4,15 +4,20 @@ namespace Modules\CRM\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-// use Modules\CRM\Database\Factories\ProposalFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\CRM\Database\Factories\ProposalFactory;
+use Modules\CRM\Enums\ProposalStatus;
+use Modules\MasterData\Models\Customer;
+use Modules\MasterData\Models\WorkScheme;
 
 class Proposal extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'client_id',
+        'customer_id',
+        'profitability_analysis_id',
         'work_scheme_id',
         'proposal_number',
         'amount',
@@ -20,23 +25,33 @@ class Proposal extends Model
         'submission_date',
     ];
 
-    protected static function newFactory(): \Modules\CRM\Database\Factories\ProposalFactory
+    protected $casts = [
+        'status' => ProposalStatus::class,
+        'submission_date' => 'date',
+    ];
+
+    protected static function newFactory(): ProposalFactory
     {
-        return \Modules\CRM\Database\Factories\ProposalFactory::new();
+        return ProposalFactory::new();
     }
 
-    public function client(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Client::class);
+        return $this->belongsTo(Customer::class);
     }
 
-    public function workScheme(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function workScheme(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\WorkScheme::class);
+        return $this->belongsTo(WorkScheme::class);
     }
 
-    public function contracts(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function contracts(): HasMany
     {
         return $this->hasMany(Contract::class);
+    }
+
+    public function profitabilityAnalysis(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Finance\Models\ProfitabilityAnalysis::class);
     }
 }

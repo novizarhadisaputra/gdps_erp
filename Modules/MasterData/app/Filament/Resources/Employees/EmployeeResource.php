@@ -5,8 +5,6 @@ namespace Modules\MasterData\Filament\Resources\Employees;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Resources\Employees\Pages\CreateEmployee;
-use Modules\MasterData\Filament\Resources\Employees\Pages\EditEmployee;
 use Modules\MasterData\Filament\Resources\Employees\Pages\ListEmployees;
 use Modules\MasterData\Filament\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Resources\Employees\Tables\EmployeesTable;
@@ -18,9 +16,11 @@ class EmployeeResource extends Resource
 
     protected static ?string $model = Employee::class;
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-identification';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 
     public static function form(Schema $schema): Schema
     {

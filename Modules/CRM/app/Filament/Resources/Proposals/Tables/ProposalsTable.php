@@ -4,9 +4,22 @@ namespace Modules\CRM\Filament\Resources\Proposals\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Filament\Resources\Contracts\ContractResource;
+use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\Proposal;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 
 class ProposalsTable
 {
@@ -14,56 +27,43 @@ class ProposalsTable
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('client.name')
+                TextColumn::make('customer.name')
+                    ->label('Customer')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('workScheme.name')
+                TextColumn::make('workScheme.name')
                     ->label('Scheme')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('proposal_number')
+                TextColumn::make('proposal_number')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('amount')
+                TextColumn::make('amount')
                     ->money('IDR')
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'draft' => 'gray',
-                        'submitted' => 'info',
-                        'approved' => 'success',
-                        'rejected' => 'danger',
-                        'converted' => 'warning',
-                        default => 'gray',
-                    }),
-                \Filament\Tables\Columns\TextColumn::make('submission_date')
+                TextColumn::make('status')
+                    ->badge(),
+                TextColumn::make('submission_date')
                     ->date()
                     ->sortable(),
             ])
             ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('client_id')
-                    ->relationship('client', 'name')
-                    ->label('Client')
+                SelectFilter::make('customer_id')
+                    ->relationship('customer', 'name')
+                    ->label('Customer')
                     ->searchable()
                     ->preload(),
-                \Filament\Tables\Filters\SelectFilter::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'submitted' => 'Submitted',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
-                        'converted' => 'Converted',
-                    ]),
+                SelectFilter::make('status')
+                    ->options(ProposalStatus::class),
             ])
             ->recordActions([
                 Action::make('createPA')
                     ->label('Create Profitability Analysis')
                     ->icon('heroicon-o-presentation-chart-line')
                     ->color('info')
-                    ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => $record->status === 'approved')
+                    ->visible(fn (Proposal $record): bool => in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted]))
                     ->form([
-                        \Filament\Forms\Components\Select::make('work_scheme_id')
+                        Select::make('work_scheme_id')
                             ->relationship('workScheme', 'name')
                             ->label('Select Work Scheme')
                             ->default(fn ($record) => $record->work_scheme_id)
@@ -71,57 +71,81 @@ class ProposalsTable
                             ->searchable()
                             ->preload(),
                     ])
-                    ->action(function (\Modules\CRM\Models\Proposal $record, array $data) {
-                        $existingPa = \Modules\Finance\Models\ProfitabilityAnalysis::where('proposal_id', $record->id)->first();
+                    ->action(function (Proposal $record, array $data) {
+                        $existingPa = ProfitabilityAnalysis::where('proposal_id', $record->id)->first();
 
                         if ($existingPa) {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('PA Already Exists')
                                 ->body('Redirecting to the existing Profitability Analysis.')
                                 ->warning()
                                 ->send();
 
-                            return redirect(\Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::getUrl('edit', ['record' => $existingPa]));
+                            return redirect(ProfitabilityAnalysisResource::getUrl('index'));
                         }
 
-                        $pa = \Modules\Finance\Models\ProfitabilityAnalysis::create([
+                        $pa = ProfitabilityAnalysis::create([
                             'proposal_id' => $record->id,
-                            'client_id' => $record->client_id,
+                            'customer_id' => $record->customer_id,
                             'work_scheme_id' => $data['work_scheme_id'],
                             'status' => 'draft',
                         ]);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Profitability Analysis Created')
                             ->success()
                             ->send();
 
-                        return redirect(\Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::getUrl('edit', ['record' => $pa]));
+                        return redirect(ProfitabilityAnalysisResource::getUrl('index'));
                     }),
                 Action::make('convertToContract')
                     ->label('Convert to Contract')
                     ->icon('heroicon-o-document-duplicate')
                     ->color('success')
-                    ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => $record->status === 'approved')
+                    ->visible(fn (Proposal $record): bool => $record->status === ProposalStatus::Approved || $record->contracts->count() === 0)
                     ->requiresConfirmation()
-                    ->action(function (\Modules\CRM\Models\Proposal $record) {
-                        $contract = \Modules\CRM\Models\Contract::create([
-                            'client_id' => $record->client_id,
+                    ->action(function (Proposal $record) {
+                        $contract = Contract::create([
+                            'customer_id' => $record->customer_id,
                             'proposal_id' => $record->id,
                             'contract_number' => 'CONTRACT-'.$record->proposal_number,
-                            'status' => 'draft',
+                            'status' => ContractStatus::Draft,
                         ]);
 
-                        $record->update(['status' => 'converted']);
+                        $record->update(['status' => ProposalStatus::Converted]);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Converted to Contract')
                             ->success()
                             ->send();
 
-                        return redirect(\Modules\CRM\Filament\Resources\Contracts\ContractResource::getUrl('edit', ['record' => $contract]));
+                        return redirect(ContractResource::getUrl('index'));
                     }),
+                ViewAction::make()
+                    ->modalFooterActions([
+                        Action::make('Submit')
+                            ->color('info')
+                            ->icon('heroicon-o-paper-airplane')
+                            ->requiresConfirmation()
+                            ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Submitted]))
+                            ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Draft),
+
+                        Action::make('Approve')
+                            ->color('success')
+                            ->icon('heroicon-o-check')
+                            ->requiresConfirmation()
+                            ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Approved]))
+                            ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
+
+                        Action::make('Reject')
+                            ->color('danger')
+                            ->icon('heroicon-o-x-mark')
+                            ->requiresConfirmation()
+                            ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Rejected]))
+                            ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
+                    ]),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

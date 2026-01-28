@@ -13,7 +13,7 @@ class UnitsTable
             ->records(function (int $page, int $recordsPerPage, ?string $tableSearch): \Illuminate\Pagination\LengthAwarePaginator {
                 /** @var \Modules\MasterData\Services\UnitService $service */
                 $service = app(\Modules\MasterData\Services\UnitService::class);
-                
+
                 $allUnits = $service->getAllUnits();
 
                 if ($tableSearch) {
@@ -34,6 +34,9 @@ class UnitsTable
                 );
             })
             ->columns([
+                TextColumn::make('id')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('code')
                     ->searchable()
                     ->sortable(),
