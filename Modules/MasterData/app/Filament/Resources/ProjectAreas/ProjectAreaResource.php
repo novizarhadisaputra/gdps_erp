@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ProjectAreas;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Pages\ListProjectAreas;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Tables\ProjectAreasTable;
@@ -12,7 +13,7 @@ use Modules\MasterData\Models\ProjectArea;
 
 class ProjectAreaResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $model = ProjectArea::class;
 

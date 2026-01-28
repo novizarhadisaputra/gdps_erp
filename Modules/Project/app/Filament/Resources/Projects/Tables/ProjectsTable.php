@@ -5,8 +5,11 @@ namespace Modules\Project\Filament\Resources\Projects\Tables;
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -16,17 +19,17 @@ class ProjectsTable
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('code')
+                TextColumn::make('code')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('customer.name')
+                TextColumn::make('customer.name')
                     ->label('Customer')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'planning' => 'gray',
@@ -36,53 +39,53 @@ class ProjectsTable
                         'cancelled' => 'danger',
                         default => 'gray',
                     }),
-                \Filament\Tables\Columns\TextColumn::make('workScheme.name')
+                TextColumn::make('workScheme.name')
                     ->label('Skema Kerja')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('productCluster.name')
+                TextColumn::make('productCluster.name')
                     ->label('Cluster')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('tax.name')
+                TextColumn::make('tax.name')
                     ->label('Pajak')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('projectArea.name')
+                TextColumn::make('projectArea.name')
                     ->label('Area')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('paymentTerm.name')
+                TextColumn::make('paymentTerm.name')
                     ->label('TOP')
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                \Filament\Tables\Columns\TextColumn::make('projectType.name')
+                TextColumn::make('projectType.name')
                     ->label('Project Type')
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                \Filament\Tables\Columns\TextColumn::make('billingOption.name')
+                TextColumn::make('billingOption.name')
                     ->label('Option')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                \Filament\Tables\Columns\TextColumn::make('oprep.name')
+                TextColumn::make('oprep.name')
                     ->label('OPREP')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                \Filament\Tables\Columns\TextColumn::make('ams.name')
+                TextColumn::make('ams.name')
                     ->label('AMS')
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                \Filament\Tables\Columns\TextColumn::make('start_date')
+                TextColumn::make('start_date')
                     ->date()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('end_date')
+                TextColumn::make('end_date')
                     ->date()
                     ->sortable(),
             ])
             ->filters([
-                \Filament\Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->options([
                         'planning' => 'Planning',
                         'active' => 'Active',
@@ -90,12 +93,12 @@ class ProjectsTable
                         'on hold' => 'On Hold',
                         'cancelled' => 'Cancelled',
                     ]),
-                \Filament\Tables\Filters\SelectFilter::make('customer_id')
+                SelectFilter::make('customer_id')
                     ->relationship('customer', 'name')
                     ->label('Customer')
                     ->searchable()
                     ->preload(),
-                \Filament\Tables\Filters\SelectFilter::make('project_area_id')
+                SelectFilter::make('project_area_id')
                     ->relationship('projectArea', 'name')
                     ->label('Area')
                     ->searchable()
@@ -108,7 +111,7 @@ class ProjectsTable
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    \Filament\Actions\DeleteBulkAction::make(),
+                    DeleteBulkAction::make(),
                     ExportBulkAction::make(),
                 ]),
             ])

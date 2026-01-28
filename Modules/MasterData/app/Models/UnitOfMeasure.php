@@ -3,23 +3,26 @@
 namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\MasterData\Database\Factories\UnitOfMeasureFactory;
+use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
 
-#[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
+#[ObservedBy(MasterDataObserver::class)]
 class UnitOfMeasure extends Model
 {
-    use HasFactory, HasUnitScoping;
+    use HasFactory, HasUnitScoping, HasUuids;
 
     protected $table = 'units_of_measure';
 
     protected $fillable = ['unit_id', 'name', 'code'];
 
-    protected static function newFactory(): \Modules\MasterData\Database\Factories\UnitOfMeasureFactory
+    protected static function newFactory(): UnitOfMeasureFactory
     {
-        return \Modules\MasterData\Database\Factories\UnitOfMeasureFactory::new();
+        return UnitOfMeasureFactory::new();
     }
 
     public function items(): HasMany

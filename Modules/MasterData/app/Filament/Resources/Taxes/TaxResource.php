@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\Taxes;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\Taxes\Pages\ListTaxes;
 use Modules\MasterData\Filament\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Resources\Taxes\Tables\TaxesTable;
@@ -12,7 +13,7 @@ use Modules\MasterData\Models\Tax;
 
 class TaxResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $model = Tax::class;
 

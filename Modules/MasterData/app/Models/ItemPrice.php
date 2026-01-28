@@ -2,13 +2,16 @@
 
 namespace Modules\MasterData\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
 // use Modules\MasterData\Database\Factories\ItemPriceFactory;
 
 class ItemPrice extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'item_id',
@@ -20,14 +23,14 @@ class ItemPrice extends Model
         'price' => 'decimal:2',
     ];
 
-    public function item(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
     }
 
-    public function projectArea(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function projectArea(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ProjectArea::class);
+        return $this->belongsTo(ProjectArea::class);
     }
 
     // protected static function newFactory(): ItemPriceFactory

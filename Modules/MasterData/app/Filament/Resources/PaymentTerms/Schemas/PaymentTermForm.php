@@ -2,6 +2,8 @@
 
 namespace Modules\MasterData\Filament\Resources\PaymentTerms\Schemas;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class PaymentTermForm
@@ -15,15 +17,15 @@ class PaymentTermForm
     public static function schema(): array
     {
         return [
-            \Filament\Forms\Components\TextInput::make('code')
+            TextInput::make('code')
                 ->required()
                 ->unique(ignoreRecord: true)
                 ->placeholder('NET30'),
-            \Filament\Forms\Components\TextInput::make('name')
+            TextInput::make('name')
                 ->required()
                 ->maxLength(255)
                 ->placeholder('Net 30 Days'),
-            \Filament\Forms\Components\Toggle::make('is_active')
+            Toggle::make('is_active')
                 ->default(true)
                 ->required(),
         ];

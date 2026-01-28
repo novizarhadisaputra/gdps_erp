@@ -2,18 +2,20 @@
 
 namespace Modules\CRM\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
 
 class Proposal extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     protected $fillable = [
         'customer_id',
@@ -52,6 +54,6 @@ class Proposal extends Model
 
     public function profitabilityAnalysis(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Finance\Models\ProfitabilityAnalysis::class);
+        return $this->belongsTo(ProfitabilityAnalysis::class);
     }
 }

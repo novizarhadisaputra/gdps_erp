@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\Employees;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\Employees\Pages\ListEmployees;
 use Modules\MasterData\Filament\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Resources\Employees\Tables\EmployeesTable;
@@ -12,7 +13,7 @@ use Modules\MasterData\Models\Employee;
 
 class EmployeeResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $model = Employee::class;
 

@@ -12,14 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('profitability_analyses', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->foreignId('general_information_id')->nullable()->constrained('general_informations')->onDelete('set null');
-            $table->unsignedBigInteger('proposal_id')->nullable();
-            $table->foreignId('work_scheme_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('product_cluster_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('tax_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignId('project_area_id')->nullable()->constrained()->onDelete('set null');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
+            $table->foreignUuid('general_information_id')->nullable()->constrained('general_informations')->onDelete('set null');
+            $table->uuid('proposal_id')->nullable();
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignUuid('tax_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignUuid('project_area_id')->nullable()->constrained()->onDelete('set null');
 
             $table->decimal('revenue_per_month', 15, 2)->default(0);
             $table->decimal('direct_cost', 15, 2)->default(0);
@@ -33,6 +33,19 @@ return new class extends Migration
 
             $table->timestamps();
         });
+
+        Schema::create('profitability_analysis_items', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('profitability_analysis_id')->constrained('profitability_analyses')->cascadeOnDelete();
+            $table->foreignUuid('item_id')->constrained('items')->cascadeOnDelete();
+            $table->decimal('quantity', 15, 2)->default(1);
+            $table->decimal('unit_cost_price', 15, 2)->default(0); // "Modal" price
+            $table->decimal('markup_percentage', 5, 2)->default(0);
+            $table->integer('depreciation_months')->nullable(); // Flexible override
+            $table->decimal('total_monthly_cost', 15, 2)->default(0); // (unit_cost_price / depreciation_months) * quantity
+            $table->decimal('total_monthly_sale', 15, 2)->default(0); // total_monthly_cost * (1 + markup/100)
+            $table->timestamps();
+        });
     }
 
     /**
@@ -40,6 +53,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('profitability_analysis_items');
         Schema::dropIfExists('profitability_analyses');
     }
 };

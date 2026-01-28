@@ -8,14 +8,17 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Modules\CRM\Enums\ProposalStatus;
 use Modules\Finance\Classes\ProjectGenerationService;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Services\SignatureService;
 
 class ProfitabilityAnalysesTable
 {
@@ -67,6 +70,70 @@ class ProfitabilityAnalysesTable
             ->recordActions([
                 ViewAction::make()
                     ->modalFooterActions([
+                        Action::make('Sign')
+                            ->label('Digital Signature')
+                            ->color('primary')
+                            ->icon('heroicon-o-pencil-square')
+                            ->form([
+                                TextInput::make('pin')
+                                    ->label('Signature PIN')
+                                    ->password()
+                                    ->required()
+                                    ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                            ])
+                            ->action(function (ProfitabilityAnalysis $record, array $data) {
+                                $service = app(SignatureService::class);
+
+                                if (! $service->verifyPin(auth()->user(), $data['pin'])) {
+                                    Notification::make()
+                                        ->title('PIN Salah')
+                                        ->danger()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                $required = $service->getRequiredApprovers($record);
+                                $userRole = auth()->user()->roles->first()?->name;
+
+                                $matchingRule = $required->firstWhere('approver_role', $userRole);
+
+                                if (! $matchingRule) {
+                                    Notification::make()
+                                        ->title('Akses Ditolak')
+                                        ->body('Peran Anda tidak diperlukan untuk menandatangani dokumen ini pada tahap ini.')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                if ($record->hasSignatureFrom($userRole)) {
+                                    Notification::make()
+                                        ->title('Sudah Ditandatangani')
+                                        ->body('Anda sudah menandatangani dokumen ini.')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
+                                $qrCode = $service->generateQRCode($qrData);
+
+                                $record->addSignature(auth()->user(), $matchingRule->signature_type, $qrCode);
+
+                                Notification::make()
+                                    ->title('Dokumen Berhasil Ditandatangani')
+                                    ->success()
+                                    ->send();
+
+                                if ($record->isFullyApproved()) {
+                                    $record->update(['status' => 'approved']);
+                                }
+                            })
+                            ->visible(fn (ProfitabilityAnalysis $record) => in_array($record->status, ['submitted', 'draft'])),
+
                         Action::make('Submit')
                             ->color('info')
                             ->icon('heroicon-o-paper-airplane')
@@ -136,7 +203,7 @@ class ProfitabilityAnalysesTable
                             ->numeric()
                             ->prefix('IDR')
                             ->required(),
-                        \Filament\Forms\Components\DatePicker::make('submission_date')
+                        DatePicker::make('submission_date')
                             ->default(now())
                             ->required(),
                     ])
@@ -148,7 +215,7 @@ class ProfitabilityAnalysesTable
                             'proposal_number' => $data['proposal_number'],
                             'amount' => $data['amount'],
                             'submission_date' => $data['submission_date'],
-                            'status' => \Modules\CRM\Enums\ProposalStatus::Draft,
+                            'status' => ProposalStatus::Draft,
                         ]);
 
                         $record->update(['proposal_id' => $proposal->id]);

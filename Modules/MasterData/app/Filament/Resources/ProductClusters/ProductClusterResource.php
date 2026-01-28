@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ProductClusters;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\ProductClusters\Pages\ListProductClusters;
 use Modules\MasterData\Filament\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Resources\ProductClusters\Tables\ProductClustersTable;
@@ -12,7 +13,7 @@ use Modules\MasterData\Models\ProductCluster;
 
 class ProductClusterResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $model = ProductCluster::class;
 

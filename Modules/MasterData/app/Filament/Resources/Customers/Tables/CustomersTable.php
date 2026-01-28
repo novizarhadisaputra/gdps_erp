@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\Customers\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class CustomersTable
@@ -13,27 +14,27 @@ class CustomersTable
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('code')
+                TextColumn::make('code')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('legal_entity_type')
+                TextColumn::make('legal_entity_type')
                     ->searchable()
                     ->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('email')
+                TextColumn::make('email')
                     ->searchable(),
-                \Filament\Tables\Columns\TextColumn::make('phone')
+                TextColumn::make('phone')
                     ->searchable(),
-                \Filament\Tables\Columns\TextColumn::make('contacts')
+                TextColumn::make('contacts')
                     ->label('Contacts')
                     ->formatStateUsing(fn ($state) => count($state ?? []).' Contacts')
                     ->badge(),
-                \Filament\Tables\Columns\TextColumn::make('address')
+                TextColumn::make('address')
                     ->limit(50)
                     ->toggleable(isToggledHiddenByDefault: true),
-                \Filament\Tables\Columns\TextColumn::make('status')
+                TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'active' => 'success',

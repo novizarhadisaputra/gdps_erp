@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('proposals', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->foreignId('profitability_analysis_id')->nullable()->constrained('profitability_analyses')->onDelete('set null');
-            $table->foreignId('work_scheme_id')->nullable()->constrained()->onDelete('set null');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
+            $table->foreignUuid('profitability_analysis_id')->nullable()->constrained('profitability_analyses')->onDelete('set null');
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');
             $table->string('proposal_number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected, converted

@@ -2,6 +2,8 @@
 
 namespace Modules\MasterData\Filament\Resources\Items\Schemas;
 
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -10,6 +12,7 @@ use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Resources\ItemCategories\Schemas\ItemCategoryForm;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
 use Modules\MasterData\Models\ItemCategory;
+use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\UnitOfMeasure;
 
 class ItemForm
@@ -54,19 +57,23 @@ class ItemForm
             TextInput::make('price')
                 ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                 ->helperText('Standard price for this item.'),
-            TextInput::make('depreciation_rate')
+            TextInput::make('depreciation_months')
                 ->numeric()
-                ->suffix('%')
-                ->helperText('Yearly depreciation rate.'),
+                ->label('Depreciation (Months)')
+                ->helperText('Standard depreciation period in months (PSAK).'),
+            DatePicker::make('price_period_start')
+                ->label('Price Valid From'),
+            DatePicker::make('price_period_end')
+                ->label('Price Valid Until'),
             Toggle::make('is_active')
                 ->required()
                 ->default(true),
-            \Filament\Forms\Components\Repeater::make('itemPrices')
+            Repeater::make('itemPrices')
                 ->relationship()
                 ->schema([
                     Select::make('project_area_id')
                         ->label('Project Area')
-                        ->options(fn () => \Modules\MasterData\Models\ProjectArea::pluck('name', 'id'))
+                        ->options(fn () => ProjectArea::pluck('name', 'id'))
                         ->required()
                         ->distinct(),
                     TextInput::make('price')

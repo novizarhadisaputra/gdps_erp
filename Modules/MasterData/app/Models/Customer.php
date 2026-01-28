@@ -3,16 +3,21 @@
 namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\MasterData\Database\Factories\CustomerFactory;
+use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
+use Modules\Project\Models\Project;
 
 // use Modules\MasterData\Database\Factories\ClientFactory;
 
-#[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
+#[ObservedBy([MasterDataObserver::class])]
 class Customer extends Model
 {
-    use HasFactory, HasUnitScoping;
+    use HasFactory, HasUnitScoping, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -36,13 +41,13 @@ class Customer extends Model
         ];
     }
 
-    protected static function newFactory(): \Modules\MasterData\Database\Factories\CustomerFactory
+    protected static function newFactory(): CustomerFactory
     {
-        return \Modules\MasterData\Database\Factories\CustomerFactory::new();
+        return CustomerFactory::new();
     }
 
-    public function projects(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function projects(): HasMany
     {
-        return $this->hasMany(\Modules\Project\Models\Project::class);
+        return $this->hasMany(Project::class);
     }
 }

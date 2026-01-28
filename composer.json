@@ -19,6 +19,7 @@
         "filament/spatie-laravel-media-library-plugin": "^4.0",
         "jacobtims/filament-logger": "^1.0",
         "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "mwguerra/filemanager": "^0.1",
         "pxlrbt/filament-excel": "^3.4",

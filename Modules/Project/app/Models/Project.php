@@ -2,14 +2,30 @@
 
 namespace Modules\Project\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\Proposal;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Models\BillingOption;
+use Modules\MasterData\Models\Customer;
+use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Models\PaymentTerm;
+use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\ProjectType;
+use Modules\MasterData\Models\Tax;
+use Modules\MasterData\Models\WorkScheme;
+use Modules\Project\Database\Factories\ProjectFactory;
 
 // use Modules\Project\Database\Factories\ProjectFactory;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -36,14 +52,14 @@ class Project extends Model
         'profitability_analysis_id',
     ];
 
-    public function proposal(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function proposal(): BelongsTo
     {
-        return $this->belongsTo(\Modules\CRM\Models\Proposal::class);
+        return $this->belongsTo(Proposal::class);
     }
 
-    public function profitabilityAnalysis(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function profitabilityAnalysis(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Finance\Models\ProfitabilityAnalysis::class);
+        return $this->belongsTo(ProfitabilityAnalysis::class);
     }
 
     protected function casts(): array
@@ -51,68 +67,68 @@ class Project extends Model
         return [];
     }
 
-    public function information(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function information(): HasOne
     {
         return $this->hasOne(ProjectInformation::class);
     }
 
-    protected static function newFactory(): \Modules\Project\Database\Factories\ProjectFactory
+    protected static function newFactory(): ProjectFactory
     {
-        return \Modules\Project\Database\Factories\ProjectFactory::new();
+        return ProjectFactory::new();
     }
 
-    public function contract(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function contract(): BelongsTo
     {
-        return $this->belongsTo(\Modules\CRM\Models\Contract::class);
+        return $this->belongsTo(Contract::class);
     }
 
-    public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Customer::class);
+        return $this->belongsTo(Customer::class);
     }
 
-    public function workScheme(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function workScheme(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\WorkScheme::class);
+        return $this->belongsTo(WorkScheme::class);
     }
 
-    public function productCluster(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function productCluster(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ProductCluster::class);
+        return $this->belongsTo(ProductCluster::class);
     }
 
-    public function tax(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function tax(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Tax::class);
+        return $this->belongsTo(Tax::class);
     }
 
-    public function projectArea(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function projectArea(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ProjectArea::class);
+        return $this->belongsTo(ProjectArea::class);
     }
 
-    public function paymentTerm(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function paymentTerm(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\PaymentTerm::class);
+        return $this->belongsTo(PaymentTerm::class);
     }
 
-    public function projectType(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function projectType(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ProjectType::class);
+        return $this->belongsTo(ProjectType::class);
     }
 
-    public function billingOption(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function billingOption(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\BillingOption::class);
+        return $this->belongsTo(BillingOption::class);
     }
 
-    public function oprep(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function oprep(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Employee::class, 'oprep_id');
+        return $this->belongsTo(Employee::class, 'oprep_id');
     }
 
-    public function ams(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function ams(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Employee::class, 'ams_id');
+        return $this->belongsTo(Employee::class, 'ams_id');
     }
 }

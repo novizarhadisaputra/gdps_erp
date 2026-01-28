@@ -3,15 +3,19 @@
 namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\MasterData\Database\Factories\ItemFactory;
+use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
 
-#[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
+#[ObservedBy([MasterDataObserver::class])]
 class Item extends Model
 {
-    use HasFactory, HasUnitScoping;
+    use HasFactory, HasUnitScoping, HasUuids;
 
     protected $fillable = [
         'unit_id',
@@ -21,19 +25,23 @@ class Item extends Model
         'name',
         'description',
         'price',
-        'depreciation_rate',
+        'depreciation_months',
+        'price_period_start',
+        'price_period_end',
         'is_active',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
-        'depreciation_rate' => 'decimal:2',
+        'depreciation_months' => 'integer',
+        'price_period_start' => 'date',
+        'price_period_end' => 'date',
         'is_active' => 'boolean',
     ];
 
-    protected static function newFactory(): \Modules\MasterData\Database\Factories\ItemFactory
+    protected static function newFactory(): ItemFactory
     {
-        return \Modules\MasterData\Database\Factories\ItemFactory::new();
+        return ItemFactory::new();
     }
 
     public function category(): BelongsTo
@@ -46,12 +54,12 @@ class Item extends Model
         return $this->belongsTo(UnitOfMeasure::class, 'unit_of_measure_id');
     }
 
-    public function itemPrices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function itemPrices(): HasMany
     {
         return $this->hasMany(ItemPrice::class);
     }
 
-    public function getPriceForArea(?int $areaId = null): float
+    public function getPriceForArea(?string $areaId = null): float
     {
         if ($areaId) {
             $areaPrice = $this->itemPrices->where('project_area_id', $areaId)->first();

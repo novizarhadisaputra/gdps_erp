@@ -2,6 +2,8 @@
 
 namespace Modules\MasterData\Filament\Resources\ProjectAreas\Schemas;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class ProjectAreaForm
@@ -15,15 +17,15 @@ class ProjectAreaForm
     public static function schema(): array
     {
         return [
-            \Filament\Forms\Components\TextInput::make('code')
+            TextInput::make('code')
                 ->unique(ignoreRecord: true)
                 ->nullable()
                 ->placeholder('PA001'),
-            \Filament\Forms\Components\TextInput::make('name')
+            TextInput::make('name')
                 ->required()
                 ->maxLength(255)
                 ->placeholder('Jakarta Area'),
-            \Filament\Forms\Components\Toggle::make('is_active')
+            Toggle::make('is_active')
                 ->default(true)
                 ->required(),
         ];

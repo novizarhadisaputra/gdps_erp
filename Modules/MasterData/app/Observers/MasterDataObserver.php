@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Observers;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class MasterDataObserver
 {
@@ -23,7 +24,7 @@ class MasterDataObserver
         $tableName = $model->getTable();
 
         // Check if this code already exists
-        $exists = \DB::table($tableName)
+        $exists = DB::table($tableName)
             ->where('code', $abbreviation)
             ->when($model->exists, function ($query) use ($model) {
                 return $query->where('id', '!=', $model->id);
@@ -48,7 +49,7 @@ class MasterDataObserver
             for ($i = strlen($word) - 1; $i >= 2; $i--) {
                 $newAbbr = $base.strtoupper(substr($word, $i, 1));
 
-                $exists = \DB::table($tableName)
+                $exists = DB::table($tableName)
                     ->where('code', $newAbbr)
                     ->when($model->exists, function ($query) use ($model) {
                         return $query->where('id', '!=', $model->id);
@@ -68,7 +69,7 @@ class MasterDataObserver
             for ($i = strlen($lastWord) - 2; $i >= 0; $i--) {
                 $newAbbr = $base.strtoupper(substr($lastWord, $i, 1));
 
-                $exists = \DB::table($tableName)
+                $exists = DB::table($tableName)
                     ->where('code', $newAbbr)
                     ->when($model->exists, function ($query) use ($model) {
                         return $query->where('id', '!=', $model->id);

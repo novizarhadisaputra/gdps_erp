@@ -12,15 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('items', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('unit_id')->nullable()->index();
-            $table->foreignId('item_category_id')->constrained('item_categories')->onDelete('cascade');
-            $table->foreignId('unit_of_measure_id')->constrained('units_of_measure')->onDelete('cascade');
+            $table->foreignUuid('item_category_id')->constrained('item_categories')->onDelete('cascade');
+            $table->foreignUuid('unit_of_measure_id')->constrained('units_of_measure')->onDelete('cascade');
             $table->string('code')->unique();
             $table->string('name');
             $table->text('description')->nullable();
             $table->decimal('price', 15, 2)->default(0);
-            $table->decimal('depreciation_rate', 5, 2)->default(0);
+            $table->integer('depreciation_months')->nullable();
+            $table->date('price_period_start')->nullable();
+            $table->date('price_period_end')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

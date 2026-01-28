@@ -2,9 +2,13 @@
 
 namespace Modules\Finance\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
 use Modules\MasterData\Models\Customer;
@@ -12,12 +16,12 @@ use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
+use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
-use Modules\CRM\Models\GeneralInformation;
 
 class ProfitabilityAnalysis extends Model
 {
-    use HasFactory;
+    use HasDigitalSignatures, HasFactory, HasUuids;
 
     protected static function newFactory()
     {
@@ -42,6 +46,7 @@ class ProfitabilityAnalysis extends Model
         'analysis_details',
         'project_number',
         'status',
+        'signatures',
     ];
 
     protected function casts(): array
@@ -53,6 +58,7 @@ class ProfitabilityAnalysis extends Model
             'margin_percentage' => 'decimal:2',
             'analysis_details' => 'array',
             'project_number' => 'integer',
+            'signatures' => 'array',
         ];
     }
 
@@ -91,8 +97,13 @@ class ProfitabilityAnalysis extends Model
         return $this->belongsTo(ProjectArea::class);
     }
 
-    public function project(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function project(): HasOne
     {
         return $this->hasOne(Project::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(ProfitabilityAnalysisItem::class);
     }
 }

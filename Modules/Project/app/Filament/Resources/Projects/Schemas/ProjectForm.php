@@ -2,9 +2,11 @@
 
 namespace Modules\Project\Filament\Resources\Projects\Schemas;
 
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Resources\BillingOptions\Schemas\BillingOptionForm;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
@@ -28,7 +30,7 @@ class ProjectForm
         return [
             Placeholder::make('code')
                 ->label('Project Code Preview')
-                ->content(function (\Filament\Schemas\Components\Utilities\Get $get): string {
+                ->content(function (Get $get): string {
                     $customer = Customer::find($get('customer_id'))?->code ?? 'UNK';
                     $seq = str_pad($get('project_number') ?? '01', 2, '0', STR_PAD_LEFT);
                     $area = ProjectArea::find($get('project_area_id'))?->code ?? 'UNK';
@@ -133,9 +135,9 @@ class ProjectForm
                 ->searchable()
                 ->preload()
                 ->createOptionForm(EmployeeForm::schema()),
-            \Filament\Forms\Components\DatePicker::make('start_date')
+            DatePicker::make('start_date')
                 ->required(),
-            \Filament\Forms\Components\DatePicker::make('end_date')
+            DatePicker::make('end_date')
                 ->required(),
         ];
     }

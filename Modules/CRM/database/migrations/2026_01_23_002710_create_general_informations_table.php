@@ -12,9 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('general_informations', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('customer_id')->constrained()->onDelete('cascade');
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected
+            $table->text('scope_of_work')->nullable();
+            $table->string('location')->nullable();
+            $table->date('estimated_start_date')->nullable();
+            $table->date('estimated_end_date')->nullable();
+            $table->text('manpower_qualifications')->nullable();
+            $table->text('work_activities')->nullable();
+            $table->text('service_level')->nullable();
+            $table->text('billing_requirements')->nullable();
             $table->string('pic_customer_name')->nullable();
             $table->string('pic_customer_phone')->nullable();
             $table->string('pic_finance_name')->nullable();

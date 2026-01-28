@@ -3,16 +3,19 @@
 namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\MasterData\Database\Factories\BillingOptionFactory;
+use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
 
 // use Modules\MasterData\Database\Factories\BillingOptionFactory;
 
-#[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
+#[ObservedBy(MasterDataObserver::class)]
 class BillingOption extends Model
 {
-    use HasFactory, HasUnitScoping;
+    use HasFactory, HasUnitScoping, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -24,8 +27,8 @@ class BillingOption extends Model
         'is_active',
     ];
 
-    protected static function newFactory(): \Modules\MasterData\Database\Factories\BillingOptionFactory
+    protected static function newFactory(): BillingOptionFactory
     {
-        return \Modules\MasterData\Database\Factories\BillingOptionFactory::new();
+        return BillingOptionFactory::new();
     }
 }

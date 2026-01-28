@@ -3,16 +3,19 @@
 namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\MasterData\Database\Factories\EmployeeFactory;
+use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
 
 // use Modules\MasterData\Database\Factories\EmployeeFactory;
 
-#[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
+#[ObservedBy([MasterDataObserver::class])]
 class Employee extends Model
 {
-    use HasFactory, HasUnitScoping;
+    use HasFactory, HasUnitScoping, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -27,8 +30,8 @@ class Employee extends Model
         'status',
     ];
 
-    protected static function newFactory(): \Modules\MasterData\Database\Factories\EmployeeFactory
+    protected static function newFactory(): EmployeeFactory
     {
-        return \Modules\MasterData\Database\Factories\EmployeeFactory::new();
+        return EmployeeFactory::new();
     }
 }

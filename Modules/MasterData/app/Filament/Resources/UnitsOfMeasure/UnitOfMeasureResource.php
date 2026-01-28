@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\UnitsOfMeasure;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Pages\ListUnitsOfMeasure;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Tables\UnitsOfMeasureTable;
@@ -12,7 +13,7 @@ use Modules\MasterData\Models\UnitOfMeasure;
 
 class UnitOfMeasureResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $model = UnitOfMeasure::class;
 

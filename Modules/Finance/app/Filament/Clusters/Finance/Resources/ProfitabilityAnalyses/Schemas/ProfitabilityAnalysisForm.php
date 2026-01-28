@@ -2,24 +2,21 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Tabs;
-use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
-use Modules\MasterData\Filament\Resources\Items\Schemas\ItemForm;
 use Modules\MasterData\Filament\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Item;
-use Modules\MasterData\Models\ItemCategory;
-use Modules\MasterData\Services\JobPositionService;
 
 class ProfitabilityAnalysisForm
 {
@@ -82,7 +79,7 @@ class ProfitabilityAnalysisForm
 
                 Section::make('Financial Analysis')
                     ->schema([
-                         TextInput::make('revenue_per_month')
+                        TextInput::make('revenue_per_month')
                             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                             ->helperText('Estimated monthly revenue. Contoh: 80,000,000')
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Total revenue expected per month.')
@@ -109,109 +106,129 @@ class ProfitabilityAnalysisForm
                             ->placeholder('Auto-calculated'),
                     ])->columns(columns: 1),
 
-                Tabs::make('Details')
-                    ->tabs(function () {
-                        $tabs = [];
-                        $categories = ItemCategory::where('is_active', true)->get();
-
-                        foreach ($categories as $category) {
-                            $isManpower = $category->name === 'Manpower';
-                            $tabs[] = Tab::make($category->name)
-                                ->schema([
-                                    Repeater::make("analysis_details.{$category->id}")
-                                        ->label($category->name . ' Details')
-                                        ->live()
-                                        ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set))
-                                        ->schema([
-                                            Select::make('item_id')
-                                                ->label('Item')
-                                                ->searchable()
-                                                ->preload()
-                                                ->options(fn () => Item::where('item_category_id', $category->id)->pluck('name', 'id'))
-                                                ->createOptionForm(ItemForm::schema())
-                                                ->createOptionUsing(function (array $data) use ($category): int {
-                                                    $data['item_category_id'] = $category->id;
-                                                    return Item::create($data)->id;
-                                                })
-                                                ->required()
-                                                ->live()
-                                                ->afterStateUpdated(function ($state, Get $get, Set $set) {
-                                                    if (! $state) {
-                                                        return;
-                                                    }
-                                                    
-                                                    // Try to find project_area_id from root form state.
-                                                    // Path: Repeater Row -> Repeater -> Tab -> Tabs -> Section -> Form Root
-                                                    // This might require climbing up sufficient levels or using absolute path if supported.
-                                                    // In Filament v3, direct access to top level might not be straightforward via relative ../
-                                                    // But we can try multiple levels up.
-                                                    
-                                                    // Attempt 3 levels up: Row -> Repeater -> ??? -> Root?
-                                                    // Actually, usually 2 or 3 '../'.
-                                                    $areaId = $get('../../project_area_id') ?? $get('../../../project_area_id') ?? $get('../../../../project_area_id');
-                                                    
-                                                    $item = Item::find($state);
-                                                    if ($item) {
-                                                        $price = $item->getPriceForArea((int) $areaId);
-                                                        $set('price', $price);
-                                                        self::calculateDirectCost($get, $set);
-                                                    }
-                                                }),
-                                            TextInput::make('quantity')
-                                                ->label($isManpower ? 'Count' : 'Quantity')
-                                                ->numeric()->default(1)
-                                                ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                                            TextInput::make('price')
-                                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                                ->label($isManpower ? 'Salary' : 'Price')
-                                                ->live(onBlur: true)
-                                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                                            TextInput::make('notes'),
-                                        ])->columns(4)
-                                        ->addActionLabel("Add {$category->name}"),
-                                ]);
-                        }
-                        return $tabs;
-                    })->columnSpanFull(),
+                Section::make('Costing Details')
+                    ->headerActions([
+                        Action::make('Import from Akurat')
+                            ->icon('heroicon-o-arrow-path')
+                            ->action(fn () => Notification::make()->title('Akurat Sync is not implemented yet.')->warning()->send()),
+                    ])
+                    ->schema([
+                        Repeater::make('items')
+                            ->relationship('items')
+                            ->schema([
+                                Select::make('item_id')
+                                    ->label('Item')
+                                    ->relationship('item', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        if (! $state) {
+                                            return;
+                                        }
+                                        $item = Item::find($state);
+                                        if ($item) {
+                                            $set('unit_cost_price', $item->price);
+                                            $set('depreciation_months', $item->depreciation_months ?? 1);
+                                        }
+                                    })
+                                    ->columnSpan(2),
+                                TextInput::make('quantity')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('unit_cost_price')
+                                    ->label('Modal Price')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('depreciation_months')
+                                    ->label('Depreciation (Mo)')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('markup_percentage')
+                                    ->label('Markup (%)')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('total_monthly_cost')
+                                    ->label('Modal/Mo')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlyCost($get))
+                                    ->columnSpan(1),
+                                TextInput::make('total_monthly_sale')
+                                    ->label('Selling/Mo')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
+                                    ->columnSpan(1),
+                            ])
+                            ->columns(8)
+                            ->columnSpanFull()
+                            ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
+                            ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                    ]),
             ]);
     }
 
     protected static function calculateDirectCost($get, $set): void
     {
-        // Try to retrieve analysis_details from root. Method might be called from inside repeater.
-        // If called from inside repeater, $get is scoped.
-        // We need to pass the root $get or handle it.
-        // But $get('../analysis_details') works?
-        
-        // Simpler: Just rely on live updates passing attributes?
-        // Actually, $get('analysis_details') inside repeater returns THE REPEATER array?
-        // No, inside Row, it doesn't return parent array easily.
-        
-        // Solution: We only need to sum it up.
-        // If we can't easily access full array from within row, we might need a different approach?
-        // But wait, the original code used $get('analysis_details') assuming it works.
-        // The original usage was on Repeater's afterStateUpdated (which is scoped to Repeater? No, checking docs).
-        // If Repeater->afterStateUpdated is used, $state is the array of items.
-        // But here I call it from ITEM's afterStateUpdated.
-        
-        // Use ../../analysis_details strategy or just ignore if null?
-        // If null, calculation is skipped. This is bad.
-        
-        // For now, let's try multiple levels.
-        $analysisDetails = $get('analysis_details') ?? $get('../../analysis_details') ?? $get('../../../analysis_details') ?? [];
+        $items = $get('items') ?? [];
         $totalDirectCost = 0;
+        $totalRevenue = 0;
 
-        foreach ($analysisDetails as $categoryId => $items) {
-            $totalDirectCost += collect($items)->reduce(function ($carry, $item) {
-                return $carry + (($item['quantity'] ?? 0) * ($item['price'] ?? 0));
-            }, 0);
+        foreach ($items as $item) {
+            $qty = (float) ($item['quantity'] ?? 0);
+            $costPrice = (float) ($item['unit_cost_price'] ?? 0);
+            $deprMonths = (float) ($item['depreciation_months'] ?? 1);
+            $markup = (float) ($item['markup_percentage'] ?? 0);
+
+            if ($deprMonths <= 0) {
+                $deprMonths = 1;
+            }
+
+            $monthlyCost = ($costPrice / $deprMonths) * $qty;
+            $monthlySale = $monthlyCost * (1 + ($markup / 100));
+
+            $totalDirectCost += $monthlyCost;
+            $totalRevenue += $monthlySale;
         }
 
         $set('direct_cost', $totalDirectCost);
+        $set('revenue_per_month', $totalRevenue);
 
-        // Also recalculate margin since direct_cost changed
-        self::calculateMargin($get('revenue_per_month'), $totalDirectCost, $set);
+        // Recalculate margin
+        self::calculateMargin($totalRevenue, $totalDirectCost, $set);
+    }
+
+    public static function calculateItemMonthlyCost(Get $get): float
+    {
+        $qty = (float) ($get('quantity') ?? 0);
+        $costPrice = (float) ($get('unit_cost_price') ?? 0);
+        $deprMonths = (float) ($get('depreciation_months') ?? 1);
+
+        if ($deprMonths <= 0) {
+            $deprMonths = 1;
+        }
+
+        return ($costPrice / $deprMonths) * $qty;
+    }
+
+    public static function calculateItemMonthlySale(Get $get): float
+    {
+        $monthlyCost = self::calculateItemMonthlyCost($get);
+        $markup = (float) ($get('markup_percentage') ?? 0);
+
+        return $monthlyCost * (1 + ($markup / 100));
     }
 
     protected static function calculateMargin($revenue, $cost, $set): void

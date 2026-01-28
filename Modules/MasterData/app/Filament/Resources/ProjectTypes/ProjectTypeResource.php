@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ProjectTypes;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\ProjectTypes\Pages\ListProjectTypes;
 use Modules\MasterData\Filament\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Resources\ProjectTypes\Tables\ProjectTypesTable;
@@ -12,7 +13,7 @@ use Modules\MasterData\Models\ProjectType;
 
 class ProjectTypeResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $model = ProjectType::class;
 

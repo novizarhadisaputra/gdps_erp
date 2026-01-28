@@ -3,16 +3,19 @@
 namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\MasterData\Database\Factories\ProjectTypeFactory;
+use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
 
 // use Modules\MasterData\Database\Factories\ProjectTypeFactory;
 
-#[ObservedBy([\Modules\MasterData\Observers\MasterDataObserver::class])]
+#[ObservedBy(MasterDataObserver::class)]
 class ProjectType extends Model
 {
-    use HasFactory, HasUnitScoping;
+    use HasFactory, HasUnitScoping, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -24,8 +27,8 @@ class ProjectType extends Model
         'is_active',
     ];
 
-    protected static function newFactory(): \Modules\MasterData\Database\Factories\ProjectTypeFactory
+    protected static function newFactory(): ProjectTypeFactory
     {
-        return \Modules\MasterData\Database\Factories\ProjectTypeFactory::new();
+        return ProjectTypeFactory::new();
     }
 }

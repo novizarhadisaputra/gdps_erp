@@ -64,24 +64,22 @@ class ProfitabilityAnalysisInfolist
                                     ->color(fn (float $state): string => $state < 10 ? 'danger' : ($state < 20 ? 'warning' : 'success')),
                             ]),
                     ]),
-                Section::make('Details')
+                Section::make('Signatures')
                     ->schema([
-                        RepeatableEntry::make('manpower_details')
-                            ->label('Manpower')
+                        RepeatableEntry::make('signatures')
+                            ->label('Digital Signatures')
                             ->schema([
-                                TextEntry::make('role'),
-                                TextEntry::make('count'),
-                                TextEntry::make('salary')->money('IDR'),
+                                TextEntry::make('user_name')->label('Signed By'),
+                                TextEntry::make('user_role')->label('Role')->badge(),
+                                TextEntry::make('type')->label('Type'),
+                                TextEntry::make('signed_at')->dateTime(),
+                                TextEntry::make('qr_code')
+                                    ->label('QR Verification')
+                                    ->html()
+                                    ->extraAttributes(['class' => 'w-32 h-32']),
                             ])
-                            ->columns(3),
-                        RepeatableEntry::make('material_details')
-                            ->label('Material & Equipment')
-                            ->schema([
-                                TextEntry::make('item'),
-                                TextEntry::make('quantity'),
-                                TextEntry::make('price')->money('IDR'),
-                            ])
-                            ->columns(3),
+                            ->columns(5)
+                            ->grid(2),
                     ]),
             ]);
     }

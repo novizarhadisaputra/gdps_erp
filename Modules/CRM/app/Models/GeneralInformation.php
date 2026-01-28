@@ -2,15 +2,22 @@
 
 namespace Modules\CRM\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\GeneralInformationObserver;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Models\Customer;
 
 #[ObservedBy([GeneralInformationObserver::class])]
 class GeneralInformation extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
+
+    protected $table = 'general_informations';
 
     /**
      * The attributes that are mass assignable.
@@ -18,6 +25,14 @@ class GeneralInformation extends Model
     protected $fillable = [
         'customer_id',
         'status',
+        'scope_of_work',
+        'location',
+        'estimated_start_date',
+        'estimated_end_date',
+        'manpower_qualifications',
+        'work_activities',
+        'service_level',
+        'billing_requirements',
         'pic_customer_name',
         'pic_customer_phone',
         'pic_finance_name',
@@ -33,18 +48,20 @@ class GeneralInformation extends Model
     protected function casts(): array
     {
         return [
+            'estimated_start_date' => 'date',
+            'estimated_end_date' => 'date',
             'risk_management' => 'array',
             'feasibility_study' => 'array',
         ];
     }
 
-    public function customer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function customer(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Customer::class);
+        return $this->belongsTo(Customer::class);
     }
 
-    public function profitabilityAnalyses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function profitabilityAnalyses(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\ProfitabilityAnalysis::class);
+        return $this->hasMany(ProfitabilityAnalysis::class);
     }
 }

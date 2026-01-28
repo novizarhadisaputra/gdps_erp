@@ -12,18 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('project_informations', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('project_id')->nullable();
+            $table->uuid('id')->primary();
+            $table->uuid('project_id')->nullable();
             $table->string('status')->default('planning');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->text('description')->nullable();
             $table->json('profitability_analysis')->nullable();
-            $table->foreignId('payment_term_id')->nullable()->constrained('payment_terms')->onDelete('set null');
-            $table->foreignId('project_type_id')->nullable()->constrained('project_types')->onDelete('set null');
-            $table->foreignId('billing_option_id')->nullable()->constrained('billing_options')->onDelete('set null');
-            $table->foreignId('oprep_id')->nullable()->constrained('employees')->onDelete('set null');
-            $table->foreignId('ams_id')->nullable()->constrained('employees')->onDelete('set null');
+            $table->foreignUuid('payment_term_id')->nullable()->constrained('payment_terms')->onDelete('set null');
+            $table->foreignUuid('project_type_id')->nullable()->constrained('project_types')->onDelete('set null');
+            $table->foreignUuid('billing_option_id')->nullable()->constrained('billing_options')->onDelete('set null');
+            $table->foreignUuid('oprep_id')->nullable()->constrained('employees')->onDelete('set null');
+            $table->foreignUuid('ams_id')->nullable()->constrained('employees')->onDelete('set null');
             $table->text('remarks')->nullable();
             $table->string('ipk_status')->nullable();
             $table->string('thr_status')->nullable();

@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ItemCategories;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\ItemCategories\Pages\ListItemCategories;
 use Modules\MasterData\Filament\Resources\ItemCategories\Schemas\ItemCategoryForm;
 use Modules\MasterData\Filament\Resources\ItemCategories\Tables\ItemCategoriesTable;
@@ -12,7 +13,7 @@ use Modules\MasterData\Models\ItemCategory;
 
 class ItemCategoryResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $model = ItemCategory::class;
 

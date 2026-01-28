@@ -5,15 +5,17 @@ namespace Modules\MasterData\Filament\Resources\Customers;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\Customers\Pages\ListCustomers;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Resources\Customers\Tables\CustomersTable;
+use Modules\MasterData\Models\Customer;
 
 class CustomerResource extends Resource
 {
-    protected static ?string $cluster = \Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
-    protected static ?string $model = \Modules\MasterData\Models\Customer::class;
+    protected static ?string $model = Customer::class;
 
     protected static ?int $navigationSort = 1;
 

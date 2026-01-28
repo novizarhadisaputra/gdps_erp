@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contracts', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->foreignId('proposal_id')->nullable()->constrained()->onDelete('set null');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
+            $table->foreignUuid('proposal_id')->nullable()->constrained()->onDelete('set null');
             $table->string('contract_number')->unique();
             $table->date('expiry_date')->nullable();
             $table->string('status')->default('draft'); // draft, active, expired, terminated
