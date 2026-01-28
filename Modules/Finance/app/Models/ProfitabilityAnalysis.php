@@ -18,10 +18,12 @@ use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class ProfitabilityAnalysis extends Model
+class ProfitabilityAnalysis extends Model implements HasMedia
 {
-    use HasDigitalSignatures, HasFactory, HasUuids;
+    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
 
     protected static function newFactory()
     {
@@ -47,6 +49,14 @@ class ProfitabilityAnalysis extends Model
         'project_number',
         'status',
         'signatures',
+        'asset_ownership',
+        'management_expense_rate',
+        'interest_rate',
+        'tax_rate',
+        'ebitda',
+        'ebit',
+        'ebt',
+        'net_profit',
     ];
 
     protected function casts(): array
@@ -56,10 +66,32 @@ class ProfitabilityAnalysis extends Model
             'direct_cost' => 'decimal:2',
             'management_fee' => 'decimal:2',
             'margin_percentage' => 'decimal:2',
+            'ebitda' => 'decimal:2',
+            'ebit' => 'decimal:2',
+            'ebt' => 'decimal:2',
+            'net_profit' => 'decimal:2',
+            'management_expense_rate' => 'decimal:2',
+            'interest_rate' => 'decimal:2',
+            'tax_rate' => 'decimal:2',
             'analysis_details' => 'array',
             'project_number' => 'integer',
             'signatures' => 'array',
         ];
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('tor')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('rfp')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('rfi')
+            ->useDisk('s3')
+            ->singleFile();
     }
 
     public function proposal(): BelongsTo

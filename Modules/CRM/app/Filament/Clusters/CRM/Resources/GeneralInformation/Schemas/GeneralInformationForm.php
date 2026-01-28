@@ -5,6 +5,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -82,6 +83,16 @@ class GeneralInformationForm
                     ->label('RR Submission ID')
                     ->disabled()
                     ->dehydrated(false),
+                SpatieMediaLibraryFileUpload::make('feasibility_study_file')
+                    ->collection('feasibility_study')
+                    ->label('Feasibility Study Document')
+                    ->disk('s3')
+                    ->visibility('private'),
+                SpatieMediaLibraryFileUpload::make('rr_document')
+                    ->collection('rr_document')
+                    ->label('RR Document')
+                    ->disk('s3')
+                    ->visibility('private'),
             ]);
     }
 }

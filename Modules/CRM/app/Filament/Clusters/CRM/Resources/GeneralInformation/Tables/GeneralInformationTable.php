@@ -7,6 +7,9 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
+use Modules\CRM\Models\GeneralInformation;
 
 class GeneralInformationTable
 {
@@ -43,6 +46,75 @@ class GeneralInformationTable
             ])
             ->recordActions([
                 EditAction::make(),
+                Action::make('Approve')
+                    ->label('Approve & Sign')
+                    ->icon('heroicon-o-check-badge')
+                    ->color('success')
+                    ->form([
+                        \Filament\Forms\Components\TextInput::make('pin')
+                            ->label('Signature PIN')
+                            ->password()
+                            ->required()
+                            ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                    ])
+                    ->action(function (GeneralInformation $record, array $data) {
+                        $user = auth()->user();
+
+                        if (! $user->signature_pin) {
+                            Notification::make()
+                                ->title('PIN Belum Diatur')
+                                ->body('Anda belum mengatur PIN tanda tangan. Mohon atur di profil Anda.')
+                                ->danger()
+                                ->actions([
+                                    \Filament\Notifications\Actions\Action::make('profile')
+                                        ->label('Ke Profil')
+                                        ->button()
+                                        ->url(\App\Filament\Pages\EditProfile::getUrl()),
+                                ])
+                                ->send();
+
+                            return;
+                        }
+
+                        if (! $user->hasMedia('signature')) {
+                            Notification::make()
+                                ->title('Tanda Tangan Belum Diupload')
+                                ->body('Anda belum mengupload gambar tanda tangan. Mohon upload di profil Anda.')
+                                ->danger()
+                                ->actions([
+                                    \Filament\Notifications\Actions\Action::make('profile')
+                                        ->label('Ke Profil')
+                                        ->button()
+                                        ->url(\App\Filament\Pages\EditProfile::getUrl()),
+                                ])
+                                ->send();
+
+                            return;
+                        }
+
+                        $service = app(\Modules\MasterData\Services\SignatureService::class);
+
+                        if (! $service->verifyPin($user, $data['pin'])) {
+                            Notification::make()
+                                ->title('PIN Salah')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        $qrData = $service->createSignatureData($user, $record, 'approved');
+                        $qrCode = $service->generateQRCode($qrData);
+
+                        $record->addSignature($user, 'approved', $qrCode);
+                        $record->update(['status' => 'approved']);
+
+                        Notification::make()
+                            ->title('Berhasil Disetujui')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

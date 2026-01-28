@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Modules\Project\Filament\Resources\Projects\Pages\ListProjects;
 use Modules\Project\Filament\Resources\Projects\Pages\ProjectBoard;
 use Modules\Project\Filament\Resources\Projects\Schemas\ProjectForm;
+use Modules\Project\Filament\Resources\Projects\Schemas\ProjectInfolist;
 use Modules\Project\Filament\Resources\Projects\Tables\ProjectsTable;
 use Modules\Project\Models\Project;
 
@@ -29,6 +30,11 @@ class ProjectResource extends Resource
     public static function table(Table $table): Table
     {
         return ProjectsTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return ProjectInfolist::configure($schema);
     }
 
     public static function getRelations(): array

@@ -7,13 +7,12 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
-use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Pages\CreateGeneralInformation;
-use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Pages\EditGeneralInformation;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Pages\ListGeneralInformation;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Tables\GeneralInformationTable;
+use Modules\CRM\Models\GeneralInformation;
 
 class GeneralInformationResource extends Resource
 {
@@ -33,6 +32,11 @@ class GeneralInformationResource extends Resource
         return GeneralInformationTable::configure($table);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return GeneralInformationInfolist::configure($schema);
+    }
+
     public static function getRelations(): array
     {
         return [
@@ -44,8 +48,6 @@ class GeneralInformationResource extends Resource
     {
         return [
             'index' => ListGeneralInformation::route('/'),
-            'create' => CreateGeneralInformation::route('/create'),
-            'edit' => EditGeneralInformation::route('/{record}/edit'),
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace Modules\Project\Filament\Resources\Projects\Schemas;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -139,6 +140,20 @@ class ProjectForm
                 ->required(),
             DatePicker::make('end_date')
                 ->required(),
+            SpatieMediaLibraryFileUpload::make('project_documents')
+                ->collection('project_documents')
+                ->label('Project Documents')
+                ->disk('s3')
+                ->visibility('private')
+                ->multiple()
+                ->columnSpanFull(),
+            SpatieMediaLibraryFileUpload::make('deliverables')
+                ->collection('deliverables')
+                ->label('Deliverables')
+                ->disk('s3')
+                ->visibility('private')
+                ->multiple()
+                ->columnSpanFull(),
         ];
     }
 

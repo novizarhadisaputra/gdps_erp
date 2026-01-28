@@ -9,10 +9,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CRM\Database\Factories\ContractFactory;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\MasterData\Models\Customer;
+use Modules\MasterData\Traits\HasDigitalSignatures;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Contract extends Model
+class Contract extends Model implements HasMedia
 {
-    use HasFactory, HasUuids;
+    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
 
     protected $fillable = [
         'customer_id',
@@ -22,12 +25,25 @@ class Contract extends Model
         'status',
         'reminder_status',
         'termination_reason',
+        'signatures',
     ];
 
     protected $casts = [
         'status' => ContractStatus::class,
         'expiry_date' => 'date',
+        'signatures' => 'array',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('signed_contract')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('termination_evidence')
+            ->useDisk('s3')
+            ->singleFile();
+    }
 
     protected static function newFactory(): ContractFactory
     {
@@ -42,5 +58,10 @@ class Contract extends Model
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
+    }
+
+    public function getAmountAttribute(): float
+    {
+        return $this->proposal?->amount ?? 0.0;
     }
 }

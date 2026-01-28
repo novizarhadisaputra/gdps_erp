@@ -12,10 +12,13 @@ use Modules\CRM\Enums\ProposalStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
+use Modules\MasterData\Traits\HasDigitalSignatures;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Proposal extends Model
+class Proposal extends Model implements HasMedia
 {
-    use HasFactory, HasUuids;
+    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
 
     protected $fillable = [
         'customer_id',
@@ -25,12 +28,21 @@ class Proposal extends Model
         'amount',
         'status',
         'submission_date',
+        'signatures',
     ];
 
     protected $casts = [
         'status' => ProposalStatus::class,
         'submission_date' => 'date',
+        'signatures' => 'array',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('final_proposal')
+            ->useDisk('s3')
+            ->singleFile();
+    }
 
     protected static function newFactory(): ProposalFactory
     {

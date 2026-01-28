@@ -13,6 +13,7 @@ class MasterDataDatabaseSeeder extends Seeder
     {
         $this->call([
             MasterCodeSeeder::class,
+            ApprovalRuleSeeder::class,
         ]);
     }
 }

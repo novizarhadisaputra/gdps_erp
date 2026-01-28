@@ -11,11 +11,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Customer;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+use Modules\MasterData\Traits\HasDigitalSignatures;
 
 #[ObservedBy([GeneralInformationObserver::class])]
-class GeneralInformation extends Model
+class GeneralInformation extends Model implements HasMedia
 {
-    use HasFactory, HasUuids;
+    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
 
     protected $table = 'general_informations';
 
@@ -43,6 +47,7 @@ class GeneralInformation extends Model
         'description',
         'remarks',
         'rr_submission_id',
+        'signatures',
     ];
 
     protected function casts(): array
@@ -52,7 +57,19 @@ class GeneralInformation extends Model
             'estimated_end_date' => 'date',
             'risk_management' => 'array',
             'feasibility_study' => 'array',
+            'signatures' => 'array',
         ];
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('feasibility_study')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('rr_document')
+            ->useDisk('s3')
+            ->singleFile();
     }
 
     public function customer(): BelongsTo

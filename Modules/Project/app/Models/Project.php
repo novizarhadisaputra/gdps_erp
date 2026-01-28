@@ -20,12 +20,14 @@ use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Database\Factories\ProjectFactory;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 // use Modules\Project\Database\Factories\ProjectFactory;
 
-class Project extends Model
+class Project extends Model implements HasMedia
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -65,6 +67,15 @@ class Project extends Model
     protected function casts(): array
     {
         return [];
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('project_documents')
+            ->useDisk('s3');
+
+        $this->addMediaCollection('deliverables')
+            ->useDisk('s3');
     }
 
     public function information(): HasOne
@@ -130,5 +141,13 @@ class Project extends Model
     public function ams(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'ams_id');
+    }
+
+    public function getAmountAttribute(): float
+    {
+        return $this->proposal?->amount 
+            ?? $this->contract?->proposal?->amount 
+            ?? $this->profitabilityAnalysis?->revenue_per_month 
+            ?? 0.0;
     }
 }

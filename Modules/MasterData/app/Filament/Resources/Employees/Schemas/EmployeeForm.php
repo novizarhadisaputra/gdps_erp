@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Resources\Employees\Schemas;
 
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -50,6 +51,21 @@ class EmployeeForm
                         ->default('active'),
                 ])
                 ->columns(2),
+            SpatieMediaLibraryFileUpload::make('identity_card')
+                ->collection('identity_card')
+                ->label('Identity Card')
+                ->disk('s3')
+                ->visibility('private'),
+            SpatieMediaLibraryFileUpload::make('resume')
+                ->collection('resume')
+                ->label('Resume')
+                ->disk('s3')
+                ->visibility('private'),
+            SpatieMediaLibraryFileUpload::make('employment_contract')
+                ->collection('employment_contract')
+                ->label('Employment Contract')
+                ->disk('s3')
+                ->visibility('private'),
         ];
     }
 }

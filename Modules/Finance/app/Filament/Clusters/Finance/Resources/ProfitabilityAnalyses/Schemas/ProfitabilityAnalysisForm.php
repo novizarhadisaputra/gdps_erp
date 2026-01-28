@@ -2,11 +2,11 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
-use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -38,6 +38,28 @@ class ProfitabilityAnalysisForm
                     ->searchable()
                     ->preload()
                     ->createOptionForm(CustomerForm::schema()),
+
+                Section::make('Project Documents')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                SpatieMediaLibraryFileUpload::make('tor')
+                                    ->collection('tor')
+                                    ->disk('s3')
+                                    ->label('ToR Document')
+                                    ->hint('Terms of Reference'),
+                                SpatieMediaLibraryFileUpload::make('rfp')
+                                    ->collection('rfp')
+                                    ->disk('s3')
+                                    ->label('RFP Document')
+                                    ->hint('Request for Proposal'),
+                                SpatieMediaLibraryFileUpload::make('rfi')
+                                    ->collection('rfi')
+                                    ->disk('s3')
+                                    ->label('RFI Document')
+                                    ->hint('Request for Information'),
+                            ]),
+                    ])->collapsible(),
 
                 Section::make('Project Code Parameters')
                     ->columns(columns: 1)
@@ -79,39 +101,88 @@ class ProfitabilityAnalysisForm
 
                 Section::make('Financial Analysis')
                     ->schema([
-                        TextInput::make('revenue_per_month')
-                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                            ->helperText('Estimated monthly revenue. Contoh: 80,000,000')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Total revenue expected per month.')
-                            ->required()
-                            ->live(onBlur: true)
-                            ->afterStateUpdated(fn ($state, $get, $set) => self::calculateMargin($state, $get('direct_cost'), $set)),
-                        TextInput::make('direct_cost')
-                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                            ->helperText('Direct financial costs.')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Auto-calculated from Manpower and Materials.')
-                            ->required()
-                            ->readOnly()
-                            ->live()
-                            ->afterStateUpdated(fn ($state, $get, $set) => self::calculateMargin($get('revenue_per_month'), $state, $set)),
-                        TextInput::make('management_fee')
-                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                            ->helperText('Fee for management services.'),
-                        TextInput::make('margin_percentage')
-                            ->numeric()
-                            ->suffix('%')
-                            ->helperText('Calculated profit margin.')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: '(Revenue - Cost) / Revenue * 100')
-                            ->readOnly()
-                            ->placeholder('Auto-calculated'),
-                    ])->columns(columns: 1),
+                        Grid::make(3)
+                            ->schema([
+                                Select::make('asset_ownership')
+                                    ->options([
+                                        'gdps-owned' => 'GDPS-Owned',
+                                        'customer-owned' => 'Customer-Owned',
+                                    ])
+                                    ->default('gdps-owned')
+                                    ->required()
+                                    ->native(false),
+                                TextInput::make('management_fee')
+                                    ->label('Management Fee (Flat)')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->helperText('Additional flat fee.'),
+                                TextInput::make('margin_percentage')
+                                    ->label('Gross Margin')
+                                    ->numeric()
+                                    ->suffix('%')
+                                    ->readOnly()
+                                    ->placeholder('Auto'),
+                            ]),
+
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make('management_expense_rate')
+                                    ->label('Mgmt Expense (%)')
+                                    ->numeric()
+                                    ->default(3.00)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                TextInput::make('interest_rate')
+                                    ->label('Interest Rate (%)')
+                                    ->numeric()
+                                    ->default(1.50)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                TextInput::make('tax_rate')
+                                    ->label('Corp Tax Rate (%)')
+                                    ->numeric()
+                                    ->default(22.00)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                            ]),
+
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('revenue_per_month')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->label('Total Revenue/Mo')
+                                    ->readOnly()
+                                    ->live(onBlur: true),
+                                TextInput::make('direct_cost')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->label('Total Direct Cost/Mo')
+                                    ->readOnly()
+                                    ->live(),
+                            ]),
+
+                        Grid::make(4)
+                            ->schema([
+                                TextInput::make('ebitda')
+                                    ->label('EBITDA')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->readOnly(),
+                                TextInput::make('ebit')
+                                    ->label('EBIT')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->readOnly(),
+                                TextInput::make('ebt')
+                                    ->label('EBT')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->readOnly(),
+                                TextInput::make('net_profit')
+                                    ->label('Net Profit')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->readOnly()
+                                    ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly profitability.'),
+                            ]),
+                    ]),
 
                 Section::make('Costing Details')
-                    ->headerActions([
-                        Action::make('Import from Akurat')
-                            ->icon('heroicon-o-arrow-path')
-                            ->action(fn () => Notification::make()->title('Akurat Sync is not implemented yet.')->warning()->send()),
-                    ])
+                    ->columnSpanFull()
                     ->schema([
                         Repeater::make('items')
                             ->relationship('items')
@@ -172,7 +243,7 @@ class ProfitabilityAnalysisForm
                                     ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
                                     ->columnSpan(1),
                             ])
-                            ->columns(8)
+                            ->columns(4)
                             ->columnSpanFull()
                             ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
                             ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
@@ -206,7 +277,29 @@ class ProfitabilityAnalysisForm
         $set('direct_cost', $totalDirectCost);
         $set('revenue_per_month', $totalRevenue);
 
-        // Recalculate margin
+        // Advanced Financial Tiers
+        $mgmtExpenseRate = (float) ($get('management_expense_rate') ?? 3.0);
+        $interestRate = (float) ($get('interest_rate') ?? 1.5);
+        $taxRate = (float) ($get('tax_rate') ?? 22.0);
+
+        $mgmtExpense = $totalRevenue * ($mgmtExpenseRate / 100);
+        $ebitda = ($totalRevenue - $totalDirectCost) - $mgmtExpense;
+
+        // In this project model, direct_cost is already the monthly depreciation of used assets
+        $ebit = $ebitda;
+
+        $interest = $totalDirectCost * ($interestRate / 100);
+        $ebt = $ebit - $interest;
+
+        $tax = $ebt > 0 ? ($ebt * ($taxRate / 100)) : 0;
+        $netProfit = $ebt - $tax;
+
+        $set('ebitda', $ebitda);
+        $set('ebit', $ebit);
+        $set('ebt', $ebt);
+        $set('net_profit', $netProfit);
+
+        // Recalculate margin (GP Margin)
         self::calculateMargin($totalRevenue, $totalDirectCost, $set);
     }
 

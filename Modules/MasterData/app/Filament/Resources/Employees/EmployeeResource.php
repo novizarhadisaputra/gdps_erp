@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\Employees\Pages\ListEmployees;
 use Modules\MasterData\Filament\Resources\Employees\Schemas\EmployeeForm;
+use Modules\MasterData\Filament\Resources\Employees\Schemas\EmployeeInfolist;
 use Modules\MasterData\Filament\Resources\Employees\Tables\EmployeesTable;
 use Modules\MasterData\Models\Employee;
 
@@ -31,6 +32,11 @@ class EmployeeResource extends Resource
     public static function table(Table $table): Table
     {
         return EmployeesTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return EmployeeInfolist::configure($schema);
     }
 
     public static function getRelations(): array

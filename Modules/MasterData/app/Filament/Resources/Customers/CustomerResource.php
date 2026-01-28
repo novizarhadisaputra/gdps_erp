@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Resources\Customers\Pages\ListCustomers;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
+use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerInfolist;
 use Modules\MasterData\Filament\Resources\Customers\Tables\CustomersTable;
 use Modules\MasterData\Models\Customer;
 
@@ -31,6 +32,11 @@ class CustomerResource extends Resource
     public static function table(Table $table): Table
     {
         return CustomersTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return CustomerInfolist::configure($schema);
     }
 
     public static function getRelations(): array

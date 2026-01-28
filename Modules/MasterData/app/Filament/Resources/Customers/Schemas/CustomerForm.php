@@ -4,6 +4,7 @@ namespace Modules\MasterData\Filament\Resources\Customers\Schemas;
 
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -78,6 +79,22 @@ class CustomerForm
                 ])
                 ->required()
                 ->default('active'),
+            SpatieMediaLibraryFileUpload::make('npwp')
+                ->collection('npwp')
+                ->label('NPWP Document')
+                ->disk('s3')
+                ->visibility('private'),
+            SpatieMediaLibraryFileUpload::make('legal_documents')
+                ->collection('legal_documents')
+                ->label('Legal Documents')
+                ->disk('s3')
+                ->visibility('private')
+                ->multiple(),
+            SpatieMediaLibraryFileUpload::make('company_profile')
+                ->collection('company_profile')
+                ->label('Company Profile')
+                ->disk('s3')
+                ->visibility('private'),
         ];
     }
 }

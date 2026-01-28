@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Resources\Proposals\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Schema;
@@ -43,6 +44,12 @@ class ProposalForm
                     ->inline()
                     ->required(),
                 DatePicker::make('submission_date'),
+                SpatieMediaLibraryFileUpload::make('final_proposal')
+                    ->collection('final_proposal')
+                    ->label('Final Proposal Document')
+                    ->disk('s3')
+                    ->visibility('private')
+                    ->columnSpanFull(),
             ]);
     }
 }

@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('signature_pin')->nullable()->after('password');
+        Schema::table('general_informations', function (Blueprint $table) {
+            $table->json('signatures')->nullable();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['signature_pin']);
+        Schema::table('general_informations', function (Blueprint $table) {
+            $table->dropColumn('signatures');
         });
     }
 };

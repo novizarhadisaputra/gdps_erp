@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Resources\Contracts\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Schema;
@@ -43,6 +44,19 @@ class ContractForm
                         '3_month' => '3 Months Before',
                         '1_month' => '1 Month Before',
                     ]),
+                SpatieMediaLibraryFileUpload::make('signed_contract')
+                    ->collection('signed_contract')
+                    ->label('Signed Contract Document')
+                    ->disk('s3')
+                    ->visibility('private')
+                    ->columnSpanFull(),
+                SpatieMediaLibraryFileUpload::make('termination_evidence')
+                    ->collection('termination_evidence')
+                    ->label('Termination Evidence')
+                    ->disk('s3')
+                    ->visibility('private')
+                    ->visible(fn ($get) => $get('status') === ContractStatus::Terminated->value)
+                    ->columnSpanFull(),
             ]);
     }
 }

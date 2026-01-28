@@ -2,11 +2,13 @@
 
 namespace Modules\CRM\Filament\Resources\Proposals\Schemas;
 
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
+use Filament\Support\Icons\Heroicon;
 
 class ProposalInfolist
 {
@@ -27,12 +29,27 @@ class ProposalInfolist
                                 TextEntry::make('submission_date')
                                     ->date(),
                             ]),
-                    ]),
-                Section::make('Status')
+                        Grid::make(1)
+                            ->schema([
+                                TextEntry::make('final_proposal_document')
+                                    ->label('Proposal Document')
+                                    ->state(fn ($record) => $record->getFirstMedia('final_proposal')?->file_name ?? 'No Document')
+                                    ->url(fn ($record) => $record->getFirstMediaUrl('final_proposal'), true)
+                                    ->icon(Heroicon::OutlinedDocumentText)
+                                    ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'primary'),
+                            ]),
+                    ])->columnSpanFull(),
+                Section::make('Approval & Signatures')
                     ->schema([
-                        TextEntry::make('status')
-                            ->badge(),
-                    ]),
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('status')
+                                    ->badge(),
+                            ]),
+                        \Filament\Infolists\Components\ViewEntry::make('signatures')
+                            ->view('filament.infolists.digital-signature')
+                            ->columnSpanFull(),
+                    ])->columnSpanFull(),
             ]);
     }
 }

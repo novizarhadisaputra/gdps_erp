@@ -11,10 +11,13 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements FilamentUser
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class User extends Authenticatable implements FilamentUser, HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable;
+    use HasApiTokens, HasFactory, HasRoles, HasUuids, InteractsWithMedia, Notifiable;
 
     /**
      * Determine if the user can access the Filament panel.
@@ -46,6 +49,12 @@ class User extends Authenticatable implements FilamentUser
         'refresh_token',
         'token_expires_at',
     ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('signature')
+            ->singleFile();
+    }
 
     /**
      * The attributes that should be hidden for serialization.
