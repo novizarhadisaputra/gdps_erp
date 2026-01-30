@@ -35,11 +35,22 @@ class ProjectGenerationService
             ]);
 
             // 4. Populate Project Information from PA
+            // 4. Populate Project Information from PA
+            $details = $pa->analysis_details;
+            if (empty($details) && $pa->items()->exists()) {
+                $details = $pa->items->map(fn($item) => [
+                    'name' => $item->item->name ?? 'Unknown',
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_cost_price,
+                    'total_price' => $item->total_monthly_cost
+                ])->toArray();
+            }
+
             $project->information->update([
                 'revenue_per_month' => $pa->revenue_per_month,
                 'direct_cost' => $pa->direct_cost,
                 'management_fee_per_month' => $pa->management_fee,
-                'analysis_details' => $pa->analysis_details,
+                'analysis_details' => $details,
             ]);
 
             // 5. Update PA status

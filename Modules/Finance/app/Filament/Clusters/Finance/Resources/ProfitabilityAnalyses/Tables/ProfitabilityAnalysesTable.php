@@ -169,7 +169,7 @@ class ProfitabilityAnalysesTable
                         $record->status === 'approved' &&
                         $record->revenue_per_month !== null &&
                         $record->margin_percentage !== null &&
-                        ! empty($record->analysis_details)
+                        (! empty($record->analysis_details) || $record->items()->exists())
                     )
                     ->form([
                         Placeholder::make('summary')
