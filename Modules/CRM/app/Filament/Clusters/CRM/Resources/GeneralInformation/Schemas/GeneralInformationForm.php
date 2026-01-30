@@ -25,6 +25,8 @@ class GeneralInformationForm
                     ->searchable()
                     ->preload()
                     ->createOptionForm(CustomerForm::schema()),
+                TextInput::make('document_number')
+                    ->label('Document Number'),
                 Select::make('status')
                     ->options([
                         'draft' => 'Draft',

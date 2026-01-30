@@ -38,6 +38,8 @@ class ProfitabilityAnalysisForm
                     ->searchable()
                     ->preload()
                     ->createOptionForm(CustomerForm::schema()),
+                TextInput::make('document_number')
+                    ->label('Document Number'),
 
                 Section::make('Project Documents')
                     ->schema([
@@ -201,7 +203,19 @@ class ProfitabilityAnalysisForm
                                         $item = Item::find($state);
                                         if ($item) {
                                             $set('unit_cost_price', $item->price);
-                                            $set('depreciation_months', $item->depreciation_months ?? 1);
+                                            $set('unit_of_measure', $item->unitOfMeasure?->name ?? 'Unit');
+
+                                            // Depreciation Logic: Item Specific > Asset Group > Default
+                                            $depreciation = $item->depreciation_months;
+                                            if (empty($depreciation) || $depreciation <= 0) {
+                                                // Check Asset Group via Category
+                                                $usefulLifeYears = $item->category?->assetGroup?->useful_life_years;
+                                                if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                                    $depreciation = $usefulLifeYears * 12;
+                                                }
+                                            }
+
+                                            $set('depreciation_months', $depreciation ?? 1);
                                         }
                                     })
                                     ->columnSpan(2),
@@ -209,6 +223,11 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(1)
                                     ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('unit_of_measure')
+                                    ->label('UoM')
+                                    ->disabled()
+                                    ->dehydrated()
                                     ->columnSpan(1),
                                 TextInput::make('unit_cost_price')
                                     ->label('Modal Price')
@@ -243,7 +262,7 @@ class ProfitabilityAnalysisForm
                                     ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
                                     ->columnSpan(1),
                             ])
-                            ->columns(4)
+                            ->columns(5)
                             ->columnSpanFull()
                             ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
                             ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),

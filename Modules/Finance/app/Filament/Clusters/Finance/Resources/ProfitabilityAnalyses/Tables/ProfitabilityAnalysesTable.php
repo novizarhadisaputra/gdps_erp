@@ -26,6 +26,11 @@ class ProfitabilityAnalysesTable
     {
         return $table
             ->columns([
+                TextColumn::make('document_number')
+                    ->label('Document No.')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('proposal.proposal_number')
                     ->label('Proposal')
                     ->searchable()

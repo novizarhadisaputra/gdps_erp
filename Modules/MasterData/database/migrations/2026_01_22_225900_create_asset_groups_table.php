@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('item_categories', function (Blueprint $table) {
+        Schema::create('asset_groups', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('unit_id')->nullable()->index();
-            $table->string('code')->unique();
-            $table->string('name')->unique();
+            $table->string('name');
+            $table->string('type')->nullable(); // AssetGroupType enum
+            $table->integer('useful_life_years');
+            $table->decimal('rate_straight_line', 5, 2)->nullable();
+            $table->decimal('rate_declining_balance', 5, 2)->nullable();
             $table->text('description')->nullable();
-            $table->foreignUuid('asset_group_id')->nullable()->constrained('asset_groups')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_categories');
+        Schema::dropIfExists('asset_groups');
     }
 };

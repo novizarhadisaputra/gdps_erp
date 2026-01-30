@@ -16,11 +16,16 @@ class ItemCategory extends Model
 {
     use HasFactory, HasUnitScoping, HasUuids;
 
-    protected $fillable = ['unit_id', 'code', 'name', 'description'];
+    protected $fillable = ['unit_id', 'code', 'name', 'description', 'asset_group_id'];
 
     protected static function newFactory(): ItemCategoryFactory
     {
         return ItemCategoryFactory::new();
+    }
+
+    public function assetGroup(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(AssetGroup::class);
     }
 
     public function items(): HasMany

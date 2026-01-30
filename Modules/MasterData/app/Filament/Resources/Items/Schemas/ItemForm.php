@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Resources\ItemCategories\Schemas\ItemCategoryForm;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
@@ -42,7 +43,17 @@ class ItemForm
                 ->searchable()
                 ->preload()
                 ->createOptionForm(ItemCategoryForm::schema())
-                ->createOptionUsing(fn (array $data) => ItemCategory::create($data)->id),
+                ->createOptionUsing(fn (array $data) => ItemCategory::create($data)->id)
+                ->live()
+                ->afterStateUpdated(function ($state, Set $set) {
+                    if (! $state) {
+                        return;
+                    }
+                    $category = ItemCategory::find($state);
+                    if ($category && $category->assetGroup) {
+                        $set('depreciation_months', $category->assetGroup->useful_life_years * 12);
+                    }
+                }),
             Select::make('unit_of_measure_id')
                 ->label('Unit of Measure')
                 ->options(fn () => UnitOfMeasure::query()->pluck('name', 'id'))

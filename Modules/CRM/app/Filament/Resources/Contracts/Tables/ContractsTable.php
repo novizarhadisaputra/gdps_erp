@@ -45,6 +45,15 @@ class ContractsTable
                 //
             ])
             ->recordActions([
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function (Contract $record) {
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $record]);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$record->contract_number}.pdf");
+                    }),
                 ViewAction::make()
                     ->modalFooterActions([
                         Action::make('Sign')
@@ -67,7 +76,7 @@ class ContractsTable
                                         ->body('Anda belum mengatur PIN tanda tangan. Mohon atur di profil Anda.')
                                         ->danger()
                                         ->actions([
-                                            \Filament\Notifications\Actions\Action::make('profile')
+                                            Action::make('profile')
                                                 ->label('Ke Profil')
                                                 ->button()
                                                 ->url(\App\Filament\Pages\EditProfile::getUrl()),
@@ -83,7 +92,7 @@ class ContractsTable
                                         ->body('Anda belum mengupload gambar tanda tangan. Mohon upload di profil Anda.')
                                         ->danger()
                                         ->actions([
-                                            \Filament\Notifications\Actions\Action::make('profile')
+                                            Action::make('profile')
                                                 ->label('Ke Profil')
                                                 ->button()
                                                 ->url(\App\Filament\Pages\EditProfile::getUrl()),

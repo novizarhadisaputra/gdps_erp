@@ -17,8 +17,8 @@ class UnitOfMeasureFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => 'UOM-' . mt_rand(100, 999),
-            'name' => 'UOM ' . mt_rand(1, 100),
+            'code' => $this->faker->unique()->bothify('UOM-####-???'),
+            'name' => $this->faker->unique()->words(2, true),
         ];
     }
 }

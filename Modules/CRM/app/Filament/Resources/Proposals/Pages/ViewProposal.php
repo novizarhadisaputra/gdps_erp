@@ -16,6 +16,15 @@ class ViewProposal extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pdf')
+                ->label('Export PDF')
+                ->color('gray')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->action(function () {
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
+                    return response()->streamDownload(fn () => print($pdf->output()), "proposal-{$this->record->proposal_number}.pdf");
+                }),
+
             Action::make('Submit')
                 ->color('info')
                 ->icon('heroicon-o-paper-airplane')

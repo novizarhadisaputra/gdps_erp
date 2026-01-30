@@ -27,6 +27,7 @@ class GeneralInformation extends Model implements HasMedia
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'document_number',
         'customer_id',
         'status',
         'scope_of_work',

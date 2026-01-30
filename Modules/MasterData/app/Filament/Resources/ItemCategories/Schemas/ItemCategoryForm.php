@@ -17,6 +17,13 @@ class ItemCategoryForm
     public static function schema(): array
     {
         return [
+            \Filament\Forms\Components\Select::make('asset_group_id')
+                ->relationship('assetGroup', 'name')
+                ->searchable()
+                ->preload()
+                ->label('Asset Group')
+                ->placeholder('Select Asset Group for Depreciation')
+                ->columnSpanFull(),
             TextInput::make('code')
                 ->label('Category Code')
                 ->unique(ignoreRecord: true)

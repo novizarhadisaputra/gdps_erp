@@ -2,13 +2,13 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Modules\CRM\Models\GeneralInformation;
 
 class GeneralInformationTable
@@ -17,6 +17,11 @@ class GeneralInformationTable
     {
         return $table
             ->columns([
+                TextColumn::make('document_number')
+                    ->label('Document No.')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('customer.name')
                     ->label('Customer')
                     ->searchable()
@@ -45,6 +50,15 @@ class GeneralInformationTable
                 //
             ])
             ->recordActions([
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function (GeneralInformation $record) {
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$record->customer->name}.pdf");
+                    }),
                 EditAction::make(),
                 Action::make('Approve')
                     ->label('Approve & Sign')
@@ -66,7 +80,7 @@ class GeneralInformationTable
                                 ->body('Anda belum mengatur PIN tanda tangan. Mohon atur di profil Anda.')
                                 ->danger()
                                 ->actions([
-                                    \Filament\Notifications\Actions\Action::make('profile')
+                                    Action::make('profile')
                                         ->label('Ke Profil')
                                         ->button()
                                         ->url(\App\Filament\Pages\EditProfile::getUrl()),
@@ -82,7 +96,7 @@ class GeneralInformationTable
                                 ->body('Anda belum mengupload gambar tanda tangan. Mohon upload di profil Anda.')
                                 ->danger()
                                 ->actions([
-                                    \Filament\Notifications\Actions\Action::make('profile')
+                                    Action::make('profile')
                                         ->label('Ke Profil')
                                         ->button()
                                         ->url(\App\Filament\Pages\EditProfile::getUrl()),

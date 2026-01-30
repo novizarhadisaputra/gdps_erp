@@ -50,6 +50,9 @@ class ProfitabilityAnalysisResource extends Resource
     {
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
+            'create' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\CreateProfitabilityAnalysis::route('/create'),
+            'edit' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\EditProfitabilityAnalysis::route('/{record}/edit'),
+            'view' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ViewProfitabilityAnalysis::route('/{record}'),
         ];
     }
 }

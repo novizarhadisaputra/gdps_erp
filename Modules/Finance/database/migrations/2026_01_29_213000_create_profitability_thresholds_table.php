@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('item_categories', function (Blueprint $table) {
+        Schema::create('profitability_thresholds', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('unit_id')->nullable()->index();
-            $table->string('code')->unique();
-            $table->string('name')->unique();
+            $table->string('name'); // e.g. "Standard Project"
+            $table->decimal('min_gpm', 5, 2); // Gross Profit Margin
+            $table->decimal('min_npm', 5, 2); // Net Profit Margin
             $table->text('description')->nullable();
-            $table->foreignUuid('asset_group_id')->nullable()->constrained('asset_groups')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_categories');
+        Schema::dropIfExists('profitability_thresholds');
     }
 };

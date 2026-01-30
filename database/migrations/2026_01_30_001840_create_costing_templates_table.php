@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('item_categories', function (Blueprint $table) {
+        Schema::create('costing_templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('unit_id')->nullable()->index();
-            $table->string('code')->unique();
-            $table->string('name')->unique();
+            $table->string('name');
+            $table->decimal('total_amount', 15, 2)->default(0); // Total One-Time Cost/Investment
+            $table->decimal('total_monthly_cost', 15, 2)->default(0); // Total Monthly Depr/Expense
             $table->text('description')->nullable();
-            $table->foreignUuid('asset_group_id')->nullable()->constrained('asset_groups')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('item_categories');
+        Schema::dropIfExists('costing_templates');
     }
 };
