@@ -2,8 +2,8 @@
 
 namespace Modules\MasterData\Filament\Resources;
 
-use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Resources\CostingTemplates\Pages;
 use Modules\MasterData\Filament\Resources\CostingTemplates\Schemas\CostingTemplateForm;
@@ -14,9 +14,9 @@ class CostingTemplateResource extends Resource
 {
     protected static ?string $model = CostingTemplate::class;
 
-    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-calculator';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calculator';
 
-    protected static string | \UnitEnum | null $navigationGroup = 'Master Data';
+    protected static string|\UnitEnum|null $navigationGroup = 'Master Data';
 
     protected static ?string $navigationLabel = 'Costing Templates';
 
@@ -34,8 +34,6 @@ class CostingTemplateResource extends Resource
     {
         return [
             'index' => Pages\ListCostingTemplates::route('/'),
-            'create' => Pages\CreateCostingTemplate::route('/create'),
-            'edit' => Pages\EditCostingTemplate::route('/{record}/edit'),
         ];
     }
 }

@@ -35,12 +35,21 @@ class AssetGroupResource extends Resource
         return AssetGroupsTable::configure($table);
     }
 
+    /*
     public static function getPages(): array
     {
         return [
             'index' => ListAssetGroups::route('/'),
             'create' => CreateAssetGroup::route('/create'),
             'edit' => EditAssetGroup::route('/{record}/edit'),
+        ];
+    }
+    */
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListAssetGroups::route('/'),
         ];
     }
 }

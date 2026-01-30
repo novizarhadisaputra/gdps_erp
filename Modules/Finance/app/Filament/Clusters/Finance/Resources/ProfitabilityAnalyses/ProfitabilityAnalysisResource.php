@@ -46,6 +46,7 @@ class ProfitabilityAnalysisResource extends Resource
         ];
     }
 
+    /*
     public static function getPages(): array
     {
         return [
@@ -53,6 +54,13 @@ class ProfitabilityAnalysisResource extends Resource
             'create' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\CreateProfitabilityAnalysis::route('/create'),
             'edit' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\EditProfitabilityAnalysis::route('/{record}/edit'),
             'view' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ViewProfitabilityAnalysis::route('/{record}'),
+        ];
+    }
+    */
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListProfitabilityAnalyses::route('/'),
         ];
     }
 }

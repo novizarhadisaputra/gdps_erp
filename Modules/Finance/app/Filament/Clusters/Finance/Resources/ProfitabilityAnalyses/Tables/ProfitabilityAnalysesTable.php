@@ -4,12 +4,12 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -72,8 +72,13 @@ class ProfitabilityAnalysesTable
                         'rejected' => 'Rejected',
                     ]),
             ])
+            ->headerActions([
+                CreateAction::make()
+                    ->slideOver(),
+            ])
             ->recordActions([
                 ViewAction::make()
+                    ->slideOver()
                     ->modalFooterActions([
                         Action::make('Sign')
                             ->label('Digital Signature')
@@ -160,7 +165,8 @@ class ProfitabilityAnalysesTable
                             ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'rejected']))
                             ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'submitted'),
                     ]),
-                EditAction::make(),
+                EditAction::make()
+                    ->slideOver(),
                 Action::make('generateProject')
                     ->label('Generate Project')
                     ->icon('heroicon-o-plus-circle')
@@ -171,9 +177,13 @@ class ProfitabilityAnalysesTable
                         $record->margin_percentage !== null &&
                         (! empty($record->analysis_details) || $record->items()->exists())
                     )
-                    ->form([
-                        Placeholder::make('summary')
-                            ->content(fn ($record) => "You are about to generate a Project for '{$record->customer?->name}'. This will consume the next sequence number for this customer and work scheme."),
+                    ->schema([
+                        TextInput::make('summary')
+                            ->label('Summary')
+                            ->default(fn ($record) => "You are about to generate a Project for '{$record->customer?->name}'. This will consume the next sequence number for this customer and work scheme.")
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->columnSpanFull(),
                         TextInput::make('project_name_override')
                             ->label('Project Name (Optional)')
                             ->placeholder(fn ($record) => $record->proposal?->proposal_number ?? 'Project for '.$record->customer?->name),
@@ -199,7 +209,7 @@ class ProfitabilityAnalysesTable
                     ->icon('heroicon-o-document-plus')
                     ->color('primary')
                     ->visible(fn (ProfitabilityAnalysis $record) => ! $record->proposal_id && $record->status === 'approved')
-                    ->form([
+                    ->schema([
                         TextInput::make('proposal_number')
                             ->required()
                             ->unique('proposals', 'proposal_number'),

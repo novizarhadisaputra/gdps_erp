@@ -396,7 +396,6 @@ class MasterCodeSeeder extends Seeder
 
         // Item Categories
         $categories = [
-            ['code' => 'MP', 'name' => 'Manpower'],
             ['code' => 'MT', 'name' => 'Material'],
             ['code' => 'EQ', 'name' => 'Equipment'],
         ];
@@ -406,15 +405,6 @@ class MasterCodeSeeder extends Seeder
 
         // Items
         $items = [
-            // Manpower
-            ['category' => 'Manpower', 'name' => 'Cleaner', 'code' => 'MP-CLN', 'uom' => 'PRS'],
-            ['category' => 'Manpower', 'name' => 'Leader Cleaner', 'code' => 'MP-LDR', 'uom' => 'PRS'],
-            ['category' => 'Manpower', 'name' => 'Team Leader', 'code' => 'MP-TL', 'uom' => 'PRS'],
-            ['category' => 'Manpower', 'name' => 'Engineer', 'code' => 'MP-ENG', 'uom' => 'PRS'],
-            ['category' => 'Manpower', 'name' => 'Security', 'code' => 'MP-SEC', 'uom' => 'PRS'],
-            ['category' => 'Manpower', 'name' => 'Satpam', 'code' => 'MP-SAT', 'uom' => 'PRS'],
-            ['category' => 'Manpower', 'name' => 'Teknisi', 'code' => 'MP-TEK', 'uom' => 'PRS'],
-
             // Materials
             ['category' => 'Material', 'name' => 'Sabun Cuci Tangan', 'code' => 'MT-SBT', 'uom' => 'LTR'],
             ['category' => 'Material', 'name' => 'Cairan Pembersih Lantai', 'code' => 'MT-CPL', 'uom' => 'LTR'],
