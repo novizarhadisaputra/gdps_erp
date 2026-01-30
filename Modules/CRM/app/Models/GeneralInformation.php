@@ -15,6 +15,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 use Modules\MasterData\Traits\HasDigitalSignatures;
+use Modules\CRM\Models\GeneralInformationPic;
 
 #[ObservedBy([GeneralInformationObserver::class])]
 class GeneralInformation extends Model implements HasMedia
@@ -81,5 +82,9 @@ class GeneralInformation extends Model implements HasMedia
     public function profitabilityAnalyses(): HasMany
     {
         return $this->hasMany(ProfitabilityAnalysis::class);
+    }
+    public function pics(): HasMany
+    {
+        return $this->hasMany(GeneralInformationPic::class);
     }
 }

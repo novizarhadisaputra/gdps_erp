@@ -50,7 +50,8 @@ class EmployeeForm
                         ->required()
                         ->default('active'),
                 ])
-                ->columns(2),
+                ->columns(2)
+                ->columnSpanFull(),
             SpatieMediaLibraryFileUpload::make('identity_card')
                 ->collection('identity_card')
                 ->label('Identity Card')

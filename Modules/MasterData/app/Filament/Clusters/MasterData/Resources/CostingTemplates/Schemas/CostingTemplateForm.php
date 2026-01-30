@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\MasterData\Filament\Resources\CostingTemplates\Schemas;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplates\Schemas;
 
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Enums\CostingCategory;
 use Modules\MasterData\Models\AssetGroup;
 use Modules\MasterData\Models\Item;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 
 class CostingTemplateForm
 {
@@ -26,6 +26,7 @@ class CostingTemplateForm
     {
         return [
             Section::make('Template Details')
+                ->columnSpanFull()
                 ->schema([
                     TextInput::make('name')
                         ->required()
@@ -36,6 +37,7 @@ class CostingTemplateForm
                 ]),
 
             Section::make('Items & Costing')
+                ->columnSpanFull()
                 ->schema([
                     Repeater::make('costingTemplateItems')
                         ->relationship()
@@ -52,17 +54,17 @@ class CostingTemplateForm
                                             $set('name', $item->name);
                                             $set('unit', $item->unitOfMeasure?->name ?? 'Unit');
                                             $set('unit_price', $item->price);
-                                            
+
                                             $assetGroupId = $item->category?->asset_group_id;
                                             $set('asset_group_id', $assetGroupId);
-                                            
+
                                             if ($assetGroupId) {
                                                 $group = AssetGroup::find($assetGroupId);
                                                 $set('useful_life_years', $group?->useful_life_years ?? 0);
                                             } else {
                                                 $set('useful_life_years', 0);
                                             }
-                                            
+
                                             // Trigger validations
                                             $set('markup_percent', 0);
                                         }
@@ -151,7 +153,7 @@ class CostingTemplateForm
     {
         $basePrice = (float) $get('unit_price');
         $percent = (float) $get('markup_percent');
-        
+
         $priceMarkup = $basePrice + ($basePrice * ($percent / 100));
         $set('unit_price_markup', $priceMarkup);
 
@@ -162,7 +164,7 @@ class CostingTemplateForm
     {
         $qty = (int) $get('quantity');
         $priceMarkup = (float) $get('unit_price_markup');
-        
+
         $total = $qty * $priceMarkup;
         $set('total_price', $total);
 
@@ -180,7 +182,7 @@ class CostingTemplateForm
             $set('monthly_cost', round($monthly, 2));
         } else {
             // If expense (0 years), full cost is charged monthly? Or just 0 depreciation?
-            // Assuming for now if not asset, it might be monthly expense directly? 
+            // Assuming for now if not asset, it might be monthly expense directly?
             // Based on Excel "Beban Per Bulan" seems to come from depreciation.
             // If years = 0, monthly cost = total (expense)? Or 0?
             // Let's assume standard Asset logic: 0 means Expense (One time charge? or Monthly Recurring?)
@@ -188,7 +190,7 @@ class CostingTemplateForm
             // If Material, usually Monthly Cost = Total Price (if consumed monthly).
             // Let's default to Total Price if Years=0 (Expense), but allow manual edit? No, strictly calculated?
             // For now, if years=0, set monthly=total. User can adjust quantity if it's per month consumption.
-            $set('monthly_cost', $total); 
+            $set('monthly_cost', $total);
         }
     }
 }

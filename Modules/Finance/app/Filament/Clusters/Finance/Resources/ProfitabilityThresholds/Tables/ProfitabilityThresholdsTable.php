@@ -42,6 +42,9 @@ class ProfitabilityThresholdsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                \Filament\Actions\CreateAction::make(),
             ]);
     }
 }

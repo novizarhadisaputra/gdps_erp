@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\MasterData\Filament\Resources\CostingTemplates\Pages;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplates\Pages;
 
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Modules\MasterData\Filament\Resources\CostingTemplateResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplateResource;
 
 class ListCostingTemplates extends ListRecords
 {

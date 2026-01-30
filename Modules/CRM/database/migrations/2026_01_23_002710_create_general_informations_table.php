@@ -23,15 +23,11 @@ return new class extends Migration
             $table->text('work_activities')->nullable();
             $table->text('service_level')->nullable();
             $table->text('billing_requirements')->nullable();
-            $table->string('pic_customer_name')->nullable();
-            $table->string('pic_customer_phone')->nullable();
-            $table->string('pic_finance_name')->nullable();
-            $table->string('pic_finance_phone')->nullable();
-            $table->string('pic_finance_email')->nullable();
             $table->json('risk_management')->nullable();
             $table->json('feasibility_study')->nullable();
             $table->text('description')->nullable();
             $table->text('remarks')->nullable();
+            $table->json('signatures')->nullable();
             $table->string('rr_submission_id')->nullable(); // ID from Risk Register system
             $table->timestamps();
         });

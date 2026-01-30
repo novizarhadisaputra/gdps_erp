@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\MasterData\Filament\Resources\CostingTemplates\Tables;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplates\Tables;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -34,11 +34,11 @@ class CostingTemplatesTable
             ->filters([
                 //
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

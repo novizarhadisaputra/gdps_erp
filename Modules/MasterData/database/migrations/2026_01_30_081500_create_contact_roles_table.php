@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('general_informations', function (Blueprint $table) {
-            $table->json('signatures')->nullable();
+        Schema::create('contact_roles', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->string('name')->unique();
+            $table->text('description')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('general_informations', function (Blueprint $table) {
-            $table->dropColumn('signatures');
-        });
+        Schema::dropIfExists('contact_roles');
     }
 };

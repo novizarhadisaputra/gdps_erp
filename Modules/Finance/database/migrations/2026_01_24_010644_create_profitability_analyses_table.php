@@ -21,15 +21,25 @@ return new class extends Migration
             $table->foreignUuid('tax_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('project_area_id')->nullable()->constrained()->onDelete('set null');
 
+            $table->string('asset_ownership')->default('gdps-owned');
+            $table->decimal('management_expense_rate', 5, 2)->default(3.00);
+            $table->decimal('interest_rate', 5, 2)->default(1.50);
+            $table->decimal('tax_rate', 5, 2)->default(22.00);
+
             $table->decimal('revenue_per_month', 15, 2)->default(0);
             $table->decimal('direct_cost', 15, 2)->default(0);
             $table->decimal('management_fee', 15, 2)->default(0);
             $table->decimal('margin_percentage', 5, 2)->default(0);
+            $table->decimal('ebitda', 15, 2)->default(0);
+            $table->decimal('ebit', 15, 2)->default(0);
+            $table->decimal('ebt', 15, 2)->default(0);
+            $table->decimal('net_profit', 15, 2)->default(0);
 
             $table->json('analysis_details')->nullable();
 
             $table->integer('project_number')->nullable();
             $table->string('status')->default('draft'); // draft, approved, rejected, converted
+            $table->json('signatures')->nullable();
 
             $table->timestamps();
         });

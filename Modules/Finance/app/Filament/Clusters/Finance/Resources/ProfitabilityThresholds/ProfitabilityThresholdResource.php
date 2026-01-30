@@ -39,8 +39,6 @@ class ProfitabilityThresholdResource extends Resource
     {
         return [
             'index' => ListProfitabilityThresholds::route('/'),
-            'create' => CreateProfitabilityThreshold::route('/create'),
-            'edit' => EditProfitabilityThreshold::route('/{record}/edit'),
         ];
     }
 }

@@ -19,28 +19,64 @@ class GeneralInformationForm
     {
         return $schema
             ->components([
-                Select::make('customer_id')
-                    ->relationship('customer', 'name')
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->createOptionForm(CustomerForm::schema()),
-                TextInput::make('document_number')
-                    ->label('Document Number'),
-                Select::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'submitted' => 'Submitted',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
+                Section::make('General Details')
+                    ->schema([
+                        Select::make('customer_id')
+                            ->relationship('customer', 'name')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm(CustomerForm::schema()),
+                        TextInput::make('document_number')
+                            ->label('Document Number'),
+                        Select::make('status')
+                            ->options([
+                                'draft' => 'Draft',
+                                'submitted' => 'Submitted',
+                                'approved' => 'Approved',
+                                'rejected' => 'Rejected',
+                            ])
+                            ->required()
+                            ->default('draft'),
                     ])
-                    ->required()
-                    ->default('draft'),
-                TextInput::make('pic_customer_name')->label('PIC Customer Name'),
-                TextInput::make('pic_customer_phone')->label('PIC Customer Phone')->tel(),
-                TextInput::make('pic_finance_name')->label('PIC Finance Name'),
-                TextInput::make('pic_finance_phone')->label('PIC Finance Phone')->tel(),
-                TextInput::make('pic_finance_email')->label('PIC Finance Email')->email(),
+                    ->columns(2)
+                    ->columnSpanFull(),
+
+                Section::make('Person In Charge (PIC)')
+                    ->schema([
+                        Repeater::make('pics')
+                            ->relationship('pics')
+                            ->label('Contact Persons')
+                            ->schema([
+                                TextInput::make('name')
+                                    ->required()
+                                    ->maxLength(255),
+                                Select::make('contact_role_id')
+                                    ->label('Role / Position')
+                                    ->relationship('contactRole', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
+                                        TextInput::make('name')
+                                            ->required()
+                                            ->maxLength(255),
+                                        Textarea::make('description'),
+                                    ]),
+                                TextInput::make('phone')
+                                    ->tel()
+                                    ->maxLength(255),
+                                TextInput::make('email')
+                                    ->email()
+                                    ->maxLength(255),
+                            ])
+                            ->columns(2)
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                            ->collapsible()
+                            ->minItems(1)
+                            ->defaultItems(1),
+                    ])
+                    ->columnSpanFull(),
 
                 Section::make('Project Details')
                     ->schema([

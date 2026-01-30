@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected, converted
             $table->date('submission_date')->nullable();
+            $table->json('signatures')->nullable();
             $table->timestamps();
         });
     }
