@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('general_informations', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
             $table->foreignUuid('customer_id')->constrained()->onDelete('cascade');
             $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected

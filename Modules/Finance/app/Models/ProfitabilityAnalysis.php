@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\CRM\Models\GeneralInformation;
+
+use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
 use Modules\MasterData\Models\Customer;
@@ -39,6 +41,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
      */
     protected $fillable = [
         'document_number',
+        'lead_id',
         'customer_id',
         'general_information_id',
         'proposal_id',
@@ -102,6 +105,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
     }
 
     public function generalInformation(): BelongsTo

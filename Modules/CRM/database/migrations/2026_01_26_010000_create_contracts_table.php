@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('contracts', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
             $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
             $table->foreignUuid('proposal_id')->nullable()->constrained()->onDelete('set null');
             $table->string('contract_number')->unique();

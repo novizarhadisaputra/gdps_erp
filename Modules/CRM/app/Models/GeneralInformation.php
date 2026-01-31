@@ -29,6 +29,7 @@ class GeneralInformation extends Model implements HasMedia
      */
     protected $fillable = [
         'document_number',
+        'lead_id',
         'customer_id',
         'status',
         'scope_of_work',
@@ -77,6 +78,11 @@ class GeneralInformation extends Model implements HasMedia
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
     }
 
     public function profitabilityAnalyses(): HasMany

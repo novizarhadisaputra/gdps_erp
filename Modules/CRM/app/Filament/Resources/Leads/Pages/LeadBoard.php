@@ -32,8 +32,7 @@ class LeadBoard extends BoardResourcePage
                 ->url(LeadResource::getUrl('index')),
             CreateAction::make()
                 ->label('New Lead')
-                ->model(Lead::class)
-                ->schema(fn () => LeadForm::schema()),
+                ->url(LeadResource::getUrl('create')),
         ];
     }
 
@@ -68,10 +67,10 @@ class LeadBoard extends BoardResourcePage
                 Column::make('closed_lost')->label('Closed Lost')->color('danger'),
             ])
             ->cardActions([
-                ViewAction::make()->model(Lead::class)->schema(fn () => LeadForm::schema()),
-                EditAction::make()->model(Lead::class)->schema(fn () => LeadForm::schema()),
+                ViewAction::make()->url(fn (Lead $record) => LeadResource::getUrl('view', ['record' => $record])),
+                EditAction::make()->url(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make()->model(Lead::class),
             ])
-            ->cardAction('view');
+            ->cardAction(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record]));
     }
 }

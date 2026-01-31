@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CRM\Models\Lead;
 use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\PaymentTerm;
@@ -25,6 +26,7 @@ class ProjectInformation extends Model
 
     protected $fillable = [
         'project_id',
+        'lead_id',
         'direct_cost',
         'process_date',
         'status',
@@ -83,6 +85,11 @@ class ProjectInformation extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
     }
 
     public function paymentTerm(): BelongsTo

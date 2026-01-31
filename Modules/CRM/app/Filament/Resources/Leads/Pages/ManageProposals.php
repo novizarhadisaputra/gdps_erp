@@ -1,24 +1,33 @@
 <?php
 
-namespace Modules\CRM\Filament\Resources\Leads\RelationManagers;
+namespace Modules\CRM\Filament\Resources\Leads\Pages;
 
-use Filament\Schemas\Schema;
-use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Tables;
 use Filament\Tables\Table;
+use Modules\CRM\Filament\Resources\Leads\LeadResource;
 use Modules\CRM\Enums\ProposalStatus;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Actions\CreateAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use Filament\Actions;
+// use Filament\Tables\Actions as TableActions;
+use Filament\Schemas\Schema;
+use BackedEnum;
+use Filament\Support\Icons\Heroicon;
 
-class ProposalsRelationManager extends RelationManager
+class ManageProposals extends ManageRelatedRecords
 {
+    protected static string $resource = LeadResource::class;
+
     protected static string $relationship = 'proposals';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+
+    protected static ?string $title = 'Proposals';
 
     public function form(Schema $schema): Schema
     {
@@ -55,16 +64,14 @@ class ProposalsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                CreateAction::make(),
+                Actions\CreateAction::make(),
             ])
-            ->actions([
-                EditAction::make(),
-                DeleteAction::make(),
+            ->recordActions([
+                Actions\EditAction::make(),
+                Actions\DeleteAction::make(),
             ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+            ->groupedBulkActions([
+                Actions\DeleteBulkAction::make(),
             ]);
     }
 }

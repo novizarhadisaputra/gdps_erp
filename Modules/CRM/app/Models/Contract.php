@@ -14,6 +14,7 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Modules\CRM\Observers\ContractObserver;
+use Modules\CRM\Models\Lead;
 
 #[ObservedBy(ContractObserver::class)]
 class Contract extends Model implements HasMedia
@@ -21,6 +22,7 @@ class Contract extends Model implements HasMedia
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
 
     protected $fillable = [
+        'lead_id',
         'customer_id',
         'proposal_id',
         'contract_number',
@@ -56,6 +58,11 @@ class Contract extends Model implements HasMedia
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
     }
 
     public function proposal(): BelongsTo

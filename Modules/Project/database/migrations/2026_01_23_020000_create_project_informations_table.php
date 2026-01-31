@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('project_informations', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
             $table->uuid('project_id')->nullable();
             $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('planning');

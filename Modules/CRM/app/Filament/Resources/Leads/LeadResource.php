@@ -13,6 +13,8 @@ use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Filament\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Resources\Leads\Schemas\LeadInfolist;
 use Modules\CRM\Filament\Resources\Leads\Tables\LeadsTable;
+use Filament\Pages\Page;
+use Filament\Pages\Enums\SubNavigationPosition;
 
 class LeadResource extends Resource
 {
@@ -25,6 +27,20 @@ class LeadResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFunnel;
 
     protected static ?int $navigationSort = 1;
+
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            Pages\EditLead::class,
+            Pages\ManageProposals::class,
+            Pages\ManageGeneralInformations::class,
+            Pages\ManageProfitabilityAnalyses::class,
+            Pages\ManageProjectInformations::class,
+            Pages\ManageContracts::class,
+        ]);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -44,7 +60,7 @@ class LeadResource extends Resource
     public static function getRelations(): array
     {
         return [
-            \Modules\CRM\Filament\Resources\Leads\RelationManagers\ProposalsRelationManager::class,
+            //
         ];
     }
 
@@ -53,6 +69,14 @@ class LeadResource extends Resource
         return [
             'index' => Pages\ListLeads::route('/'),
             'kanban' => Pages\LeadBoard::route('/kanban'),
+            'create' => Pages\CreateLead::route('/create'),
+            'view' => Pages\ViewLead::route('/{record}'),
+            'edit' => Pages\EditLead::route('/{record}/edit'),
+            'proposals' => Pages\ManageProposals::route('/{record}/proposals'),
+            'general-informations' => Pages\ManageGeneralInformations::route('/{record}/general-informations'),
+            'profitability-analyses' => Pages\ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),
+            'project-informations' => Pages\ManageProjectInformations::route('/{record}/project-informations'),
+            'contracts' => Pages\ManageContracts::route('/{record}/contracts'),
         ];
     }
 }

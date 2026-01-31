@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('profitability_analyses', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
             $table->string('document_number')->nullable()->unique();
             $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
             $table->foreignUuid('general_information_id')->nullable()->constrained('general_informations')->onDelete('set null');
