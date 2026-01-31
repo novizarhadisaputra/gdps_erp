@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('general_informations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('customer_id')->constrained()->onDelete('cascade');
+            $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected
             $table->text('scope_of_work')->nullable();
             $table->string('location')->nullable();
@@ -29,7 +30,11 @@ return new class extends Migration
             $table->text('remarks')->nullable();
             $table->json('signatures')->nullable();
             $table->string('rr_submission_id')->nullable(); // ID from Risk Register system
+            $table->integer('sequence_number')->default(0);
+            $table->integer('year')->nullable();
             $table->timestamps();
+
+            $table->index(['year', 'sequence_number']);
         });
     }
 

@@ -3,9 +3,11 @@
 namespace Modules\Project\Observers;
 
 use Modules\Project\Models\ProjectInformation;
+use App\Traits\HasAutoNumber;
 
 class ProjectInformationObserver
 {
+    use HasAutoNumber;
     /**
      * Handle the ProjectInformation "creating" event.
      */
@@ -29,6 +31,8 @@ class ProjectInformationObserver
             $customer = $project->customer;
             $info->pic_customer_name = $info->pic_customer_name ?? $customer->name;
         }
+
+        $this->generateAutoNumber('document_number', 'PI');
     }
 
     /**

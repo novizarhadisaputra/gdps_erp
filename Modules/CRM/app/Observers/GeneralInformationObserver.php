@@ -3,9 +3,19 @@
 namespace Modules\CRM\Observers;
 
 use Modules\CRM\Models\GeneralInformation;
+use App\Traits\HasAutoNumber;
 
 class GeneralInformationObserver
 {
+    use HasAutoNumber;
+
+    /**
+     * Handle the GeneralInformation "creating" event.
+     */
+    public function creating(GeneralInformation $info): void
+    {
+        $this->generateAutoNumber('document_number', 'GI');
+    }
     /**
      * Handle the GeneralInformation "created" event.
      */

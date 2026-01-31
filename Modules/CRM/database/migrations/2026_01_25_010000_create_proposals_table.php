@@ -21,8 +21,12 @@ return new class extends Migration
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected, converted
             $table->date('submission_date')->nullable();
+            $table->integer('sequence_number')->default(0);
+            $table->integer('year')->nullable();
             $table->json('signatures')->nullable();
             $table->timestamps();
+            
+            $table->index(['year', 'sequence_number']);
         });
     }
 

@@ -21,6 +21,10 @@ use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
+
+#[ObservedBy(ProfitabilityAnalysisObserver::class)]
 class ProfitabilityAnalysis extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;

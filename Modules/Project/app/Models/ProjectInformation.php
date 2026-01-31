@@ -11,8 +11,12 @@ use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Traits\HasDigitalSignatures;
-use Modules\Project\Database\Factories\ProjectInformationFactory;
 
+use Modules\Project\Database\Factories\ProjectInformationFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\Project\Observers\ProjectInformationObserver;
+
+#[ObservedBy(ProjectInformationObserver::class)]
 class ProjectInformation extends Model
 {
     use HasDigitalSignatures, HasFactory, HasUuids;

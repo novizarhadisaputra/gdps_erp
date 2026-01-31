@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('profitability_analyses', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('document_number')->nullable()->unique();
             $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
             $table->foreignUuid('general_information_id')->nullable()->constrained('general_informations')->onDelete('set null');
             $table->uuid('proposal_id')->nullable();
@@ -40,8 +41,12 @@ return new class extends Migration
             $table->integer('project_number')->nullable();
             $table->string('status')->default('draft'); // draft, approved, rejected, converted
             $table->json('signatures')->nullable();
+            $table->integer('sequence_number')->default(0);
+            $table->integer('year')->nullable();
 
             $table->timestamps();
+
+            $table->index(['year', 'sequence_number']);
         });
 
         Schema::create('profitability_analysis_items', function (Blueprint $table) {

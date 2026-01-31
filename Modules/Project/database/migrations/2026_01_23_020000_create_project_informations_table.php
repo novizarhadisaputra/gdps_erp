@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('project_informations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('project_id')->nullable();
+            $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('planning');
             $table->json('signatures')->nullable();
             $table->date('start_date')->nullable();
@@ -46,7 +47,13 @@ return new class extends Migration
             // Section G: Remuneration & Payroll
             $table->json('remuneration_details')->nullable();
             $table->date('payroll_date')->nullable();
+
+
             $table->date('overtime_cut_off_date')->nullable();
+            
+            $table->integer('sequence_number')->default(0);
+            $table->integer('year')->nullable();
+            $table->index(['year', 'sequence_number']);
 
             $table->timestamps();
         });
