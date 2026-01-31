@@ -130,7 +130,7 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('management_expense_rate')
                                     ->label('Mgmt Expense (%)')
                                     ->numeric()
-                                    ->default(3.00)
+                                    ->default(2.50)
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                                 TextInput::make('interest_rate')

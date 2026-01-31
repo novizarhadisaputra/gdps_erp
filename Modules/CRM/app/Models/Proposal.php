@@ -9,18 +9,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Models\Lead;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\CRM\Observers\ProposalObserver;
 
+#[ObservedBy(ProposalObserver::class)]
 class Proposal extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
 
     protected $fillable = [
+        'lead_id',
         'customer_id',
         'profitability_analysis_id',
         'work_scheme_id',
@@ -47,6 +52,11 @@ class Proposal extends Model implements HasMedia
     protected static function newFactory(): ProposalFactory
     {
         return ProposalFactory::new();
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
     }
 
     public function customer(): BelongsTo

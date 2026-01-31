@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('proposals', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
             $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
             $table->foreignUuid('profitability_analysis_id')->nullable()->constrained('profitability_analyses')->onDelete('set null');
             $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');

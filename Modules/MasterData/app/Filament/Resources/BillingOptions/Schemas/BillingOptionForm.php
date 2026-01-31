@@ -2,7 +2,10 @@
 
 namespace Modules\MasterData\Filament\Resources\BillingOptions\Schemas;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\BillingOption;
 
 class BillingOptionForm
 {
@@ -15,15 +18,15 @@ class BillingOptionForm
     public static function schema(): array
     {
         return [
-            \Filament\Forms\Components\TextInput::make('code')
+            TextInput::make('code')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(BillingOption::class, 'code', ignoreRecord: true)
                 ->placeholder('MONTHLY'),
-            \Filament\Forms\Components\TextInput::make('name')
+            TextInput::make('name')
                 ->required()
                 ->maxLength(255)
                 ->placeholder('Monthly Billing'),
-            \Filament\Forms\Components\Toggle::make('is_active')
+            Toggle::make('is_active')
                 ->default(true)
                 ->required(),
         ];

@@ -5,8 +5,10 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThres
 use Filament\Schemas\Components\Section;
 
 use Filament\Forms\Components\Textarea;
+
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Modules\Finance\Models\ProfitabilityThreshold;
 
 class ProfitabilityThresholdForm
 {
@@ -25,7 +27,7 @@ class ProfitabilityThresholdForm
                         ->label('Threshold Name')
                         ->required()
                         ->helperText('e.g. Standard Project, Strategic Project')
-                        ->unique(ignoreRecord: true)
+                        ->unique(ProfitabilityThreshold::class, 'name', ignoreRecord: true)
                         ->maxLength(255),
                     TextInput::make('min_gpm')
                         ->label('Min. Gross Profit Margin')

@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\WorkSchemes\Schemas;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\WorkScheme;
 
 class WorkSchemeForm
 {
@@ -19,7 +20,7 @@ class WorkSchemeForm
         return [
             TextInput::make('code')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(WorkScheme::class, 'code', ignoreRecord: true)
                 ->placeholder('WS001'),
             TextInput::make('name')
                 ->required()

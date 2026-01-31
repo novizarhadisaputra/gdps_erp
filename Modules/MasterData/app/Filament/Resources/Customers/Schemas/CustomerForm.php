@@ -8,6 +8,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Filament\Resources\ContactRoles\Schemas\ContactRoleForm;
+use Modules\MasterData\Models\ContactRole;
+use Modules\MasterData\Models\Customer;
 
 class CustomerForm
 {
@@ -25,7 +28,7 @@ class CustomerForm
                     TextInput::make('code')
                         ->label('Customer Code')
                         ->maxLength(10)
-                        ->unique(ignoreRecord: true)
+                        ->unique(Customer::class, 'code', ignoreRecord: true)
                         ->placeholder('Leave empty for auto-generate'),
                     Select::make('legal_entity_type')
                         ->label('Legal Entity Type')
@@ -76,12 +79,13 @@ class CustomerForm
                     TextInput::make('phone')->tel(),
                     TextInput::make('job_position')->label('Job Position'),
                     Select::make('type')
-                        ->options([
-                            'Finance' => 'Finance',
-                            'Procurement' => 'Procurement',
-                            'Other' => 'Other',
-                        ])
-                        ->default('Other'),
+                        ->label('Functional Role')
+                        ->options(ContactRole::pluck('name', 'id'))
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->createOptionForm(ContactRoleForm::schema())
+                        ->createOptionUsing(fn (array $data) => ContactRole::create($data)->id),
                 ])
                 ->columns(2)
                 ->collapsible(),

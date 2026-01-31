@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Resources\ItemCategories\Schemas\ItemCategoryForm;
 use Modules\MasterData\Filament\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
+use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\UnitOfMeasure;
@@ -32,7 +33,7 @@ class ItemForm
                 ->schema([
                     TextInput::make('code')
                         ->required()
-                        ->unique(ignoreRecord: true, table: 'items')
+                        ->unique(Item::class, 'code', ignoreRecord: true)
                         ->maxLength(255)
                         ->placeholder('ITM001'),
                     TextInput::make('name')

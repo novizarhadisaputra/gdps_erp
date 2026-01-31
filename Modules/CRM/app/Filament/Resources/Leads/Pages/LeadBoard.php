@@ -1,0 +1,77 @@
+<?php
+
+namespace Modules\CRM\Filament\Resources\Leads\Pages;
+
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Schemas\Components\Text;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
+use Modules\CRM\Filament\Resources\Leads\LeadResource;
+use Modules\CRM\Models\Lead;
+use Relaticle\Flowforge\Board;
+use Relaticle\Flowforge\BoardResourcePage;
+use Relaticle\Flowforge\Column;
+use Modules\CRM\Filament\Resources\Leads\Schemas\LeadForm;
+
+class LeadBoard extends BoardResourcePage
+{
+    protected static string $resource = LeadResource::class;
+
+    protected static ?string $title = 'Sales Pipeline Board';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('list')
+                ->label('List View')
+                ->icon('heroicon-o-table-cells')
+                ->url(LeadResource::getUrl('index')),
+            CreateAction::make()
+                ->label('New Lead')
+                ->model(Lead::class)
+                ->schema(fn () => LeadForm::schema()),
+        ];
+    }
+
+    public function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return static::getResource()::getEloquentQuery();
+    }
+
+    public function board(Board $board): Board
+    {
+        return $board
+            ->query($this->getEloquentQuery())
+            ->recordTitleAttribute('title')
+            ->cardSchema(fn (Schema $schema) => $schema->components([
+                 Text::make(fn (Lead $record) => $record->customer->name ?? 'Unknown Customer')
+                    ->weight(FontWeight::Bold),
+                Text::make(fn (Lead $record) => 'Prob: ' . $record->probability . '%')
+                    ->size('xs')
+                    ->color('gray'),
+                Text::make(fn (Lead $record) => 'IDR ' . number_format($record->estimated_amount, 0, ',', '.'))
+                    ->size('xs')
+                    ->color('success'),
+            ]))
+            ->columnIdentifier('status')
+            ->positionIdentifier('position')
+            ->columns([
+                Column::make('lead')->label('Lead')->color('gray'),
+                Column::make('approach')->label('Approach')->color('info'),
+                Column::make('proposal')->label('Proposal')->color('primary'),
+                Column::make('negotiation')->label('Negotiation')->color('warning'),
+                Column::make('won')->label('Won')->color('success'),
+                Column::make('closed_lost')->label('Closed Lost')->color('danger'),
+            ])
+            ->cardActions([
+                ViewAction::make()->model(Lead::class)->schema(fn () => LeadForm::schema()),
+                EditAction::make()->model(Lead::class)->schema(fn () => LeadForm::schema()),
+                DeleteAction::make()->model(Lead::class),
+            ])
+            ->cardAction('view');
+    }
+}

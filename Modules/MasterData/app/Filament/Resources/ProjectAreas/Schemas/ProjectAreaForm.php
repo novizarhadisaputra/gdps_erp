@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ProjectAreas\Schemas;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\ProjectArea;
 
 class ProjectAreaForm
 {
@@ -18,7 +19,7 @@ class ProjectAreaForm
     {
         return [
             TextInput::make('code')
-                ->unique(ignoreRecord: true)
+                ->unique(ProjectArea::class, 'code', ignoreRecord: true)
                 ->nullable()
                 ->placeholder('PA001'),
             TextInput::make('name')

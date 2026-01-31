@@ -12,7 +12,10 @@ use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\CRM\Observers\ContractObserver;
 
+#[ObservedBy(ContractObserver::class)]
 class Contract extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;

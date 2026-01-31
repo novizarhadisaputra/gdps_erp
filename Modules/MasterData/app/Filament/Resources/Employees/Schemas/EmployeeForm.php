@@ -7,6 +7,7 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\Employee;
 
 class EmployeeForm
 {
@@ -23,7 +24,7 @@ class EmployeeForm
                 ->schema([
                     TextInput::make('code')
                         ->required()
-                        ->unique(ignoreRecord: true)
+                        ->unique(Employee::class, 'code', ignoreRecord: true)
                         ->maxLength(255)
                         ->placeholder('EMP001'),
                     TextInput::make('name')
@@ -33,7 +34,7 @@ class EmployeeForm
                     TextInput::make('email')
                         ->email()
                         ->required()
-                        ->unique(ignoreRecord: true)
+                        ->unique(Employee::class, 'email', ignoreRecord: true)
                         ->maxLength(255)
                         ->placeholder('john.doe@example.com'),
                     TextInput::make('position')

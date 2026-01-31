@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ContactRoles\Schemas;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\ContactRole;
 
 class ContactRoleForm
 {
@@ -20,7 +21,7 @@ class ContactRoleForm
             TextInput::make('name')
                 ->required()
                 ->maxLength(255)
-                ->unique(ignoreRecord: true),
+                ->unique(ContactRole::class, 'name', ignoreRecord: true),
             Textarea::make('description')
                 ->maxLength(65535)
                 ->columnSpanFull(),

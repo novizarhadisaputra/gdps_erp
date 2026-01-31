@@ -11,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 
@@ -35,7 +36,7 @@ class ProposalForm
                             ->createOptionForm(WorkSchemeForm::schema()),
                         TextInput::make('proposal_number')
                             ->required()
-                            ->unique(ignoreRecord: true),
+                            ->unique(Proposal::class, 'proposal_number', ignoreRecord: true),
                         TextInput::make('amount')
                             ->numeric()
                             ->prefix('IDR')

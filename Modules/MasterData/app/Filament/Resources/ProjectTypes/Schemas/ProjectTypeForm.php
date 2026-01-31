@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ProjectTypes\Schemas;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\ProjectType;
 
 class ProjectTypeForm
 {
@@ -19,7 +20,7 @@ class ProjectTypeForm
         return [
             TextInput::make('code')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(ProjectType::class, 'code', ignoreRecord: true)
                 ->placeholder('INTERNAL'),
             TextInput::make('name')
                 ->required()

@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\PaymentTerms\Schemas;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\PaymentTerm;
 
 class PaymentTermForm
 {
@@ -19,7 +20,7 @@ class PaymentTermForm
         return [
             TextInput::make('code')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(PaymentTerm::class, 'code', ignoreRecord: true)
                 ->placeholder('NET30'),
             TextInput::make('name')
                 ->required()

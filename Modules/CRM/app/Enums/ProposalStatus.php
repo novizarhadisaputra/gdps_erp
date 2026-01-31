@@ -9,19 +9,19 @@ use Filament\Support\Contracts\HasLabel;
 enum ProposalStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Draft = 'draft';
-    case Submitted = 'submitted';
-    case Approved = 'approved';
+    case Sent = 'sent';
+    case Accepted = 'accepted';
     case Rejected = 'rejected';
-    case Converted = 'converted';
+    case Cancelled = 'cancelled';
 
     public function getLabel(): ?string
     {
         return match ($this) {
             self::Draft => 'Draft',
-            self::Submitted => 'Submitted',
-            self::Approved => 'Approved',
+            self::Sent => 'Sent',
+            self::Accepted => 'Accepted',
             self::Rejected => 'Rejected',
-            self::Converted => 'Converted',
+            self::Cancelled => 'Cancelled',
         };
     }
 
@@ -29,21 +29,21 @@ enum ProposalStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'gray',
-            self::Submitted => 'info',
-            self::Approved => 'success',
+            self::Sent => 'info',
+            self::Accepted => 'success',
             self::Rejected => 'danger',
-            self::Converted => 'primary',
+            self::Cancelled => 'danger',
         };
     }
 
     public function getIcon(): ?string
     {
         return match ($this) {
-            self::Draft => 'heroicon-m-pencil-square',
-            self::Submitted => 'heroicon-m-paper-airplane',
-            self::Approved => 'heroicon-m-check-badge',
+            self::Draft => 'heroicon-m-document',
+            self::Sent => 'heroicon-m-paper-airplane',
+            self::Accepted => 'heroicon-m-check-circle',
             self::Rejected => 'heroicon-m-x-circle',
-            self::Converted => 'heroicon-m-arrow-path',
+            self::Cancelled => 'heroicon-m-no-symbol',
         };
     }
 }

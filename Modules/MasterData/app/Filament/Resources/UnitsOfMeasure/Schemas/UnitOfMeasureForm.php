@@ -4,6 +4,7 @@ namespace Modules\MasterData\Filament\Resources\UnitsOfMeasure\Schemas;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\UnitOfMeasure;
 
 class UnitOfMeasureForm
 {
@@ -18,12 +19,12 @@ class UnitOfMeasureForm
         return [
             TextInput::make('name')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(UnitOfMeasure::class, 'name', ignoreRecord: true)
                 ->maxLength(255)
                 ->placeholder('Kilogram'),
             TextInput::make('code')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(UnitOfMeasure::class, 'code', ignoreRecord: true)
                 ->maxLength(10)
                 ->placeholder('KG'),
         ];

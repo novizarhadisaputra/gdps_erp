@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\ProductClusters\Schemas;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\ProductCluster;
 
 class ProductClusterForm
 {
@@ -19,7 +20,7 @@ class ProductClusterForm
         return [
             TextInput::make('code')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(ProductCluster::class, 'code', ignoreRecord: true)
                 ->placeholder('PC001'),
             TextInput::make('name')
                 ->required()

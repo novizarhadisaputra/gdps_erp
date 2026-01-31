@@ -8,6 +8,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Enums\AssetGroupType;
+use Modules\MasterData\Models\AssetGroup;
 
 class AssetGroupForm
 {
@@ -24,7 +25,7 @@ class AssetGroupForm
                 ->schema([
                     TextInput::make('name')
                         ->required()
-                        ->unique(ignoreRecord: true)
+                        ->unique(AssetGroup::class, 'name', ignoreRecord: true)
                         ->maxLength(255)
                         ->placeholder('Group I (Non-Building)'),
                     Select::make('type')

@@ -11,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Models\Contract;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
 
 class ContractForm
@@ -33,7 +34,7 @@ class ContractForm
                             ->preload(),
                         TextInput::make('contract_number')
                             ->required()
-                            ->unique(ignoreRecord: true),
+                            ->unique(Contract::class, 'contract_number', ignoreRecord: true),
                         DatePicker::make('expiry_date'),
                         ToggleButtons::make('status')
                             ->options(ContractStatus::class)

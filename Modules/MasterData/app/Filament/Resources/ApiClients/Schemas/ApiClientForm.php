@@ -7,7 +7,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+
 use Illuminate\Support\Str;
+use Modules\MasterData\Models\ApiClient;
 
 class ApiClientForm
 {
@@ -28,7 +30,7 @@ class ApiClientForm
                             ->default(fn () => 'client_'.Str::random(16))
                             ->readonly()
                             ->required()
-                            ->unique(ignoreRecord: true),
+                            ->unique(ApiClient::class, 'client_id', ignoreRecord: true),
 
                         TextInput::make('client_secret')
                             ->label('Client Secret')

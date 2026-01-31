@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Resources\Taxes\Schemas;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\Tax;
 
 class TaxForm
 {
@@ -19,7 +20,7 @@ class TaxForm
         return [
             TextInput::make('code')
                 ->required()
-                ->unique(ignoreRecord: true)
+                ->unique(Tax::class, 'code', ignoreRecord: true)
                 ->placeholder('VAT11'),
             TextInput::make('name')
                 ->required()
