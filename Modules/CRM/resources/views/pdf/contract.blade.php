@@ -94,14 +94,14 @@
     <div class="section">
         <div class="section-title">Signatures</div>
         <div class="signatures">
-            @if (!empty($record->signatures) && is_array($record->signatures))
+            @if ($record->signatures->isNotEmpty())
                 @foreach ($record->signatures as $signature)
                     @php
-                        $user = \App\Models\User::find($signature['user_id'] ?? null);
+                        $user = $signature->user; // Relation
                         $signatureImage = $user ? $user->getFirstMediaUrl('signature') : null;
                     @endphp
                     <div class="signature-box">
-                        <div style="font-weight: bold; margin-bottom: 10px;">{{ $signature['user_role'] ?? 'Signer' }}
+                        <div style="font-weight: bold; margin-bottom: 10px;">{{ $signature->role ?? 'Signer' }}
                         </div>
 
                         @if ($signatureImage)
@@ -109,17 +109,17 @@
                         @endif
 
                         <div style="margin: 10px 0;">
-                            {{ $signature['user_name'] ?? 'Unknown' }}
+                            {{ $user->name ?? 'Unknown' }}
                         </div>
 
-                        @if (isset($signature['qr_code']))
+                        @if ($signature->qr_code_path)
                             <div class="qr-code">
-                                <img src="data:image/svg+xml;base64,{{ base64_encode($signature['qr_code']) }}" />
+                                <img src="data:image/svg+xml;base64,{{ base64_encode($signature->qr_code_path) }}" />
                             </div>
                         @endif
 
                         <div style="font-size: 10px; color: #666; margin-top: 5px;">
-                            {{ \Carbon\Carbon::parse($signature['signed_at'] ?? now())->format('d M Y H:i') }}
+                            {{ $signature->signed_at->format('d M Y H:i') }}
                         </div>
                     </div>
                 @endforeach

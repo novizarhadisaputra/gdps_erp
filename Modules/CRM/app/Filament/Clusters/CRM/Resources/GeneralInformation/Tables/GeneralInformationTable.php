@@ -35,9 +35,6 @@ class GeneralInformationTable
                         'rejected' => 'danger',
                         default => 'gray',
                     }),
-                TextColumn::make('pic_customer_name')
-                    ->label('PIC Customer')
-                    ->toggleable(),
                 TextColumn::make('rr_submission_id')
                     ->label('RR ID')
                     ->toggleable(),

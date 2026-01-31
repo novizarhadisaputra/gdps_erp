@@ -11,9 +11,17 @@ trait HasDigitalSignatures
     /**
      * Get the signatures for the model.
      */
+    public function signatures(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\Modules\MasterData\Models\Signature::class, 'signable');
+    }
+
+    /**
+     * Get the signatures for the model.
+     */
     public function getSignatures(): Collection
     {
-        return collect($this->signatures ?: []);
+        return $this->signatures;
     }
 
     /**
@@ -21,18 +29,14 @@ trait HasDigitalSignatures
      */
     public function addSignature(User $user, string $type, string $qrCode): void
     {
-        $signatures = $this->getSignatures();
-
-        $signatures->push([
+        $this->signatures()->create([
             'user_id' => $user->id,
-            'user_name' => $user->name,
-            'user_role' => $user->roles->first()?->name,
-            'type' => $type,
-            'qr_code' => $qrCode,
-            'signed_at' => now()->toIso8601String(),
+            'role' => $user->roles->first()?->name ?? 'User',
+            'signature_type' => $type,
+            'qr_code_path' => $qrCode,
+            'ip_address' => request()->ip(),
+            'signed_at' => now(),
         ]);
-
-        $this->update(['signatures' => $signatures->toArray()]);
     }
 
     /**
@@ -40,7 +44,7 @@ trait HasDigitalSignatures
      */
     public function hasSignatureFrom(string $role): bool
     {
-        return $this->getSignatures()->contains('user_role', $role);
+        return $this->signatures()->where('role', $role)->exists();
     }
 
     /**

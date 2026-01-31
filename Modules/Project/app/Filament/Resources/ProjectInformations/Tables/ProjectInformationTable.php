@@ -35,8 +35,6 @@ class ProjectInformationTable
                         'cancelled' => 'danger',
                         default => 'gray',
                     }),
-                TextColumn::make('status')
-                    ->label('Status'),
                 TextColumn::make('start_date')
                     ->date()
                     ->sortable(),
