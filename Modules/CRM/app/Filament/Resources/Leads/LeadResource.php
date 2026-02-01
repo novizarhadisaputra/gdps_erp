@@ -34,11 +34,11 @@ class LeadResource extends Resource
     {
         return $page->generateNavigationItems([
             Pages\EditLead::class,
-            Pages\ManageProposals::class,
             Pages\ManageGeneralInformations::class,
+            Pages\ManageProposals::class,
             Pages\ManageProfitabilityAnalyses::class,
-            Pages\ManageProjectInformations::class,
             Pages\ManageContracts::class,
+            Pages\ManageProjectInformations::class,
         ]);
     }
 

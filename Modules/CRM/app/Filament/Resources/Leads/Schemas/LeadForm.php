@@ -66,7 +66,8 @@ class LeadForm
                         ->required()
                         ->default(LeadStatus::Lead)
                         ->native(false)
-                        ->hiddenOn('create'),
+                        ->disabled()
+                        ->dehydrated(),
                     TextInput::make('estimated_amount')
                         ->numeric()
                         ->prefix('IDR')
@@ -82,28 +83,7 @@ class LeadForm
                 ->columnSpanFull()
                 ->columns(2),
 
-            Section::make('Documents')
-                ->schema([
-                    \Filament\Forms\Components\Repeater::make('proposals')
-                        ->relationship()
-                        ->schema([
-                            TextInput::make('proposal_number')
-                                ->required()
-                                ->unique(\Modules\CRM\Models\Proposal::class, 'proposal_number', ignoreRecord: true),
-                            TextInput::make('amount')
-                                ->numeric()
-                                ->prefix('IDR')
-                                ->required(),
-                            Select::make('status')
-                                ->options(\Modules\CRM\Enums\ProposalStatus::class)
-                                ->default(\Modules\CRM\Enums\ProposalStatus::Draft)
-                                ->required(),
-                            DatePicker::make('submission_date'),
-                        ])
-                        ->columns(2)
-                        ->addActionLabel('Add Proposal'),
-                ])
-                ->columnSpanFull(),
+            // Documents section removed in favor of ManageProposals page
         ];
     }
 

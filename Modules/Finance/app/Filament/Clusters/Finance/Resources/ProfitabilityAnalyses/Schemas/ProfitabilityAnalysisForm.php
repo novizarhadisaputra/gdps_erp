@@ -30,16 +30,21 @@ class ProfitabilityAnalysisForm
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->live(),
+                    ->live()
+                    ->disabled()
+                    ->dehydrated(),
                 Select::make('customer_id')
                     ->relationship('customer', 'name')
                     ->helperText('Customer associated with the project.')
                     ->required()
                     ->searchable()
                     ->preload()
+                    ->disabled()
+                    ->dehydrated()
                     ->createOptionForm(CustomerForm::schema()),
                 TextInput::make('document_number')
-                    ->label('Document Number'),
+                    ->label('Document Number')
+                    ->hiddenOn('create'),
 
                 Section::make('Project Documents')
                     ->schema([
@@ -73,6 +78,8 @@ class ProfitabilityAnalysisForm
                             ->required()
                             ->searchable()
                             ->preload()
+                            ->disabled()
+                            ->dehydrated()
                             ->createOptionForm(WorkSchemeForm::schema()),
                         Select::make('product_cluster_id')
                             ->relationship('productCluster', 'name')

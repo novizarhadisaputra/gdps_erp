@@ -15,11 +15,22 @@ class ContractObserver
         // Check if contract is linked to a proposal, and that proposal is linked to a lead
         if ($contract->proposal_id && $contract->proposal && $contract->proposal->lead) {
             $contract->proposal->lead->update([
-                'status' => LeadStatus::Won,
+                'status' => LeadStatus::Negotiation,
             ]);
         }
-        // Direct link to lead (if exists, though usually via Proposal)
-        // Checking schema, Contract has 'customer_id' and 'proposal_id'.
-        // Does it have 'lead_id'? Let's assume via Proposal first.
+    }
+
+    /**
+     * Handle the Contract "updated" event.
+     */
+    public function updated(Contract $contract): void
+    {
+        if ($contract->wasChanged('status') && $contract->status === \Modules\CRM\Enums\ContractStatus::Active) {
+            if ($contract->proposal_id && $contract->proposal && $contract->proposal->lead) {
+                $contract->proposal->lead->update([
+                    'status' => LeadStatus::Won,
+                ]);
+            }
+        }
     }
 }

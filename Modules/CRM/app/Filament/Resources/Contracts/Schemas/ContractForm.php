@@ -27,13 +27,18 @@ class ContractForm
                             ->searchable()
                             ->preload()
                             ->required()
+                            ->disabled()
+                            ->dehydrated()
                             ->createOptionForm(CustomerForm::schema()),
                         Select::make('proposal_id')
                             ->relationship('proposal', 'proposal_number')
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->disabled()
+                            ->dehydrated(),
                         TextInput::make('contract_number')
                             ->required()
+                            ->hiddenOn('create')
                             ->unique(Contract::class, 'contract_number', ignoreRecord: true),
                         DatePicker::make('expiry_date'),
                         ToggleButtons::make('status')

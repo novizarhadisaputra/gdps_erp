@@ -25,6 +25,25 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
 
     protected static ?string $title = 'Profitability Analyses';
 
+    public static function canAccess(array $parameters = []): bool
+    {
+        $record = $parameters['record'] ?? null;
+        
+        if (! $record) {
+            return false;
+        }
+
+        // Handle Enum casting
+        $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
+
+        return in_array($status, [
+            'proposal', 
+            'negotiation', 
+            'won', 
+            'closed_lost'
+        ]);
+    }
+
     public function form(Schema $schema): Schema
     {
         return ProfitabilityAnalysisForm::configure($schema);
@@ -50,7 +69,24 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
             ->headerActions([
                 Actions\CreateAction::make()
                     ->disabled(fn (ManageProfitabilityAnalyses $livewire) => ! $livewire->getOwnerRecord()->generalInformations()->where('status', 'approved')->exists())
-                    ->tooltip(fn (ManageProfitabilityAnalyses $livewire) => ! $livewire->getOwnerRecord()->generalInformations()->where('status', 'approved')->exists() ? 'Requires Approved Risk Register (General Information)' : null),
+                    ->tooltip(fn (ManageProfitabilityAnalyses $livewire) => ! $livewire->getOwnerRecord()->generalInformations()->where('status', 'approved')->exists() ? 'Requires Approved Risk Register (General Information)' : null)
+                    ->fillForm(function (): array {
+                        $record = $this->getOwnerRecord();
+                        $approvedGi = $record->generalInformations()->where('status', 'approved')->first();
+
+                        return [
+                            'customer_id' => $record->customer_id,
+                            'work_scheme_id' => $record->work_scheme_id,
+                            'general_information_id' => $approvedGi?->id,
+                        ];
+                    })
+                    ->mutateDataUsing(function (array $data): array {
+                        $record = $this->getOwnerRecord();
+                        $data['customer_id'] = $record->customer_id;
+                        $data['work_scheme_id'] = $record->work_scheme_id;
+                        $data['general_information_id'] = $record->generalInformations()->where('status', 'approved')->first()?->id;
+                        return $data;
+                    }),
             ])
             ->recordActions([
                 Actions\EditAction::make(),

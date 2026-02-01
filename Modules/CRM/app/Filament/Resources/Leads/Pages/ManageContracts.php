@@ -25,6 +25,24 @@ class ManageContracts extends ManageRelatedRecords
 
     protected static ?string $title = 'Contracts';
 
+    public static function canAccess(array $parameters = []): bool
+    {
+        $record = $parameters['record'] ?? null;
+        
+        if (! $record) {
+            return false;
+        }
+
+        // Handle Enum casting
+        $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
+
+        return in_array($status, [
+            'negotiation', 
+            'won', 
+            'closed_lost'
+        ]);
+    }
+
     public function form(Schema $schema): Schema
     {
         return ContractForm::configure($schema);
@@ -44,7 +62,23 @@ class ManageContracts extends ManageRelatedRecords
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make(),
+                Actions\CreateAction::make()
+                    ->fillForm(function (): array {
+                        $record = $this->getOwnerRecord();
+                        // Try to find the latest proposal linked to this lead
+                        $latestProposal = $record->proposals()->latest()->first();
+
+                        return [
+                            'customer_id' => $record->customer_id,
+                            'proposal_id' => $latestProposal?->id,
+                        ];
+                    })
+                    ->mutateDataUsing(function (array $data): array {
+                        $record = $this->getOwnerRecord();
+                        $data['customer_id'] = $record->customer_id;
+                        $data['work_scheme_id'] = $record->work_scheme_id;
+                        return $data;
+                    }),
             ])
             ->recordActions([
                 Actions\EditAction::make(),

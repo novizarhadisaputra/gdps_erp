@@ -15,7 +15,6 @@ use Modules\CRM\Models\Lead;
 use Relaticle\Flowforge\Board;
 use Relaticle\Flowforge\BoardResourcePage;
 use Relaticle\Flowforge\Column;
-use Modules\CRM\Filament\Resources\Leads\Schemas\LeadForm;
 
 class LeadBoard extends BoardResourcePage
 {
@@ -70,7 +69,6 @@ class LeadBoard extends BoardResourcePage
                 ViewAction::make()->url(fn (Lead $record) => LeadResource::getUrl('view', ['record' => $record])),
                 EditAction::make()->url(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make()->model(Lead::class),
-            ])
-            ->cardAction(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record]));
+            ]);
     }
 }

@@ -8,6 +8,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -26,9 +28,14 @@ class GeneralInformationForm
                             ->required()
                             ->searchable()
                             ->preload()
+                            ->disabled()
+                            ->dehydrated()
                             ->createOptionForm(CustomerForm::schema()),
                         TextInput::make('document_number')
-                            ->label('Document Number'),
+                            ->label('Document Number')
+                            ->disabled() // Always auto-generated/disabled
+                            ->dehydrated(false) // Usually not manually input
+                            ->hiddenOn('create'),
                         Select::make('status')
                             ->options([
                                 'draft' => 'Draft',
@@ -81,22 +88,47 @@ class GeneralInformationForm
                 Section::make('Project Details')
                     ->schema([
                         Textarea::make('scope_of_work')
+                            ->label('Scope of Work')
+                            ->helperText('Define the scope of work linked to the agreement.')
                             ->columnSpanFull(),
-                        TextInput::make('location'),
-                        Grid::make(2)
+                        TextInput::make('location')
+                            ->label('Location')
+                            ->helperText('Location of work execution.'),
+                        Grid::make(3)
                             ->schema([
-                                DatePicker::make('estimated_start_date'),
-                                DatePicker::make('estimated_end_date'),
+                                DatePicker::make('estimated_start_date')
+                                    ->label('Start Date')
+                                    ->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDuration($get, $set)),
+                                DatePicker::make('estimated_end_date')
+                                    ->label('End Date')
+                                    ->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDuration($get, $set)),
+                                TextInput::make('contract_duration')
+                                    ->label('Contract Duration')
+                                    ->helperText('Calculated duration based on start and end dates.')
+                                    ->placeholder('Auto-calculated')
+                                    ->suffix('Months')
+                                    ->disabled()
+                                    ->dehydrated(false),
                             ]),
                         Textarea::make('manpower_qualifications')
+                            ->label('Manpower Qualifications')
+                            ->helperText('General workforce qualifications required.')
                             ->columnSpanFull(),
                         Textarea::make('work_activities')
+                            ->label('Work Activities')
+                            ->helperText('Specific work activities or tasks.')
                             ->columnSpanFull(),
                         Textarea::make('service_level')
+                            ->label('Service Level')
+                            ->helperText('Agreed service level agreement (SLA).')
                             ->columnSpanFull(),
                         Textarea::make('billing_requirements')
+                            ->label('Reporting & Billing Requirements')
+                            ->helperText('Requirements for work reporting and invoicing.')
                             ->columnSpanFull(),
-                    ]),
+                    ])->columnSpanFull(),
 
                 Repeater::make('risk_management')
                     ->schema([
@@ -121,16 +153,54 @@ class GeneralInformationForm
                     ->label('RR Submission ID')
                     ->disabled()
                     ->dehydrated(false),
-                SpatieMediaLibraryFileUpload::make('feasibility_study_file')
-                    ->collection('feasibility_study')
-                    ->label('Feasibility Study Document')
-                    ->disk('s3')
-                    ->visibility('private'),
-                SpatieMediaLibraryFileUpload::make('rr_document')
-                    ->collection('rr_document')
-                    ->label('RR Document')
-                    ->disk('s3')
-                    ->visibility('private'),
+                // Feasibility Study and RR Document fields removed
+
+                Grid::make(3)
+                    ->schema([
+                        SpatieMediaLibraryFileUpload::make('tor')
+                            ->collection('tor')
+                            ->label('ToR Document')
+                            ->disk('s3')
+                            ->visibility('private')
+                            ->required(),
+                        SpatieMediaLibraryFileUpload::make('rfp')
+                            ->collection('rfp')
+                            ->label('RFP Document')
+                            ->disk('s3')
+                            ->visibility('private')
+                            ->required(),
+                        SpatieMediaLibraryFileUpload::make('rfi')
+                            ->collection('rfi')
+                            ->label('RFI Document')
+                            ->disk('s3')
+                            ->visibility('private')
+                            ->required(),
+                    ]),
             ]);
+    }
+
+    public static function calculateDuration(Get $get, Set $set): void
+    {
+        $start = $get('estimated_start_date');
+        $end = $get('estimated_end_date');
+
+        if ($start && $end) {
+            $startDate = \Carbon\Carbon::parse($start);
+            $endDate = \Carbon\Carbon::parse($end);
+
+            if ($endDate > $startDate) {
+                // simple diff in months
+                $months = $startDate->diffInMonths($endDate);
+                // If it's partial month, maybe round up? 
+                // diffInMonths returns integer.
+                // Let's use floatDiffInMonths if precision needed, but usually integers.
+                // Let's stick to integer for now as per "Months" suffix.
+                $set('contract_duration', $months);
+            } else {
+                 $set('contract_duration', 0);
+            }
+        } else {
+            $set('contract_duration', null);
+        }
     }
 }

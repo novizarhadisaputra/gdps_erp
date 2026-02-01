@@ -25,6 +25,20 @@ class ManageProjectInformations extends ManageRelatedRecords
 
     protected static ?string $title = 'Project Information';
 
+    public static function canAccess(array $parameters = []): bool
+    {
+        $record = $parameters['record'] ?? null;
+        
+        if (! $record) {
+            return false;
+        }
+
+        // Handle Enum casting
+        $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
+
+        return $status === 'won';
+    }
+
     public function form(Schema $schema): Schema
     {
         return ProjectInformationForm::configure($schema);
@@ -46,7 +60,13 @@ class ManageProjectInformations extends ManageRelatedRecords
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make(),
+                Actions\CreateAction::make()
+                    ->fillForm(function (): array {
+                        $record = $this->getOwnerRecord();
+                        return [
+                            'description' => $record->description,
+                        ];
+                    }),
             ])
             ->recordActions([
                 Actions\EditAction::make(),

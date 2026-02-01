@@ -26,7 +26,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
     
-    protected static ?string $title = 'General Information (Risk Register)';
+    protected static ?string $title = 'General Information';
 
     public function form(Schema $schema): Schema
     {
@@ -53,7 +53,19 @@ class ManageGeneralInformations extends ManageRelatedRecords
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make(),
+                Actions\CreateAction::make()
+                    ->fillForm(function (): array {
+                        $record = $this->getOwnerRecord();
+                        return [
+                            'customer_id' => $record->customer_id,
+                            'description' => $record->description,
+                            'scope_of_work' => $record->title,
+                        ];
+                    })
+                    ->mutateDataUsing(function (array $data): array {
+                        $data['customer_id'] = $this->getOwnerRecord()->customer_id;
+                        return $data;
+                    }),
             ])
             ->recordActions([
                 Actions\EditAction::make(),

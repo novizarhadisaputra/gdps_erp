@@ -29,6 +29,13 @@ class GeneralInformationObserver
                 'status' => 'submitted',
             ]);
         }
+
+        // Update Lead Status to Approach
+        if ($info->lead_id && $info->lead) {
+             $info->lead->update([
+                'status' => \Modules\CRM\Enums\LeadStatus::Approach,
+            ]);
+        }
     }
 
     /**

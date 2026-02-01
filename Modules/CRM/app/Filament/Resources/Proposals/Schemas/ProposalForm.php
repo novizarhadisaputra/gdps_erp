@@ -28,14 +28,19 @@ class ProposalForm
                             ->searchable()
                             ->preload()
                             ->required()
+                            ->disabled()
+                            ->dehydrated()
                             ->createOptionForm(CustomerForm::schema()),
                         Select::make('work_scheme_id')
                             ->relationship('workScheme', 'name')
                             ->searchable()
                             ->preload()
+                            ->disabled() // Inherited from Lead rarely changes at this stage
+                            ->dehydrated() 
                             ->createOptionForm(WorkSchemeForm::schema()),
                         TextInput::make('proposal_number')
                             ->required()
+                            ->hiddenOn('create') // Auto-generated
                             ->unique(Proposal::class, 'proposal_number', ignoreRecord: true),
                         TextInput::make('amount')
                             ->numeric()

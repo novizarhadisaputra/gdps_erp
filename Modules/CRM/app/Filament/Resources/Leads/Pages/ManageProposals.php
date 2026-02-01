@@ -29,6 +29,25 @@ class ManageProposals extends ManageRelatedRecords
 
     protected static ?string $title = 'Proposals';
 
+    public static function canAccess(array $parameters = []): bool
+    {
+        $record = $parameters['record'] ?? null;
+        
+        if (! $record) {
+            return false;
+        }
+
+        // Handle Enum casting
+        $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
+
+        return in_array($status, [
+            'proposal', 
+            'negotiation', 
+            'won', 
+            'closed_lost'
+        ]);
+    }
+
     public function form(Schema $schema): Schema
     {
         return $schema
@@ -64,7 +83,18 @@ class ManageProposals extends ManageRelatedRecords
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make(),
+                Actions\CreateAction::make()
+                    ->fillForm(function (): array {
+                        $record = $this->getOwnerRecord();
+                        return [
+                            'customer_id' => $record->customer_id,
+                            'amount' => $record->estimated_amount,
+                        ];
+                    })
+                    ->mutateDataUsing(function (array $data): array {
+                        $data['customer_id'] = $this->getOwnerRecord()->customer_id;
+                        return $data;
+                    }),
             ])
             ->recordActions([
                 Actions\EditAction::make(),
