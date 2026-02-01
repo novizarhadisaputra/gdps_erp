@@ -34,6 +34,7 @@ class GeneralInformation extends Model implements HasMedia
         'status',
         'scope_of_work',
         'location',
+        'project_area_id',
         'estimated_start_date',
         'estimated_end_date',
         'manpower_qualifications',
@@ -95,6 +96,11 @@ class GeneralInformation extends Model implements HasMedia
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);
+    }
+
+    public function projectArea(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\ProjectArea::class);
     }
 
     public function profitabilityAnalyses(): HasMany

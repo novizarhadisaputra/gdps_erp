@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected
             $table->text('scope_of_work')->nullable();
-            $table->string('location')->nullable();
+            $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas');
+            $table->string('location')->nullable(); // Keep for legacy or specific detail if needed, or deprecate
             $table->date('estimated_start_date')->nullable();
             $table->date('estimated_end_date')->nullable();
             $table->text('manpower_qualifications')->nullable();
@@ -26,7 +27,7 @@ return new class extends Migration
             $table->text('service_level')->nullable();
             $table->text('billing_requirements')->nullable();
             $table->json('risk_management')->nullable();
-            $table->json('feasibility_study')->nullable();
+            // feasibility_study removed
             $table->text('description')->nullable();
             $table->text('remarks')->nullable();
             $table->json('signatures')->nullable();

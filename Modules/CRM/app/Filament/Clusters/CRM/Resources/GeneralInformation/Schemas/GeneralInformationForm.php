@@ -14,6 +14,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
+use Modules\MasterData\Filament\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 
 class GeneralInformationForm
 {
@@ -36,15 +37,7 @@ class GeneralInformationForm
                             ->disabled() // Always auto-generated/disabled
                             ->dehydrated(false) // Usually not manually input
                             ->hiddenOn('create'),
-                        Select::make('status')
-                            ->options([
-                                'draft' => 'Draft',
-                                'submitted' => 'Submitted',
-                                'approved' => 'Approved',
-                                'rejected' => 'Rejected',
-                            ])
-                            ->required()
-                            ->default('draft'),
+                        // Status removed from form as per request
                     ])
                     ->columns(2)
                     ->columnSpanFull(),
@@ -91,9 +84,14 @@ class GeneralInformationForm
                             ->label('Scope of Work')
                             ->helperText('Define the scope of work linked to the agreement.')
                             ->columnSpanFull(),
-                        TextInput::make('location')
+                        Select::make('project_area_id')
                             ->label('Location')
-                            ->helperText('Location of work execution.'),
+                            ->relationship('projectArea', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Location of work execution (Project Area).')
+                            ->createOptionForm(ProjectAreaForm::schema())
+                            ->createOptionUsing(fn (array $data) => \Modules\MasterData\Models\ProjectArea::create($data)->id),
                         Grid::make(3)
                             ->schema([
                                 DatePicker::make('estimated_start_date')
@@ -138,14 +136,7 @@ class GeneralInformationForm
                     ->columns(2)
                     ->columnSpanFull(),
 
-                Repeater::make('feasibility_study')
-                    ->schema([
-                        TextInput::make('item')->required(),
-                        TextInput::make('value')->required(),
-                        Textarea::make('notes')->rows(2),
-                    ])
-                    ->columns(2)
-                    ->columnSpanFull(),
+                // Feasibility Study removed as per request
 
                 Textarea::make('description')->columnSpanFull()->rows(3),
                 Textarea::make('remarks')->columnSpanFull()->rows(2),
