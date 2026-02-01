@@ -3,11 +3,9 @@
 namespace Modules\Project\Observers;
 
 use Modules\Project\Models\ProjectInformation;
-use App\Traits\HasAutoNumber;
 
 class ProjectInformationObserver
 {
-    use HasAutoNumber;
     /**
      * Handle the ProjectInformation "creating" event.
      */
@@ -32,7 +30,20 @@ class ProjectInformationObserver
             $info->pic_customer_name = $info->pic_customer_name ?? $customer->name;
         }
 
-        $this->generateAutoNumber('document_number', 'PI');
+        $year = date('Y');
+        $shortYear = date('y');
+        
+        $latest = ProjectInformation::query()
+            ->where('year', $year)
+            ->orderBy('sequence_number', 'desc')
+            ->first();
+
+        $sequence = $latest ? $latest->sequence_number + 1 : 1;
+        
+        $info->year = $year;
+        $info->sequence_number = $sequence;
+        // PI = Project Information
+        $info->document_number = sprintf('GDPS/UB/PI-%03d/%s', $sequence, $shortYear);
     }
 
     /**

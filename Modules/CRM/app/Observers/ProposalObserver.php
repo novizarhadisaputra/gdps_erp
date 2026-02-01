@@ -4,11 +4,9 @@ namespace Modules\CRM\Observers;
 
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Proposal;
-use App\Traits\HasAutoNumber;
 
 class ProposalObserver
 {
-    use HasAutoNumber;
     /**
      * Handle the Proposal "creating" event.
      */
@@ -19,7 +17,19 @@ class ProposalObserver
             $proposal->work_scheme_id = $proposal->work_scheme_id ?? $proposal->lead->work_scheme_id;
         }
         
-        $this->generateAutoNumber('proposal_number', 'PROP');
+        $year = date('Y');
+        $shortYear = date('y');
+        
+        $latest = Proposal::query()
+            ->where('year', $year)
+            ->orderBy('sequence_number', 'desc')
+            ->first();
+
+        $sequence = $latest ? $latest->sequence_number + 1 : 1;
+        
+        $proposal->year = $year;
+        $proposal->sequence_number = $sequence;
+        $proposal->proposal_number = sprintf('GDPS/UB/PROP-%03d/%s', $sequence, $shortYear);
     }
 
     /**

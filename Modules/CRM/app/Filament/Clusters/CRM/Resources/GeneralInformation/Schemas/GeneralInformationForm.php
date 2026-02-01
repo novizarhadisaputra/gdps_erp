@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Actions\Action;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Grid;
@@ -24,6 +25,11 @@ class GeneralInformationForm
             ->components([
                 Section::make('General Details')
                     ->schema([
+                        TextInput::make('document_number')
+                            ->label('Document Number')
+                            ->disabled() // Always auto-generated/disabled
+                            ->dehydrated(false) // Usually not manually input
+                            ->hiddenOn('create'),
                         Select::make('customer_id')
                             ->relationship('customer', 'name')
                             ->required()
@@ -32,11 +38,7 @@ class GeneralInformationForm
                             ->disabled()
                             ->dehydrated()
                             ->createOptionForm(CustomerForm::schema()),
-                        TextInput::make('document_number')
-                            ->label('Document Number')
-                            ->disabled() // Always auto-generated/disabled
-                            ->dehydrated(false) // Usually not manually input
-                            ->hiddenOn('create'),
+                        
                         // Status removed from form as per request
                     ])
                     ->columns(2)
@@ -128,22 +130,66 @@ class GeneralInformationForm
                             ->columnSpanFull(),
                     ])->columnSpanFull(),
 
-                Repeater::make('risk_management')
+                Section::make('Risk Register & Compliance')
                     ->schema([
-                        TextInput::make('risk_item')->required(),
-                        TextInput::make('mitigation')->required(),
+                        TextInput::make('risk_register_number')
+                            ->label('Risk Register Document Number')
+                            ->placeholder('RR-xxxx-xxxx')
+                            ->live() // Make it reactive
+                            ->suffixAction(
+                                Action::make('check_status')
+                                    ->icon(fn (Get $get) => filled($get('risk_management')) ? 'heroicon-m-check-circle' : 'heroicon-m-magnifying-glass')
+                                    ->label('Check Status')
+                                    ->tooltip('Check Approval Status')
+                                    ->action(function (Get $get, Set $set, $state) {
+                                        // Simulation: Fetch data from Risk Register System
+                                        // If approved, populate the risk_management repeater
+                                        
+                                        if (!$state) {
+                                            \Filament\Notifications\Notification::make()
+                                                ->title('Error')
+                                                ->body('Please enter a Risk Register Number.')
+                                                ->danger()
+                                                ->send();
+                                            return;
+                                        }
+
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Synced!')
+                                            ->body('Risk Management data retrieved from Document: ' . $state)
+                                            ->success()
+                                            ->send();
+
+                                        // Simulate data sync
+                                        $set('risk_management', [
+                                            [
+                                                'risk_item' => 'Financial Risk (Synced)',
+                                                'mitigation' => 'Hedging Strategy (Synced)',
+                                            ],
+                                            [
+                                                'risk_item' => 'Operational Risk (Synced)',
+                                                'mitigation' => 'SOP Implementation (Synced)',
+                                            ],
+                                        ]);
+                                    })
+                            ),
+
+                        Repeater::make('risk_management')
+                            ->schema([
+                                TextInput::make('risk_item')->required(),
+                                TextInput::make('mitigation')->required(),
+                            ])
+                            ->columns(2)
+                            ->columnSpanFull()
+                            ->hidden(fn (Get $get) => blank($get('risk_register_number'))), // Hide by default until RR Number is filled
                     ])
-                    ->columns(2)
                     ->columnSpanFull(),
 
                 // Feasibility Study removed as per request
 
                 Textarea::make('description')->columnSpanFull()->rows(3),
                 Textarea::make('remarks')->columnSpanFull()->rows(2),
-                TextInput::make('rr_submission_id')
-                    ->label('RR Submission ID')
-                    ->disabled()
-                    ->dehydrated(false),
+
                 // Feasibility Study and RR Document fields removed
 
                 Grid::make(3)
@@ -166,7 +212,7 @@ class GeneralInformationForm
                             ->disk('s3')
                             ->visibility('private')
                             ->required(),
-                    ]),
+                    ])->columnSpanFull(),
             ]);
     }
 

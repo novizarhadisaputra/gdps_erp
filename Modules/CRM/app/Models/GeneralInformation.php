@@ -50,7 +50,7 @@ class GeneralInformation extends Model implements HasMedia
         'feasibility_study',
         'description',
         'remarks',
-        'rr_submission_id',
+        'risk_register_number',
         'signatures',
     ];
 

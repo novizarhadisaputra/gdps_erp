@@ -27,11 +27,10 @@ return new class extends Migration
             $table->text('service_level')->nullable();
             $table->text('billing_requirements')->nullable();
             $table->json('risk_management')->nullable();
-            // feasibility_study removed
             $table->text('description')->nullable();
             $table->text('remarks')->nullable();
             $table->json('signatures')->nullable();
-            $table->string('rr_submission_id')->nullable(); // ID from Risk Register system
+            $table->string('risk_register_number')->nullable(); // Risk Register Document Number
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();
             $table->timestamps();

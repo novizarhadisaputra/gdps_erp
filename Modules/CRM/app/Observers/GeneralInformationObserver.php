@@ -3,18 +3,28 @@
 namespace Modules\CRM\Observers;
 
 use Modules\CRM\Models\GeneralInformation;
-use App\Traits\HasAutoNumber;
+// Duplicate import removed
 
 class GeneralInformationObserver
 {
-    use HasAutoNumber;
-
     /**
      * Handle the GeneralInformation "creating" event.
      */
     public function creating(GeneralInformation $info): void
     {
-        $this->generateAutoNumber('document_number', 'GI');
+        $year = date('Y');
+        $shortYear = date('y');
+        
+        $latest = GeneralInformation::query()
+            ->where('year', $year)
+            ->orderBy('sequence_number', 'desc')
+            ->first();
+
+        $sequence = $latest ? $latest->sequence_number + 1 : 1;
+        
+        $info->year = $year;
+        $info->sequence_number = $sequence;
+        $info->document_number = sprintf('GDPS/UB/GI-%03d/%s', $sequence, $shortYear);
     }
     /**
      * Handle the GeneralInformation "created" event.
