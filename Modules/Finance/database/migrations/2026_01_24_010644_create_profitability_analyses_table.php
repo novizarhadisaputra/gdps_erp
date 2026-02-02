@@ -60,6 +60,8 @@ return new class extends Migration
             $table->integer('depreciation_months')->nullable(); // Flexible override
             $table->decimal('total_monthly_cost', 15, 2)->default(0); // (unit_cost_price / depreciation_months) * quantity
             $table->decimal('total_monthly_sale', 15, 2)->default(0); // total_monthly_cost * (1 + markup/100)
+            $table->integer('duration_months')->default(1);
+            $table->json('cost_breakdown')->nullable();
             $table->timestamps();
         });
     }
