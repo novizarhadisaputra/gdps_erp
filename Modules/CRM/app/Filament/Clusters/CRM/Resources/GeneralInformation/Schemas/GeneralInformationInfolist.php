@@ -32,11 +32,17 @@ class GeneralInformationInfolist
                                         default => 'gray',
                                     }),
                             ]),
-                        Grid::make(2)
+
+                        \Filament\Infolists\Components\RepeatableEntry::make('pics')
+                            ->label('PICs')
                             ->schema([
-                                TextEntry::make('pic_customer_name')->label('PIC Customer'),
-                                TextEntry::make('pic_customer_phone')->label('Phone'),
-                            ]),
+                                TextEntry::make('name'),
+                                TextEntry::make('phone'),
+                                TextEntry::make('email'),
+                                TextEntry::make('contactRole.name')->label('Role'),
+                            ])
+                            ->grid(2)
+                            ->columnSpanFull(),
                     ]),
                 Section::make('Project Details')
                     ->schema([

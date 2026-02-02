@@ -2,7 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
-use Filament\Infolists\Components\RepeatableEntry;
+
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -120,21 +120,11 @@ class ProfitabilityAnalysisInfolist
                     ]),
                 Section::make('Signatures')
                     ->schema([
-                        RepeatableEntry::make('signatures')
-                            ->label('Digital Signatures')
-                            ->schema([
-                                TextEntry::make('user_name')->label('Signed By'),
-                                TextEntry::make('user_role')->label('Role')->badge(),
-                                TextEntry::make('type')->label('Type'),
-                                TextEntry::make('signed_at')->dateTime(),
-                                TextEntry::make('qr_code')
-                                    ->label('QR Verification')
-                                    ->html()
-                                    ->extraAttributes(['class' => 'w-32 h-32']),
-                            ])
-                            ->columns(5)
-                            ->grid(2),
-                    ]),
+                        \Filament\Infolists\Components\ViewEntry::make('signatures')
+                            ->view('filament.infolists.digital-signature')
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn ($record) => ! empty($record->signatures)),
             ]);
     }
 }
