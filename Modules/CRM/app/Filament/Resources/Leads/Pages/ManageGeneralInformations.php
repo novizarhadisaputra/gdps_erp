@@ -56,11 +56,29 @@ class ManageGeneralInformations extends ManageRelatedRecords
                 Actions\CreateAction::make()
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
-                        return [
+                        $data = [
                             'customer_id' => $record->customer_id,
                             'description' => $record->description,
                             'scope_of_work' => $record->title,
                         ];
+
+                        // Auto-fill PICs from Customer Contacts if available
+                        if ($record->customer && !empty($record->customer->contacts)) {
+                            $contacts = $record->customer->contacts;
+                            // Map existing customer contacts to GeneralInformationPic format
+                            $pics = collect($contacts)->map(function ($contact) {
+                                return [
+                                    'name' => $contact['name'] ?? '',
+                                    'email' => $contact['email'] ?? '',
+                                    'phone' => $contact['phone'] ?? '',
+                                    'contact_role_id' => $contact['type'] ?? null,
+                                ];
+                            })->toArray();
+                            
+                            $data['pics'] = $pics;
+                        }
+
+                        return $data;
                     })
                     ->mutateDataUsing(function (array $data): array {
                         $data['customer_id'] = $this->getOwnerRecord()->customer_id;

@@ -36,22 +36,29 @@ class CustomPathGenerator implements PathGenerator
      */
     protected function getBasePath(Media $media): string
     {
-        $prefix = config('media-library.path_generator_prefix', 'media');
-        
-        $map = [
-            'Modules\Finance\Models\ProfitabilityAnalysis' => "finance/profitability-analyses/{$media->model_id}",
-            'Modules\CRM\Models\Contract' => "crm/contracts/{$media->model_id}",
-            'Modules\CRM\Models\Proposal' => "crm/proposals/{$media->model_id}",
-            'Modules\CRM\Models\GeneralInformation' => "crm/general-informations/{$media->model_id}",
-            'Modules\MasterData\Models\Customer' => "masterdata/customers/{$media->model_id}",
-            'Modules\MasterData\Models\Employee' => "masterdata/employees/{$media->model_id}",
-            'Modules\Project\Models\Project' => "project/projects/{$media->model_id}",
-        ];
+        $modelType = $media->model_type;
 
-        if (isset($map[$media->model_type])) {
-            return "{$map[$media->model_type]}/{$media->collection_name}/{$media->id}";
+        // Check if model is within a Module
+        if (str_contains($modelType, 'Modules\\')) {
+            // Pattern: Modules\{Module}\Models\{Model}
+            // Example: Modules\CRM\Models\GeneralInformation
+            $parts = explode('\\', $modelType);
+
+            if (count($parts) >= 4) {
+                $module = strtolower($parts[1]); // crm
+                $model = strtolower(\Illuminate\Support\Str::plural(class_basename($modelType))); // general_informations (snake) or general-informations (kebab)?
+                // Let's use kebab case for URLs/folders
+                $model = \Illuminate\Support\Str::kebab(\Illuminate\Support\Str::plural(class_basename($modelType)));
+
+                // Format: module/model/id
+                // Example: crm/general-informations/123
+                return "{$module}/{$model}/{$media->collection_name}";
+            }
         }
 
-        return $prefix.'/'.$media->id;
+        // Default or non-module models
+        $prefix = config('media-library.path_generator_prefix', 'media');
+
+        return $prefix.'/'.$media->collection_name;
     }
 }

@@ -41,17 +41,13 @@ class GeneralInformation extends Model implements HasMedia
         'work_activities',
         'service_level',
         'billing_requirements',
-        'pic_customer_name',
-        'pic_customer_phone',
-        'pic_finance_name',
-        'pic_finance_phone',
-        'pic_finance_email',
         'risk_management',
-        'feasibility_study',
         'description',
         'remarks',
         'risk_register_number',
         'signatures',
+        'sequence_number',
+        'year',
     ];
 
     protected function casts(): array
@@ -60,21 +56,12 @@ class GeneralInformation extends Model implements HasMedia
             'estimated_start_date' => 'date',
             'estimated_end_date' => 'date',
             'risk_management' => 'array',
-            'feasibility_study' => 'array',
             'signatures' => 'array',
         ];
     }
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('feasibility_study')
-            ->useDisk('s3')
-            ->singleFile();
-
-        $this->addMediaCollection('rr_document')
-            ->useDisk('s3')
-            ->singleFile();
-
         $this->addMediaCollection('tor')
             ->useDisk('s3')
             ->singleFile();

@@ -183,6 +183,7 @@ class GeneralInformationForm
                             ->columnSpanFull()
                             ->hidden(fn (Get $get) => blank($get('risk_register_number'))), // Hide by default until RR Number is filled
                     ])
+                    ->hiddenOn(operations: ['create'])
                     ->columnSpanFull(),
 
                 // Feasibility Study removed as per request

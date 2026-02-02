@@ -39,7 +39,7 @@ return [
     /*
      * The fully qualified class name of the media model.
      */
-    'media_model' => Spatie\MediaLibrary\MediaCollections\Models\Media::class,
+    'media_model' => App\Models\Media::class,
 
     /*
      * The fully qualified class name of the media observer.
@@ -76,7 +76,7 @@ return [
     /*
      * This is the class that is responsible for naming generated files.
      */
-    'file_namer' => Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer::class,
+    'file_namer' => App\Support\MediaLibrary\UuidFileNamer::class,
 
     /*
      * The class that contains the strategy for determining a media file's path.
