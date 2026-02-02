@@ -88,12 +88,10 @@ class CostingTemplateForm
                                 ->live()
                                 ->afterStateUpdated(fn (Set $set, Get $get) => self::calculateTotals($set, $get)),
 
-                            TextInput::make('unit')
-                                ->label('UoM'),
-
                             TextInput::make('unit_price')
                                 ->label('Base Price')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                ->prefix('IDR')
                                 ->required()
                                 ->live()
                                 ->afterStateUpdated(fn (Set $set, Get $get) => self::calculateMarkup($set, $get)),
@@ -101,19 +99,22 @@ class CostingTemplateForm
                             TextInput::make('markup_percent')
                                 ->label('Markup (%)')
                                 ->numeric()
+                                ->suffix('%')
                                 ->default(0)
                                 ->live()
                                 ->afterStateUpdated(fn (Set $set, Get $get) => self::calculateMarkup($set, $get)),
 
                             TextInput::make('unit_price_markup')
                                 ->label('Price (After Markup)')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                ->prefix('IDR')
                                 ->readOnly()
                                 ->dehydrated(),
 
                             TextInput::make('total_price')
                                 ->label('Total Price')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                ->prefix('IDR')
                                 ->readOnly()
                                 ->dehydrated(),
 
@@ -138,11 +139,12 @@ class CostingTemplateForm
 
                             TextInput::make('monthly_cost')
                                 ->label('Monthly Cost')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                ->prefix('IDR')
                                 ->readOnly()
                                 ->dehydrated(),
                         ])
-                        ->columns(4)
+                        ->columns(3)
                         ->defaultItems(1)
                         ->addActionLabel('Add Item to Costing'),
                 ]),

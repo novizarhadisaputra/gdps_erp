@@ -16,7 +16,8 @@ class ApprovalRuleSeeder extends Seeder
                 'criteria_field' => 'revenue_per_month',
                 'operator' => '>=',
                 'value' => 0,
-                'approver_role' => 'super_admin',
+                'approver_type' => 'Role',
+                'approver_role' => ['super_admin'],
                 'signature_type' => 'approval',
                 'order' => 1,
                 'is_active' => true,
@@ -27,7 +28,8 @@ class ApprovalRuleSeeder extends Seeder
                 'criteria_field' => 'amount',
                 'operator' => '>=',
                 'value' => 0,
-                'approver_role' => 'super_admin',
+                'approver_type' => 'Role',
+                'approver_role' => ['super_admin'],
                 'signature_type' => 'approval',
                 'order' => 1,
                 'is_active' => true,
@@ -38,7 +40,8 @@ class ApprovalRuleSeeder extends Seeder
                 'criteria_field' => 'contract_number',
                 'operator' => '!=',
                 'value' => 0,
-                'approver_role' => 'super_admin',
+                'approver_type' => 'Role',
+                'approver_role' => ['super_admin'],
                 'signature_type' => 'approval',
                 'order' => 1,
                 'is_active' => true,
@@ -49,7 +52,7 @@ class ApprovalRuleSeeder extends Seeder
             ApprovalRule::updateOrCreate(
                 [
                     'resource_type' => $rule['resource_type'],
-                    'approver_role' => $rule['approver_role'],
+                    'criteria_field' => $rule['criteria_field'],
                     'order' => $rule['order'],
                 ],
                 $rule

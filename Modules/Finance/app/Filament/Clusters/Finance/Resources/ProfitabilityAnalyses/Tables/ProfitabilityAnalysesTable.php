@@ -104,24 +104,23 @@ class ProfitabilityAnalysesTable
                                 }
 
                                 $required = $service->getRequiredApprovers($record);
-                                $userRole = auth()->user()->roles->first()?->name;
-
-                                $matchingRule = $required->firstWhere('approver_role', $userRole);
+                                
+                                $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                                 if (! $matchingRule) {
                                     Notification::make()
                                         ->title('Akses Ditolak')
-                                        ->body('Peran Anda tidak diperlukan untuk menandatangani dokumen ini pada tahap ini.')
+                                        ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
                                         ->warning()
                                         ->send();
 
                                     return;
                                 }
 
-                                if ($record->hasSignatureFrom($userRole)) {
+                                if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
                                     Notification::make()
                                         ->title('Sudah Ditandatangani')
-                                        ->body('Anda sudah menandatangani dokumen ini.')
+                                        ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
                                         ->warning()
                                         ->send();
 

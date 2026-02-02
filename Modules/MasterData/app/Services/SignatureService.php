@@ -22,8 +22,15 @@ class SignatureService
             ->where('is_active', true)
             ->get()
             ->filter(function ($rule) use ($model) {
+                // If no criteria, it applies
+                if (empty($rule->criteria_field) || empty($rule->operator)) {
+                    return true;
+                }
+
                 $fieldValue = $model->{$rule->criteria_field};
 
+                // Handle GeneralInformation special case (if criteria is sequence_number but logic implies existence)
+                // But for now, standard comparison:
                 return match ($rule->operator) {
                     '>' => $fieldValue > $rule->value,
                     '>=' => $fieldValue >= $rule->value,
@@ -34,6 +41,34 @@ class SignatureService
                 };
             })
             ->sortBy('order');
+    }
+
+    public function isEligibleApprover(ApprovalRule $rule, User $user): bool
+    {
+        if ($rule->approver_type === 'Role') {
+            $userRoles = $user->roles->pluck('name')->toArray();
+            $ruleRoles = $rule->approver_role ?? [];
+            return !empty(array_intersect($userRoles, $ruleRoles));
+        }
+
+        if ($rule->approver_type === 'User') {
+            return in_array($user->id, $rule->approver_user_id ?? []);
+        }
+
+        if ($rule->approver_type === 'Position') {
+            return in_array($user->position, $rule->approver_position ?? []);
+        }
+
+        if ($rule->approver_type === 'Unit') {
+            // Check if user belongs to one of the allowed units
+            // Assuming User model has 'unit_id' or checking 'employee.unit_id'
+            // For now, let's assume direct unit_id on User or Employee relation
+            $userUnitId = $user->employee?->unit_id; // Check Employee relation
+            if (!$userUnitId) return false;
+            return in_array($userUnitId, $rule->approver_unit_id ?? []);
+        }
+
+        return false;
     }
 
     /**

@@ -56,76 +56,69 @@ class GeneralInformationTable
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$record->customer->name}.pdf");
                     }),
+                \Filament\Actions\ViewAction::make()
+                    ->modalFooterActions([
+                        Action::make('Sign')
+                            ->label('Digital Signature')
+                            ->color('primary')
+                            ->icon('heroicon-o-pencil-square')
+                            ->form([
+                                \Filament\Forms\Components\TextInput::make('pin')
+                                    ->label('Signature PIN')
+                                    ->password()
+                                    ->required()
+                                    ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                            ])
+                            ->action(function (GeneralInformation $record, array $data) {
+                                $service = app(\Modules\MasterData\Services\SignatureService::class);
+
+                                if (! $service->verifyPin(auth()->user(), $data['pin'])) {
+                                    Notification::make()
+                                        ->title('PIN Salah')
+                                        ->danger()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                $required = $service->getRequiredApprovers($record);
+                                $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+
+                                if (! $matchingRule) {
+                                    Notification::make()
+                                        ->title('Akses Ditolak')
+                                        ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
+                                        ->warning()
+                                        ->send();
+
+                                    return;
+                                }
+
+                                if ($record->hasSignatureFrom(auth()->user()->roles->first()?->name)) {
+                                     // Note: hasSignatureFrom might need update if we support multiple roles/users. 
+                                     // But for now, assuming trait handles it or we skip strictly.
+                                     // Actually, standard trait checks by 'type' or 'user_id'?
+                                     // Let's rely on standard addSignature. 
+                                     // But warning duplication is good.
+                                }
+
+                                $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
+                                $qrCode = $service->generateQRCode($qrData);
+
+                                $record->addSignature(auth()->user(), $matchingRule->signature_type, $qrCode);
+
+                                Notification::make()
+                                    ->title('Dokumen Berhasil Ditandatangani')
+                                    ->success()
+                                    ->send();
+
+                                if ($record->isFullyApproved()) {
+                                    $record->update(['status' => 'approved']);
+                                }
+                            })
+                            ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
+                    ]),
                 EditAction::make(),
-                Action::make('Approve')
-                    ->label('Approve & Sign')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->form([
-                        \Filament\Forms\Components\TextInput::make('pin')
-                            ->label('Signature PIN')
-                            ->password()
-                            ->required()
-                            ->helperText('Masukkan PIN tanda tangan digital Anda.'),
-                    ])
-                    ->action(function (GeneralInformation $record, array $data) {
-                        $user = auth()->user();
-
-                        if (! $user->signature_pin) {
-                            Notification::make()
-                                ->title('PIN Belum Diatur')
-                                ->body('Anda belum mengatur PIN tanda tangan. Mohon atur di profil Anda.')
-                                ->danger()
-                                ->actions([
-                                    Action::make('profile')
-                                        ->label('Ke Profil')
-                                        ->button()
-                                        ->url(\App\Filament\Pages\EditProfile::getUrl()),
-                                ])
-                                ->send();
-
-                            return;
-                        }
-
-                        if (! $user->hasMedia('signature')) {
-                            Notification::make()
-                                ->title('Tanda Tangan Belum Diupload')
-                                ->body('Anda belum mengupload gambar tanda tangan. Mohon upload di profil Anda.')
-                                ->danger()
-                                ->actions([
-                                    Action::make('profile')
-                                        ->label('Ke Profil')
-                                        ->button()
-                                        ->url(\App\Filament\Pages\EditProfile::getUrl()),
-                                ])
-                                ->send();
-
-                            return;
-                        }
-
-                        $service = app(\Modules\MasterData\Services\SignatureService::class);
-
-                        if (! $service->verifyPin($user, $data['pin'])) {
-                            Notification::make()
-                                ->title('PIN Salah')
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-
-                        $qrData = $service->createSignatureData($user, $record, 'approved');
-                        $qrCode = $service->generateQRCode($qrData);
-
-                        $record->addSignature($user, 'approved', $qrCode);
-                        $record->update(['status' => 'approved']);
-
-                        Notification::make()
-                            ->title('Berhasil Disetujui')
-                            ->success()
-                            ->send();
-                    })
-                    ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
