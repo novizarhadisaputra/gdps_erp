@@ -209,6 +209,43 @@ class ProposalsTable
                             ->requiresConfirmation()
                             ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Rejected]))
                             ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
+
+                        \Filament\Actions\ActionGroup::make([
+                            Action::make('export_proposal')
+                                ->label('Export Proposal')
+                                ->icon('heroicon-o-document-text')
+                                ->action(function (Proposal $record) {
+                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+
+                                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$record->proposal_number}.pdf");
+                                }),
+
+                            Action::make('export_contract')
+                                ->label('Export Contract')
+                                ->icon('heroicon-o-document-duplicate')
+                                ->visible(fn (Proposal $record) => $record->contracts()->exists())
+                                ->action(function (Proposal $record) {
+                                    $contract = $record->contracts()->latest()->first();
+                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
+
+                                    return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$contract->contract_number}.pdf");
+                                }),
+
+                            Action::make('export_general_information')
+                                ->label('Export General Info')
+                                ->icon('heroicon-o-information-circle')
+                                ->visible(fn (Proposal $record) => $record->lead?->generalInformations()->exists())
+                                ->action(function (Proposal $record) {
+                                    $gi = $record->lead->generalInformations()->latest()->first();
+                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
+
+                                    return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$gi->customer->name}.pdf");
+                                }),
+                        ])
+                        ->label('Export')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('gray')
+                        ->button(),
                     ]),
                 EditAction::make(),
                 DeleteAction::make(),

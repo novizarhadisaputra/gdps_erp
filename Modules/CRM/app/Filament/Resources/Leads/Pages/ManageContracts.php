@@ -8,7 +8,6 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
-// use Filament\Tables\Actions as TableActions;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Resources\Contracts\Schemas\ContractForm;
 use Modules\CRM\Filament\Resources\Leads\LeadResource;
@@ -82,6 +81,15 @@ class ManageContracts extends ManageRelatedRecords
             ->recordActions([
                 Actions\EditAction::make(),
                 Actions\DeleteAction::make(),
+                Actions\Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function (\Modules\CRM\Models\Contract $record) {
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $record]);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$record->contract_number}.pdf");
+                    }),
             ])
             ->groupedBulkActions([
                 Actions\DeleteBulkAction::make(),

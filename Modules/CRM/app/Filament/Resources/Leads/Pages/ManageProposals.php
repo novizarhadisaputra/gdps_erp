@@ -11,7 +11,6 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-// use Filament\Tables\Actions as TableActions;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Resources\Leads\LeadResource;
@@ -99,6 +98,15 @@ class ManageProposals extends ManageRelatedRecords
             ->recordActions([
                 Actions\EditAction::make(),
                 Actions\DeleteAction::make(),
+                Actions\Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function (\Modules\CRM\Models\Proposal $record) {
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$record->proposal_number}.pdf");
+                    }),
             ])
             ->groupedBulkActions([
                 Actions\DeleteBulkAction::make(),

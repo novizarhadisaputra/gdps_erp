@@ -8,7 +8,6 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables;
-// use Filament\Tables\Actions as TableActions;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Resources\Leads\LeadResource;
 use Modules\Project\Filament\Resources\ProjectInformations\Schemas\ProjectInformationForm;

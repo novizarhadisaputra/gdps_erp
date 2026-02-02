@@ -65,6 +65,7 @@
 
 <body>
     <div class="header">
+        <img src="{{ public_path('images/logo.png') }}" alt="Logo" style="height: 60px; margin-bottom: 10px;">
         <h1>CONTRACT</h1>
         <h3>{{ $record->contract_number }}</h3>
     </div>

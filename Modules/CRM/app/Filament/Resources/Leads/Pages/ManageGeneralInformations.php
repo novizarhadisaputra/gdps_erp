@@ -4,12 +4,10 @@ namespace Modules\CRM\Filament\Resources\Leads\Pages;
 
 use BackedEnum;
 use Filament\Actions;
-use Filament\Helper\Filament;
 use Filament\Notifications;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-// use Filament\Tables\Actions as TableActions;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
@@ -87,6 +85,18 @@ class ManageGeneralInformations extends ManageRelatedRecords
             ->recordActions([
                 Actions\EditAction::make(),
                 Actions\DeleteAction::make(),
+                Actions\Action::make('pdf')
+                    ->label('Export PDF')
+                    ->modalDescription(fn (GeneralInformation $record) => "Are you sure you want to export this General Information - {$record->customer->name}.pdf to PDF?")
+                    ->modalHeading('Export General Information to PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->requiresConfirmation()
+                    ->action(function (GeneralInformation $record) {
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "General Information - {$record->customer->name}.pdf");
+                    }),
                 Actions\Action::make('check_status')
                     ->label('Check Status')
                     ->icon(Heroicon::OutlinedArrowPath)
