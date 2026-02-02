@@ -11,11 +11,11 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
-use Modules\MasterData\Filament\Resources\ProductClusters\Schemas\ProductClusterForm;
-use Modules\MasterData\Filament\Resources\ProjectAreas\Schemas\ProjectAreaForm;
-use Modules\MasterData\Filament\Resources\Taxes\Schemas\TaxForm;
-use Modules\MasterData\Filament\Resources\WorkSchemes\Schemas\WorkSchemeForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Item;
 
 class ProfitabilityAnalysisForm
@@ -236,14 +236,20 @@ class ProfitabilityAnalysisForm
                                     ->disabled()
                                     ->dehydrated()
                                     ->columnSpan(1),
+                                TextInput::make('duration_months')
+                                    ->label('Duration (Mo)')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
                                 TextInput::make('unit_cost_price')
-                                    ->label('Modal Price')
+                                    ->label('Base Price')
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                                     ->required()
                                     ->live(onBlur: true)
                                     ->columnSpan(1),
                                 TextInput::make('depreciation_months')
-                                    ->label('Depreciation (Mo)')
+                                    ->label('Asset Depr (Mo)')
                                     ->numeric()
                                     ->default(1)
                                     ->live(onBlur: true)
@@ -254,8 +260,69 @@ class ProfitabilityAnalysisForm
                                     ->default(0)
                                     ->live(onBlur: true)
                                     ->columnSpan(1),
+                                
+                                // Dynamic Cost Breakdown
+                                Repeater::make('cost_breakdown')
+                                    ->label('Additional Costs (Allowances, Taxes, etc.)')
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Component Name')
+                                            ->placeholder('e.g., BPJS, Transport')
+                                            ->required(),
+                                        Select::make('type')
+                                            ->options([
+                                                'nominal' => 'Nominal (Rp)',
+                                                'percentage' => 'Percentage (%)',
+                                            ])
+                                            ->default('nominal')
+                                            ->live()
+                                            ->required(),
+                                        Select::make('calculate_from')
+                                            ->label('Base On')
+                                            ->options([
+                                                'unit_cost_price' => 'Base Price',
+                                            ])
+                                            ->default('unit_cost_price')
+                                            ->visible(fn (Get $get) => $get('type') === 'percentage')
+                                            ->live(),
+                                        TextInput::make('value')
+                                            ->label('Amount/Rate')
+                                            ->numeric()
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->columnSpan(1),
+
+                                        Repeater::make('details')
+                                            ->label('Breakdown Details')
+                                            ->schema([
+                                                TextInput::make('name')
+                                                    ->label('Sub-Component')
+                                                    ->required(),
+                                                TextInput::make('value')
+                                                    ->label('Amount')
+                                                    ->numeric()
+                                                    ->required()
+                                                    ->live(onBlur: true),
+                                            ])
+                                            ->columns(2)
+                                            ->columnSpanFull()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                // Auto-sum details to parent value
+                                                $sum = collect($state ?? [])->sum('value');
+                                                $set('value', $sum);
+                                                
+                                                // Trigger main calculation
+                                                self::calculateDirectCost($get, $set);
+                                            }),
+                                    ])
+                                    ->columns(4)
+                                    ->columnSpanFull()
+                                    ->live()
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+
                                 TextInput::make('total_monthly_cost')
-                                    ->label('Modal/Mo')
+                                    ->label('Total Cost/Mo')
                                     ->disabled()
                                     ->dehydrated()
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
@@ -269,7 +336,7 @@ class ProfitabilityAnalysisForm
                                     ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
                                     ->columnSpan(1),
                             ])
-                            ->columns(5)
+                            ->columns(6)
                             ->columnSpanFull()
                             ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
                             ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
@@ -287,13 +354,40 @@ class ProfitabilityAnalysisForm
             $qty = (float) ($item['quantity'] ?? 0);
             $costPrice = (float) ($item['unit_cost_price'] ?? 0);
             $deprMonths = (float) ($item['depreciation_months'] ?? 1);
+            $durationMonths = (float) ($item['duration_months'] ?? 1); // Get duration
             $markup = (float) ($item['markup_percentage'] ?? 0);
+            $costBreakdown = $item['cost_breakdown'] ?? []; // Get Addons
 
             if ($deprMonths <= 0) {
                 $deprMonths = 1;
             }
 
-            $monthlyCost = ($costPrice / $deprMonths) * $qty;
+            // Calculate Add-ons
+            $addOnTotal = 0;
+            foreach ($costBreakdown as $addon) {
+                $val = (float) ($addon['value'] ?? 0);
+                
+                // If details exist, use their sum (though UI should have already updated 'value', we double check/fallback if needed)
+                if (!empty($addon['details'])) {
+                   $val = collect($addon['details'])->sum('value');
+                }
+
+                $type = $addon['type'] ?? 'nominal';
+                
+                if ($type === 'percentage') {
+                    // Logic: Base on Unit Cost Price by default
+                    $addOnTotal += $costPrice * ($val / 100);
+                } else {
+                    $addOnTotal += $val;
+                }
+            }
+
+            // Total Monthly Cost = (Base/Depr + Addons) * Qty
+            // Note: Addons are usually "Per Month" costs (like Allowance), unless specified otherwise.
+            // Assuming Addons are recurring monthly costs.
+            $monthlyUnitCost = ($costPrice / $deprMonths) + $addOnTotal;
+            $monthlyCost = $monthlyUnitCost * $qty;
+            
             $monthlySale = $monthlyCost * (1 + ($markup / 100));
 
             $totalDirectCost += $monthlyCost;
@@ -334,12 +428,30 @@ class ProfitabilityAnalysisForm
         $qty = (float) ($get('quantity') ?? 0);
         $costPrice = (float) ($get('unit_cost_price') ?? 0);
         $deprMonths = (float) ($get('depreciation_months') ?? 1);
+        $costBreakdown = $get('cost_breakdown') ?? [];
 
         if ($deprMonths <= 0) {
             $deprMonths = 1;
         }
 
-        return ($costPrice / $deprMonths) * $qty;
+        $addOnTotal = 0;
+        foreach ($costBreakdown as $addon) {
+            $val = (float) ($addon['value'] ?? 0);
+             // If details exist, use their sum
+            if (!empty($addon['details'])) {
+                $val = collect($addon['details'])->sum('value');
+            }
+
+            $type = $addon['type'] ?? 'nominal';
+            
+            if ($type === 'percentage') {
+                $addOnTotal += $costPrice * ($val / 100);
+            } else {
+                $addOnTotal += $val;
+            }
+        }
+
+        return (($costPrice / $deprMonths) + $addOnTotal) * $qty;
     }
 
     public static function calculateItemMonthlySale(Get $get): float

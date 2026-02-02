@@ -24,6 +24,8 @@ class ProfitabilityAnalysisItem extends Model
         'depreciation_months',
         'total_monthly_cost',
         'total_monthly_sale',
+        'cost_breakdown',
+        'duration_months',
     ];
 
     protected function casts(): array
@@ -35,6 +37,8 @@ class ProfitabilityAnalysisItem extends Model
             'depreciation_months' => 'integer',
             'total_monthly_cost' => 'decimal:2',
             'total_monthly_sale' => 'decimal:2',
+            'cost_breakdown' => 'array',
+            'duration_months' => 'integer',
         ];
     }
 

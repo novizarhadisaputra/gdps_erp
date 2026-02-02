@@ -11,7 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Models\Contract;
-use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 
 class ContractForm
 {

@@ -10,8 +10,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\LeadStatus;
-use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
-use Modules\MasterData\Filament\Resources\WorkSchemes\Schemas\WorkSchemeForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
 

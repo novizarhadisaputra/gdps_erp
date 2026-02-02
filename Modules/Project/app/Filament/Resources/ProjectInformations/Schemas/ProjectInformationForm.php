@@ -10,11 +10,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Modules\MasterData\Filament\Resources\BillingOptions\Schemas\BillingOptionForm;
-use Modules\MasterData\Filament\Resources\Employees\Schemas\EmployeeForm;
-use Modules\MasterData\Filament\Resources\Items\Schemas\ItemForm;
-use Modules\MasterData\Filament\Resources\PaymentTerms\Schemas\PaymentTermForm;
-use Modules\MasterData\Filament\Resources\ProjectTypes\Schemas\ProjectTypeForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptions\Schemas\BillingOptionForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
 

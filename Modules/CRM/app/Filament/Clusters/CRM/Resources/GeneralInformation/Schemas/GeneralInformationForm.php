@@ -14,8 +14,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
-use Modules\MasterData\Filament\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 
 class GeneralInformationForm
 {
