@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,10 +10,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\CRM\Models\GeneralInformation;
-
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
+use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
@@ -22,9 +23,6 @@ use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
 
 #[ObservedBy(ProfitabilityAnalysisObserver::class)]
 class ProfitabilityAnalysis extends Model implements HasMedia

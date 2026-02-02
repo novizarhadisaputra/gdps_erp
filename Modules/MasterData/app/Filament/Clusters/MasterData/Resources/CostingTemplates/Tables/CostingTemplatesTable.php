@@ -2,12 +2,12 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplates\Tables;
 
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 
 class CostingTemplatesTable
 {
@@ -25,7 +25,7 @@ class CostingTemplatesTable
                     ->label('Total Investment')
                     ->money('IDR')
                     ->hidden(), // Calculated field might be tricky on parent if not persisted.
-                    // For now, maybe just show name and items count.
+                // For now, maybe just show name and items count.
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

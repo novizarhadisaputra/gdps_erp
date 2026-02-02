@@ -2,18 +2,16 @@
 
 namespace Modules\CRM\Filament\Resources\Leads\Pages;
 
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Pages\ManageRelatedRecords;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Modules\CRM\Filament\Resources\Leads\LeadResource;
-use Modules\CRM\Filament\Resources\Contracts\Schemas\ContractForm;
-use Filament\Actions;
-// use Filament\Tables\Actions as TableActions;
-use Filament\Schemas\Schema;
 use BackedEnum;
+use Filament\Actions;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables;
+// use Filament\Tables\Actions as TableActions;
+use Filament\Tables\Table;
+use Modules\CRM\Filament\Resources\Contracts\Schemas\ContractForm;
+use Modules\CRM\Filament\Resources\Leads\LeadResource;
 
 class ManageContracts extends ManageRelatedRecords
 {
@@ -28,7 +26,7 @@ class ManageContracts extends ManageRelatedRecords
     public static function canAccess(array $parameters = []): bool
     {
         $record = $parameters['record'] ?? null;
-        
+
         if (! $record) {
             return false;
         }
@@ -37,9 +35,9 @@ class ManageContracts extends ManageRelatedRecords
         $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
 
         return in_array($status, [
-            'negotiation', 
-            'won', 
-            'closed_lost'
+            'negotiation',
+            'won',
+            'closed_lost',
         ]);
     }
 
@@ -77,6 +75,7 @@ class ManageContracts extends ManageRelatedRecords
                         $record = $this->getOwnerRecord();
                         $data['customer_id'] = $record->customer_id;
                         $data['work_scheme_id'] = $record->work_scheme_id;
+
                         return $data;
                     }),
             ])

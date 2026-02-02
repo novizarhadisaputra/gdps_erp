@@ -6,11 +6,9 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-use Modules\MasterData\Filament\Resources\ContactRoles\Pages;
-use Modules\MasterData\Models\ContactRole;
-
 use Modules\MasterData\Filament\Resources\ContactRoles\Schemas\ContactRoleForm;
 use Modules\MasterData\Filament\Resources\ContactRoles\Tables\ContactRolesTable;
+use Modules\MasterData\Models\ContactRole;
 
 class ContactRoleResource extends Resource
 {

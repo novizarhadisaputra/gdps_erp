@@ -2,13 +2,12 @@
 
 namespace Modules\CRM\Filament\Resources\Proposals\Schemas;
 
-use Filament\Schemas\Components\Section;
-
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
@@ -36,7 +35,7 @@ class ProposalForm
                             ->searchable()
                             ->preload()
                             ->disabled() // Inherited from Lead rarely changes at this stage
-                            ->dehydrated() 
+                            ->dehydrated()
                             ->createOptionForm(WorkSchemeForm::schema()),
                         TextInput::make('proposal_number')
                             ->required()

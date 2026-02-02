@@ -2,11 +2,9 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Schemas;
 
-use Filament\Schemas\Components\Section;
-
 use Filament\Forms\Components\Textarea;
-
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\Finance\Models\ProfitabilityThreshold;
 

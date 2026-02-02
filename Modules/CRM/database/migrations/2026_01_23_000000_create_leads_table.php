@@ -22,10 +22,10 @@ return new class extends Migration
             $table->date('expected_closing_date')->nullable();
             $table->flowforgePositionColumn('position');
             $table->text('description')->nullable();
-            
+
             // Person In Charge (Internal Sales)
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
-            
+
             $table->timestamps();
             $table->softDeletes();
         });

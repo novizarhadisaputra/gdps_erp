@@ -16,17 +16,17 @@ class ProposalObserver
             $proposal->customer_id = $proposal->customer_id ?? $proposal->lead->customer_id;
             $proposal->work_scheme_id = $proposal->work_scheme_id ?? $proposal->lead->work_scheme_id;
         }
-        
+
         $year = date('Y');
         $shortYear = date('y');
-        
+
         $latest = Proposal::query()
             ->where('year', $year)
             ->orderBy('sequence_number', 'desc')
             ->first();
 
         $sequence = $latest ? $latest->sequence_number + 1 : 1;
-        
+
         $proposal->year = $year;
         $proposal->sequence_number = $sequence;
         $proposal->proposal_number = sprintf('GDPS/UB/PROP-%03d/%s', $sequence, $shortYear);

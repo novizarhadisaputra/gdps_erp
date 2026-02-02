@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
 use Modules\MasterData\Enums\AssetGroupType;
 
 class AssetGroup extends Model
@@ -17,7 +16,6 @@ class AssetGroup extends Model
     {
         return \Modules\MasterData\Database\Factories\AssetGroupFactory::new();
     }
-
 
     protected $fillable = [
         'name',

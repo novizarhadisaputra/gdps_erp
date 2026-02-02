@@ -4,15 +4,18 @@ namespace App\Livewire\Auth;
 
 use App\Models\User;
 use App\Services\SsoAuthService;
+use Exception;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Auth\Events\Login as LoginEvent;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use Modules\MasterData\Models\Employee;
-use Modules\MasterData\Services\UnitService;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Services\UnitService;
 
 #[Layout('components.layouts.guest')]
 #[Title('Login - GDPS ERP')]
@@ -64,6 +67,7 @@ class Login extends Component
                         'access_token' => $authData['accessToken'],
                         'refresh_token' => $authData['refreshToken'],
                         'token_expires_at' => now()->addSeconds($authData['expiresIn']),
+                        'password' => Hash::make($this->password),
                     ]
                 );
 
@@ -90,13 +94,13 @@ class Login extends Component
                 }
 
                 Filament::auth()->login($user, $this->remember);
-            } catch (\Exception $ssoException) {
+            } catch (Exception $ssoException) {
                 // Step 4: Fallback to Local Authentication if SSO fails
                 if (! Filament::auth()->attempt([
                     'email' => $this->email,
                     'password' => $this->password,
                 ], $this->remember)) {
-                    throw new \Exception('Invalid credentials (SSO & Local fallback failed).');
+                    throw new Exception('Invalid credentials (SSO & Local fallback failed).');
                 }
 
                 $user = User::query()->where('email', $this->email)->first();
@@ -108,8 +112,8 @@ class Login extends Component
             event(new LoginEvent('web', $user, $this->remember));
 
             return redirect()->to(Filament::getUrl());
-        } catch (\Exception $e) {
-            \Log::error('Login process failed', [
+        } catch (Exception $e) {
+            Log::error('Login process failed', [
                 'message' => $e->getMessage(),
             ]);
 

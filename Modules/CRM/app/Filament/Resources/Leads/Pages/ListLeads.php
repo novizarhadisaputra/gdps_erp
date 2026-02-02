@@ -2,13 +2,23 @@
 
 namespace Modules\CRM\Filament\Resources\Leads\Pages;
 
-use Modules\CRM\Filament\Resources\Leads\LeadResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Modules\CRM\Filament\Resources\Leads\LeadResource;
 
 class ListLeads extends ListRecords
 {
     protected static string $resource = LeadResource::class;
+
+    public function mount(): void
+    {
+        parent::mount();
+
+        $user = auth()->user();
+        if ($user && ! $user->hasRole(['super_admin', 'full_access'])) {
+            $this->redirect(LeadResource::getUrl('kanban'));
+        }
+    }
 
     protected function getHeaderActions(): array
     {

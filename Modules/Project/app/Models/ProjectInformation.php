@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,9 +13,7 @@ use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Traits\HasDigitalSignatures;
-
 use Modules\Project\Database\Factories\ProjectInformationFactory;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Modules\Project\Observers\ProjectInformationObserver;
 
 #[ObservedBy(ProjectInformationObserver::class)]

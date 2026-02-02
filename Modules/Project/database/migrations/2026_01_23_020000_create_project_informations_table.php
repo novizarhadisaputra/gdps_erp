@@ -49,9 +49,8 @@ return new class extends Migration
             $table->json('remuneration_details')->nullable();
             $table->date('payroll_date')->nullable();
 
-
             $table->date('overtime_cut_off_date')->nullable();
-            
+
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();
             $table->index(['year', 'sequence_number']);

@@ -2,8 +2,8 @@
 
 namespace App\Support\MediaLibrary;
 
-use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 use Illuminate\Support\Str;
+use Spatie\MediaLibrary\Support\FileNamer\DefaultFileNamer;
 
 class UuidFileNamer extends DefaultFileNamer
 {

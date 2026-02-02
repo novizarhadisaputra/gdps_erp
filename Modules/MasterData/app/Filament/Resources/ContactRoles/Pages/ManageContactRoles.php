@@ -2,9 +2,9 @@
 
 namespace Modules\MasterData\Filament\Resources\ContactRoles\Pages;
 
-use Modules\MasterData\Filament\Resources\ContactRoles\ContactRoleResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRecords;
+use Modules\MasterData\Filament\Resources\ContactRoles\ContactRoleResource;
 
 class ManageContactRoles extends ManageRecords
 {

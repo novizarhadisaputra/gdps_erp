@@ -22,7 +22,8 @@ class ViewProposal extends ViewRecord
                 ->icon('heroicon-o-arrow-down-tray')
                 ->action(function () {
                     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
-                    return response()->streamDownload(fn () => print($pdf->output()), "proposal-{$this->record->proposal_number}.pdf");
+
+                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$this->record->proposal_number}.pdf");
                 }),
 
             Action::make('Submit')

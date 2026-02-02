@@ -2,19 +2,18 @@
 
 namespace Modules\CRM\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CRM\Database\Factories\ContractFactory;
 use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Observers\ContractObserver;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Modules\CRM\Observers\ContractObserver;
-use Modules\CRM\Models\Lead;
 
 #[ObservedBy(ContractObserver::class)]
 class Contract extends Model implements HasMedia

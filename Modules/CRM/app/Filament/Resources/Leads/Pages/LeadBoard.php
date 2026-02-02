@@ -46,12 +46,12 @@ class LeadBoard extends BoardResourcePage
             ->query($this->getEloquentQuery())
             ->recordTitleAttribute('title')
             ->cardSchema(fn (Schema $schema) => $schema->components([
-                 Text::make(fn (Lead $record) => $record->customer->name ?? 'Unknown Customer')
+                Text::make(fn (Lead $record) => $record->customer->name ?? 'Unknown Customer')
                     ->weight(FontWeight::Bold),
-                Text::make(fn (Lead $record) => 'Prob: ' . $record->probability . '%')
+                Text::make(fn (Lead $record) => 'Prob: '.$record->probability.'%')
                     ->size('xs')
                     ->color('gray'),
-                Text::make(fn (Lead $record) => 'IDR ' . number_format($record->estimated_amount, 0, ',', '.'))
+                Text::make(fn (Lead $record) => 'IDR '.number_format($record->estimated_amount, 0, ',', '.'))
                     ->size('xs')
                     ->color('success'),
             ]))
@@ -70,5 +70,43 @@ class LeadBoard extends BoardResourcePage
                 EditAction::make()->url(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make()->model(Lead::class),
             ]);
+    }
+
+    public function moveCard(string $cardId, string $targetColumnId, ?string $afterCardId = null, ?string $beforeCardId = null): void
+    {
+        $record = Lead::find($cardId);
+
+        if (! $record) {
+            return;
+        }
+
+        // Validation Logic
+        $isValid = match ($targetColumnId) {
+            'approach' => $record->generalInformations()->exists(),
+            'proposal' => $record->proposals()->exists(),
+            'negotiation' => $record->profitabilityAnalyses()->exists(),
+            'won' => $record->contracts()->where('status', \Modules\CRM\Enums\ContractStatus::Active)->exists(),
+            default => true,
+        };
+
+        if (! $isValid) {
+            $message = match ($targetColumnId) {
+                'approach' => 'Please create General Information first.',
+                'proposal' => 'Please create a Proposal document first.',
+                'negotiation' => 'Please create a Profitability Analysis first.',
+                'won' => 'Please create and activate a Contract first.',
+                default => 'Invalid move.',
+            };
+
+            \Filament\Notifications\Notification::make()
+                ->title('Validation Failed')
+                ->body($message)
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        parent::moveCard($cardId, $targetColumnId, $afterCardId, $beforeCardId);
     }
 }

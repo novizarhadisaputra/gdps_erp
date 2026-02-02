@@ -3,8 +3,10 @@
 namespace Tests\Feature\Filament\Resources;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
+use Modules\CRM\Models\GeneralInformation;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\CreateProfitabilityAnalysis;
 use Modules\MasterData\Enums\AssetGroupType;
 use Modules\MasterData\Models\AssetGroup;
@@ -16,9 +18,7 @@ use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\UnitOfMeasure;
 use Modules\MasterData\Models\WorkScheme;
-use Modules\CRM\Models\GeneralInformation;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class IntegrationProfitabilityAnalysisTest extends TestCase
 {
@@ -33,11 +33,11 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
         $group = AssetGroup::factory()->create([
             'useful_life_years' => 5,
             'name' => 'IT Assets',
-            'type' => AssetGroupType::TangibleNonBuilding
+            'type' => AssetGroupType::TangibleNonBuilding,
         ]);
 
         $category = ItemCategory::factory()->create([
-            'asset_group_id' => $group->id
+            'asset_group_id' => $group->id,
         ]);
 
         $uom = UnitOfMeasure::factory()->create(['name' => 'Unit', 'code' => 'UNIT-PA']);
@@ -48,7 +48,7 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
             'price' => 5000000,
             'depreciation_months' => null, // Should fallback to Group (5 * 12 = 60)
             'name' => 'Integration Laptop',
-            'code' => 'LAPTOP-PA-' . Str::uuid()
+            'code' => 'LAPTOP-PA-'.Str::uuid(),
         ]);
 
         // 2. Setup PA Dependencies
@@ -56,7 +56,7 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
         $gi = GeneralInformation::create([
             'document_number' => 'GI/TEST/001',
             'customer_id' => $customer->id,
-            'status' => 'draft'
+            'status' => 'draft',
         ]);
         $workScheme = WorkScheme::factory()->create();
         $productCluster = ProductCluster::factory()->create();
@@ -70,7 +70,7 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
 
         Livewire::test(CreateProfitabilityAnalysis::class)
             // ->assertSuccessful();
-            
+
             ->fillForm([
                 'general_information_id' => $gi->id,
                 'customer_id' => $customer->id,
@@ -80,9 +80,9 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
                 'project_area_id' => $projectArea->id,
                 'items' => [
                     $uuid => [
-                        'item_id' => null
-                    ]
-                ]
+                        'item_id' => null,
+                    ],
+                ],
             ])
             ->set("data.items.{$uuid}.item_id", $item->id)
             ->assertFormSet([

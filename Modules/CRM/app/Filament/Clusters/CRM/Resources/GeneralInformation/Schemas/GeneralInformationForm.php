@@ -2,17 +2,17 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Actions\Action;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Resources\ProjectAreas\Schemas\ProjectAreaForm;
@@ -38,7 +38,7 @@ class GeneralInformationForm
                             ->disabled()
                             ->dehydrated()
                             ->createOptionForm(CustomerForm::schema()),
-                        
+
                         // Status removed from form as per request
                     ])
                     ->columns(2)
@@ -144,19 +144,20 @@ class GeneralInformationForm
                                     ->action(function (Get $get, Set $set, $state) {
                                         // Simulation: Fetch data from Risk Register System
                                         // If approved, populate the risk_management repeater
-                                        
-                                        if (!$state) {
+
+                                        if (! $state) {
                                             \Filament\Notifications\Notification::make()
                                                 ->title('Error')
                                                 ->body('Please enter a Risk Register Number.')
                                                 ->danger()
                                                 ->send();
+
                                             return;
                                         }
 
                                         \Filament\Notifications\Notification::make()
                                             ->title('Synced!')
-                                            ->body('Risk Management data retrieved from Document: ' . $state)
+                                            ->body('Risk Management data retrieved from Document: '.$state)
                                             ->success()
                                             ->send();
 
@@ -229,13 +230,13 @@ class GeneralInformationForm
             if ($endDate > $startDate) {
                 // simple diff in months
                 $months = $startDate->diffInMonths($endDate);
-                // If it's partial month, maybe round up? 
+                // If it's partial month, maybe round up?
                 // diffInMonths returns integer.
                 // Let's use floatDiffInMonths if precision needed, but usually integers.
                 // Let's stick to integer for now as per "Months" suffix.
                 $set('contract_duration', $months);
             } else {
-                 $set('contract_duration', 0);
+                $set('contract_duration', 0);
             }
         } else {
             $set('contract_duration', null);

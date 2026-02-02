@@ -145,9 +145,9 @@ class Project extends Model implements HasMedia
 
     public function getAmountAttribute(): float
     {
-        return $this->proposal?->amount 
-            ?? $this->contract?->proposal?->amount 
-            ?? $this->profitabilityAnalysis?->revenue_per_month 
+        return $this->proposal?->amount
+            ?? $this->contract?->proposal?->amount
+            ?? $this->profitabilityAnalysis?->revenue_per_month
             ?? 0.0;
     }
 }

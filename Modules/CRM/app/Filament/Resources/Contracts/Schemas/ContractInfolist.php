@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Resources\Contracts\Schemas;
 
-use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;

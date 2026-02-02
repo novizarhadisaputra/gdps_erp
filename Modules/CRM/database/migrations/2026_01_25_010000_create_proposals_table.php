@@ -25,7 +25,7 @@ return new class extends Migration
             $table->integer('year')->nullable();
             $table->json('signatures')->nullable();
             $table->timestamps();
-            
+
             $table->index(['year', 'sequence_number']);
         });
     }

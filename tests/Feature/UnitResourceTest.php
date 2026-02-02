@@ -49,6 +49,4 @@ class UnitResourceTest extends TestCase
         Livewire::test(ListUnits::class)
             ->assertSee('Unit Test 1');
     }
-
-
 }

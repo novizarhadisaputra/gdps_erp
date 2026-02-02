@@ -2,22 +2,19 @@
 
 namespace Modules\CRM\Filament\Resources\Leads\Pages;
 
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Pages\ManageRelatedRecords;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Modules\CRM\Filament\Resources\Leads\LeadResource;
-use Modules\CRM\Enums\ProposalStatus;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\DatePicker;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Actions;
-// use Filament\Tables\Actions as TableActions;
-use Filament\Schemas\Schema;
 use BackedEnum;
+use Filament\Actions;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\TextColumn;
+// use Filament\Tables\Actions as TableActions;
+use Filament\Tables\Table;
+use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Filament\Resources\Leads\LeadResource;
 
 class ManageProposals extends ManageRelatedRecords
 {
@@ -32,7 +29,7 @@ class ManageProposals extends ManageRelatedRecords
     public static function canAccess(array $parameters = []): bool
     {
         $record = $parameters['record'] ?? null;
-        
+
         if (! $record) {
             return false;
         }
@@ -41,10 +38,11 @@ class ManageProposals extends ManageRelatedRecords
         $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
 
         return in_array($status, [
-            'proposal', 
-            'negotiation', 
-            'won', 
-            'closed_lost'
+            'approach',
+            'proposal',
+            'negotiation',
+            'won',
+            'closed_lost',
         ]);
     }
 
@@ -86,6 +84,7 @@ class ManageProposals extends ManageRelatedRecords
                 Actions\CreateAction::make()
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
+
                         return [
                             'customer_id' => $record->customer_id,
                             'amount' => $record->estimated_amount,
@@ -93,6 +92,7 @@ class ManageProposals extends ManageRelatedRecords
                     })
                     ->mutateDataUsing(function (array $data): array {
                         $data['customer_id'] = $this->getOwnerRecord()->customer_id;
+
                         return $data;
                     }),
             ])

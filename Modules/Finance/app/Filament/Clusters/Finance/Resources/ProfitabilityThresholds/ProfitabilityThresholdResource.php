@@ -6,8 +6,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Pages\CreateProfitabilityThreshold;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Pages\EditProfitabilityThreshold;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Pages\ListProfitabilityThresholds;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Schemas\ProfitabilityThresholdForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Tables\ProfitabilityThresholdsTable;

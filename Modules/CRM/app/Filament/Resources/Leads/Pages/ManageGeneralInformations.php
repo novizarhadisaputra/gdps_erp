@@ -2,21 +2,19 @@
 
 namespace Modules\CRM\Filament\Resources\Leads\Pages;
 
-use Filament\Forms;
-use Filament\Forms\Form;
+use BackedEnum;
+use Filament\Actions;
 use Filament\Helper\Filament;
+use Filament\Notifications;
 use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+// use Filament\Tables\Actions as TableActions;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
-use Filament\Actions;
-// use Filament\Tables\Actions as TableActions;
-use Filament\Schemas\Schema;
+use Modules\CRM\Filament\Resources\Leads\LeadResource;
 use Modules\CRM\Models\GeneralInformation;
-use Filament\Notifications;
-use BackedEnum;
-use Filament\Support\Icons\Heroicon;
 
 class ManageGeneralInformations extends ManageRelatedRecords
 {
@@ -25,7 +23,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
     protected static string $relationship = 'generalInformations';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
-    
+
     protected static ?string $title = 'General Information';
 
     public function form(Schema $schema): Schema
@@ -63,7 +61,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                         ];
 
                         // Auto-fill PICs from Customer Contacts if available
-                        if ($record->customer && !empty($record->customer->contacts)) {
+                        if ($record->customer && ! empty($record->customer->contacts)) {
                             $contacts = $record->customer->contacts;
                             // Map existing customer contacts to GeneralInformationPic format
                             $pics = collect($contacts)->map(function ($contact) {
@@ -74,7 +72,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                     'contact_role_id' => $contact['type'] ?? null,
                                 ];
                             })->toArray();
-                            
+
                             $data['pics'] = $pics;
                         }
 
@@ -82,6 +80,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                     })
                     ->mutateDataUsing(function (array $data): array {
                         $data['customer_id'] = $this->getOwnerRecord()->customer_id;
+
                         return $data;
                     }),
             ])
@@ -93,7 +92,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                     ->icon(Heroicon::OutlinedArrowPath)
                     ->action(function (GeneralInformation $record) {
                         $status = app(\Modules\Project\Services\RiskRegisterService::class)->getRiskRegisterStatus($record->rr_submission_id ?? '');
-                        
+
                         // Mocking status transition for demo purposes
                         // If current is submitted, change to approved
                         if ($record->status === 'submitted') {
@@ -101,7 +100,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                         }
 
                         $record->update(['status' => strtolower($status)]);
-                        
+
                         Notifications\Notification::make()
                             ->title('Status Updated')
                             ->body("Risk Register status is now: {$status}")

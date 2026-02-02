@@ -11,11 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Customer;
+use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-
-use Modules\MasterData\Traits\HasDigitalSignatures;
-use Modules\CRM\Models\GeneralInformationPic;
 
 #[ObservedBy([GeneralInformationObserver::class])]
 class GeneralInformation extends Model implements HasMedia
@@ -94,6 +92,7 @@ class GeneralInformation extends Model implements HasMedia
     {
         return $this->hasMany(ProfitabilityAnalysis::class);
     }
+
     public function pics(): HasMany
     {
         return $this->hasMany(GeneralInformationPic::class);

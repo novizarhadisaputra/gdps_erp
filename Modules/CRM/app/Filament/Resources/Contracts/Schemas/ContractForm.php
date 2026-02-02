@@ -2,13 +2,12 @@
 
 namespace Modules\CRM\Filament\Resources\Contracts\Schemas;
 
-use Filament\Schemas\Components\Section;
-
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Models\Contract;

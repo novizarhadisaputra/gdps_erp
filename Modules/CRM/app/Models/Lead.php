@@ -3,28 +3,27 @@
 namespace Modules\CRM\Models;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\Project\Models\ProjectInformation;
 use Modules\CRM\Database\Factories\LeadFactory;
 use Modules\CRM\Enums\LeadStatus;
+use Modules\CRM\Observers\LeadObserver;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
+use Modules\Project\Models\ProjectInformation;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Modules\CRM\Observers\LeadObserver;
 
 #[ObservedBy(LeadObserver::class)]
 class Lead extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes, LogsActivity;
+    use HasFactory, HasUuids, LogsActivity, SoftDeletes;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -96,8 +95,8 @@ class Lead extends Model
 
     public function contracts(): HasMany
     {
-        return $this->hasMany(Contract::class); // Assuming Contract also has lead_id now or via other means if not added directly. 
-        // Wait, did I add lead_id to Contract? 
+        return $this->hasMany(Contract::class); // Assuming Contract also has lead_id now or via other means if not added directly.
+        // Wait, did I add lead_id to Contract?
         // I checked Contract migration in Step 1175 and it did NOT have lead_id.
         // The user authorized "GI, PA, and PI".
         // I should also add it to Contract for completeness if it's "Centralized Visibility".

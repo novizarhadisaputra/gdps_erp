@@ -3,8 +3,8 @@
 namespace Modules\MasterData\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\MasterData\Models\AssetGroup;
 use Modules\MasterData\Enums\AssetGroupType;
+use Modules\MasterData\Models\AssetGroup;
 
 class AssetGroupFactory extends Factory
 {

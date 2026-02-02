@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Modules\Project\Filament\Resources\ProjectInformations\Pages\ListProjectInformations;
-use Modules\Project\Models\ProjectInformation;
 use Tests\TestCase;
 
 class ProjectInformationResourceTest extends TestCase
@@ -31,6 +30,6 @@ class ProjectInformationResourceTest extends TestCase
         Livewire::test(ListProjectInformations::class)
             // ->assertCanSeeTableRecords([$info]) // Removed as it causes issues with identifying record keys in test env
             ->assertSuccessful(); // Standard assertion
-            // ->assertSee($project->name); // Flaky in test env, TODO: Investigate Livewire table rendering in tests
+        // ->assertSee($project->name); // Flaky in test env, TODO: Investigate Livewire table rendering in tests
     }
 }

@@ -32,7 +32,7 @@ class ProjectObserver
             }
         } catch (\Exception $e) {
             // Check if it's a unique constraint violation or similar, otherwise rethrow
-            // In many test scenarios, factories might trigger this. 
+            // In many test scenarios, factories might trigger this.
             // We silently ignore if it already exists to prevent crashing.
         }
     }

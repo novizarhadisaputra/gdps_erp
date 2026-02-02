@@ -18,7 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('signature_pin')->nullable();
-            
+
             // SSO / Employee Data
             $table->string('employee_code')->nullable()->unique();
             $table->string('company')->nullable();
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->text('access_token')->nullable();
             $table->text('refresh_token')->nullable();
             $table->timestamp('token_expires_at')->nullable();
-            
+
             $table->rememberToken();
             $table->timestamps();
         });

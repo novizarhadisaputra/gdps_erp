@@ -49,7 +49,7 @@ class CustomerInfolist
                                     ->color(fn ($state) => $state === 'No NPWP' ? 'gray' : 'primary'),
                                 TextEntry::make('legal_docs_count')
                                     ->label('Legal Documents')
-                                    ->state(fn ($record) => $record->getMedia('legal_documents')->count() . ' File(s)')
+                                    ->state(fn ($record) => $record->getMedia('legal_documents')->count().' File(s)')
                                     ->url(fn ($record) => $record->getFirstMediaUrl('legal_documents'), true)
                                     ->icon(Heroicon::OutlinedScale)
                                     ->color(fn ($record) => $record->getMedia('legal_documents')->count() > 0 ? 'primary' : 'gray'),

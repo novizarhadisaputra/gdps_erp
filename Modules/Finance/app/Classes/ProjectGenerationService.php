@@ -38,11 +38,11 @@ class ProjectGenerationService
             // 4. Populate Project Information from PA
             $details = $pa->analysis_details;
             if (empty($details) && $pa->items()->exists()) {
-                $details = $pa->items->map(fn($item) => [
+                $details = $pa->items->map(fn ($item) => [
                     'name' => $item->item->name ?? 'Unknown',
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_cost_price,
-                    'total_price' => $item->total_monthly_cost
+                    'total_price' => $item->total_monthly_cost,
                 ])->toArray();
             }
 

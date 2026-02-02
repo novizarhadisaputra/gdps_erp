@@ -2,19 +2,18 @@
 
 namespace Modules\CRM\Filament\Resources\Leads;
 
-use Modules\CRM\Filament\Resources\Leads\Pages;
-use Modules\CRM\Models\Lead;
-use Filament\Resources\Resource;
-use Filament\Tables\Table;
-use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use BackedEnum;
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Pages\Page;
+use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Resources\Leads\Schemas\LeadInfolist;
 use Modules\CRM\Filament\Resources\Leads\Tables\LeadsTable;
-use Filament\Pages\Page;
-use Filament\Pages\Enums\SubNavigationPosition;
+use Modules\CRM\Models\Lead;
 
 class LeadResource extends Resource
 {

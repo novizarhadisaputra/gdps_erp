@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,15 +10,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
-use Modules\CRM\Models\Lead;
+use Modules\CRM\Observers\ProposalObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
-use Modules\CRM\Observers\ProposalObserver;
 
 #[ObservedBy(ProposalObserver::class)]
 class Proposal extends Model implements HasMedia

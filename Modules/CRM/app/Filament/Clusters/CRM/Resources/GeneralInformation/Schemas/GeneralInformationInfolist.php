@@ -72,7 +72,7 @@ class GeneralInformationInfolist
                             ->view('filament.infolists.digital-signature')
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => !empty($record->signatures)),
+                    ->visible(fn ($record) => ! empty($record->signatures)),
             ]);
     }
 }

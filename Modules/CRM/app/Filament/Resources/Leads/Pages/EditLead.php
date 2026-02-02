@@ -2,11 +2,11 @@
 
 namespace Modules\CRM\Filament\Resources\Leads\Pages;
 
+use BackedEnum;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use Modules\CRM\Filament\Resources\Leads\LeadResource;
 use Filament\Support\Icons\Heroicon;
-use BackedEnum;
+use Modules\CRM\Filament\Resources\Leads\LeadResource;
 
 class EditLead extends EditRecord
 {
@@ -14,7 +14,7 @@ class EditLead extends EditRecord
 
     protected static ?string $navigationLabel = 'Overview';
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedHome;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
 
     protected function getHeaderActions(): array
     {

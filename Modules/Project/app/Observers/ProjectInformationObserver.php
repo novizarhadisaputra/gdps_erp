@@ -32,14 +32,14 @@ class ProjectInformationObserver
 
         $year = date('Y');
         $shortYear = date('y');
-        
+
         $latest = ProjectInformation::query()
             ->where('year', $year)
             ->orderBy('sequence_number', 'desc')
             ->first();
 
         $sequence = $latest ? $latest->sequence_number + 1 : 1;
-        
+
         $info->year = $year;
         $info->sequence_number = $sequence;
         // PI = Project Information
