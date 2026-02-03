@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -41,7 +42,7 @@ class GeneralInformationInfolist
                                 TextEntry::make('email'),
                                 TextEntry::make('contactRole.name')->label('Role'),
                             ])
-                            ->grid(2)
+                            ->columns(2)
                             ->columnSpanFull(),
                     ]),
                 Section::make('Project Details')
@@ -56,20 +57,60 @@ class GeneralInformationInfolist
                     ]),
                 Section::make('Documents')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
-                                TextEntry::make('feasibility_study_document')
-                                    ->label('Feasibility Study')
-                                    ->state(fn ($record) => $record->getFirstMedia('feasibility_study')?->file_name ?? 'No FS Document')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('feasibility_study'), true)
-                                    ->icon(Heroicon::OutlinedDocumentCheck)
-                                    ->color(fn ($state) => $state === 'No FS Document' ? 'gray' : 'primary'),
-                                TextEntry::make('rr_document_entry')
-                                    ->label('RR Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('rr_document')?->file_name ?? 'No RR Document')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('rr_document'), true)
-                                    ->icon(Heroicon::OutlinedClipboardDocument)
-                                    ->color(fn ($state) => $state === 'No RR Document' ? 'gray' : 'primary'),
+                                TextEntry::make('tor_document')
+                                    ->label('ToR Document')
+                                    ->state(fn ($record) => $record->getFirstMedia('tor')?->file_name ? 'ToR Document' : 'No Document')
+                                    ->suffixAction(
+                                        Action::make('preview_tor')
+                                            ->label('Preview')
+                                            ->color('info')
+                                            ->modalContent(fn ($record) => view('crm::components.document-preview', [
+                                                'url' => $record->getFirstMedia('tor')?->getTemporaryUrl(now()->addMinutes(30)),
+                                                'type' => $record->getFirstMedia('tor')?->mime_type ?? 'application/pdf',
+                                            ]))
+                                            ->modalWidth('7xl')
+                                            ->visible(fn ($record) => $record->hasMedia('tor'))
+                                    )
+                                    ->url(fn ($record) => $record->getFirstMedia('tor')?->getTemporaryUrl(now()->addMinutes(30)), true) // Keep download link
+                                    ->icon(Heroicon::OutlinedDocumentText)
+                                    ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'primary'),
+
+                                TextEntry::make('rfp_document')
+                                    ->label('RFP Document')
+                                    ->state(fn ($record) => $record->getFirstMedia('rfp')?->file_name ? 'RFP Document' : 'No Document')
+                                    ->suffixAction(
+                                        Action::make('preview_rfp')
+                                            ->label('Preview')
+                                            ->color('info')
+                                            ->modalContent(fn ($record) => view('crm::components.document-preview', [
+                                                'url' => $record->getFirstMedia('rfp')?->getTemporaryUrl(now()->addMinutes(30)),
+                                                'type' => $record->getFirstMedia('rfp')?->mime_type ?? 'application/pdf',
+                                            ]))
+                                            ->modalWidth('7xl')
+                                            ->visible(fn ($record) => $record->hasMedia('rfp'))
+                                    )
+                                    ->url(fn ($record) => $record->getFirstMedia('rfp')?->getTemporaryUrl(now()->addMinutes(30)), true)
+                                    ->icon(Heroicon::OutlinedDocumentText)
+                                    ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'primary'),
+
+                                TextEntry::make('rfi_document')
+                                    ->label('RFI Document')
+                                    ->state(fn ($record) => $record->getFirstMedia('rfi')?->file_name ? 'RFI Document' : 'No Document')
+                                    ->suffixAction(
+                                        Action::make('preview_rfi')
+                                            ->label('Preview')->color('info')
+                                            ->modalContent(fn ($record) => view('crm::components.document-preview', [
+                                                'url' => $record->getFirstMedia('rfi')?->getTemporaryUrl(now()->addMinutes(30)),
+                                                'type' => $record->getFirstMedia('rfi')?->mime_type ?? 'application/pdf',
+                                            ]))
+                                            ->modalWidth('7xl')
+                                            ->visible(fn ($record) => $record->hasMedia('rfi'))
+                                    )
+                                    ->url(fn ($record) => $record->getFirstMedia('rfi')?->getTemporaryUrl(now()->addMinutes(30)), true)
+                                    ->icon(Heroicon::OutlinedDocumentText)
+                                    ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'primary'),
                             ]),
                     ]),
                 Section::make('Digital Signatures')

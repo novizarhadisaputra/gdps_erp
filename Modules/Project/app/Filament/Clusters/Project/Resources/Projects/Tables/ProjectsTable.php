@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\Projects\Tables;
+namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Tables;
 
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\BulkActionGroup;

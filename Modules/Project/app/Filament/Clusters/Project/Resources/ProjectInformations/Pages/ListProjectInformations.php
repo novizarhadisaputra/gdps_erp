@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\ProjectInformations\Pages;
+namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Pages;
 
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Modules\Project\Filament\Resources\ProjectInformations\ProjectInformationResource;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\ProjectInformationResource;
 
 class ListProjectInformations extends ListRecords
 {

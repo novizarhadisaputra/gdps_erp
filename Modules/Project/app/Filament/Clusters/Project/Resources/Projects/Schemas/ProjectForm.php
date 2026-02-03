@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\Projects\Schemas;
+namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;

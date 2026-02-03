@@ -22,8 +22,12 @@ class ProfitabilityAnalysisForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema
-            ->components([
+        return $schema->components(self::schema());
+    }
+
+    public static function schema(): array
+    {
+        return [
                 Select::make('general_information_id')
                     ->relationship('generalInformation', 'id')
                     ->label('GI Form (RR Submission)')
@@ -341,7 +345,7 @@ class ProfitabilityAnalysisForm
                             ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
                             ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                     ]),
-            ]);
+            ];
     }
 
     protected static function calculateDirectCost($get, $set): void

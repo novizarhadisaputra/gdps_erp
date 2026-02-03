@@ -69,6 +69,11 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+
+        'api_clients' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\ApiClient::class,
+        ],
     ],
 
     /*

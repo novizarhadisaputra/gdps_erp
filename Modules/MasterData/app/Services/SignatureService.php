@@ -60,10 +60,8 @@ class SignatureService
         }
 
         if ($rule->approver_type === 'Unit') {
-            // Check if user belongs to one of the allowed units
-            // Assuming User model has 'unit_id' or checking 'employee.unit_id'
-            // For now, let's assume direct unit_id on User or Employee relation
-            $userUnitId = $user->employee?->unit_id; // Check Employee relation
+            // Check User's unit_id directly
+            $userUnitId = $user->unit_id;
             if (!$userUnitId) return false;
             return in_array($userUnitId, $rule->approver_unit_id ?? []);
         }

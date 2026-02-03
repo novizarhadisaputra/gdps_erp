@@ -51,6 +51,7 @@ trait HasDigitalSignatures
         if (is_array($role)) {
             return $this->signatures()->whereIn('role', $role)->exists();
         }
+
         return $this->signatures()->where('role', $role)->exists();
     }
 
@@ -69,18 +70,18 @@ trait HasDigitalSignatures
         foreach ($required as $rule) {
             // Updated logic to use isEligibleApprover-like check on existing signatures
             // We need to check if ANY existing signature satisfies this rule.
-            
+
             // Get all signatures
             $signatures = $this->signatures;
-            
-            $ruleSatisfied = $signatures->contains(function ($signature) use ($rule, $service) {
+
+            $ruleSatisfied = $signatures->contains(function ($signature) use ($rule) {
                 // We need to check if the signer of this signature WAS eligible for this rule.
                 // But we store 'role' in signature.
                 // If rule is Role-based, check matching role.
                 if ($rule->approver_type === 'Role') {
                     return in_array($signature->role, $rule->approver_role ?? []);
                 }
-                
+
                 // If rule is User-based, check user_id
                 if ($rule->approver_type === 'User') {
                     return in_array($signature->user_id, $rule->approver_user_id ?? []);
@@ -88,11 +89,11 @@ trait HasDigitalSignatures
 
                 // If rule is Position/Unit, we assume role/user check covers valid signer identity at time of signing.
                 // Or we need to re-verify user current attributes? Usually signature captures authority at moment.
-                // But signature table only stores 'role'. 
+                // But signature table only stores 'role'.
                 // Ideally signature should store 'approver_type' or link to rule?
                 // For simplicity, let's assume Role match is sufficient for Role type.
                 // For User type, check user_id.
-                
+
                 return false;
             });
 

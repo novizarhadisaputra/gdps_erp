@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\Projects;
+namespace Modules\Project\Filament\Clusters\Project\Resources\Projects;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\Project\Filament\Resources\Projects\Pages\ListProjects;
-use Modules\Project\Filament\Resources\Projects\Pages\ProjectBoard;
-use Modules\Project\Filament\Resources\Projects\Schemas\ProjectForm;
-use Modules\Project\Filament\Resources\Projects\Schemas\ProjectInfolist;
-use Modules\Project\Filament\Resources\Projects\Tables\ProjectsTable;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ListProjects;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ProjectBoard;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectInfolist;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Tables\ProjectsTable;
 use Modules\Project\Models\Project;
 
 class ProjectResource extends Resource

@@ -10,10 +10,10 @@ class ContactRoleSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            'PIC Customer',
-            'PIC Finance',
-            'PIC Technical',
-            'PIC Legal',
+            'Customer',
+            'Finance',
+            'Technical',
+            'Legal',
             'Project Manager',
             'Site Manager',
             'Admin',

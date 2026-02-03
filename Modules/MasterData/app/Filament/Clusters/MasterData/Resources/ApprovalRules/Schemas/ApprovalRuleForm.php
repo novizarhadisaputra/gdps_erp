@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApprovalRules\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -74,50 +75,68 @@ class ApprovalRuleForm
 
                 Section::make('Approval Config')
                     ->schema([
-                        Select::make('approver_type')
-                            ->label('Approver Based On')
-                            ->options([
-                                'Role' => 'Role (Spatie)',
-                                'User' => 'Specific User',
-                                'Unit' => 'Unit / Organization',
-                                'Position' => 'Job Position',
-                            ])
-                            ->default('Role')
-                            ->live()
-                            ->afterStateUpdated(fn (\Filament\Schemas\Components\Utilities\Set $set) => $set('approver_role', null) & $set('approver_user_id', null) & $set('approver_unit_id', null) & $set('approver_position', null))
-                            ->required(),
+                        Hidden::make('approver_type')
+                            ->default('Role'),
 
                         Select::make('approver_role')
                             ->label('Role(s)')
                             ->options(fn () => Role::pluck('name', 'name'))
                             ->searchable()
                             ->multiple()
-                            ->visible(fn (Get $get) => $get('approver_type') === 'Role')
-                            ->required(fn (Get $get) => $get('approver_type') === 'Role'),
+                            ->live()
+                            ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                                if (! empty($state)) {
+                                    $set('approver_type', 'Role');
+                                    $set('approver_user_id', null);
+                                    $set('approver_unit_id', null);
+                                    $set('approver_position', null);
+                                }
+                            }),
 
                         Select::make('approver_user_id')
                             ->label('User(s)')
                             ->options(\App\Models\User::pluck('name', 'id'))
                             ->searchable()
                             ->multiple()
-                            ->visible(fn (Get $get) => $get('approver_type') === 'User')
-                            ->required(fn (Get $get) => $get('approver_type') === 'User'),
+                            ->live()
+                            ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                                if (! empty($state)) {
+                                    $set('approver_type', 'User');
+                                    $set('approver_role', null);
+                                    $set('approver_unit_id', null);
+                                    $set('approver_position', null);
+                                }
+                            }),
 
                         Select::make('approver_unit_id')
                             ->label('Unit(s)')
                             ->options(fn () => app(\Modules\MasterData\Services\UnitService::class)->getAllUnits()->pluck('name', 'id'))
                             ->searchable()
                             ->multiple()
-                            ->visible(fn (Get $get) => $get('approver_type') === 'Unit')
-                            ->required(fn (Get $get) => $get('approver_type') === 'Unit'),
+                            ->live()
+                            ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                                if (! empty($state)) {
+                                    $set('approver_type', 'Unit');
+                                    $set('approver_role', null);
+                                    $set('approver_user_id', null);
+                                    $set('approver_position', null);
+                                }
+                            }),
 
                         Select::make('approver_position')
                             ->label('Job Position(s)')
                             ->options(\App\Models\User::distinct()->whereNotNull('position')->pluck('position', 'position'))
                             ->searchable()
                             ->multiple()
-                            ->visible(fn (Get $get) => $get('approver_type') === 'Position')
-                            ->required(fn (Get $get) => $get('approver_type') === 'Position'),
+                            ->live()
+                            ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                                if (! empty($state)) {
+                                    $set('approver_type', 'Position');
+                                    $set('approver_role', null);
+                                    $set('approver_user_id', null);
+                                    $set('approver_unit_id', null);
+                                }
+                            }),
                         Select::make('signature_type')
                             ->options([
                                 'Reviewer' => 'Reviewer',

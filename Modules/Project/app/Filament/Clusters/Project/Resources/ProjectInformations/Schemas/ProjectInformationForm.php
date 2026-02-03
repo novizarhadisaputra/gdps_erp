@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\ProjectInformations\Schemas;
+namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;

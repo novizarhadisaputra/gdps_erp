@@ -132,7 +132,7 @@ class GeneralInformationForm
 
                 Section::make('Risk Register & Compliance')
                     ->schema([
-                        TextInput::make('risk_register_number')
+                        TextInput::make('rr_document_number')
                             ->label('Risk Register Document Number')
                             ->placeholder('RR-xxxx-xxxx')
                             ->live() // Make it reactive
@@ -182,7 +182,7 @@ class GeneralInformationForm
                             ])
                             ->columns(2)
                             ->columnSpanFull()
-                            ->hidden(fn (Get $get) => blank($get('risk_register_number'))), // Hide by default until RR Number is filled
+                            ->hidden(fn (Get $get) => blank($get('rr_document_number'))), // Hide by default until RR Number is filled
                     ])
                     ->hiddenOn(operations: ['create'])
                     ->columnSpanFull(),
@@ -191,8 +191,6 @@ class GeneralInformationForm
 
                 Textarea::make('description')->columnSpanFull()->rows(3),
                 Textarea::make('remarks')->columnSpanFull()->rows(2),
-
-                // Feasibility Study and RR Document fields removed
 
                 Grid::make(3)
                     ->schema([

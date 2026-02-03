@@ -30,6 +30,7 @@ return new class extends Migration
             $table->foreignUuid('oprep_id')->nullable()->constrained('employees')->onDelete('set null');
             $table->foreignUuid('ams_id')->nullable()->constrained('employees')->onDelete('set null');
             $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->nullOnDelete();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->timestamps();

@@ -28,6 +28,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('signatures'))
             ->recordTitleAttribute('document_number')
             ->columns([
                 Tables\Columns\TextColumn::make('document_number'),
@@ -139,11 +140,27 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                     ->success()
                                     ->send();
 
-                                if ($record->isFullyApproved()) {
+                                if ($record->isFullyApproved() && $record->rr_submission_id) {
                                     $record->update(['status' => 'approved']);
+                                } elseif ($record->isFullyApproved()) {
+                                    Notifications\Notification::make()
+                                        ->title('Tanda Tangan Lengkap')
+                                        ->body('Menunggu Status Risk Register "Approved" untuk finalisasi.')
+                                        ->info()
+                                        ->send();
                                 }
                             })
-                            ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
+                            ->visible(function (GeneralInformation $record) {
+                                if ($record->status === 'approved') {
+                                    return false;
+                                }
+
+                                if ($record->signatures()->where('user_id', auth()->id())->exists()) {
+                                    return false;
+                                }
+
+                                return true;
+                            }),
                     ]),
                 Actions\EditAction::make()
                     ->schema(fn (Schema $schema) => GeneralInformationForm::configure($schema)),
@@ -166,19 +183,32 @@ class ManageGeneralInformations extends ManageRelatedRecords
                     ->action(function (GeneralInformation $record) {
                         $status = app(\Modules\Project\Services\RiskRegisterService::class)->getRiskRegisterStatus($record->rr_submission_id ?? '');
 
-                        // Mocking status transition for demo purposes
-                        // If current is submitted, change to approved
-                        if ($record->status === 'submitted') {
+                        // Mocking status transition based on current state
+                        if ($record->rr_status !== 'approved') {
                             $status = 'approved';
                         }
 
-                        $record->update(['status' => strtolower($status)]);
+                        // Update the RR Status column
+                        $record->update([
+                            'rr_status' => $status,
+                        ]);
 
                         Notifications\Notification::make()
-                            ->title('Status Updated')
+                            ->title('RR Status Updated')
                             ->body("Risk Register status is now: {$status}")
                             ->success()
                             ->send();
+
+                        // Check strict approval condition: Both Signatures AND RR Status must be valid
+                        if ($record->isFullyApproved() && $record->rr_status === 'approved') {
+                            $record->update(['status' => 'approved']);
+
+                            Notifications\Notification::make()
+                                ->title('General Information Approved')
+                                ->body('Dokumen telah disetujui sepenuhnya (Signatures + Risk Register).')
+                                ->success()
+                                ->send();
+                        }
                     }),
             ])
             ->groupedBulkActions([

@@ -42,10 +42,12 @@ class GeneralInformation extends Model implements HasMedia
         'risk_management',
         'description',
         'remarks',
-        'risk_register_number',
+        'rr_document_number',
         'signatures',
         'sequence_number',
         'year',
+        'rr_submission_id',
+        'rr_status',
     ];
 
     protected function casts(): array
@@ -68,6 +70,7 @@ class GeneralInformation extends Model implements HasMedia
             ->useDisk('s3')
             ->singleFile();
 
+        // RFI collection is already here
         $this->addMediaCollection('rfi')
             ->useDisk('s3')
             ->singleFile();

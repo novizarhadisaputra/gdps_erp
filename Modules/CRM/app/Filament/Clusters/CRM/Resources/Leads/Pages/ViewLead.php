@@ -14,6 +14,7 @@ class ViewLead extends ViewRecord
     {
         return [
             Actions\EditAction::make(),
+            \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Actions\ConvertToProjectAction::make(),
         ];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\Projects\Pages;
+namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -10,8 +10,8 @@ use Filament\Actions\ViewAction;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Modules\Project\Filament\Resources\Projects\ProjectResource;
-use Modules\Project\Filament\Resources\Projects\Schemas\ProjectForm;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
 use Modules\Project\Models\Project;
 use Relaticle\Flowforge\Board;
 use Relaticle\Flowforge\BoardResourcePage;

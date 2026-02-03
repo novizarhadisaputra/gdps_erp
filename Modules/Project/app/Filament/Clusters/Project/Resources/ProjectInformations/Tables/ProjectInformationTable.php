@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\ProjectInformations\Tables;
+namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;

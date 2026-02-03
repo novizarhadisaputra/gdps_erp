@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Project\Filament\Resources\ProjectInformations;
+namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\Project\Filament\Resources\ProjectInformations\Pages\ListProjectInformations;
-use Modules\Project\Filament\Resources\ProjectInformations\Schemas\ProjectInformationForm;
-use Modules\Project\Filament\Resources\ProjectInformations\Tables\ProjectInformationTable;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Pages\ListProjectInformations;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Schemas\ProjectInformationForm;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Tables\ProjectInformationTable;
 use Modules\Project\Models\ProjectInformation;
 
 class ProjectInformationResource extends Resource
