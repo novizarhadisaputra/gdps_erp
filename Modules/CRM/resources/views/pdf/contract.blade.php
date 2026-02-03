@@ -113,9 +113,18 @@
                             {{ $user->name ?? 'Unknown' }}
                         </div>
 
-                        @if ($signature->qr_code_path)
+                        @if ($user)
+                            @php
+                                $service = app(\Modules\MasterData\Services\SignatureService::class);
+                                $qrData = $service->createSignatureData(
+                                    $user,
+                                    $record,
+                                    $signature->signature_type ?? 'approved',
+                                );
+                                $qrCodeDataUri = $service->generateQRCode($qrData);
+                            @endphp
                             <div class="qr-code">
-                                <img src="data:image/svg+xml;base64,{{ base64_encode($signature->qr_code_path) }}" />
+                                <img src="{{ $qrCodeDataUri }}" />
                             </div>
                         @endif
 

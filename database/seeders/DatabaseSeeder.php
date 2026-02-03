@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'System Administrator',
                 'password' => \Illuminate\Support\Facades\Hash::make('gdps2019!'),
+                'signature_pin' => \Illuminate\Support\Facades\Hash::make('123456'),
                 'email_verified_at' => now(),
             ]
         );

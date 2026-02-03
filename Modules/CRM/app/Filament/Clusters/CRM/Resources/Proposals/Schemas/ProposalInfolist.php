@@ -45,10 +45,10 @@ class ProposalInfolist
                                 TextEntry::make('status')
                                     ->badge(),
                             ]),
-                        \Filament\Infolists\Components\ViewEntry::make('signatures')
-                            ->view('filament.infolists.digital-signature')
+                        \App\Filament\Infolists\Components\DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
-                    ])->columnSpanFull(),
+                    ])->columnSpanFull()
+                    ->visible(fn ($record) => $record->signatures()->exists()),
             ]);
     }
 }

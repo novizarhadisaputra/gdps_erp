@@ -126,10 +126,7 @@ class ManageContracts extends ManageRelatedRecords
                                     return;
                                 }
 
-                                $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
-                                $qrCode = $service->generateQRCode($qrData);
-
-                                $record->addSignature(auth()->user(), $matchingRule->signature_type, $qrCode);
+                                $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                                 \Filament\Notifications\Notification::make()
                                     ->title('Dokumen Berhasil Ditandatangani')
@@ -140,7 +137,36 @@ class ManageContracts extends ManageRelatedRecords
                                     $record->update(['status' => \Modules\CRM\Enums\ContractStatus::Active]);
                                 }
                             })
-                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status !== \Modules\CRM\Enums\ContractStatus::Active),
+                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Draft),
+
+                        Actions\Action::make('Activate')
+                            ->color('success')
+                            ->icon('heroicon-o-check-circle')
+                            ->requiresConfirmation()
+                            ->action(fn (\Modules\CRM\Models\Contract $record) => $record->update(['status' => \Modules\CRM\Enums\ContractStatus::Active]))
+                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Draft),
+
+                        Actions\Action::make('Terminate')
+                            ->color('danger')
+                            ->icon('heroicon-o-x-circle')
+                            ->requiresConfirmation()
+                            ->form([
+                                \Filament\Forms\Components\Textarea::make('termination_reason')
+                                    ->label('Reason for Termination')
+                                    ->required(),
+                            ])
+                            ->action(fn (\Modules\CRM\Models\Contract $record, array $data) => $record->update([
+                                'status' => \Modules\CRM\Enums\ContractStatus::Terminated,
+                                'termination_reason' => $data['termination_reason'],
+                            ]))
+                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Active),
+
+                        Actions\Action::make('Mark Expired')
+                            ->color('warning')
+                            ->icon('heroicon-o-clock')
+                            ->requiresConfirmation()
+                            ->action(fn (\Modules\CRM\Models\Contract $record) => $record->update(['status' => \Modules\CRM\Enums\ContractStatus::Expired]))
+                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Active),
                     ]),
                 Actions\EditAction::make()
                      ->schema(fn (Schema $schema) => ContractForm::configure($schema)),

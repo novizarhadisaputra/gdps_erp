@@ -23,7 +23,7 @@ class Signature extends Model
         'signable_id',
         'role',
         'signature_type',
-        'qr_code_path',
+
         'ip_address',
         'signed_at',
     ];

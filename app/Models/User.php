@@ -47,6 +47,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia
         'access_token',
         'refresh_token',
         'token_expires_at',
+        'signature_pin',
     ];
 
     public function registerMediaCollections(): void
@@ -78,6 +79,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia
             'access_token' => 'encrypted',
             'refresh_token' => 'encrypted',
             'token_expires_at' => 'datetime',
+            'signature_pin' => 'hashed',
         ];
     }
 

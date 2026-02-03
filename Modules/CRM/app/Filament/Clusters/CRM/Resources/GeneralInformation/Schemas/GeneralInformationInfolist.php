@@ -115,11 +115,10 @@ class GeneralInformationInfolist
                     ]),
                 Section::make('Digital Signatures')
                     ->schema([
-                        \Filament\Infolists\Components\ViewEntry::make('signatures')
-                            ->view('filament.infolists.digital-signature')
+                        \App\Filament\Infolists\Components\DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => ! empty($record->signatures)),
+                    ->visible(fn ($record) => $record->signatures()->exists()),
             ]);
     }
 }

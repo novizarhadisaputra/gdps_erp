@@ -21,19 +21,18 @@ trait HasDigitalSignatures
      */
     public function getSignatures(): Collection
     {
-        return $this->signatures;
+        return $this->signatures()->get();
     }
 
     /**
      * Add a signature to the model.
      */
-    public function addSignature(User $user, string $type, string $qrCode): void
+    public function addSignature(User $user, string $type): void
     {
         $this->signatures()->create([
             'user_id' => $user->id,
             'role' => $user->roles->first()?->name ?? 'User',
             'signature_type' => $type,
-            'qr_code_path' => $qrCode,
             'ip_address' => request()->ip(),
             'signed_at' => now(),
         ]);
@@ -72,7 +71,7 @@ trait HasDigitalSignatures
             // We need to check if ANY existing signature satisfies this rule.
 
             // Get all signatures
-            $signatures = $this->signatures;
+            $signatures = $this->signatures()->get();
 
             $ruleSatisfied = $signatures->contains(function ($signature) use ($rule) {
                 // We need to check if the signer of this signature WAS eligible for this rule.

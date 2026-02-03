@@ -3,6 +3,9 @@
 namespace Modules\MasterData\Services;
 
 use App\Models\User;
+use chillerlan\QRCode\Common\EccLevel;
+use chillerlan\QRCode\Common\Version;
+use chillerlan\QRCode\Output\QROutputInterface;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +20,7 @@ class SignatureService
     public function getRequiredApprovers(Model $model): \Illuminate\Support\Collection
     {
         $resourceType = get_class($model);
+        // ... (existing code)
 
         return ApprovalRule::where('resource_type', $resourceType)
             ->where('is_active', true)
@@ -48,7 +52,8 @@ class SignatureService
         if ($rule->approver_type === 'Role') {
             $userRoles = $user->roles->pluck('name')->toArray();
             $ruleRoles = $rule->approver_role ?? [];
-            return !empty(array_intersect($userRoles, $ruleRoles));
+
+            return ! empty(array_intersect($userRoles, $ruleRoles));
         }
 
         if ($rule->approver_type === 'User') {
@@ -62,7 +67,10 @@ class SignatureService
         if ($rule->approver_type === 'Unit') {
             // Check User's unit_id directly
             $userUnitId = $user->unit_id;
-            if (!$userUnitId) return false;
+            if (! $userUnitId) {
+                return false;
+            }
+
             return in_array($userUnitId, $rule->approver_unit_id ?? []);
         }
 
@@ -87,9 +95,11 @@ class SignatureService
     public function generateQRCode(string $data): string
     {
         $options = new QROptions([
-            'version' => 5,
-            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
-            'eccLevel' => QRCode::ECC_L,
+            'version' => Version::AUTO,
+            'outputType' => QROutputInterface::GDIMAGE_PNG,
+            'eccLevel' => EccLevel::L,
+            'addQuietzone' => true,
+            'imageBase64' => true,
         ]);
 
         return (new QRCode($options))->render($data);

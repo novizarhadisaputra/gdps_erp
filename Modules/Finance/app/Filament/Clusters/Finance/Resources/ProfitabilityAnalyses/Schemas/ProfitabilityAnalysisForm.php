@@ -28,324 +28,324 @@ class ProfitabilityAnalysisForm
     public static function schema(): array
     {
         return [
-                Select::make('general_information_id')
-                    ->relationship('generalInformation', 'id')
-                    ->label('GI Form (RR Submission)')
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->live()
-                    ->disabled()
-                    ->dehydrated(),
-                Select::make('customer_id')
-                    ->relationship('customer', 'name')
-                    ->helperText('Customer associated with the project.')
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->disabled()
-                    ->dehydrated()
-                    ->createOptionForm(CustomerForm::schema()),
-                TextInput::make('document_number')
-                    ->label('Document Number')
-                    ->hiddenOn('create'),
+            Select::make('general_information_id')
+                ->relationship('generalInformation', 'id')
+                ->label('GI Form (RR Submission)')
+                ->required()
+                ->searchable()
+                ->preload()
+                ->live()
+                ->disabled()
+                ->dehydrated(),
+            Select::make('customer_id')
+                ->relationship('customer', 'name')
+                ->helperText('Customer associated with the project.')
+                ->required()
+                ->searchable()
+                ->preload()
+                ->disabled()
+                ->dehydrated()
+                ->createOptionForm(CustomerForm::schema()),
+            TextInput::make('document_number')
+                ->label('Document Number')
+                ->hiddenOn('create'),
 
-                Section::make('Project Documents')
-                    ->schema([
-                        Grid::make(3)
-                            ->schema([
-                                SpatieMediaLibraryFileUpload::make('tor')
-                                    ->collection('tor')
-                                    ->disk('s3')
-                                    ->label('ToR Document')
-                                    ->hint('Terms of Reference'),
-                                SpatieMediaLibraryFileUpload::make('rfp')
-                                    ->collection('rfp')
-                                    ->disk('s3')
-                                    ->label('RFP Document')
-                                    ->hint('Request for Proposal'),
-                                SpatieMediaLibraryFileUpload::make('rfi')
-                                    ->collection('rfi')
-                                    ->disk('s3')
-                                    ->label('RFI Document')
-                                    ->hint('Request for Information'),
-                            ]),
-                    ])->collapsible(),
+            Section::make('Project Documents')
+                ->schema([
+                    Grid::make(3)
+                        ->schema([
+                            SpatieMediaLibraryFileUpload::make('tor')
+                                ->collection('tor')
+                                ->disk('s3')
+                                ->label('ToR Document')
+                                ->hint('Terms of Reference'),
+                            SpatieMediaLibraryFileUpload::make('rfp')
+                                ->collection('rfp')
+                                ->disk('s3')
+                                ->label('RFP Document')
+                                ->hint('Request for Proposal'),
+                            SpatieMediaLibraryFileUpload::make('rfi')
+                                ->collection('rfi')
+                                ->disk('s3')
+                                ->label('RFI Document')
+                                ->hint('Request for Information'),
+                        ]),
+                ])->collapsible(),
 
-                Section::make('Project Code Parameters')
-                    ->columns(columns: 1)
-                    ->schema([
-                        Select::make('work_scheme_id')
-                            ->relationship('workScheme', 'name')
-                            ->helperText('The work scheme for this project.')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Defines the operational scheme.')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->disabled()
-                            ->dehydrated()
-                            ->createOptionForm(WorkSchemeForm::schema()),
-                        Select::make('product_cluster_id')
-                            ->relationship('productCluster', 'name')
-                            ->helperText('Cluster of the product/service.')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Group of related products.')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->createOptionForm(ProductClusterForm::schema()),
-                        Select::make('tax_id')
-                            ->relationship('tax', 'name')
-                            ->helperText('Applicable tax regulation.')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Tax rules for this project.')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->createOptionForm(TaxForm::schema()),
-                        Select::make('project_area_id')
-                            ->relationship('projectArea', 'name')
-                            ->helperText('Geographical area of the project.')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Location where project is executed.')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->live()
-                            ->createOptionForm(ProjectAreaForm::schema()),
-                    ]),
+            Section::make('Project Code Parameters')
+                ->columns(columns: 1)
+                ->schema([
+                    Select::make('work_scheme_id')
+                        ->relationship('workScheme', 'name')
+                        ->helperText('The work scheme for this project.')
+                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Defines the operational scheme.')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->disabled()
+                        ->dehydrated()
+                        ->createOptionForm(WorkSchemeForm::schema()),
+                    Select::make('product_cluster_id')
+                        ->relationship('productCluster', 'name')
+                        ->helperText('Cluster of the product/service.')
+                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Group of related products.')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->createOptionForm(ProductClusterForm::schema()),
+                    Select::make('tax_id')
+                        ->relationship('tax', 'name')
+                        ->helperText('Applicable tax regulation.')
+                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Tax rules for this project.')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->createOptionForm(TaxForm::schema()),
+                    Select::make('project_area_id')
+                        ->relationship('projectArea', 'name')
+                        ->helperText('Geographical area of the project.')
+                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Location where project is executed.')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->createOptionForm(ProjectAreaForm::schema()),
+                ]),
 
-                Section::make('Financial Analysis')
-                    ->schema([
-                        Grid::make(3)
-                            ->schema([
-                                Select::make('asset_ownership')
-                                    ->options([
-                                        'gdps-owned' => 'GDPS-Owned',
-                                        'customer-owned' => 'Customer-Owned',
-                                    ])
-                                    ->default('gdps-owned')
-                                    ->required()
-                                    ->native(false),
-                                TextInput::make('management_fee')
-                                    ->label('Management Fee (Flat)')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->helperText('Additional flat fee.'),
-                                TextInput::make('margin_percentage')
-                                    ->label('Gross Margin')
-                                    ->numeric()
-                                    ->suffix('%')
-                                    ->readOnly()
-                                    ->placeholder('Auto'),
-                            ]),
+            Section::make('Financial Analysis')
+                ->schema([
+                    Grid::make(3)
+                        ->schema([
+                            Select::make('asset_ownership')
+                                ->options([
+                                    'gdps-owned' => 'GDPS-Owned',
+                                    'customer-owned' => 'Customer-Owned',
+                                ])
+                                ->default('gdps-owned')
+                                ->required()
+                                ->native(false),
+                            TextInput::make('management_fee')
+                                ->label('Management Fee (Flat)')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->helperText('Additional flat fee.'),
+                            TextInput::make('margin_percentage')
+                                ->label('Gross Margin')
+                                ->numeric()
+                                ->suffix('%')
+                                ->readOnly()
+                                ->placeholder('Auto'),
+                        ]),
 
-                        Grid::make(3)
-                            ->schema([
-                                TextInput::make('management_expense_rate')
-                                    ->label('Mgmt Expense (%)')
-                                    ->numeric()
-                                    ->default(2.50)
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                                TextInput::make('interest_rate')
-                                    ->label('Interest Rate (%)')
-                                    ->numeric()
-                                    ->default(1.50)
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                                TextInput::make('tax_rate')
-                                    ->label('Corp Tax Rate (%)')
-                                    ->numeric()
-                                    ->default(22.00)
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                            ]),
+                    Grid::make(3)
+                        ->schema([
+                            TextInput::make('management_expense_rate')
+                                ->label('Mgmt Expense (%)')
+                                ->numeric()
+                                ->default(2.50)
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                            TextInput::make('interest_rate')
+                                ->label('Interest Rate (%)')
+                                ->numeric()
+                                ->default(1.50)
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                            TextInput::make('tax_rate')
+                                ->label('Corp Tax Rate (%)')
+                                ->numeric()
+                                ->default(22.00)
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                        ]),
 
-                        Grid::make(2)
-                            ->schema([
-                                TextInput::make('revenue_per_month')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->label('Total Revenue/Mo')
-                                    ->readOnly()
-                                    ->live(onBlur: true),
-                                TextInput::make('direct_cost')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->label('Total Direct Cost/Mo')
-                                    ->readOnly()
-                                    ->live(),
-                            ]),
+                    Grid::make(2)
+                        ->schema([
+                            TextInput::make('revenue_per_month')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->label('Total Revenue/Mo')
+                                ->readOnly()
+                                ->live(onBlur: true),
+                            TextInput::make('direct_cost')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->label('Total Direct Cost/Mo')
+                                ->readOnly()
+                                ->live(),
+                        ]),
 
-                        Grid::make(4)
-                            ->schema([
-                                TextInput::make('ebitda')
-                                    ->label('EBITDA')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->readOnly(),
-                                TextInput::make('ebit')
-                                    ->label('EBIT')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->readOnly(),
-                                TextInput::make('ebt')
-                                    ->label('EBT')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->readOnly(),
-                                TextInput::make('net_profit')
-                                    ->label('Net Profit')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->readOnly()
-                                    ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly profitability.'),
-                            ]),
-                    ]),
+                    Grid::make(4)
+                        ->schema([
+                            TextInput::make('ebitda')
+                                ->label('EBITDA')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->readOnly(),
+                            TextInput::make('ebit')
+                                ->label('EBIT')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->readOnly(),
+                            TextInput::make('ebt')
+                                ->label('EBT')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->readOnly(),
+                            TextInput::make('net_profit')
+                                ->label('Net Profit')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->readOnly()
+                                ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly profitability.'),
+                        ]),
+                ]),
 
-                Section::make('Costing Details')
-                    ->columnSpanFull()
-                    ->schema([
-                        Repeater::make('items')
-                            ->relationship('items')
-                            ->schema([
-                                Select::make('item_id')
-                                    ->label('Item')
-                                    ->relationship('item', 'name')
-                                    ->required()
-                                    ->searchable()
-                                    ->preload()
-                                    ->live()
-                                    ->afterStateUpdated(function ($state, Set $set) {
-                                        if (! $state) {
-                                            return;
-                                        }
-                                        $item = Item::find($state);
-                                        if ($item) {
-                                            $set('unit_cost_price', $item->price);
-                                            $set('unit_of_measure', $item->unitOfMeasure?->name ?? 'Unit');
+            Section::make('Costing Details')
+                ->columnSpanFull()
+                ->schema([
+                    Repeater::make('items')
+                        ->relationship('items')
+                        ->schema([
+                            Select::make('item_id')
+                                ->label('Item')
+                                ->relationship('item', 'name')
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->live()
+                                ->afterStateUpdated(function ($state, Set $set) {
+                                    if (! $state) {
+                                        return;
+                                    }
+                                    $item = Item::find($state);
+                                    if ($item) {
+                                        $set('unit_cost_price', $item->price);
+                                        $set('unit_of_measure', $item->unitOfMeasure?->name ?? 'Unit');
 
-                                            // Depreciation Logic: Item Specific > Asset Group > Default
-                                            $depreciation = $item->depreciation_months;
-                                            if (empty($depreciation) || $depreciation <= 0) {
-                                                // Check Asset Group via Category
-                                                $usefulLifeYears = $item->category?->assetGroup?->useful_life_years;
-                                                if ($usefulLifeYears && $usefulLifeYears > 0) {
-                                                    $depreciation = $usefulLifeYears * 12;
-                                                }
+                                        // Depreciation Logic: Item Specific > Asset Group > Default
+                                        $depreciation = $item->depreciation_months;
+                                        if (empty($depreciation) || $depreciation <= 0) {
+                                            // Check Asset Group via Category
+                                            $usefulLifeYears = $item->category?->assetGroup?->useful_life_years;
+                                            if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                                $depreciation = $usefulLifeYears * 12;
                                             }
-
-                                            $set('depreciation_months', $depreciation ?? 1);
                                         }
-                                    })
-                                    ->columnSpan(2),
-                                TextInput::make('quantity')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->live(onBlur: true)
-                                    ->columnSpan(1),
-                                TextInput::make('unit_of_measure')
-                                    ->label('UoM')
-                                    ->disabled()
-                                    ->dehydrated()
-                                    ->columnSpan(1),
-                                TextInput::make('duration_months')
-                                    ->label('Duration (Mo)')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->live(onBlur: true)
-                                    ->columnSpan(1),
-                                TextInput::make('unit_cost_price')
-                                    ->label('Base Price')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->required()
-                                    ->live(onBlur: true)
-                                    ->columnSpan(1),
-                                TextInput::make('depreciation_months')
-                                    ->label('Asset Depr (Mo)')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->live(onBlur: true)
-                                    ->columnSpan(1),
-                                TextInput::make('markup_percentage')
-                                    ->label('Markup (%)')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->live(onBlur: true)
-                                    ->columnSpan(1),
-                                
-                                // Dynamic Cost Breakdown
-                                Repeater::make('cost_breakdown')
-                                    ->label('Additional Costs (Allowances, Taxes, etc.)')
-                                    ->schema([
-                                        TextInput::make('name')
-                                            ->label('Component Name')
-                                            ->placeholder('e.g., BPJS, Transport')
-                                            ->required(),
-                                        Select::make('type')
-                                            ->options([
-                                                'nominal' => 'Nominal (Rp)',
-                                                'percentage' => 'Percentage (%)',
-                                            ])
-                                            ->default('nominal')
-                                            ->live()
-                                            ->required(),
-                                        Select::make('calculate_from')
-                                            ->label('Base On')
-                                            ->options([
-                                                'unit_cost_price' => 'Base Price',
-                                            ])
-                                            ->default('unit_cost_price')
-                                            ->visible(fn (Get $get) => $get('type') === 'percentage')
-                                            ->live(),
-                                        TextInput::make('value')
-                                            ->label('Amount/Rate')
-                                            ->numeric()
-                                            ->required()
-                                            ->live(onBlur: true)
-                                            ->columnSpan(1),
 
-                                        Repeater::make('details')
-                                            ->label('Breakdown Details')
-                                            ->schema([
-                                                TextInput::make('name')
-                                                    ->label('Sub-Component')
-                                                    ->required(),
-                                                TextInput::make('value')
-                                                    ->label('Amount')
-                                                    ->numeric()
-                                                    ->required()
-                                                    ->live(onBlur: true),
-                                            ])
-                                            ->columns(2)
-                                            ->columnSpanFull()
-                                            ->live()
-                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                                // Auto-sum details to parent value
-                                                $sum = collect($state ?? [])->sum('value');
-                                                $set('value', $sum);
-                                                
-                                                // Trigger main calculation
-                                                self::calculateDirectCost($get, $set);
-                                            }),
-                                    ])
-                                    ->columns(4)
-                                    ->columnSpanFull()
-                                    ->live()
-                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                        $set('depreciation_months', $depreciation ?? 1);
+                                    }
+                                })
+                                ->columnSpan(2),
+                            TextInput::make('quantity')
+                                ->numeric()
+                                ->default(1)
+                                ->live(onBlur: true)
+                                ->columnSpan(1),
+                            TextInput::make('unit_of_measure')
+                                ->label('UoM')
+                                ->disabled()
+                                ->dehydrated()
+                                ->columnSpan(1),
+                            TextInput::make('duration_months')
+                                ->label('Duration (Mo)')
+                                ->numeric()
+                                ->default(1)
+                                ->live(onBlur: true)
+                                ->columnSpan(1),
+                            TextInput::make('unit_cost_price')
+                                ->label('Base Price')
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->required()
+                                ->live(onBlur: true)
+                                ->columnSpan(1),
+                            TextInput::make('depreciation_months')
+                                ->label('Asset Depr (Mo)')
+                                ->numeric()
+                                ->default(1)
+                                ->live(onBlur: true)
+                                ->columnSpan(1),
+                            TextInput::make('markup_percentage')
+                                ->label('Markup (%)')
+                                ->numeric()
+                                ->default(0)
+                                ->live(onBlur: true)
+                                ->columnSpan(1),
 
-                                TextInput::make('total_monthly_cost')
-                                    ->label('Total Cost/Mo')
-                                    ->disabled()
-                                    ->dehydrated()
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlyCost($get))
-                                    ->columnSpan(1),
-                                TextInput::make('total_monthly_sale')
-                                    ->label('Selling/Mo')
-                                    ->disabled()
-                                    ->dehydrated()
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
-                                    ->columnSpan(1),
-                            ])
-                            ->columns(6)
-                            ->columnSpanFull()
-                            ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
-                            ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                    ]),
-            ];
+                            // Dynamic Cost Breakdown
+                            Repeater::make('cost_breakdown')
+                                ->label('Additional Costs (Allowances, Taxes, etc.)')
+                                ->schema([
+                                    TextInput::make('name')
+                                        ->label('Component Name')
+                                        ->placeholder('e.g., BPJS, Transport')
+                                        ->required(),
+                                    Select::make('type')
+                                        ->options([
+                                            'nominal' => 'Nominal (Rp)',
+                                            'percentage' => 'Percentage (%)',
+                                        ])
+                                        ->default('nominal')
+                                        ->live()
+                                        ->required(),
+                                    Select::make('calculate_from')
+                                        ->label('Base On')
+                                        ->options([
+                                            'unit_cost_price' => 'Base Price',
+                                        ])
+                                        ->default('unit_cost_price')
+                                        ->visible(fn (Get $get) => $get('type') === 'percentage')
+                                        ->live(),
+                                    TextInput::make('value')
+                                        ->label('Amount/Rate')
+                                        ->numeric()
+                                        ->required()
+                                        ->live(onBlur: true)
+                                        ->columnSpan(1),
+
+                                    Repeater::make('details')
+                                        ->label('Breakdown Details')
+                                        ->schema([
+                                            TextInput::make('name')
+                                                ->label('Sub-Component')
+                                                ->required(),
+                                            TextInput::make('value')
+                                                ->label('Amount')
+                                                ->numeric()
+                                                ->required()
+                                                ->live(onBlur: true),
+                                        ])
+                                        ->columns(2)
+                                        ->columnSpanFull()
+                                        ->live()
+                                        ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                            // Auto-sum details to parent value
+                                            $sum = collect($state ?? [])->sum('value');
+                                            $set('value', $sum);
+
+                                            // Trigger main calculation
+                                            self::calculateDirectCost($get, $set);
+                                        }),
+                                ])
+                                ->columns(4)
+                                ->columnSpanFull()
+                                ->live()
+                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+
+                            TextInput::make('total_monthly_cost')
+                                ->label('Total Cost/Mo')
+                                ->disabled()
+                                ->dehydrated()
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->placeholder(fn (Get $get) => self::calculateItemMonthlyCost($get))
+                                ->columnSpan(1),
+                            TextInput::make('total_monthly_sale')
+                                ->label('Selling/Mo')
+                                ->disabled()
+                                ->dehydrated()
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
+                                ->columnSpan(1),
+                        ])
+                        ->columns(6)
+                        ->columnSpanFull()
+                        ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
+                        ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                ]),
+        ];
     }
 
     protected static function calculateDirectCost($get, $set): void
@@ -370,14 +370,14 @@ class ProfitabilityAnalysisForm
             $addOnTotal = 0;
             foreach ($costBreakdown as $addon) {
                 $val = (float) ($addon['value'] ?? 0);
-                
+
                 // If details exist, use their sum (though UI should have already updated 'value', we double check/fallback if needed)
-                if (!empty($addon['details'])) {
-                   $val = collect($addon['details'])->sum('value');
+                if (! empty($addon['details'])) {
+                    $val = collect($addon['details'])->sum('value');
                 }
 
                 $type = $addon['type'] ?? 'nominal';
-                
+
                 if ($type === 'percentage') {
                     // Logic: Base on Unit Cost Price by default
                     $addOnTotal += $costPrice * ($val / 100);
@@ -391,7 +391,7 @@ class ProfitabilityAnalysisForm
             // Assuming Addons are recurring monthly costs.
             $monthlyUnitCost = ($costPrice / $deprMonths) + $addOnTotal;
             $monthlyCost = $monthlyUnitCost * $qty;
-            
+
             $monthlySale = $monthlyCost * (1 + ($markup / 100));
 
             $totalDirectCost += $monthlyCost;
@@ -441,13 +441,13 @@ class ProfitabilityAnalysisForm
         $addOnTotal = 0;
         foreach ($costBreakdown as $addon) {
             $val = (float) ($addon['value'] ?? 0);
-             // If details exist, use their sum
-            if (!empty($addon['details'])) {
+            // If details exist, use their sum
+            if (! empty($addon['details'])) {
                 $val = collect($addon['details'])->sum('value');
             }
 
             $type = $addon['type'] ?? 'nominal';
-            
+
             if ($type === 'percentage') {
                 $addOnTotal += $costPrice * ($val / 100);
             } else {

@@ -175,7 +175,7 @@ class ProposalsTable
                                 $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
                                 $qrCode = $service->generateQRCode($qrData);
 
-                                $record->addSignature(auth()->user(), $matchingRule->signature_type, $qrCode);
+                                $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                                 Notification::make()
                                     ->title('Dokumen Berhasil Ditandatangani')

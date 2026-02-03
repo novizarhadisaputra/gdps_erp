@@ -54,7 +54,6 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'analysis_details',
         'project_number',
         'status',
-        'signatures',
         'asset_ownership',
         'management_expense_rate',
         'interest_rate',
@@ -81,7 +80,6 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'tax_rate' => 'decimal:2',
             'analysis_details' => 'array',
             'project_number' => 'integer',
-            'signatures' => 'array',
         ];
     }
 

@@ -130,10 +130,7 @@ class ManageProposals extends ManageRelatedRecords
                                     return;
                                 }
 
-                                $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
-                                $qrCode = $service->generateQRCode($qrData);
-
-                                $record->addSignature(auth()->user(), $matchingRule->signature_type, $qrCode);
+                                $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                                 \Filament\Notifications\Notification::make()
                                     ->title('Dokumen Berhasil Ditandatangani')
@@ -145,20 +142,107 @@ class ManageProposals extends ManageRelatedRecords
                                 }
                             })
                             // Check compatibility with Enum status
-                            ->visible(fn (\Modules\CRM\Models\Proposal $record) => $record->status !== ProposalStatus::Approved && $record->status !== 'approved'),
+                            ->visible(fn (\Modules\CRM\Models\Proposal $record) => ! in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted, ProposalStatus::Rejected])),
                     ]),
                 Actions\EditAction::make()
                      ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm::configure($schema)),
                 Actions\DeleteAction::make(),
-                Actions\Action::make('pdf')
-                    ->label('Export PDF')
-                    ->color('gray')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->action(function (\Modules\CRM\Models\Proposal $record) {
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+                Actions\Action::make('createPA')
+                    ->label('Create Profitability Analysis')
+                    ->icon('heroicon-o-presentation-chart-line')
+                    ->color('info')
+                    ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted]))
+                    ->form([
+                        Select::make('work_scheme_id')
+                            ->relationship('workScheme', 'name')
+                            ->label('Select Work Scheme')
+                            ->default(fn ($record) => $record->work_scheme_id)
+                            ->required()
+                            ->searchable()
+                            ->preload(),
+                    ])
+                    ->action(function (\Modules\CRM\Models\Proposal $record, array $data) {
+                        $existingPa = \Modules\Finance\Models\ProfitabilityAnalysis::where('proposal_id', $record->id)->first();
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$record->proposal_number}.pdf");
+                        if ($existingPa) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('PA Already Exists')
+                                ->body('Redirecting to the existing Profitability Analysis.')
+                                ->warning()
+                                ->send();
+
+                            return;
+                        }
+
+                        $pa = \Modules\Finance\Models\ProfitabilityAnalysis::create([
+                            'proposal_id' => $record->id,
+                            'customer_id' => $record->customer_id,
+                            'work_scheme_id' => $data['work_scheme_id'],
+                            'status' => 'draft',
+                        ]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Profitability Analysis Created')
+                            ->success()
+                            ->send();
                     }),
+                Actions\Action::make('convertToContract')
+                    ->label('Convert to Contract')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('success')
+                    ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => ($record->status === ProposalStatus::Approved || $record->status === 'approved') && $record->contracts->count() === 0)
+                    ->requiresConfirmation()
+                    ->action(function (\Modules\CRM\Models\Proposal $record) {
+                        \Modules\CRM\Models\Contract::create([
+                            'customer_id' => $record->customer_id,
+                            'proposal_id' => $record->id,
+                            'contract_number' => 'CONTRACT-'.$record->proposal_number,
+                            'status' => \Modules\CRM\Enums\ContractStatus::Draft,
+                        ]);
+
+                        $record->update(['status' => ProposalStatus::Converted]);
+
+                        \Filament\Notifications\Notification::make()
+                            ->title('Converted to Contract')
+                            ->success()
+                            ->send();
+                    }),
+                \Filament\Actions\ActionGroup::make([
+                    Actions\Action::make('export_proposal')
+                        ->label('Export Proposal')
+                        ->icon('heroicon-o-document-text')
+                        ->action(function (\Modules\CRM\Models\Proposal $record) {
+                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+
+                            return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$record->proposal_number}.pdf");
+                        }),
+
+                    Actions\Action::make('export_contract')
+                        ->label('Export Contract')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->visible(fn (\Modules\CRM\Models\Proposal $record) => $record->contracts()->exists())
+                        ->action(function (\Modules\CRM\Models\Proposal $record) {
+                            $contract = $record->contracts()->latest()->first();
+                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
+
+                            return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$contract->contract_number}.pdf");
+                        }),
+
+                    Actions\Action::make('export_general_information')
+                        ->label('Export General Info')
+                        ->icon('heroicon-o-information-circle')
+                        ->visible(fn (\Modules\CRM\Models\Proposal $record) => $record->lead?->generalInformations()->exists())
+                        ->action(function (\Modules\CRM\Models\Proposal $record) {
+                            $gi = $record->lead->generalInformations()->latest()->first();
+                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
+
+                            return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$gi->customer->name}.pdf");
+                        }),
+                ])
+                ->label('Export')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('gray')
+                ->button(),
             ])
             ->groupedBulkActions([
                 Actions\DeleteBulkAction::make(),

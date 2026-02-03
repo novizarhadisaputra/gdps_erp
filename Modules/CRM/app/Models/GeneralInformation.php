@@ -10,7 +10,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Finance\Models\ProfitabilityAnalysisItem;
 use Modules\MasterData\Models\Customer;
+use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\Tax;
+use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -43,7 +47,6 @@ class GeneralInformation extends Model implements HasMedia
         'description',
         'remarks',
         'rr_document_number',
-        'signatures',
         'sequence_number',
         'year',
         'rr_submission_id',
@@ -56,7 +59,6 @@ class GeneralInformation extends Model implements HasMedia
             'estimated_start_date' => 'date',
             'estimated_end_date' => 'date',
             'risk_management' => 'array',
-            'signatures' => 'array',
         ];
     }
 
@@ -99,5 +101,30 @@ class GeneralInformation extends Model implements HasMedia
     public function pics(): HasMany
     {
         return $this->hasMany(GeneralInformationPic::class);
+    }
+
+    public function workScheme(): BelongsTo
+    {
+        return $this->belongsTo(WorkScheme::class);
+    }
+
+    public function productCluster(): BelongsTo
+    {
+        return $this->belongsTo(ProductCluster::class);
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(ProfitabilityAnalysisItem::class, 'profitability_analysis_id');
+    }
+
+    public function generalInformation(): BelongsTo
+    {
+        return $this->belongsTo(GeneralInformation::class, 'id');
     }
 }

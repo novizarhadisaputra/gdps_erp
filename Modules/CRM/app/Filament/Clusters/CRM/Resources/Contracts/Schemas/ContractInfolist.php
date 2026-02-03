@@ -60,10 +60,10 @@ class ContractInfolist
                                 TextEntry::make('termination_reason')
                                     ->visible(fn (Contract $record) => $record->status === ContractStatus::Terminated),
                             ]),
-                        \Filament\Infolists\Components\ViewEntry::make('signatures')
-                            ->view('filament.infolists.digital-signature')
+                        \App\Filament\Infolists\Components\DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
-                    ])->columnSpanFull(),
+                    ])->columnSpanFull()
+                    ->visible(fn ($record) => $record->signatures()->exists()),
             ]);
     }
 }

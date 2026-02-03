@@ -8,6 +8,7 @@ use Filament\Notifications;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Arr;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
@@ -35,11 +36,15 @@ class ManageGeneralInformations extends ManageRelatedRecords
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
+                        'draft' => 'gray',
+                        'submitted' => 'info',
                         'approved' => 'success',
                         'rejected' => 'danger',
-                        'submitted' => 'warning',
                         default => 'gray',
                     }),
+                Tables\Columns\TextColumn::make('rr_submission_id')
+                    ->label('RR ID')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('scope_of_work')->limit(50),
             ])
             ->filters([
@@ -130,17 +135,15 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                     return;
                                 }
 
-                                $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
-                                $qrCode = $service->generateQRCode($qrData);
-
-                                $record->addSignature(auth()->user(), $matchingRule->signature_type, $qrCode);
+                                $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                                 Notifications\Notification::make()
                                     ->title('Dokumen Berhasil Ditandatangani')
                                     ->success()
                                     ->send();
 
-                                if ($record->isFullyApproved() && $record->rr_submission_id) {
+                                // Auto-approve if fully signed and RR is approved (or no RR)
+                                if ($record->isFullyApproved() && ($record->rr_status === 'approved' || ! $record->rr_submission_id)) {
                                     $record->update(['status' => 'approved']);
                                 } elseif ($record->isFullyApproved()) {
                                     Notifications\Notification::make()
@@ -150,17 +153,39 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                         ->send();
                                 }
                             })
-                            ->visible(function (GeneralInformation $record) {
-                                if ($record->status === 'approved') {
-                                    return false;
+                            ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
+                        Actions\Action::make('create_pa_modal')
+                            ->label('Create PA')
+                            ->icon('heroicon-o-plus')
+                            ->color('success')
+                            ->fillForm(fn (GeneralInformation $record) => [
+                                'general_information_id' => $record->id,
+                                'customer_id' => $record->customer_id,
+                                'work_scheme_id' => $record->lead?->work_scheme_id,
+                            ])
+                            ->schema(\Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm::schema())
+                            ->action(function (GeneralInformation $record, array $data) {
+                                $data['lead_id'] = $record->lead_id;
+                                $data['general_information_id'] = $record->id;
+                                $data['status'] = 'draft';
+
+                                // Extract items to handle separately
+                                $items = $data['items'] ?? [];
+                                unset($data['items']);
+
+                                $pa = \Modules\Finance\Models\ProfitabilityAnalysis::create($data);
+
+                                // Create items
+                                foreach ($items as $itemData) {
+                                    $pa->items()->create($itemData);
                                 }
 
-                                if ($record->signatures()->where('user_id', auth()->id())->exists()) {
-                                    return false;
-                                }
-
-                                return true;
-                            }),
+                                Notifications\Notification::make()
+                                    ->title('Profitability Analysis Created')
+                                    ->success()
+                                    ->send();
+                            })
+                            ->visible(fn (GeneralInformation $record) => $record->status === 'approved' && $record->profitabilityAnalyses()->doesntExist()),
                     ]),
                 Actions\EditAction::make()
                     ->schema(fn (Schema $schema) => GeneralInformationForm::configure($schema)),

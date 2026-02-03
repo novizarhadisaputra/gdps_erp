@@ -32,13 +32,11 @@ class Proposal extends Model implements HasMedia
         'amount',
         'status',
         'submission_date',
-        'signatures',
     ];
 
     protected $casts = [
         'status' => ProposalStatus::class,
         'submission_date' => 'date',
-        'signatures' => 'array',
     ];
 
     public function registerMediaCollections(): void

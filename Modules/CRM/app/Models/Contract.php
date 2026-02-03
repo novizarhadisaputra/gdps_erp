@@ -29,13 +29,11 @@ class Contract extends Model implements HasMedia
         'status',
         'reminder_status',
         'termination_reason',
-        'signatures',
     ];
 
     protected $casts = [
         'status' => ContractStatus::class,
         'expiry_date' => 'date',
-        'signatures' => 'array',
     ];
 
     public function registerMediaCollections(): void
