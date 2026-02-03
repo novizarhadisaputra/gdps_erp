@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Models\Lead;
 use Relaticle\Flowforge\Board;
 use Relaticle\Flowforge\BoardResourcePage;
@@ -28,10 +29,10 @@ class LeadBoard extends BoardResourcePage
             Action::make('list')
                 ->label('List View')
                 ->icon('heroicon-o-table-cells')
-                ->url(LeadResource::getUrl('index')),
+                ->url(LeadResource::getUrl('list')),
             CreateAction::make()
                 ->label('New Lead')
-                ->url(LeadResource::getUrl('create')),
+                ->form(fn (Schema $schema) => LeadForm::configure($schema)),
         ];
     }
 

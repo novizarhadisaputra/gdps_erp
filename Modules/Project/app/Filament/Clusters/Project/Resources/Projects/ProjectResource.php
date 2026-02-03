@@ -5,8 +5,10 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\EditProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ListProjects;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ProjectBoard;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ViewProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectInfolist;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Tables\ProjectsTable;
@@ -49,6 +51,8 @@ class ProjectResource extends Resource
         return [
             'index' => ProjectBoard::route('/'),
             'list' => ListProjects::route('/list'),
+            'view' => ViewProject::route('/{record}'),
+            'edit' => EditProject::route('/{record}/edit'),
         ];
     }
 }

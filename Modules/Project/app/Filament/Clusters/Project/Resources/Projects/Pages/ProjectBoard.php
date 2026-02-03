@@ -30,7 +30,10 @@ class ProjectBoard extends BoardResourcePage
                 ->label('List View')
                 ->icon('heroicon-o-table-cells')
                 ->url(ProjectResource::getUrl('list')),
-            CreateAction::make()->label('New project'),
+            CreateAction::make()
+                ->label('New project')
+                ->model(Project::class)
+                ->schema(fn (Schema $schema) => ProjectForm::configure($schema)),
         ];
     }
 
@@ -58,9 +61,9 @@ class ProjectBoard extends BoardResourcePage
                 Column::make('cancelled')->label('Cancelled')->color('rose'),
             ])
             ->cardActions([
-                ViewAction::make()->form(fn (Schema $schema) => ProjectForm::configure($schema)),
-                EditAction::make()->form(fn (Schema $schema) => ProjectForm::configure($schema)),
-                DeleteAction::make(),
+                ViewAction::make()->url(fn (Project $record) => ProjectResource::getUrl('view', ['record' => $record])),
+                EditAction::make()->url(fn (Project $record) => ProjectResource::getUrl('edit', ['record' => $record])),
+                DeleteAction::make()->model(Project::class),
             ])
             ->cardAction('view');
     }

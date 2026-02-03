@@ -76,10 +76,10 @@ class ItemForm
                         ->numeric()
                         ->label('Depreciation (Months)')
                         ->helperText('Standard depreciation period in months (PSAK).'),
-                    DatePicker::make('price_period_start')
-                        ->label('Price Valid From'),
-                    DatePicker::make('price_period_end')
-                        ->label('Price Valid Until'),
+                    DatePicker::make('price_valid_at')
+                        ->label('Price Valid')
+                        ->default(now())
+                        ->required(),
                     Toggle::make('is_active')
                         ->required()
                         ->default(true),

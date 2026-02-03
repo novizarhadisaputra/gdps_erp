@@ -27,7 +27,10 @@ class LeadResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Start;
+    public static function getSubNavigationPosition(): SubNavigationPosition
+    {
+        return SubNavigationPosition::Start;
+    }
 
     public static function getRecordSubNavigation(Page $page): array
     {
@@ -66,9 +69,8 @@ class LeadResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListLeads::route('/'),
-            'kanban' => Pages\LeadBoard::route('/kanban'),
-            'create' => Pages\CreateLead::route('/create'),
+            'index' => Pages\LeadBoard::route('/'),
+            'list' => Pages\ListLeads::route('/list'),
             'view' => Pages\ViewLead::route('/{record}'),
             'edit' => Pages\EditLead::route('/{record}/edit'),
             'proposals' => Pages\ManageProposals::route('/{record}/proposals'),

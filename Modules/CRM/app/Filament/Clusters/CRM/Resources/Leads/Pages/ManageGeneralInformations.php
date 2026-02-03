@@ -8,13 +8,13 @@ use Filament\Notifications;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Arr;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Models\GeneralInformation;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 
 class ManageGeneralInformations extends ManageRelatedRecords
 {
@@ -156,14 +156,13 @@ class ManageGeneralInformations extends ManageRelatedRecords
                             ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
                         Actions\Action::make('create_pa_modal')
                             ->label('Create PA')
-                            ->icon('heroicon-o-plus')
                             ->color('success')
                             ->fillForm(fn (GeneralInformation $record) => [
                                 'general_information_id' => $record->id,
                                 'customer_id' => $record->customer_id,
                                 'work_scheme_id' => $record->lead?->work_scheme_id,
                             ])
-                            ->schema(\Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm::schema())
+                            ->schema(ProfitabilityAnalysisForm::schema())
                             ->action(function (GeneralInformation $record, array $data) {
                                 $data['lead_id'] = $record->lead_id;
                                 $data['general_information_id'] = $record->id;

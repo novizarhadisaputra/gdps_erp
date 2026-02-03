@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 15, 2)->default(0);
             $table->integer('depreciation_months')->nullable();
-            $table->date('price_valid_from')->nullable()->default(now());
+            $table->date('price_valid_at')->nullable()->default(now());
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

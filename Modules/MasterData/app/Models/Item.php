@@ -26,16 +26,14 @@ class Item extends Model
         'description',
         'price',
         'depreciation_months',
-        'price_period_start',
-        'price_period_end',
+        'price_valid_at',
         'is_active',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'depreciation_months' => 'integer',
-        'price_period_start' => 'date',
-        'price_period_end' => 'date',
+        'price_valid_at' => 'date',
         'is_active' => 'boolean',
     ];
 

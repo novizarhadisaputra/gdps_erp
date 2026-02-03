@@ -5,7 +5,9 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
 
 class ListProjects extends ListRecords
 {
@@ -18,7 +20,8 @@ class ListProjects extends ListRecords
                 ->label('Kanban Board')
                 ->icon('heroicon-o-view-columns')
                 ->url(ProjectResource::getUrl('index')),
-            CreateAction::make(),
+            CreateAction::make()
+                ->form(fn (Schema $schema) => ProjectForm::configure($schema)),
         ];
     }
 }

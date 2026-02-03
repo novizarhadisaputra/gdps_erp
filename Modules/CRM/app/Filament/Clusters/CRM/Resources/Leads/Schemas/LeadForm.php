@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas;
 
-use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -28,22 +27,22 @@ class LeadForm
                         ->maxLength(255)
                         ->columnSpanFull(),
                     Select::make('customer_id')
+                        ->relationship('customer', 'name')
                         ->label('Customer')
-                        ->options(Customer::pluck('name', 'id'))
                         ->searchable()
                         ->preload()
                         ->required()
                         ->createOptionForm(CustomerForm::schema())
                         ->createOptionUsing(fn (array $data) => Customer::create($data)->id),
                     Select::make('work_scheme_id')
+                        ->relationship('workScheme', 'name')
                         ->label('Work Scheme')
-                        ->options(WorkScheme::pluck('name', 'id'))
                         ->required()
                         ->createOptionForm(WorkSchemeForm::schema())
                         ->createOptionUsing(fn (array $data) => WorkScheme::create($data)->id),
                     Select::make('user_id')
+                        ->relationship('user', 'name')
                         ->label('Sales PIC')
-                        ->options(User::pluck('name', 'id'))
                         ->default(auth()->id())
                         ->disabled(fn () => ! auth()->user()->hasRole('super_admin'))
                         ->dehydrated()

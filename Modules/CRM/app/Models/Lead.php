@@ -14,7 +14,14 @@ use Modules\CRM\Database\Factories\LeadFactory;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Observers\LeadObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\Customer;
+use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Models\PaymentTerm;
+use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\ProjectType;
+use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Models\ProjectInformation;
 use Spatie\Activitylog\LogOptions;
@@ -95,15 +102,46 @@ class Lead extends Model
 
     public function contracts(): HasMany
     {
-        return $this->hasMany(Contract::class); // Assuming Contract also has lead_id now or via other means if not added directly.
-        // Wait, did I add lead_id to Contract?
-        // I checked Contract migration in Step 1175 and it did NOT have lead_id.
-        // The user authorized "GI, PA, and PI".
-        // I should also add it to Contract for completeness if it's "Centralized Visibility".
-        // I will double check my plan.
-        // My plan in notification (Step 1174) mentioned GI, PA, PI.
-        // It did not explicitly mention Contract but implied "semua tabel dokumen".
-        // In implementation_plan.md, Contract is a child of Lead.
-        // I should check Contract table again and add it if missing to be consistent.
+        return $this->hasMany(Contract::class);
+    }
+
+    public function projectType(): BelongsTo
+    {
+        return $this->belongsTo(ProjectType::class);
+    }
+
+    public function projectArea(): BelongsTo
+    {
+        return $this->belongsTo(ProjectArea::class);
+    }
+
+    public function productCluster(): BelongsTo
+    {
+        return $this->belongsTo(ProductCluster::class);
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
+    }
+
+    public function paymentTerm(): BelongsTo
+    {
+        return $this->belongsTo(PaymentTerm::class);
+    }
+
+    public function billingOption(): BelongsTo
+    {
+        return $this->belongsTo(BillingOption::class);
+    }
+
+    public function oprep(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'oprep_id');
+    }
+
+    public function ams(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'ams_id');
     }
 }

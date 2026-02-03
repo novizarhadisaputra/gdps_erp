@@ -6,9 +6,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Forms\Schema;
-use Modules\MasterData\Models\PaymentTerm;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Schemas\Schema;
 
 class VendorForm
 {
@@ -30,8 +28,8 @@ class VendorForm
                     ->label('NPWP / Tax ID')
                     ->maxLength(255),
                 Select::make('payment_term_id')
+                    ->relationship('paymentTerm', 'name')
                     ->label('Payment Term')
-                    ->options(PaymentTerm::all()->pluck('name', 'id'))
                     ->searchable()
                     ->preload(),
                 Toggle::make('is_active')

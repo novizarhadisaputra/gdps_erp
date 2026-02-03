@@ -11,6 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
@@ -48,28 +49,26 @@ class ProfitabilityAnalysisForm
                 ->createOptionForm(CustomerForm::schema()),
             TextInput::make('document_number')
                 ->label('Document Number')
-                ->hiddenOn('create'),
+                ->hidden(fn ($record) => ! ($record instanceof ProfitabilityAnalysis)),
 
             Section::make('Project Documents')
+                ->columns(columns: 1)
                 ->schema([
-                    Grid::make(3)
-                        ->schema([
-                            SpatieMediaLibraryFileUpload::make('tor')
-                                ->collection('tor')
-                                ->disk('s3')
-                                ->label('ToR Document')
-                                ->hint('Terms of Reference'),
-                            SpatieMediaLibraryFileUpload::make('rfp')
-                                ->collection('rfp')
-                                ->disk('s3')
-                                ->label('RFP Document')
-                                ->hint('Request for Proposal'),
-                            SpatieMediaLibraryFileUpload::make('rfi')
-                                ->collection('rfi')
-                                ->disk('s3')
-                                ->label('RFI Document')
-                                ->hint('Request for Information'),
-                        ]),
+                    SpatieMediaLibraryFileUpload::make('tor')
+                        ->collection('tor')
+                        ->disk('s3')
+                        ->label('ToR Document')
+                        ->hint('Terms of Reference'),
+                    SpatieMediaLibraryFileUpload::make('rfp')
+                        ->collection('rfp')
+                        ->disk('s3')
+                        ->label('RFP Document')
+                        ->hint('Request for Proposal'),
+                    SpatieMediaLibraryFileUpload::make('rfi')
+                        ->collection('rfi')
+                        ->disk('s3')
+                        ->label('RFI Document')
+                        ->hint('Request for Information'),
                 ])->collapsible(),
 
             Section::make('Project Code Parameters')
@@ -78,7 +77,6 @@ class ProfitabilityAnalysisForm
                     Select::make('work_scheme_id')
                         ->relationship('workScheme', 'name')
                         ->helperText('The work scheme for this project.')
-                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Defines the operational scheme.')
                         ->required()
                         ->searchable()
                         ->preload()
@@ -88,7 +86,6 @@ class ProfitabilityAnalysisForm
                     Select::make('product_cluster_id')
                         ->relationship('productCluster', 'name')
                         ->helperText('Cluster of the product/service.')
-                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Group of related products.')
                         ->required()
                         ->searchable()
                         ->preload()
@@ -96,7 +93,6 @@ class ProfitabilityAnalysisForm
                     Select::make('tax_id')
                         ->relationship('tax', 'name')
                         ->helperText('Applicable tax regulation.')
-                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Tax rules for this project.')
                         ->required()
                         ->searchable()
                         ->preload()
@@ -192,7 +188,7 @@ class ProfitabilityAnalysisForm
                                 ->readOnly()
                                 ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly profitability.'),
                         ]),
-                ]),
+                ])->columnSpanFull(),
 
             Section::make('Costing Details')
                 ->columnSpanFull()
@@ -344,7 +340,7 @@ class ProfitabilityAnalysisForm
                         ->columnSpanFull()
                         ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
                         ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                ]),
+                ])->columnSpanFull(),
         ];
     }
 
