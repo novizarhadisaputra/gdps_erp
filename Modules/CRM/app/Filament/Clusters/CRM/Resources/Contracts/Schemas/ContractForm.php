@@ -28,7 +28,8 @@ class ContractForm
                             ->required()
                             ->disabled()
                             ->dehydrated()
-                            ->createOptionForm(CustomerForm::schema()),
+                            ->createOptionForm(CustomerForm::schema())
+                            ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                         Select::make('proposal_id')
                             ->relationship('proposal', 'proposal_number')
                             ->searchable()

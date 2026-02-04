@@ -29,14 +29,16 @@ class ProposalForm
                             ->required()
                             ->disabled()
                             ->dehydrated()
-                            ->createOptionForm(CustomerForm::schema()),
+                            ->createOptionForm(CustomerForm::schema())
+                            ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                         Select::make('work_scheme_id')
                             ->relationship('workScheme', 'name')
                             ->searchable()
                             ->preload()
                             ->disabled() // Inherited from Lead rarely changes at this stage
                             ->dehydrated()
-                            ->createOptionForm(WorkSchemeForm::schema()),
+                            ->createOptionForm(WorkSchemeForm::schema())
+                            ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                         TextInput::make('proposal_number')
                             ->required()
                             ->hiddenOn('create') // Auto-generated

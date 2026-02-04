@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Pages\ListPaymentTerms;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Tables\PaymentTermsTable;
@@ -22,7 +21,7 @@ class PaymentTermResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Finance';
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 
     public static function form(Schema $schema): Schema
     {

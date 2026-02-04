@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Pages\ListWorkSchemes;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Tables\WorkSchemesTable;
@@ -22,7 +21,7 @@ class WorkSchemeResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Project Structure';
+    protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 
     public static function form(Schema $schema): Schema
     {

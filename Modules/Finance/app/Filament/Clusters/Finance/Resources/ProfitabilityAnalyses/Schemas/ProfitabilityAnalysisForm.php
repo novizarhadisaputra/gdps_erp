@@ -48,7 +48,8 @@ class ProfitabilityAnalysisForm
                 ->preload()
                 ->disabled()
                 ->dehydrated()
-                ->createOptionForm(CustomerForm::schema()),
+                ->createOptionForm(CustomerForm::schema())
+                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
             TextInput::make('document_number')
                 ->label('Document Number')
                 ->hidden(fn ($record) => ! ($record instanceof ProfitabilityAnalysis)),
@@ -84,21 +85,24 @@ class ProfitabilityAnalysisForm
                         ->preload()
                         ->disabled()
                         ->dehydrated()
-                        ->createOptionForm(WorkSchemeForm::schema()),
+                        ->createOptionForm(WorkSchemeForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('product_cluster_id')
                         ->relationship('productCluster', 'name')
                         ->helperText('Cluster of the product/service.')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->createOptionForm(ProductClusterForm::schema()),
+                        ->createOptionForm(ProductClusterForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('tax_id')
                         ->relationship('tax', 'name')
                         ->helperText('Applicable tax regulation.')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->createOptionForm(TaxForm::schema()),
+                        ->createOptionForm(TaxForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('project_area_id')
                         ->relationship('projectArea', 'name')
                         ->helperText('Geographical area of the project.')
@@ -107,7 +111,8 @@ class ProfitabilityAnalysisForm
                         ->searchable()
                         ->preload()
                         ->live()
-                        ->createOptionForm(ProjectAreaForm::schema()),
+                        ->createOptionForm(ProjectAreaForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                 ]),
 
             Section::make('Financial Analysis')
@@ -198,77 +203,76 @@ class ProfitabilityAnalysisForm
                     Repeater::make('items')
                         ->relationship('items')
                         ->schema([
-                            Select::make('item_id')
-                                ->label('Item (General)')
-                                ->relationship('item', 'name')
+                            Select::make('costable_type')
+                                ->label('Cost Type')
+                                ->options([
+                                    Item::class => 'Item (General)',
+                                    JobPosition::class => 'Job Position (Manpower)',
+                                ])
+                                ->required()
+                                ->live()
+                                ->afterStateUpdated(fn (Set $set) => $set('costable_id', null))
+                                ->columnSpan(1),
+                            Select::make('costable_id')
+                                ->label('Resource')
+                                ->options(fn (Get $get) => filled($get('costable_type')) ? $get('costable_type')::pluck('name', 'id') : [])
+                                ->required()
                                 ->searchable()
                                 ->preload()
                                 ->live()
-                                ->hidden(fn (Get $get) => filled($get('job_position_id')))
-                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                    if (! $state) {
+                                ->afterStateUpdated(function ($state, $get, Set $set) {
+                                    if (! $state || ! $get('costable_type')) {
                                         return;
                                     }
-                                    $item = Item::find($state);
-                                    if ($item) {
-                                        $set('unit_cost_price', $item->price);
-                                        $set('unit_of_measure', $item->unitOfMeasure?->name ?? 'Unit');
 
-                                        $isManpower = $item->category?->name === 'Manpower';
+                                    $type = $get('costable_type');
+                                    $record = $type::find($state);
+
+                                    if (! $record) {
+                                        return;
+                                    }
+
+                                    if ($type === Item::class) {
+                                        $set('unit_cost_price', $record->price);
+                                        $set('unit_of_measure', $record->unitOfMeasure?->name ?? 'Unit');
+                                        $isManpower = $record->category?->name === 'Manpower';
                                         $set('is_manpower', $isManpower);
 
                                         // Depreciation Logic
-                                        $depreciation = $item->depreciation_months;
+                                        $depreciation = $record->depreciation_months;
                                         if (empty($depreciation) || $depreciation <= 0) {
-                                            $usefulLifeYears = $item->category?->assetGroup?->useful_life_years;
+                                            $usefulLifeYears = $record->category?->assetGroup?->useful_life_years;
                                             if ($usefulLifeYears && $usefulLifeYears > 0) {
                                                 $depreciation = $usefulLifeYears * 12;
                                             }
                                         }
-
                                         $set('depreciation_months', $depreciation ?? 1);
+                                    }
 
-                                        if ($isManpower) {
-                                            self::calculateDirectCost($get, $set);
-                                        }
-                                    }
-                                })
-                                ->columnSpan(2),
-                            Select::make('job_position_id')
-                                ->label('Job Position (Manpower)')
-                                ->relationship('jobPosition', 'name')
-                                ->searchable()
-                                ->preload()
-                                ->live()
-                                ->hidden(fn (Get $get) => filled($get('item_id')))
-                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                    if (! $state) {
-                                        return;
-                                    }
-                                    $jobPosition = JobPosition::with('remunerationComponents')->find($state);
-                                    if ($jobPosition) {
-                                        $set('unit_cost_price', $jobPosition->basic_salary);
+                                    if ($type === JobPosition::class) {
+                                        $set('unit_cost_price', $record->basic_salary);
                                         $set('unit_of_measure', 'Person');
                                         $set('is_manpower', true);
-                                        $set('risk_level', $jobPosition->risk_level);
-                                        $set('is_labor_intensive', $jobPosition->is_labor_intensive);
+                                        $set('risk_level', $record->risk_level);
+                                        $set('is_labor_intensive', $record->is_labor_intensive);
                                         $set('depreciation_months', 1);
 
                                         // Sync Remuneration Components to cost_breakdown
                                         $breakdown = [];
-                                        foreach ($jobPosition->remunerationComponents as $component) {
+                                        foreach ($record->remunerationComponents ?? [] as $component) {
                                             $breakdown[] = [
                                                 'name' => $component->name,
                                                 'type' => 'nominal',
                                                 'value' => $component->pivot->amount,
+                                                'is_fixed' => $component->is_fixed,
                                             ];
                                         }
                                         $set('cost_breakdown', $breakdown);
-
-                                        self::calculateDirectCost($get, $set);
                                     }
+
+                                    self::calculateDirectCost($get, $set);
                                 })
-                                ->columnSpan(2),
+                                ->columnSpan(3),
                             \Filament\Forms\Components\Hidden::make('is_manpower'),
                             Select::make('risk_level')
                                 ->options([
@@ -354,6 +358,7 @@ class ProfitabilityAnalysisForm
                                         ->required()
                                         ->live(onBlur: true)
                                         ->columnSpan(1),
+                                    \Filament\Forms\Components\Hidden::make('is_fixed')->default(true),
 
                                     Repeater::make('details')
                                         ->label('Breakdown Details')
@@ -401,7 +406,7 @@ class ProfitabilityAnalysisForm
                         ])
                         ->columns(6)
                         ->columnSpanFull()
-                        ->itemLabel(fn (array $state): ?string => Item::find($state['item_id'] ?? null)?->name ?? 'New Item')
+                        ->itemLabel(fn (array $state): ?string => filled($state['costable_type'] ?? null) && filled($state['costable_id'] ?? null) ? $state['costable_type']::find($state['costable_id'])?->name : 'New Item')
                         ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                 ])->columnSpanFull(),
         ];
@@ -427,12 +432,13 @@ class ProfitabilityAnalysisForm
 
             // Manpower Costing Logic
             $isManpower = ($item['is_manpower'] ?? false);
-            if (! $isManpower && ! empty($item['item_id'])) {
-                $dbItem = Item::find($item['item_id']);
-                $isManpower = $dbItem?->category?->name === 'Manpower';
-            }
-            if (! $isManpower && ! empty($item['job_position_id'])) {
-                $isManpower = true;
+            if (! $isManpower && ! empty($item['costable_type']) && ! empty($item['costable_id'])) {
+                if ($item['costable_type'] === Item::class) {
+                    $dbItem = Item::find($item['costable_id']);
+                    $isManpower = $dbItem?->category?->name === 'Manpower';
+                } elseif ($item['costable_type'] === JobPosition::class) {
+                    $isManpower = true;
+                }
             }
 
             if ($isManpower) {
@@ -515,12 +521,13 @@ class ProfitabilityAnalysisForm
         $costBreakdown = $get('cost_breakdown') ?? [];
 
         $isManpower = $get('is_manpower');
-        if (! $isManpower && $get('item_id')) {
-            $dbItem = Item::find($get('item_id'));
-            $isManpower = $dbItem?->category?->name === 'Manpower';
-        }
-        if (! $isManpower && $get('job_position_id')) {
-            $isManpower = true;
+        if (! $isManpower && $get('costable_type') && $get('costable_id')) {
+            if ($get('costable_type') === Item::class) {
+                $dbItem = Item::find($get('costable_id'));
+                $isManpower = $dbItem?->category?->name === 'Manpower';
+            } elseif ($get('costable_type') === JobPosition::class) {
+                $isManpower = true;
+            }
         }
 
         if ($isManpower) {

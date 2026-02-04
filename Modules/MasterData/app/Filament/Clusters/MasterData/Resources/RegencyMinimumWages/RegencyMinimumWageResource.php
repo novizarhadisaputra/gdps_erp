@@ -23,6 +23,8 @@ class RegencyMinimumWageResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
+
     public static function form(Schema $schema): Schema
     {
         return RegencyMinimumWageForm::configure($schema);
@@ -44,8 +46,6 @@ class RegencyMinimumWageResource extends Resource
     {
         return [
             'index' => ListRegencyMinimumWages::route('/'),
-            'create' => CreateRegencyMinimumWage::route('/create'),
-            'edit' => EditRegencyMinimumWage::route('/{record}/edit'),
         ];
     }
 }

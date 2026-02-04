@@ -33,12 +33,14 @@ class LeadForm
                         ->preload()
                         ->required()
                         ->createOptionForm(CustomerForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => Customer::create($data)->id),
                     Select::make('work_scheme_id')
                         ->relationship('workScheme', 'name')
                         ->label('Work Scheme')
                         ->required()
                         ->createOptionForm(WorkSchemeForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => WorkScheme::create($data)->id),
                     Select::make('user_id')
                         ->relationship('user', 'name')

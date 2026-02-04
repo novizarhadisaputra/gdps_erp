@@ -23,15 +23,15 @@ class ManpowerCostingService
             ->first()?->amount ?? 0;
 
         $fixedAllowances = collect($allowances)
-            ->filter(fn ($a) => $a['type'] === 'fixed_allowance')
-            ->sum('amount');
-        
+            ->filter(fn ($a) => ($a['type'] ?? '') === 'nominal' && ($a['is_fixed'] ?? true))
+            ->sum(fn ($a) => $a['value'] ?? $a['amount'] ?? 0);
+
         $nonFixedAllowances = collect($allowances)
-            ->filter(fn ($a) => $a['type'] === 'non_fixed_allowance')
-            ->sum('amount');
+            ->filter(fn ($a) => ($a['type'] ?? '') === 'nominal' && ! ($a['is_fixed'] ?? true))
+            ->sum(fn ($a) => $a['value'] ?? $a['amount'] ?? 0);
 
         $upah = $basicSalary + $fixedAllowances;
-        
+
         // BPJS Base is usually Upah, but floored by UMK and capped by specified limits
         $bpjsHealth = $this->calculateBpjsHealth($upah, $umk);
         $bpjsEmployment = $this->calculateBpjsEmployment($upah, $riskLevel, $isLaborIntensive);
@@ -61,8 +61,8 @@ class ManpowerCostingService
     protected function calculateBpjsHealth(float $upah, float $umk): array
     {
         $config = BpjsConfig::where('category', 'Health')->where('is_active', true)->first();
-        
-        if (!$config) {
+
+        if (! $config) {
             return ['employer_total' => 0, 'employee_total' => 0];
         }
 
@@ -91,14 +91,16 @@ class ManpowerCostingService
 
         foreach ($categories as $category) {
             $query = BpjsConfig::where('category', $category)->where('is_active', true);
-            
+
             if ($category === 'JKK') {
                 $query->where('risk_level', $riskLevel);
             }
 
             $config = $query->first();
 
-            if (!$config) continue;
+            if (! $config) {
+                continue;
+            }
 
             $base = $upah;
             if ($config->cap_type === 'nominal' && $base > $config->cap_nominal) {

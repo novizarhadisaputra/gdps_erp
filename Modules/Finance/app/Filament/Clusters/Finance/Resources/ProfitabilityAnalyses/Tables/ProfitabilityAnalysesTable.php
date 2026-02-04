@@ -73,12 +73,10 @@ class ProfitabilityAnalysesTable
                     ]),
             ])
             ->headerActions([
-                CreateAction::make()
-                    ->slideOver(),
+                CreateAction::make(),
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->slideOver()
                     ->modalFooterActions([
                         Action::make('Sign')
                             ->label('Digital Signature')
@@ -161,8 +159,7 @@ class ProfitabilityAnalysesTable
                             ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'rejected']))
                             ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'submitted'),
                     ]),
-                EditAction::make()
-                    ->slideOver(),
+                EditAction::make(),
                 Action::make('generateProject')
                     ->label('Generate Project')
                     ->icon('heroicon-o-plus-circle')

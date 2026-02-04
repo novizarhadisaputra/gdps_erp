@@ -6,8 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\MasterData\Models\Item;
-use Modules\MasterData\Models\JobPosition;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class ProfitabilityAnalysisItem extends Model
 {
@@ -18,8 +17,8 @@ class ProfitabilityAnalysisItem extends Model
      */
     protected $fillable = [
         'profitability_analysis_id',
-        'item_id',
-        'job_position_id',
+        'costable_id',
+        'costable_type',
         'quantity',
         'unit_cost_price',
         'markup_percentage',
@@ -49,13 +48,8 @@ class ProfitabilityAnalysisItem extends Model
         return $this->belongsTo(ProfitabilityAnalysis::class);
     }
 
-    public function item(): BelongsTo
+    public function costable(): MorphTo
     {
-        return $this->belongsTo(Item::class);
-    }
-
-    public function jobPosition(): BelongsTo
-    {
-        return $this->belongsTo(JobPosition::class);
+        return $this->morphTo();
     }
 }

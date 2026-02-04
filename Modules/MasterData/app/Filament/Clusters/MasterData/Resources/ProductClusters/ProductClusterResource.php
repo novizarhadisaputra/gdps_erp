@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Pages\ListProductClusters;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Tables\ProductClustersTable;
@@ -22,7 +21,7 @@ class ProductClusterResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-group';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Project Structure';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 
     public static function form(Schema $schema): Schema
     {

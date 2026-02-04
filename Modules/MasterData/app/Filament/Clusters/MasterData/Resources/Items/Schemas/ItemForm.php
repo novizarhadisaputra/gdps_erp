@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -15,8 +16,6 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ItemCategories\Sch
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
-use Modules\MasterData\Models\ProjectArea;
-use Modules\MasterData\Models\UnitOfMeasure;
 
 class ItemForm
 {
@@ -42,12 +41,12 @@ class ItemForm
                         ->placeholder('Laptop Dell XPS'),
                     Select::make('item_category_id')
                         ->label('Category')
-                        ->options(fn () => ItemCategory::query()->pluck('name', 'id'))
+                        ->relationship('category', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->createOptionForm(ItemCategoryForm::schema())
-                        ->createOptionUsing(fn (array $data) => ItemCategory::create($data)->id)
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->live()
                         ->afterStateUpdated(function ($state, Set $set) {
                             if (! $state) {
@@ -60,12 +59,12 @@ class ItemForm
                         }),
                     Select::make('unit_of_measure_id')
                         ->label('Unit of Measure')
-                        ->options(fn () => UnitOfMeasure::query()->pluck('name', 'id'))
+                        ->relationship('unitOfMeasure', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->createOptionForm(UnitOfMeasureForm::schema())
-                        ->createOptionUsing(fn (array $data) => UnitOfMeasure::create($data)->id),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Textarea::make('description')
                         ->maxLength(65535)
                         ->columnSpanFull(),
@@ -91,7 +90,9 @@ class ItemForm
                 ->schema([
                     Select::make('project_area_id')
                         ->label('Project Area')
-                        ->options(fn () => ProjectArea::pluck('name', 'id'))
+                        ->relationship('projectArea', 'name')
+                        ->createOptionForm(\Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm::schema())
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->required()
                         ->searchable()
                         ->distinct(),

@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ItemCategories\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -24,6 +25,8 @@ class ItemCategoryForm
                 ->schema([
                     Select::make('asset_group_id')
                         ->relationship('assetGroup', 'name')
+                        ->createOptionForm(\Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Schemas\AssetGroupForm::schema())
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->searchable()
                         ->preload()
                         ->label('Asset Group')

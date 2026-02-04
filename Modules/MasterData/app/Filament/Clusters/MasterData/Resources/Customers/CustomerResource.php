@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Pages\ListCustomers;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerInfolist;
@@ -23,7 +22,7 @@ class CustomerResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Business';
+    protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 
     public static function form(Schema $schema): Schema
     {

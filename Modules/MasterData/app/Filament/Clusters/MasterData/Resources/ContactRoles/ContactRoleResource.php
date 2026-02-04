@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles\Schemas\ContactRoleForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles\Tables\ContactRolesTable;
 use Modules\MasterData\Models\ContactRole;
@@ -14,12 +13,12 @@ use Modules\MasterData\Models\ContactRole;
 class ContactRoleResource extends Resource
 {
     protected static ?string $cluster = MasterDataCluster::class;
-    protected static ?string $model = ContactRole::class;
 
+    protected static ?string $model = ContactRole::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Reference Data';
+    protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 
     protected static ?int $navigationSort = 10;
 

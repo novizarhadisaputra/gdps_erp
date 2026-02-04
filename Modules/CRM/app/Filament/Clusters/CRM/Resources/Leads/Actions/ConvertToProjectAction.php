@@ -35,6 +35,7 @@ class ConvertToProjectAction extends Action
                     ->searchable()
                     ->required()
                     ->createOptionForm(ProjectTypeForm::schema())
+                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
                     ->createOptionUsing(fn ($data) => \Modules\MasterData\Models\ProjectType::create($data)->id),
 
                 Select::make('project_area_id')
@@ -60,28 +61,32 @@ class ConvertToProjectAction extends Action
                     ->relationship('paymentTerm', 'name')
                     ->searchable()
                     ->required()
-                    ->createOptionForm(PaymentTermForm::schema()),
+                    ->createOptionForm(PaymentTermForm::schema())
+                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
 
                 Select::make('billing_option_id')
                     ->label('Billing Option')
                     ->relationship('billingOption', 'name')
                     ->searchable()
                     ->required()
-                    ->createOptionForm(BillingOptionForm::schema()),
+                    ->createOptionForm(BillingOptionForm::schema())
+                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
 
                 Select::make('oprep_id')
                     ->label('Oprep (Person in Charge)')
                     ->relationship('oprep', 'name')
                     ->searchable()
                     ->required()
-                    ->createOptionForm(EmployeeForm::schema()),
+                    ->createOptionForm(EmployeeForm::schema())
+                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
 
                 Select::make('ams_id')
                     ->label('AMS (Account Manager)')
                     ->relationship('ams', 'name')
                     ->searchable()
                     ->required()
-                    ->createOptionForm(EmployeeForm::schema()),
+                    ->createOptionForm(EmployeeForm::schema())
+                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
             ])
             ->action(function (array $data, $record) {
                 // $record is the Lead

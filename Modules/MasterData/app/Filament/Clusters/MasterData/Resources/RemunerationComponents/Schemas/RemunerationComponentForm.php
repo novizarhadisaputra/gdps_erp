@@ -12,21 +12,26 @@ class RemunerationComponentForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->components([
-                TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Select::make('category')
-                    ->options([
-                        'allowance' => 'Allowance',
-                        'benefit' => 'Benefit',
-                        'tax' => 'Tax',
-                        'other' => 'Other',
-                    ])
-                    ->required(),
-                Toggle::make('is_fixed')
-                    ->label('Is Fixed Allowance?')
-                    ->default(true),
-            ]);
+            ->components(static::schema());
+    }
+
+    public static function schema(): array
+    {
+        return [
+            TextInput::make('name')
+                ->required()
+                ->maxLength(255),
+            Select::make('category')
+                ->options([
+                    'allowance' => 'Allowance',
+                    'benefit' => 'Benefit',
+                    'tax' => 'Tax',
+                    'other' => 'Other',
+                ])
+                ->required(),
+            Toggle::make('is_fixed')
+                ->label('Is Fixed Allowance?')
+                ->default(true),
+        ];
     }
 }

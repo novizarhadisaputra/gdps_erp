@@ -37,7 +37,8 @@ class GeneralInformationForm
                             ->preload()
                             ->disabled()
                             ->dehydrated()
-                            ->createOptionForm(CustomerForm::schema()),
+                            ->createOptionForm(CustomerForm::schema())
+                            ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
 
                         // Status removed from form as per request
                     ])
@@ -64,7 +65,8 @@ class GeneralInformationForm
                                             ->required()
                                             ->maxLength(255),
                                         Textarea::make('description'),
-                                    ]),
+                                    ])
+                                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                                 TextInput::make('phone')
                                     ->tel()
                                     ->maxLength(255),
@@ -93,6 +95,7 @@ class GeneralInformationForm
                             ->preload()
                             ->helperText('Location of work execution (Project Area).')
                             ->createOptionForm(ProjectAreaForm::schema())
+                            ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
                             ->createOptionUsing(fn (array $data) => \Modules\MasterData\Models\ProjectArea::create($data)->id),
                         Grid::make(3)
                             ->schema([

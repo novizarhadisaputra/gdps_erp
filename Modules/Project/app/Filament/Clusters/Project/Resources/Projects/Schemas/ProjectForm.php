@@ -65,7 +65,8 @@ class ProjectForm
                         ->searchable()
                         ->preload()
                         ->live()
-                        ->createOptionForm(CustomerForm::schema()),
+                        ->createOptionForm(CustomerForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('contract_id')
                         ->relationship('contract', 'contract_number', fn ($query, $get) => $query->where('customer_id', $get('customer_id')))
                         ->label('Contract/SPK')
@@ -85,60 +86,69 @@ class ProjectForm
                         ->searchable()
                         ->preload()
                         ->live()
-                        ->createOptionForm(ProjectAreaForm::schema()),
+                        ->createOptionForm(ProjectAreaForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('work_scheme_id')
                         ->relationship('workScheme', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->live()
-                        ->createOptionForm(WorkSchemeForm::schema()),
+                        ->createOptionForm(WorkSchemeForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('product_cluster_id')
                         ->relationship('productCluster', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->live()
-                        ->createOptionForm(ProductClusterForm::schema()),
+                        ->createOptionForm(ProductClusterForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('tax_id')
                         ->relationship('tax', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->live()
-                        ->createOptionForm(TaxForm::schema()),
+                        ->createOptionForm(TaxForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('payment_term_id')
                         ->relationship('paymentTerm', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->createOptionForm(PaymentTermForm::schema()),
+                        ->createOptionForm(PaymentTermForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('project_type_id')
                         ->relationship('projectType', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->createOptionForm(ProjectTypeForm::schema()),
+                        ->createOptionForm(ProjectTypeForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('billing_option_id')
                         ->relationship('billingOption', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->createOptionForm(BillingOptionForm::schema()),
+                        ->createOptionForm(BillingOptionForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('oprep_id')
                         ->relationship('oprep', 'name')
                         ->label('OPREP')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->createOptionForm(EmployeeForm::schema()),
+                        ->createOptionForm(EmployeeForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('ams_id')
                         ->relationship('ams', 'name')
                         ->label('AMS')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->createOptionForm(EmployeeForm::schema()),
+                        ->createOptionForm(EmployeeForm::schema())
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     DatePicker::make('start_date')
                         ->required(),
                     DatePicker::make('end_date')

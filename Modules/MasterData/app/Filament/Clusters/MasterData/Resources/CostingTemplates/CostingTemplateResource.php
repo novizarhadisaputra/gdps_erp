@@ -18,7 +18,7 @@ class CostingTemplateResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calculator';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Financial Settings';
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 
     protected static ?string $navigationLabel = 'Costing Templates';
 

@@ -2,10 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Pages\ListBankAccounts;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Schemas\BankAccountForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Tables\BankAccountsTable;
@@ -21,7 +21,7 @@ class BankAccountResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Business';
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 
     public static function form(Schema $schema): Schema
     {

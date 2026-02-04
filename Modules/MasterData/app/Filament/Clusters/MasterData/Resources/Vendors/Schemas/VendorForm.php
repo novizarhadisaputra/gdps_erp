@@ -2,11 +2,14 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 
 class VendorForm
 {
@@ -14,7 +17,12 @@ class VendorForm
     {
         return $schema
             ->columns(2)
-            ->components([
+            ->components(static::schema());
+    }
+
+    public static function schema(): array
+    {
+        return [
                 TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -31,11 +39,13 @@ class VendorForm
                     ->relationship('paymentTerm', 'name')
                     ->label('Payment Term')
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->createOptionForm(PaymentTermForm::schema())
+                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
                 Toggle::make('is_active')
                     ->default(true),
                 Textarea::make('address')
                     ->columnSpanFull(),
-            ]);
+        ];
     }
 }

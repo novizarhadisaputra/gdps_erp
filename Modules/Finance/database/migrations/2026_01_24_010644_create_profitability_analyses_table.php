@@ -50,20 +50,6 @@ return new class extends Migration
             $table->index(['year', 'sequence_number']);
         });
 
-        Schema::create('profitability_analysis_items', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->foreignUuid('profitability_analysis_id')->constrained('profitability_analyses')->cascadeOnDelete();
-            $table->foreignUuid('item_id')->constrained('items')->cascadeOnDelete();
-            $table->decimal('quantity', 15, 2)->default(1);
-            $table->decimal('unit_cost_price', 15, 2)->default(0); // "Modal" price
-            $table->decimal('markup_percentage', 5, 2)->default(0);
-            $table->integer('depreciation_months')->nullable(); // Flexible override
-            $table->decimal('total_monthly_cost', 15, 2)->default(0); // (unit_cost_price / depreciation_months) * quantity
-            $table->decimal('total_monthly_sale', 15, 2)->default(0); // total_monthly_cost * (1 + markup/100)
-            $table->integer('duration_months')->default(1);
-            $table->json('cost_breakdown')->nullable();
-            $table->timestamps();
-        });
     }
 
     /**
@@ -71,7 +57,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profitability_analysis_items');
+
         Schema::dropIfExists('profitability_analyses');
     }
 };

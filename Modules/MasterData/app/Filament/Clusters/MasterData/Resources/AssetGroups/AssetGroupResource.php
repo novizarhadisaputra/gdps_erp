@@ -2,13 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Pages\CreateAssetGroup;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Pages\EditAssetGroup;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Pages\ListAssetGroups;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Schemas\AssetGroupForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Tables\AssetGroupsTable;
@@ -24,7 +21,7 @@ class AssetGroupResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-line';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Financial Settings';
+    protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 
     public static function form(Schema $schema): Schema
     {
@@ -35,17 +32,6 @@ class AssetGroupResource extends Resource
     {
         return AssetGroupsTable::configure($table);
     }
-
-    /*
-    public static function getPages(): array
-    {
-        return [
-            'index' => ListAssetGroups::route('/'),
-            'create' => CreateAssetGroup::route('/create'),
-            'edit' => EditAssetGroup::route('/{record}/edit'),
-        ];
-    }
-    */
 
     public static function getPages(): array
     {

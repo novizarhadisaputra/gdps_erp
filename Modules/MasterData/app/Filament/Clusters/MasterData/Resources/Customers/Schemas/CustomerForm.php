@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -85,6 +86,7 @@ class CustomerForm
                         ->searchable()
                         ->preload()
                         ->createOptionForm(ContactRoleForm::schema())
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => ContactRole::create($data)->id),
                 ])
                 ->columns(2)

@@ -20,6 +20,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jacobtims\FilamentLogger\FilamentLoggerPlugin;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 use MWGuerra\FileManager\FileManagerPlugin;
 
 class AdminPanelProvider extends PanelProvider
@@ -31,6 +32,10 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('')
             ->favicon(asset('images/icon.png'))
+            ->brandName(config('app.name'))
+            ->brandLogo(asset('images/logo.png'))
+            ->darkModeBrandLogo(asset('images/logo-white.png'))
+            ->brandLogoHeight('2.5rem')
             ->profile(\App\Filament\Pages\EditProfile::class)
             ->sidebarCollapsibleOnDesktop()
             ->viteTheme('resources/css/filament/admin/theme.css')
@@ -57,6 +62,7 @@ class AdminPanelProvider extends PanelProvider
                     ]),
                 FilamentLoggerPlugin::make(),
                 FileManagerPlugin::make(),
+                FilamentApexChartsPlugin::make(),
             ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

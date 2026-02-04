@@ -12,9 +12,9 @@ class JobPositionSeeder extends Seeder
     public function run(): void
     {
         $components = [
-            ['name' => 'Transport Allowance', 'category' => 'allowance', 'is_fixed' => true],
-            ['name' => 'Meal Allowance', 'category' => 'allowance', 'is_fixed' => true],
-            ['name' => 'Service Allowance', 'category' => 'allowance', 'is_fixed' => false],
+            ['name' => 'Transport Allowance', 'type' => 'fixed_allowance', 'default_amount' => 0],
+            ['name' => 'Meal Allowance', 'type' => 'fixed_allowance', 'default_amount' => 0],
+            ['name' => 'Service Allowance', 'type' => 'non_fixed_allowance', 'default_amount' => 0],
         ];
 
         foreach ($components as $c) {

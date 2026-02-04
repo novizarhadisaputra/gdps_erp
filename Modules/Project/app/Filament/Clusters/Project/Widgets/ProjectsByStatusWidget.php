@@ -2,52 +2,82 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Widgets;
 
-use Filament\Widgets\ChartWidget;
+use App\Services\AnalyticsCacheService;
+use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use Modules\Project\Models\Project;
 
-class ProjectsByStatusWidget extends ChartWidget
+class ProjectsByStatusWidget extends ApexChartWidget
 {
-    protected ?string $heading = 'Projects by Status';
+    protected static ?string $chartId = 'projectsByStatusChart';
+
+    protected static ?string $heading = 'Projects by Status';
+
+    protected static ?int $contentHeight = 300;
 
     protected static ?int $sort = 2;
 
-    protected int|string|array $columnSpan = 'full';
-
-    protected function getData(): array
+    protected function getOptions(): array
     {
-        $data = Project::query()
-            ->selectRaw('status, count(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status')
-            ->toArray();
+        $cache = app(AnalyticsCacheService::class);
 
-        // Ensure all statuses are present even if count is 0
-        $statuses = ['planning', 'active', 'completed', 'on hold', 'cancelled'];
-        $finalData = [];
-        foreach ($statuses as $status) {
-            $finalData[$status] = $data[$status] ?? 0;
-        }
+        $data = $cache->rememberRealtime('project.by_status', function () {
+            $statuses = ['planning', 'active', 'completed', 'on_hold', 'cancelled'];
+            $counts = [];
+            $values = [];
+
+            foreach ($statuses as $status) {
+                $projects = Project::where('status', $status)->get();
+                $counts[] = $projects->count();
+                $values[] = $projects->sum('amount');
+            }
+
+            return [
+                'labels' => ['Planning', 'Active', 'Completed', 'On Hold', 'Cancelled'],
+                'counts' => $counts,
+                'values' => array_map(fn ($v) => round($v / 1000000, 2), $values),
+            ];
+        });
 
         return [
-            'datasets' => [
-                [
-                    'label' => 'Projects',
-                    'data' => array_values($finalData),
-                    'backgroundColor' => [
-                        '#94a3b8', // planning - slate
-                        '#10b981', // active - emerald
-                        '#3b82f6', // completed - blue
-                        '#f59e0b', // on hold - amber
-                        '#ef4444', // cancelled - red
+            'chart' => [
+                'type' => 'pie',
+                'height' => 300,
+            ],
+            'series' => $data['counts'],
+            'labels' => $data['labels'],
+            'colors' => ['#94a3b8', '#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+            'legend' => [
+                'position' => 'bottom',
+                'fontFamily' => 'inherit',
+                'labels' => [
+                    'colors' => '#6b7280',
+                ],
+            ],
+            'plotOptions' => [
+                'pie' => [
+                    'dataLabels' => [
+                        'offset' => -10,
                     ],
                 ],
             ],
-            'labels' => array_map('ucfirst', array_keys($finalData)),
+            'dataLabels' => [
+                'enabled' => true,
+                'formatter' => null,
+                'style' => [
+                    'fontSize' => '14px',
+                    'fontFamily' => 'inherit',
+                    'fontWeight' => 'bold',
+                ],
+                'dropShadow' => [
+                    'enabled' => false,
+                ],
+            ],
+            'tooltip' => [
+                'theme' => 'dark',
+                'y' => [
+                    'formatter' => null,
+                ],
+            ],
         ];
-    }
-
-    protected function getType(): string
-    {
-        return 'bar';
     }
 }

@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Pages\ListProjectTypes;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Tables\ProjectTypesTable;
@@ -22,7 +21,7 @@ class ProjectTypeResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Project Structure';
+    protected static string|\UnitEnum|null $navigationGroup = 'Projects';
 
     public static function form(Schema $schema): Schema
     {
