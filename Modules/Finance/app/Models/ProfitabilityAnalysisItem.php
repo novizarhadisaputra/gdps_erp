@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\JobPosition;
 
 class ProfitabilityAnalysisItem extends Model
 {
@@ -18,6 +19,7 @@ class ProfitabilityAnalysisItem extends Model
     protected $fillable = [
         'profitability_analysis_id',
         'item_id',
+        'job_position_id',
         'quantity',
         'unit_cost_price',
         'markup_percentage',
@@ -50,5 +52,10 @@ class ProfitabilityAnalysisItem extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function jobPosition(): BelongsTo
+    {
+        return $this->belongsTo(JobPosition::class);
     }
 }

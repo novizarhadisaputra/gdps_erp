@@ -12,12 +12,14 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\JobPosition;
 
 class ProfitabilityAnalysisForm
 {
@@ -197,13 +199,13 @@ class ProfitabilityAnalysisForm
                         ->relationship('items')
                         ->schema([
                             Select::make('item_id')
-                                ->label('Item')
+                                ->label('Item (General)')
                                 ->relationship('item', 'name')
-                                ->required()
                                 ->searchable()
                                 ->preload()
                                 ->live()
-                                ->afterStateUpdated(function ($state, Set $set) {
+                                ->hidden(fn (Get $get) => filled($get('job_position_id')))
+                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                     if (! $state) {
                                         return;
                                     }
@@ -212,10 +214,12 @@ class ProfitabilityAnalysisForm
                                         $set('unit_cost_price', $item->price);
                                         $set('unit_of_measure', $item->unitOfMeasure?->name ?? 'Unit');
 
-                                        // Depreciation Logic: Item Specific > Asset Group > Default
+                                        $isManpower = $item->category?->name === 'Manpower';
+                                        $set('is_manpower', $isManpower);
+
+                                        // Depreciation Logic
                                         $depreciation = $item->depreciation_months;
                                         if (empty($depreciation) || $depreciation <= 0) {
-                                            // Check Asset Group via Category
                                             $usefulLifeYears = $item->category?->assetGroup?->useful_life_years;
                                             if ($usefulLifeYears && $usefulLifeYears > 0) {
                                                 $depreciation = $usefulLifeYears * 12;
@@ -223,9 +227,68 @@ class ProfitabilityAnalysisForm
                                         }
 
                                         $set('depreciation_months', $depreciation ?? 1);
+
+                                        if ($isManpower) {
+                                            self::calculateDirectCost($get, $set);
+                                        }
                                     }
                                 })
                                 ->columnSpan(2),
+                            Select::make('job_position_id')
+                                ->label('Job Position (Manpower)')
+                                ->relationship('jobPosition', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->live()
+                                ->hidden(fn (Get $get) => filled($get('item_id')))
+                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                    if (! $state) {
+                                        return;
+                                    }
+                                    $jobPosition = JobPosition::with('remunerationComponents')->find($state);
+                                    if ($jobPosition) {
+                                        $set('unit_cost_price', $jobPosition->basic_salary);
+                                        $set('unit_of_measure', 'Person');
+                                        $set('is_manpower', true);
+                                        $set('risk_level', $jobPosition->risk_level);
+                                        $set('is_labor_intensive', $jobPosition->is_labor_intensive);
+                                        $set('depreciation_months', 1);
+
+                                        // Sync Remuneration Components to cost_breakdown
+                                        $breakdown = [];
+                                        foreach ($jobPosition->remunerationComponents as $component) {
+                                            $breakdown[] = [
+                                                'name' => $component->name,
+                                                'type' => 'nominal',
+                                                'value' => $component->pivot->amount,
+                                            ];
+                                        }
+                                        $set('cost_breakdown', $breakdown);
+
+                                        self::calculateDirectCost($get, $set);
+                                    }
+                                })
+                                ->columnSpan(2),
+                            \Filament\Forms\Components\Hidden::make('is_manpower'),
+                            Select::make('risk_level')
+                                ->options([
+                                    'very_low' => 'Very Low',
+                                    'low' => 'Low',
+                                    'medium' => 'Medium',
+                                    'high' => 'High',
+                                    'very_high' => 'Very High',
+                                ])
+                                ->default('very_low')
+                                ->visible(fn (Get $get) => $get('is_manpower'))
+                                ->live()
+                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                ->columnSpan(1),
+                            \Filament\Forms\Components\Toggle::make('is_labor_intensive')
+                                ->label('Labor Intensive (50% JKK Reduction)')
+                                ->visible(fn (Get $get) => $get('is_manpower'))
+                                ->live()
+                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                ->columnSpan(1),
                             TextInput::make('quantity')
                                 ->numeric()
                                 ->default(1)
@@ -362,31 +425,52 @@ class ProfitabilityAnalysisForm
                 $deprMonths = 1;
             }
 
-            // Calculate Add-ons
-            $addOnTotal = 0;
-            foreach ($costBreakdown as $addon) {
-                $val = (float) ($addon['value'] ?? 0);
-
-                // If details exist, use their sum (though UI should have already updated 'value', we double check/fallback if needed)
-                if (! empty($addon['details'])) {
-                    $val = collect($addon['details'])->sum('value');
-                }
-
-                $type = $addon['type'] ?? 'nominal';
-
-                if ($type === 'percentage') {
-                    // Logic: Base on Unit Cost Price by default
-                    $addOnTotal += $costPrice * ($val / 100);
-                } else {
-                    $addOnTotal += $val;
-                }
+            // Manpower Costing Logic
+            $isManpower = ($item['is_manpower'] ?? false);
+            if (! $isManpower && ! empty($item['item_id'])) {
+                $dbItem = Item::find($item['item_id']);
+                $isManpower = $dbItem?->category?->name === 'Manpower';
+            }
+            if (! $isManpower && ! empty($item['job_position_id'])) {
+                $isManpower = true;
             }
 
-            // Total Monthly Cost = (Base/Depr + Addons) * Qty
-            // Note: Addons are usually "Per Month" costs (like Allowance), unless specified otherwise.
-            // Assuming Addons are recurring monthly costs.
-            $monthlyUnitCost = ($costPrice / $deprMonths) + $addOnTotal;
-            $monthlyCost = $monthlyUnitCost * $qty;
+            if ($isManpower) {
+                $service = app(ManpowerCostingService::class);
+                $result = $service->calculate(
+                    basicSalary: $costPrice,
+                    allowances: $item['cost_breakdown'] ?? [],
+                    projectAreaId: (string) ($get('/project_area_id') ?? $get('project_area_id')),
+                    year: (int) ($get('/year') ?? $get('year') ?? date('Y')),
+                    riskLevel: $item['risk_level'] ?? 'very_low',
+                    isLaborIntensive: $item['is_labor_intensive'] ?? false
+                );
+
+                $monthlyUnitCost = $result['total_direct_cost'];
+                $monthlyCost = $monthlyUnitCost * $qty;
+
+                // Optional: sync back certain calculated fields if needed
+            } else {
+                // Calculate Add-ons (Material/Equipment)
+                $addOnTotal = 0;
+                foreach ($costBreakdown as $addon) {
+                    $val = (float) ($addon['value'] ?? 0);
+                    // ... rest of existing addon logic ...
+                    if (! empty($addon['details'])) {
+                        $val = collect($addon['details'])->sum('value');
+                    }
+                    $type = $addon['type'] ?? 'nominal';
+                    if ($type === 'percentage') {
+                        $addOnTotal += $costPrice * ($val / 100);
+                    } else {
+                        $addOnTotal += $val;
+                    }
+                }
+
+                // Total Monthly Cost = (Base/Depr + Addons) * Qty
+                $monthlyUnitCost = ($costPrice / $deprMonths) + $addOnTotal;
+                $monthlyCost = $monthlyUnitCost * $qty;
+            }
 
             $monthlySale = $monthlyCost * (1 + ($markup / 100));
 
@@ -398,9 +482,9 @@ class ProfitabilityAnalysisForm
         $set('revenue_per_month', $totalRevenue);
 
         // Advanced Financial Tiers
-        $mgmtExpenseRate = (float) ($get('management_expense_rate') ?? 3.0);
-        $interestRate = (float) ($get('interest_rate') ?? 1.5);
-        $taxRate = (float) ($get('tax_rate') ?? 22.0);
+        $mgmtExpenseRate = (float) ($get('/management_expense_rate') ?? $get('management_expense_rate') ?? 3.0);
+        $interestRate = (float) ($get('/interest_rate') ?? $get('interest_rate') ?? 1.5);
+        $taxRate = (float) ($get('/tax_rate') ?? $get('tax_rate') ?? 22.0);
 
         $mgmtExpense = $totalRevenue * ($mgmtExpenseRate / 100);
         $ebitda = ($totalRevenue - $totalDirectCost) - $mgmtExpense;
@@ -429,6 +513,29 @@ class ProfitabilityAnalysisForm
         $costPrice = (float) ($get('unit_cost_price') ?? 0);
         $deprMonths = (float) ($get('depreciation_months') ?? 1);
         $costBreakdown = $get('cost_breakdown') ?? [];
+
+        $isManpower = $get('is_manpower');
+        if (! $isManpower && $get('item_id')) {
+            $dbItem = Item::find($get('item_id'));
+            $isManpower = $dbItem?->category?->name === 'Manpower';
+        }
+        if (! $isManpower && $get('job_position_id')) {
+            $isManpower = true;
+        }
+
+        if ($isManpower) {
+            $service = app(ManpowerCostingService::class);
+            $result = $service->calculate(
+                basicSalary: $costPrice,
+                allowances: $costBreakdown,
+                projectAreaId: (string) ($get('/project_area_id') ?? $get('../../project_area_id')),
+                year: (int) ($get('/year') ?? $get('../../year') ?? date('Y')),
+                riskLevel: $get('risk_level') ?? 'very_low',
+                isLaborIntensive: (bool) $get('is_labor_intensive')
+            );
+
+            return $result['total_direct_cost'] * $qty;
+        }
 
         if ($deprMonths <= 0) {
             $deprMonths = 1;

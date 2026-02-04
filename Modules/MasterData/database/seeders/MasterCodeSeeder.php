@@ -255,6 +255,7 @@ class MasterCodeSeeder extends Seeder
         $categories = [
             ['code' => 'MT', 'name' => 'Material'],
             ['code' => 'EQ', 'name' => 'Equipment'],
+            ['code' => 'MP', 'name' => 'Manpower'],
         ];
         foreach ($categories as $data) {
             \Modules\MasterData\Models\ItemCategory::updateOrCreate(['code' => $data['code']], $data);

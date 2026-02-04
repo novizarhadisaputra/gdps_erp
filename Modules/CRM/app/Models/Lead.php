@@ -144,4 +144,9 @@ class Lead extends Model
     {
         return $this->belongsTo(Employee::class, 'ams_id');
     }
+
+    public function salesPlan(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(SalesPlan::class);
+    }
 }

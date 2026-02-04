@@ -16,6 +16,9 @@ class MasterDataDatabaseSeeder extends Seeder
             ApprovalRuleSeeder::class,
             ContactRoleSeeder::class,
             AssetGroupSeeder::class,
+            BpjsConfigSeeder::class,
+            JobPositionSeeder::class,
+            RegencyMinimumWageSeeder::class,
         ]);
     }
 }
