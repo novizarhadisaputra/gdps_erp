@@ -14,6 +14,8 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
     case Negotiation = 'negotiation';
     case Won = 'won';
     case ClosedLost = 'closed_lost';
+    case Postponed = 'postponed';
+    case Cancelled = 'cancelled';
 
     public function getLabel(): ?string
     {
@@ -24,6 +26,8 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Negotiation => 'Negotiation',
             self::Won => 'Won',
             self::ClosedLost => 'Closed Lost',
+            self::Postponed => 'Postponed',
+            self::Cancelled => 'Cancelled',
         };
     }
 
@@ -36,6 +40,8 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Negotiation => 'warning',
             self::Won => 'success',
             self::ClosedLost => 'danger',
+            self::Postponed => 'warning',
+            self::Cancelled => 'danger',
         };
     }
 
@@ -48,6 +54,8 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Negotiation => 'heroicon-m-scale',
             self::Won => 'heroicon-m-trophy',
             self::ClosedLost => 'heroicon-m-x-circle',
+            self::Postponed => 'heroicon-m-pause-circle',
+            self::Cancelled => 'heroicon-m-no-symbol',
         };
     }
 }

@@ -4,7 +4,9 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\ProjectTypeResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 
 class ListProjectTypes extends ListRecords
 {
@@ -13,7 +15,8 @@ class ListProjectTypes extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->schema(fn (Schema $schema) => ProjectTypeForm::configure($schema)),
         ];
     }
 }

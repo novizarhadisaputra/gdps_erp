@@ -36,6 +36,7 @@ class LeadResource extends Resource
     {
         return $page->generateNavigationItems([
             Pages\EditLead::class,
+            Pages\ManageSalesPlans::class,
             Pages\ManageGeneralInformations::class,
             Pages\ManageProposals::class,
             Pages\ManageProfitabilityAnalyses::class,
@@ -73,6 +74,7 @@ class LeadResource extends Resource
             'list' => Pages\ListLeads::route('/list'),
             'view' => Pages\ViewLead::route('/{record}'),
             'edit' => Pages\EditLead::route('/{record}/edit'),
+            'sales-plans' => Pages\ManageSalesPlans::route('/{record}/sales-plans'),
             'proposals' => Pages\ManageProposals::route('/{record}/proposals'),
             'general-informations' => Pages\ManageGeneralInformations::route('/{record}/general-informations'),
             'profitability-analyses' => Pages\ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),

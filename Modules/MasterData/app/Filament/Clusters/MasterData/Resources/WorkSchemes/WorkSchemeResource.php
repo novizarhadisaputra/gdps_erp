@@ -17,11 +17,11 @@ class WorkSchemeResource extends Resource
 
     protected static ?string $model = WorkScheme::class;
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
+    protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 
     public static function form(Schema $schema): Schema
     {

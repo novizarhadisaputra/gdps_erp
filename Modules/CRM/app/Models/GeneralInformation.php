@@ -51,6 +51,7 @@ class GeneralInformation extends Model implements HasMedia
         'year',
         'rr_submission_id',
         'rr_status',
+        'sales_plan_id',
     ];
 
     protected function casts(): array
@@ -126,5 +127,10 @@ class GeneralInformation extends Model implements HasMedia
     public function generalInformation(): BelongsTo
     {
         return $this->belongsTo(GeneralInformation::class, 'id');
+    }
+
+    public function salesPlan(): BelongsTo
+    {
+        return $this->belongsTo(SalesPlan::class);
     }
 }

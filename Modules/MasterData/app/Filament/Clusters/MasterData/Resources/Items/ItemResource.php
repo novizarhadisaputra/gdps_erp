@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Items;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Pages\ListItems;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Tables\ItemsTable;
@@ -22,7 +21,7 @@ class ItemResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Product & Inventory';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 
     public static function form(Schema $schema): Schema
     {

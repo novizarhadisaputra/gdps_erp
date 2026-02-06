@@ -11,12 +11,14 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\ContractResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
@@ -149,7 +151,7 @@ class ProposalsTable
                                 }
 
                                 $required = $service->getRequiredApprovers($record);
-                                
+
                                 $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                                 if (! $matchingRule) {
@@ -162,7 +164,7 @@ class ProposalsTable
                                     return;
                                 }
 
-                                if ($record->hasSignatureFrom($userRole)) {
+                                if ($record->hasSignatureFrom(auth()->user()->roles->first()?->name)) {
                                     Notification::make()
                                         ->title('Sudah Ditandatangani')
                                         ->body('Anda sudah menandatangani dokumen ini.')
@@ -241,12 +243,13 @@ class ProposalsTable
                                     return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$gi->customer->name}.pdf");
                                 }),
                         ])
-                        ->label('Export')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->color('gray')
-                        ->button(),
+                            ->label('Export')
+                            ->icon('heroicon-o-arrow-down-tray')
+                            ->color('gray')
+                            ->button(),
                     ]),
-                EditAction::make(),
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => ProposalForm::configure($schema)),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

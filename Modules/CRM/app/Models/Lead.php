@@ -45,6 +45,7 @@ class Lead extends Model
         'customer_id',
         'work_scheme_id',
         'status',
+        'confidence_level',
         'estimated_amount',
         'probability',
         'expected_closing_date',
@@ -55,6 +56,7 @@ class Lead extends Model
 
     protected $casts = [
         'status' => LeadStatus::class,
+        'confidence_level' => 'string',
         'estimated_amount' => 'decimal:2',
         'probability' => 'integer',
         'expected_closing_date' => 'date',

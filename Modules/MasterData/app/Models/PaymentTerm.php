@@ -24,6 +24,7 @@ class PaymentTerm extends Model
         'unit_id',
         'code',
         'name',
+        'days',
         'is_active',
     ];
 

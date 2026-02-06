@@ -218,10 +218,10 @@ class MasterCodeSeeder extends Seeder
         }
         // Payment Terms
         $paymentTerms = [
-            ['code' => 'TOP<30', 'name' => '<30 Hari Kalender'],
-            ['code' => 'TOP30', 'name' => '30 Hari Kalender'],
-            ['code' => 'TOP60', 'name' => '60 Hari Kalender'],
-            ['code' => 'TOP90', 'name' => '90 Hari Kalender'],
+            ['code' => 'TOP<30', 'name' => '<30 Hari Kalender', 'days' => 15],
+            ['code' => 'TOP30', 'name' => '30 Hari Kalender', 'days' => 30],
+            ['code' => 'TOP60', 'name' => '60 Hari Kalender', 'days' => 60],
+            ['code' => 'TOP90', 'name' => '90 Hari Kalender', 'days' => 90],
         ];
         foreach ($paymentTerms as $data) {
             \Modules\MasterData\Models\PaymentTerm::updateOrCreate(['code' => $data['code']], $data);

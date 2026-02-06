@@ -4,7 +4,9 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\ProjectAreaResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 
 class ListProjectAreas extends ListRecords
 {
@@ -13,7 +15,8 @@ class ListProjectAreas extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->schema(fn (Schema $schema) => ProjectAreaForm::configure($schema)),
         ];
     }
 }

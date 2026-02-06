@@ -11,9 +11,11 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas\ContractForm;
 use Modules\CRM\Models\Contract;
 use Modules\MasterData\Services\SignatureService;
 
@@ -202,7 +204,8 @@ class ContractsTable
                             ->action(fn (Contract $record) => $record->update(['status' => ContractStatus::Expired]))
                             ->visible(fn (Contract $record) => $record->status === ContractStatus::Active),
                     ]),
-                EditAction::make(),
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => ContractForm::configure($schema)),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

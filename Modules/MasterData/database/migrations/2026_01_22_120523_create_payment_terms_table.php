@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
             $table->string('name');
+            $table->integer('days')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

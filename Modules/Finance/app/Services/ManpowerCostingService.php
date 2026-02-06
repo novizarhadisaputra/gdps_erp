@@ -16,7 +16,10 @@ class ManpowerCostingService
         string $projectAreaId,
         int $year,
         string $riskLevel = 'very_low',
-        bool $isLaborIntensive = false
+        bool $isLaborIntensive = false,
+        string $employeeType = 'ppu', // ppu or pbpu
+        bool $billThrMonthly = true,
+        bool $billCompensationMonthly = true
     ): array {
         $umk = RegencyMinimumWage::where('project_area_id', $projectAreaId)
             ->where('year', $year)
@@ -33,13 +36,16 @@ class ManpowerCostingService
         $upah = $basicSalary + $fixedAllowances;
 
         // BPJS Base is usually Upah, but floored by UMK and capped by specified limits
-        $bpjsHealth = $this->calculateBpjsHealth($upah, $umk);
-        $bpjsEmployment = $this->calculateBpjsEmployment($upah, $riskLevel, $isLaborIntensive);
+        $bpjsHealth = $this->calculateBpjsHealth($upah, $umk, $employeeType);
+        $bpjsEmployment = $this->calculateBpjsEmployment($upah, $riskLevel, $isLaborIntensive, $employeeType);
 
-        $thr = $upah / 12;
-        $compensation = $upah / 12;
+        $thr = $billThrMonthly ? ($upah / 12) : 0;
+        $compensation = $billCompensationMonthly ? ($upah / 12) : 0;
 
-        $totalDirectCost = $upah + $nonFixedAllowances + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $thr + $compensation;
+        // PPH21 Calculation (Simplified for now)
+        $pph21 = $this->calculatePph21($upah + $nonFixedAllowances + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total']);
+
+        $totalDirectCost = $upah + $nonFixedAllowances + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $thr + $compensation + $pph21['total'];
 
         return [
             'umk' => $umk,
@@ -50,6 +56,7 @@ class ManpowerCostingService
             ],
             'bpjs_health' => $bpjsHealth,
             'bpjs_employment' => $bpjsEmployment,
+            'pph21' => $pph21,
             'accruals' => [
                 'thr' => $thr,
                 'compensation' => $compensation,
@@ -58,8 +65,16 @@ class ManpowerCostingService
         ];
     }
 
-    protected function calculateBpjsHealth(float $upah, float $umk): array
+    protected function calculateBpjsHealth(float $upah, float $umk, string $employeeType = 'ppu'): array
     {
+        if ($employeeType === 'pbpu') {
+            return [
+                'employer_total' => 150000, // Fixed for Class 1 as example
+                'employee_total' => 0,
+                'base' => 150000,
+            ];
+        }
+
         $config = BpjsConfig::where('category', 'Health')->where('is_active', true)->first();
 
         if (! $config) {
@@ -82,8 +97,23 @@ class ManpowerCostingService
         ];
     }
 
-    protected function calculateBpjsEmployment(float $upah, string $riskLevel, bool $isLaborIntensive): array
+    protected function calculateBpjsEmployment(float $upah, string $riskLevel, bool $isLaborIntensive, string $employeeType = 'ppu'): array
     {
+        if ($employeeType === 'pbpu') {
+            // PBPU rates are simpler, often a flat rate or fixed % of income
+            // For now, let's just use a simple %
+            $incomeFlat = $upah;
+
+            return [
+                'details' => [
+                    'jkk' => ['employer' => $incomeFlat * 0.01, 'employee' => 0, 'base' => $incomeFlat],
+                    'jkm' => ['employer' => 6800, 'employee' => 0, 'base' => 6800],
+                ],
+                'employer_total' => ($incomeFlat * 0.01) + 6800,
+                'employee_total' => 0,
+            ];
+        }
+
         $categories = ['JKK', 'JKM', 'JHT', 'JP'];
         $details = [];
         $employerTotal = 0;
@@ -129,6 +159,21 @@ class ManpowerCostingService
             'details' => $details,
             'employer_total' => $employerTotal,
             'employee_total' => $employeeTotal,
+        ];
+    }
+
+    protected function calculatePph21(float $grossIncome): array
+    {
+        // Very simplified PPH21 logic for demonstration
+        // 5% rate for anything above 5M/month after relief
+        $relief = 4500000; // PTKP monthly approx
+        $taxable = max(0, $grossIncome - $relief);
+        $tax = $taxable * 0.05;
+
+        return [
+            'total' => $tax,
+            'rate' => 0.05,
+            'taxable_income' => $taxable,
         ];
     }
 }

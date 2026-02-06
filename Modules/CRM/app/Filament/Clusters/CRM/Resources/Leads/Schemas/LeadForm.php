@@ -68,6 +68,14 @@ class LeadForm
                         ->native(false)
                         ->disabled()
                         ->dehydrated(),
+                    Select::make('confidence_level')
+                        ->options([
+                            'optimistic' => 'Optimistic',
+                            'moderate' => 'Moderate',
+                            'pessimistic' => 'Pessimistic',
+                        ])
+                        ->placeholder('Select confidence level')
+                        ->native(false),
                     TextInput::make('estimated_amount')
                         ->numeric()
                         ->prefix('IDR')

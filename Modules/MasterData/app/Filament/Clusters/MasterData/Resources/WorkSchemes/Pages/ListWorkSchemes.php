@@ -4,6 +4,8 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\WorkSchemeResource;
 
 class ListWorkSchemes extends ListRecords
@@ -13,7 +15,8 @@ class ListWorkSchemes extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->schema(fn (Schema $schema) => WorkSchemeForm::configure($schema)),
         ];
     }
 }

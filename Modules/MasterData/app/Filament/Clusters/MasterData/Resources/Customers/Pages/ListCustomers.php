@@ -4,7 +4,9 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Pa
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\CustomerResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 
 class ListCustomers extends ListRecords
 {
@@ -13,7 +15,8 @@ class ListCustomers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->schema(fn (Schema $schema) => CustomerForm::configure($schema)),
         ];
     }
 }

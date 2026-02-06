@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure\Pages\ListUnitsOfMeasure;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure\Tables\UnitsOfMeasureTable;
@@ -22,7 +21,7 @@ class UnitOfMeasureResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Product & Inventory';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 
     public static function form(Schema $schema): Schema
     {

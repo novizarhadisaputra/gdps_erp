@@ -4,7 +4,9 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\PaymentTermResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 
 class ListPaymentTerms extends ListRecords
 {
@@ -13,7 +15,8 @@ class ListPaymentTerms extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->schema(fn (Schema $schema) => PaymentTermForm::configure($schema)),
         ];
     }
 }

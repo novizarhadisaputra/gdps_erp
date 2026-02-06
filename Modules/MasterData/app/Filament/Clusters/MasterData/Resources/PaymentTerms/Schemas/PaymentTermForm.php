@@ -26,6 +26,11 @@ class PaymentTermForm
                 ->required()
                 ->maxLength(255)
                 ->placeholder('Net 30 Days'),
+            TextInput::make('days')
+                ->numeric()
+                ->required()
+                ->prefix('Days')
+                ->placeholder('30'),
             Toggle::make('is_active')
                 ->default(true)
                 ->required(),

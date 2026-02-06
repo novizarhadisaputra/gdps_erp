@@ -65,6 +65,8 @@ class LeadBoard extends BoardResourcePage
                 Column::make('negotiation')->label('Negotiation')->color('warning'),
                 Column::make('won')->label('Won')->color('success'),
                 Column::make('closed_lost')->label('Closed Lost')->color('danger'),
+                Column::make('cancelled')->label('Cancelled')->color('danger'),
+                Column::make('postponed')->label('Postponed')->color('warning'),
             ])
             ->cardActions([
                 ViewAction::make()->url(fn (Lead $record) => LeadResource::getUrl('view', ['record' => $record])),
@@ -83,20 +85,20 @@ class LeadBoard extends BoardResourcePage
 
         // Validation Logic
         $isValid = match ($targetColumnId) {
-            'approach' => $record->generalInformations()->exists(),
-            'proposal' => $record->proposals()->exists(),
-            'negotiation' => $record->profitabilityAnalyses()->exists(),
+            'approach' => true, // Initial approach can be done
+            'proposal' => $record->profitabilityAnalyses()->exists() && $record->generalInformations()->exists(),
+            'negotiation' => $record->proposals()->exists(),
             'won' => $record->contracts()->where('status', \Modules\CRM\Enums\ContractStatus::Active)->exists(),
+            'closed_lost', 'cancelled', 'postponed' => true, // Can always move to terminal/pause states
             default => true,
         };
 
         if (! $isValid) {
             $message = match ($targetColumnId) {
-                'approach' => 'Please create General Information first.',
-                'proposal' => 'Please create a Proposal document first.',
-                'negotiation' => 'Please create a Profitability Analysis first.',
+                'proposal' => 'Moving to Proposal requires both General Information and Profitability Analysis (PA).',
+                'negotiation' => 'Please create a Proposal document first.',
                 'won' => 'Please create and activate a Contract first.',
-                default => 'Invalid move.',
+                default => 'Some requirements are missing for this stage.',
             };
 
             \Filament\Notifications\Notification::make()

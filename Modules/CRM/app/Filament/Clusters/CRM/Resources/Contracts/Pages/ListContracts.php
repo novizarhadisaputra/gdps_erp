@@ -4,7 +4,9 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Pages;
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\ContractResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas\ContractForm;
 
 class ListContracts extends ListRecords
 {
@@ -13,7 +15,8 @@ class ListContracts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // CreateAction::make(),
+            CreateAction::make()
+                ->schema(fn (Schema $schema) => ContractForm::configure($schema)),
         ];
     }
 }

@@ -5,9 +5,11 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 
 class ProjectTypesTable
 {
@@ -33,7 +35,8 @@ class ProjectTypesTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => ProjectTypeForm::configure($schema)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

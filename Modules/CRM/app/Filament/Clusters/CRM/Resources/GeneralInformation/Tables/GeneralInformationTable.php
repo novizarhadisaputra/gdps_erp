@@ -10,8 +10,10 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
@@ -109,7 +111,6 @@ class GeneralInformationTable
                                     return;
                                 }
 
-                                
                                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                                 Notification::make()
@@ -146,7 +147,8 @@ class GeneralInformationTable
                             })
                             ->visible(fn (GeneralInformation $record) => $record->status === 'approved' && $record->profitabilityAnalyses()->doesntExist()),
                     ]),
-                EditAction::make(),
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => GeneralInformationForm::configure($schema)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

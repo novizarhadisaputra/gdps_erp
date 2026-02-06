@@ -5,8 +5,10 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Ta
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 
 class CustomersTable
 {
@@ -46,7 +48,8 @@ class CustomersTable
                 //
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => CustomerForm::configure($schema)),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

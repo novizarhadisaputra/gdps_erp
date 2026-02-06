@@ -4,7 +4,9 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptio
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptions\BillingOptionResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptions\Schemas\BillingOptionForm;
 
 class ListBillingOptions extends ListRecords
 {
@@ -13,7 +15,8 @@ class ListBillingOptions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->schema(fn (Schema $schema) => BillingOptionForm::configure($schema)),
         ];
     }
 }

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('estimated_amount', 15, 2)->nullable();
             $table->integer('probability')->nullable(); // 0-100
             $table->date('expected_closing_date')->nullable();
+            $table->string('confidence_level')->nullable(); // optimistic, moderate, pessimistic
             $table->flowforgePositionColumn('position');
             $table->text('description')->nullable();
 
