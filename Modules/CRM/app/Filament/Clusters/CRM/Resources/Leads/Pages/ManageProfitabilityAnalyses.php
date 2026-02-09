@@ -3,14 +3,24 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Services\SignatureService;
 
 class ManageProfitabilityAnalyses extends ManageRelatedRecords
 {
@@ -41,27 +51,25 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
         ]);
     }
 
-
-
     public function table(Table $table): Table
     {
         return $table
             ->recordTitleAttribute('document_number')
             ->columns([
-                Tables\Columns\TextColumn::make('document_number'),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('document_number'),
+                TextColumn::make('status')
                     ->badge(),
-                Tables\Columns\TextColumn::make('margin_percentage')
+                TextColumn::make('margin_percentage')
                     ->suffix('%')
                     ->numeric(2),
-                Tables\Columns\TextColumn::make('net_profit')
+                TextColumn::make('net_profit')
                     ->money('IDR'),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make()
+                CreateAction::make()
                     ->schema(fn (Schema $schema) => ProfitabilityAnalysisForm::configure($schema))
                     ->disabled(fn (ManageProfitabilityAnalyses $livewire) => ! $livewire->getOwnerRecord()->generalInformations()->where('status', 'approved')->exists())
                     ->tooltip(fn (ManageProfitabilityAnalyses $livewire) => ! $livewire->getOwnerRecord()->generalInformations()->where('status', 'approved')->exists() ? 'Requires Approved Risk Register (General Information)' : null)
@@ -85,25 +93,25 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
                     }),
             ])
             ->recordActions([
-                 Actions\ViewAction::make()
-                    ->schema(fn (Schema $schema) => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist::configure($schema))
+                ViewAction::make()
+                    ->schema(fn (Schema $schema) => ProfitabilityAnalysisInfolist::configure($schema))
                     ->modalFooterActions([
-                        Actions\Action::make('Sign')
+                        Action::make('Sign')
                             ->label('Digital Signature')
                             ->color('primary')
                             ->icon('heroicon-o-pencil-square')
                             ->schema([
-                                \Filament\Forms\Components\TextInput::make('pin')
+                                TextInput::make('pin')
                                     ->label('Signature PIN')
                                     ->password()
                                     ->required()
                                     ->helperText('Masukkan PIN tanda tangan digital Anda.'),
                             ])
-                            ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record, array $data) {
-                                $service = app(\Modules\MasterData\Services\SignatureService::class);
+                            ->action(function (ProfitabilityAnalysis $record, array $data) {
+                                $service = app(SignatureService::class);
 
                                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('PIN Salah')
                                         ->danger()
                                         ->send();
@@ -115,7 +123,7 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
                                 $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                                 if (! $matchingRule) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Akses Ditolak')
                                         ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
                                         ->warning()
@@ -125,7 +133,7 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
                                 }
 
                                 if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Sudah Ditandatangani')
                                         ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
                                         ->warning()
@@ -148,14 +156,14 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
                                     $record->update(['status' => 'approved']);
                                 }
                             })
-                            ->visible(fn (\Modules\Finance\Models\ProfitabilityAnalysis $record) => $record->status !== 'approved'),
+                            ->visible(fn (ProfitabilityAnalysis $record) => $record->status !== 'approved'),
                     ]),
-                Actions\EditAction::make()
-                     ->schema(fn (Schema $schema) => ProfitabilityAnalysisForm::configure($schema)),
-                Actions\DeleteAction::make(),
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => ProfitabilityAnalysisForm::configure($schema)),
+                DeleteAction::make(),
             ])
             ->groupedBulkActions([
-                Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ]);
     }
 }

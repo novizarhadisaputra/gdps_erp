@@ -6,6 +6,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Enums\RemunerationCategory;
 
 class RemunerationComponentForm
 {
@@ -22,12 +23,7 @@ class RemunerationComponentForm
                 ->required()
                 ->maxLength(255),
             Select::make('category')
-                ->options([
-                    'allowance' => 'Allowance',
-                    'benefit' => 'Benefit',
-                    'tax' => 'Tax',
-                    'other' => 'Other',
-                ])
+                ->options(RemunerationCategory::class)
                 ->required(),
             Toggle::make('is_fixed')
                 ->label('Is Fixed Allowance?')

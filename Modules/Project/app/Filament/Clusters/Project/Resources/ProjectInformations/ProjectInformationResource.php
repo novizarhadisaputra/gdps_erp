@@ -2,9 +2,13 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations;
 
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\Project\Filament\Clusters\Project\ProjectCluster;
 use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Pages\ListProjectInformations;
 use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Schemas\ProjectInformationForm;
 use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Tables\ProjectInformationTable;
@@ -12,7 +16,7 @@ use Modules\Project\Models\ProjectInformation;
 
 class ProjectInformationResource extends Resource
 {
-    protected static ?string $cluster = \Modules\Project\Filament\Clusters\Project\ProjectCluster::class;
+    protected static ?string $cluster = ProjectCluster::class;
 
     protected static ?string $model = ProjectInformation::class;
 
@@ -38,16 +42,16 @@ class ProjectInformationResource extends Resource
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('Signatures')
+                Section::make('Signatures')
                     ->schema([
-                        \Filament\Infolists\Components\RepeatableEntry::make('signatures')
+                        RepeatableEntry::make('signatures')
                             ->label('Digital Signatures')
                             ->schema([
-                                \Filament\Infolists\Components\TextEntry::make('user_name')->label('Signed By'),
-                                \Filament\Infolists\Components\TextEntry::make('user_role')->label('Role')->badge(),
-                                \Filament\Infolists\Components\TextEntry::make('type')->label('Type'),
-                                \Filament\Infolists\Components\TextEntry::make('signed_at')->dateTime(),
-                                \Filament\Infolists\Components\TextEntry::make('qr_code')
+                                TextEntry::make('user_name')->label('Signed By'),
+                                TextEntry::make('user_role')->label('Role')->badge(),
+                                TextEntry::make('type')->label('Type'),
+                                TextEntry::make('signed_at')->dateTime(),
+                                TextEntry::make('qr_code')
                                     ->label('QR Verification')
                                     ->html()
                                     ->extraAttributes(['class' => 'w-32 h-32']),

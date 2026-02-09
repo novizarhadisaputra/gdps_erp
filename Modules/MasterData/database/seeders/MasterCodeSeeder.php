@@ -11,6 +11,46 @@ class MasterCodeSeeder extends Seeder
      */
     public function run(): void
     {
+        // Revenue Segments
+        $revenueSegments = [
+            ['code' => 'GOV', 'name' => 'Government'],
+            ['code' => 'BUMN', 'name' => 'BUMN'],
+            ['code' => 'PRIV', 'name' => 'Private'],
+        ];
+        foreach ($revenueSegments as $data) {
+            \Modules\MasterData\Models\RevenueSegment::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Service Lines
+        $serviceLines = [
+            ['code' => 'FM', 'name' => 'Facility Management'],
+            ['code' => 'GS', 'name' => 'General Services'],
+            ['code' => 'IT', 'name' => 'Information Technology'],
+        ];
+        foreach ($serviceLines as $data) {
+            \Modules\MasterData\Models\ServiceLine::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Industrial Sectors
+        $industrialSectors = [
+            ['code' => 'MFG', 'name' => 'Manufacturing'],
+            ['code' => 'FIN', 'name' => 'Finance'],
+            ['code' => 'HC', 'name' => 'Healthcare'],
+        ];
+        foreach ($industrialSectors as $data) {
+            \Modules\MasterData\Models\IndustrialSector::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Skill Categories
+        $skillCategories = [
+            ['code' => 'LOW', 'name' => 'Low Skill'],
+            ['code' => 'MED', 'name' => 'Medium Skill'],
+            ['code' => 'HIGH', 'name' => 'High Skill'],
+        ];
+        foreach ($skillCategories as $data) {
+            \Modules\MasterData\Models\SkillCategory::updateOrCreate(['code' => $data['code']], $data);
+        }
+
         // Work Schemes
         $workSchemes = [
             ['code' => '01', 'name' => 'TAD/Headcount'],

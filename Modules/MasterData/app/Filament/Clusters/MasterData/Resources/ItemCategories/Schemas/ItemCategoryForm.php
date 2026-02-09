@@ -8,6 +8,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Schemas\AssetGroupForm;
 use Modules\MasterData\Models\ItemCategory;
 
 class ItemCategoryForm
@@ -25,7 +26,7 @@ class ItemCategoryForm
                 ->schema([
                     Select::make('asset_group_id')
                         ->relationship('assetGroup', 'name')
-                        ->createOptionForm(\Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\Schemas\AssetGroupForm::schema())
+                        ->createOptionForm(AssetGroupForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->searchable()
                         ->preload()

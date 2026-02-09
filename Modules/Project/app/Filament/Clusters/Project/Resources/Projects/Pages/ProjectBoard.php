@@ -10,6 +10,7 @@ use Filament\Actions\ViewAction;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
+use Illuminate\Database\Eloquent\Builder;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
 use Modules\Project\Models\Project;
@@ -37,7 +38,7 @@ class ProjectBoard extends BoardResourcePage
         ];
     }
 
-    public function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public function getEloquentQuery(): Builder
     {
         return static::getResource()::getEloquentQuery();
     }

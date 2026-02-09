@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -100,7 +101,7 @@ class ProjectInformationForm
                                                 ->preload()
                                                 ->options(fn () => Item::where('item_category_id', $category->id)->pluck('name', 'id'))
                                                 ->createOptionForm(ItemForm::schema())
-                                                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                                                ->createOptionAction(fn (Action $action) => $action->slideOver())
                                                 ->createOptionUsing(function (array $data) use ($category): int {
                                                     $data['item_category_id'] = $category->id;
 

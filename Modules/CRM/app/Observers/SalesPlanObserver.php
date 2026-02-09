@@ -8,11 +8,53 @@ use Modules\CRM\Models\SalesPlanMonthly;
 class SalesPlanObserver
 {
     /**
+     * Handle the SalesPlan "saving" event.
+     */
+    public function saving(SalesPlan $salesPlan): void
+    {
+        if (empty($salesPlan->revenue_distribution_planning) && $salesPlan->start_date && $salesPlan->end_date && $salesPlan->estimated_value > 0) {
+            $this->generateDefaultDistribution($salesPlan);
+        }
+    }
+
+    /**
      * Handle the SalesPlan "saved" event.
      */
     public function saved(SalesPlan $salesPlan): void
     {
         $this->syncMonthlyBreakdowns($salesPlan);
+    }
+
+    protected function generateDefaultDistribution(SalesPlan $salesPlan): void
+    {
+        $start = \Carbon\Carbon::parse($salesPlan->start_date)->startOfMonth();
+        $end = \Carbon\Carbon::parse($salesPlan->end_date)->startOfMonth();
+
+        $months = [];
+        $current = $start->copy();
+
+        $count = 0;
+        while ($current <= $end) {
+            $count++;
+            $current->addMonth();
+        }
+
+        if ($count === 0) {
+            return;
+        }
+
+        $average = $salesPlan->estimated_value / $count;
+
+        $current = $start->copy();
+        for ($i = 0; $i < $count; $i++) {
+            $months[] = [
+                'month' => $current->format('F Y'),
+                'amount' => round($average, 2),
+            ];
+            $current->addMonth();
+        }
+
+        $salesPlan->revenue_distribution_planning = $months;
     }
 
     /**

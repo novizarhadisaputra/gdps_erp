@@ -3,11 +3,13 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\SalesPlanForm;
@@ -45,14 +47,14 @@ class ManageSalesPlans extends ManageRelatedRecords
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('revenueSegment.name')
+                TextColumn::make('revenueSegment.name')
                     ->label('Segment'),
-                Tables\Columns\TextColumn::make('industrialSector.name')
+                TextColumn::make('industrialSector.name')
                     ->label('Sector'),
-                Tables\Columns\TextColumn::make('estimated_value')
+                TextColumn::make('estimated_value')
                     ->money('IDR')
                     ->label('Value'),
-                Tables\Columns\TextColumn::make('confidence_level')
+                TextColumn::make('confidence_level')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'optimistic' => 'success',
@@ -60,25 +62,36 @@ class ManageSalesPlans extends ManageRelatedRecords
                         'pessimistic' => 'danger',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('start_date')
+                TextColumn::make('start_date')
                     ->date()
                     ->label('Start'),
-                Tables\Columns\TextColumn::make('end_date')
+                TextColumn::make('end_date')
                     ->date()
                     ->label('End'),
             ])
             ->headerActions([
-                Actions\CreateAction::make()
+                CreateAction::make()
                     ->schema(fn (Schema $schema) => SalesPlanForm::configure($schema))
                     ->visible(fn () => $this->getOwnerRecord()->salesPlan()->doesntExist())
-                    ->fillForm(fn () => [
-                        'estimated_value' => $this->getOwnerRecord()->estimated_amount,
-                    ]),
+                    ->fillForm(function () {
+                        $record = $this->getOwnerRecord();
+
+                        return [
+                            'estimated_value' => $record->estimated_amount,
+                            'confidence_level' => $record->confidence_level,
+                            'revenue_segment_id' => $record->revenue_segment_id,
+                            'product_cluster_id' => $record->product_cluster_id,
+                            'project_type_id' => $record->project_type_id,
+                            'service_line_id' => $record->service_line_id,
+                            'industrial_sector_id' => $record->industrial_sector_id,
+                            'project_area_id' => $record->project_area_id,
+                        ];
+                    }),
             ])
             ->recordActions([
-                Actions\EditAction::make()
+                EditAction::make()
                     ->schema(fn (Schema $schema) => SalesPlanForm::configure($schema)),
-                Actions\DeleteAction::make(),
+                DeleteAction::make(),
             ]);
     }
 }

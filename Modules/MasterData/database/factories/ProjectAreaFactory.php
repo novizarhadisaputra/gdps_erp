@@ -18,7 +18,7 @@ class ProjectAreaFactory extends Factory
     {
         return [
             'code' => $this->faker->unique()->bothify('AREA-####'),
-            'name' => $this->faker->city(),
+            'name' => $this->faker->unique()->city(),
             'is_active' => true,
         ];
     }

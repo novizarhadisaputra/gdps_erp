@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Tables;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -211,7 +212,7 @@ class ProposalsTable
                             ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Rejected]))
                             ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
 
-                        \Filament\Actions\ActionGroup::make([
+                        ActionGroup::make([
                             Action::make('export_proposal')
                                 ->label('Export Proposal')
                                 ->icon('heroicon-o-document-text')

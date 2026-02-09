@@ -6,7 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
-use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 
 class RegencyMinimumWageForm
 {
@@ -22,7 +22,7 @@ class RegencyMinimumWageForm
             Select::make('project_area_id')
                 ->label('Project Area')
                 ->relationship('projectArea', 'name')
-                ->createOptionForm(\Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm::schema())
+                ->createOptionForm(ProjectAreaForm::schema())
                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                 ->required()
                 ->searchable()

@@ -7,9 +7,12 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
+use Illuminate\Database\Eloquent\Builder;
+use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Models\Lead;
@@ -36,7 +39,7 @@ class LeadBoard extends BoardResourcePage
         ];
     }
 
-    public function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public function getEloquentQuery(): Builder
     {
         return static::getResource()::getEloquentQuery();
     }
@@ -70,6 +73,11 @@ class LeadBoard extends BoardResourcePage
             ])
             ->cardActions([
                 ViewAction::make()->url(fn (Lead $record) => LeadResource::getUrl('view', ['record' => $record])),
+                Action::make('salesPlan')
+                    ->label('Setup Sales Plan')
+                    ->icon('heroicon-o-presentation-chart-line')
+                    ->color('info')
+                    ->url(fn (Lead $record) => LeadResource::getUrl('sales-plans', ['record' => $record])),
                 EditAction::make()->url(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make()->model(Lead::class),
             ]);
@@ -88,7 +96,7 @@ class LeadBoard extends BoardResourcePage
             'approach' => true, // Initial approach can be done
             'proposal' => $record->profitabilityAnalyses()->exists() && $record->generalInformations()->exists(),
             'negotiation' => $record->proposals()->exists(),
-            'won' => $record->contracts()->where('status', \Modules\CRM\Enums\ContractStatus::Active)->exists(),
+            'won' => $record->contracts()->where('status', ContractStatus::Active)->exists(),
             'closed_lost', 'cancelled', 'postponed' => true, // Can always move to terminal/pause states
             default => true,
         };
@@ -101,7 +109,7 @@ class LeadBoard extends BoardResourcePage
                 default => 'Some requirements are missing for this stage.',
             };
 
-            \Filament\Notifications\Notification::make()
+            Notification::make()
                 ->title('Validation Failed')
                 ->body($message)
                 ->danger()

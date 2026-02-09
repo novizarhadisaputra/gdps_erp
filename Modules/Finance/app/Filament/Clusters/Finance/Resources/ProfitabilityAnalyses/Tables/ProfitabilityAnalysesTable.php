@@ -16,6 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Models\Proposal;
 use Modules\Finance\Classes\ProjectGenerationService;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Services\SignatureService;
@@ -216,7 +217,7 @@ class ProfitabilityAnalysesTable
                             ->required(),
                     ])
                     ->action(function (ProfitabilityAnalysis $record, array $data) {
-                        $proposal = \Modules\CRM\Models\Proposal::create([
+                        $proposal = Proposal::create([
                             'customer_id' => $record->customer_id,
                             'profitability_analysis_id' => $record->id,
                             'work_scheme_id' => $record->work_scheme_id,

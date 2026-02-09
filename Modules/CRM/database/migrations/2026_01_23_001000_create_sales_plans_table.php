@@ -21,6 +21,10 @@ return new class extends Migration
             $table->foreignUuid('service_line_id')->nullable()->constrained('service_lines')->nullOnDelete();
             $table->foreignUuid('industrial_sector_id')->nullable()->constrained('industrial_sectors')->nullOnDelete();
             $table->foreignUuid('skill_category_id')->nullable()->constrained('skill_categories')->nullOnDelete();
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained('product_clusters')->nullOnDelete();
+            $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas')->nullOnDelete();
+            $table->foreignUuid('ams_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->json('job_positions')->nullable();
 
             $table->string('industry')->nullable(); // Legacy/Alternative
 

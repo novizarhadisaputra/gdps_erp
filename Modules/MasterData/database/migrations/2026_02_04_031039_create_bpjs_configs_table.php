@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('type'); // employment, health
             $table->string('category'); // JKK, JKM, JHT, JP, Health
+            $table->json('calculation_basis')->nullable();
             $table->decimal('employer_rate', 8, 6); // as percentage e.g. 0.037000
             $table->decimal('employee_rate', 8, 6);
             $table->string('floor_type')->default('none'); // none, umk, nominal

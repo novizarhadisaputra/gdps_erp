@@ -12,6 +12,11 @@ class JobPosition extends Model
 {
     use HasFactory, HasUuids;
 
+    protected static function newFactory()
+    {
+        return \Modules\MasterData\Database\Factories\JobPositionFactory::new();
+    }
+
     protected $fillable = [
         'name',
         'basic_salary',

@@ -3,14 +3,17 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\Project\Filament\Resources\ProjectInformations\Schemas\ProjectInformationForm;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Schemas\ProjectInformationForm;
 
 class ManageProjectInformations extends ManageRelatedRecords
 {
@@ -46,18 +49,18 @@ class ManageProjectInformations extends ManageRelatedRecords
         return $table
             ->recordTitleAttribute('document_number')
             ->columns([
-                Tables\Columns\TextColumn::make('document_number'),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('document_number'),
+                TextColumn::make('status')
                     ->badge(),
-                Tables\Columns\TextColumn::make('project.name')
+                TextColumn::make('project.name')
                     ->label('Project'),
-                Tables\Columns\TextColumn::make('start_date')->date(),
+                TextColumn::make('start_date')->date(),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make()
+                CreateAction::make()
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
 
@@ -67,11 +70,11 @@ class ManageProjectInformations extends ManageRelatedRecords
                     }),
             ])
             ->recordActions([
-                Actions\EditAction::make(),
-                Actions\DeleteAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->groupedBulkActions([
-                Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ]);
     }
 }

@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ItemCategories\Schemas\ItemCategoryForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
@@ -91,7 +92,7 @@ class ItemForm
                     Select::make('project_area_id')
                         ->label('Project Area')
                         ->relationship('projectArea', 'name')
-                        ->createOptionForm(\Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm::schema())
+                        ->createOptionForm(ProjectAreaForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->required()
                         ->searchable()

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->date('expiry_date')->nullable();
             $table->string('status')->default('draft'); // draft, active, expired, terminated
             $table->string('reminder_status')->nullable(); // 6_month, 3_month, 1_month
+            $table->text('termination_reason')->nullable();
             $table->json('signatures')->nullable();
             $table->timestamps();
         });

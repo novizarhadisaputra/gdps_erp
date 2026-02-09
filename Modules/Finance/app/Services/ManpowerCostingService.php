@@ -62,6 +62,10 @@ class ManpowerCostingService
                 'compensation' => $compensation,
             ],
             'total_direct_cost' => $totalDirectCost,
+            // Helpers for UI display
+            'total_allowances' => $nonFixedAllowances,
+            'bpjs_total' => $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $pph21['total'], // PPh usually grouped with tax/deductions
+            'thr_compensation' => $thr + $compensation,
         ];
     }
 

@@ -23,6 +23,7 @@ class BpjsConfig extends Model
         'cap_type',
         'cap_nominal',
         'risk_level',
+        'calculation_basis',
         'is_active',
     ];
 
@@ -33,6 +34,7 @@ class BpjsConfig extends Model
             'employee_rate' => 'decimal:6',
             'floor_nominal' => 'decimal:2',
             'cap_nominal' => 'decimal:2',
+            'calculation_basis' => 'array',
             'is_active' => 'boolean',
         ];
     }

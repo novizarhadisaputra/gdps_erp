@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApiClients\T
 use App\Models\ApiClient;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -57,7 +58,7 @@ class ApiClientsTable
                             'client_secret' => $newSecret,
                         ]);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Secret Regenerated')
                             ->body("New Secret: **$newSecret**\n\nPlease copy this now.")
                             ->warning()

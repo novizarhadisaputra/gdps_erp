@@ -2,6 +2,8 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Tables;
 
+use App\Filament\Pages\EditProfile;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -52,7 +54,7 @@ class ContractsTable
                     ->color('gray')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->action(function (Contract $record) {
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $record]);
+                        $pdf = Pdf::loadView('crm::pdf.contract', ['record' => $record]);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$record->contract_number}.pdf");
                     }),
@@ -81,7 +83,7 @@ class ContractsTable
                                             Action::make('profile')
                                                 ->label('Ke Profil')
                                                 ->button()
-                                                ->url(\App\Filament\Pages\EditProfile::getUrl()),
+                                                ->url(EditProfile::getUrl()),
                                         ])
                                         ->send();
 

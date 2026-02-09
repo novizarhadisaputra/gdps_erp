@@ -10,6 +10,16 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\EditLead;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\LeadBoard;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ListLeads;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageContracts;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageGeneralInformations;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProfitabilityAnalyses;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectInformations;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProposals;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageSalesPlans;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ViewLead;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Tables\LeadsTable;
@@ -35,13 +45,13 @@ class LeadResource extends Resource
     public static function getRecordSubNavigation(Page $page): array
     {
         return $page->generateNavigationItems([
-            Pages\EditLead::class,
-            Pages\ManageSalesPlans::class,
-            Pages\ManageGeneralInformations::class,
-            Pages\ManageProposals::class,
-            Pages\ManageProfitabilityAnalyses::class,
-            Pages\ManageContracts::class,
-            Pages\ManageProjectInformations::class,
+            EditLead::class,
+            ManageSalesPlans::class,
+            ManageGeneralInformations::class,
+            ManageProposals::class,
+            ManageProfitabilityAnalyses::class,
+            ManageContracts::class,
+            ManageProjectInformations::class,
         ]);
     }
 
@@ -70,16 +80,16 @@ class LeadResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\LeadBoard::route('/'),
-            'list' => Pages\ListLeads::route('/list'),
-            'view' => Pages\ViewLead::route('/{record}'),
-            'edit' => Pages\EditLead::route('/{record}/edit'),
-            'sales-plans' => Pages\ManageSalesPlans::route('/{record}/sales-plans'),
-            'proposals' => Pages\ManageProposals::route('/{record}/proposals'),
-            'general-informations' => Pages\ManageGeneralInformations::route('/{record}/general-informations'),
-            'profitability-analyses' => Pages\ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),
-            'project-informations' => Pages\ManageProjectInformations::route('/{record}/project-informations'),
-            'contracts' => Pages\ManageContracts::route('/{record}/contracts'),
+            'index' => LeadBoard::route('/'),
+            'list' => ListLeads::route('/list'),
+            'view' => ViewLead::route('/{record}'),
+            'edit' => EditLead::route('/{record}/edit'),
+            'sales-plans' => ManageSalesPlans::route('/{record}/sales-plans'),
+            'proposals' => ManageProposals::route('/{record}/proposals'),
+            'general-informations' => ManageGeneralInformations::route('/{record}/general-informations'),
+            'profitability-analyses' => ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),
+            'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
+            'contracts' => ManageContracts::route('/{record}/contracts'),
         ];
     }
 }

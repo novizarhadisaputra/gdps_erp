@@ -7,6 +7,12 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Enums\BpjsCategory;
+use Modules\MasterData\Enums\BpjsType;
+use Modules\MasterData\Enums\CalculationCapType;
+use Modules\MasterData\Enums\CalculationFloorType;
+use Modules\MasterData\Enums\RiskLevel;
+use Modules\MasterData\Models\RemunerationComponent;
 
 class BpjsConfigForm
 {
@@ -23,26 +29,57 @@ class BpjsConfigForm
                 ->required()
                 ->maxLength(255),
             Select::make('category')
-                ->options([
-                    'Health' => 'BPJS Kesehatan',
-                    'JKK' => 'BPJS JKK (Kecelakaan Kerja)',
-                    'JKM' => 'BPJS JKM (Kematian)',
-                    'JHT' => 'BPJS JHT (Hari Tua)',
-                    'JP' => 'BPJS JP (Pensiun)',
-                ])
+                ->options(BpjsCategory::class)
+                ->live()
+                ->afterStateUpdated(function ($state, $set) {
+                    if ($state === BpjsCategory::Health->value) {
+                        $set('employer_rate', 0.04);
+                        $set('employee_rate', 0.01);
+                        $set('floor_type', 'umk');
+                        $set('cap_type', 'nominal');
+                        $set('cap_nominal', 12000000);
+                        $set('type', BpjsType::Health->value);
+                    } elseif ($state === BpjsCategory::JHT->value) {
+                        $set('employer_rate', 0.037);
+                        $set('employee_rate', 0.02);
+                        $set('type', BpjsType::Employment->value);
+                    } elseif ($state === BpjsCategory::JP->value) {
+                        $set('employer_rate', 0.02);
+                        $set('employee_rate', 0.01);
+                        $set('cap_type', CalculationCapType::Nominal->value);
+                        $set('cap_nominal', 10540000);
+                        $set('type', BpjsType::Employment->value);
+                    } elseif ($state === BpjsCategory::JKK->value) {
+                        $set('risk_level', RiskLevel::VeryLow->value);
+                        $set('type', BpjsType::Employment->value);
+                    }
+                })
                 ->required(),
-            TextInput::make('type')
-                ->default('employment')
+            Select::make('type')
+                ->options(BpjsType::class)
+                ->helperText('Select the type of BPJS configuration.')
+                ->default(BpjsType::Employment)
+                ->required(),
+            Select::make('calculation_basis')
+                ->label('Calculation Basis')
+                ->multiple()
+                ->options(RemunerationComponent::where('is_active', true)->pluck('name', 'id'))
+                ->helperText('Select components used for calculation (e.g., Gaji Pokok + Tunjangan Tetap)')
+                ->placeholder('Search components...')
+                ->preload()
+                ->searchable()
                 ->required(),
             Grid::make(2)
                 ->schema([
                     TextInput::make('employer_rate')
-                        ->label('Employer Rate (Decimal, e.g. 0.04)')
+                        ->label('Employer Rate')
+                        ->helperText('Example: 0.04 for 4%')
                         ->numeric()
                         ->step(0.0001)
                         ->required(),
                     TextInput::make('employee_rate')
-                        ->label('Employee Rate (Decimal, e.g. 0.01)')
+                        ->label('Employee Rate')
+                        ->helperText('Example: 0.01 for 1%')
                         ->numeric()
                         ->step(0.0001)
                         ->required(),
@@ -50,12 +87,8 @@ class BpjsConfigForm
             Grid::make(2)
                 ->schema([
                     Select::make('cap_type')
-                        ->options([
-                            'none' => 'None',
-                            'nominal' => 'Nominal',
-                            'percentage' => 'Percentage',
-                        ])
-                        ->default('none'),
+                        ->options(CalculationCapType::class)
+                        ->default(CalculationCapType::None),
                     TextInput::make('cap_nominal')
                         ->numeric()
                         ->nullable(),
@@ -63,18 +96,15 @@ class BpjsConfigForm
             Grid::make(3)
                 ->schema([
                     Select::make('floor_type')
-                        ->options([
-                            'none' => 'None',
-                            'nominal' => 'Nominal',
-                            'umk' => 'UMK/UMP',
-                        ])
-                        ->default('none'),
+                        ->options(CalculationFloorType::class)
+                        ->default(CalculationFloorType::None),
                     TextInput::make('floor_nominal')
                         ->numeric()
                         ->nullable(),
-                    TextInput::make('risk_level')
-                        ->label('Risk Level (for JKK)')
-                        ->helperText('very_low, low, medium, high, very_high')
+                    Select::make('risk_level')
+                        ->label('Risk Level')
+                        ->options(RiskLevel::class)
+                        ->helperText('Specific risk level for JKK (Kecelakaan Kerja).')
                         ->nullable(),
                 ]),
             Toggle::make('is_active')

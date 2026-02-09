@@ -20,7 +20,7 @@ class CostingTemplateResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 
-    protected static ?string $navigationLabel = 'Costing Templates';
+    protected static ?string $navigationLabel = 'Item Templates';
 
     public static function form(Schema $schema): Schema
     {

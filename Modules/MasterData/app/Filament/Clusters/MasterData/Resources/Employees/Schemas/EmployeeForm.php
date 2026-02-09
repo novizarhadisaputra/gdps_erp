@@ -7,6 +7,7 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Enums\ActiveStatus;
 use Modules\MasterData\Models\Employee;
 
 class EmployeeForm
@@ -44,12 +45,9 @@ class EmployeeForm
                         ->maxLength(255)
                         ->placeholder('IT Department'),
                     Select::make('status')
-                        ->options([
-                            'active' => 'Active',
-                            'inactive' => 'Inactive',
-                        ])
+                        ->options(ActiveStatus::class)
                         ->required()
-                        ->default('active'),
+                        ->default(ActiveStatus::Active),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),

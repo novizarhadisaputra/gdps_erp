@@ -11,6 +11,11 @@ class CostingTemplate extends Model
 {
     use HasFactory, HasUuids;
 
+    protected static function newFactory()
+    {
+        return \Modules\MasterData\Database\Factories\CostingTemplateFactory::new();
+    }
+
     protected $guarded = [];
 
     public function costingTemplateItems(): HasMany

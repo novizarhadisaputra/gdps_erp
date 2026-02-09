@@ -52,6 +52,12 @@ class Lead extends Model
         'position',
         'description',
         'user_id',
+        'revenue_segment_id',
+        'product_cluster_id',
+        'project_type_id',
+        'service_line_id',
+        'industrial_sector_id',
+        'project_area_id',
     ];
 
     protected $casts = [

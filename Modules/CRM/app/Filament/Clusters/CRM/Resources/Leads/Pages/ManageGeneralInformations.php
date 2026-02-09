@@ -3,18 +3,28 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions;
-use Filament\Notifications;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Services\SignatureService;
+use Modules\Project\Services\RiskRegisterService;
 
 class ManageGeneralInformations extends ManageRelatedRecords
 {
@@ -32,8 +42,8 @@ class ManageGeneralInformations extends ManageRelatedRecords
             ->modifyQueryUsing(fn ($query) => $query->with('signatures'))
             ->recordTitleAttribute('document_number')
             ->columns([
-                Tables\Columns\TextColumn::make('document_number'),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('document_number'),
+                TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'draft' => 'gray',
@@ -42,16 +52,16 @@ class ManageGeneralInformations extends ManageRelatedRecords
                         'rejected' => 'danger',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('rr_submission_id')
+                TextColumn::make('rr_submission_id')
                     ->label('RR ID')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('scope_of_work')->limit(50),
+                TextColumn::make('scope_of_work')->limit(50),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make()
+                CreateAction::make()
                     ->schema(fn (Schema $schema) => GeneralInformationForm::configure($schema))
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
@@ -86,25 +96,25 @@ class ManageGeneralInformations extends ManageRelatedRecords
                     }),
             ])
             ->recordActions([
-                Actions\ViewAction::make()
+                ViewAction::make()
                     ->schema(fn (Schema $schema) => GeneralInformationInfolist::configure($schema))
                     ->modalFooterActions([
-                        Actions\Action::make('Sign')
+                        Action::make('Sign')
                             ->label('Digital Signature')
                             ->color('primary')
                             ->icon('heroicon-o-pencil-square')
                             ->schema([
-                                \Filament\Forms\Components\TextInput::make('pin')
+                                TextInput::make('pin')
                                     ->label('Signature PIN')
                                     ->password()
                                     ->required()
                                     ->helperText('Masukkan PIN tanda tangan digital Anda.'),
                             ])
                             ->action(function (GeneralInformation $record, array $data) {
-                                $service = app(\Modules\MasterData\Services\SignatureService::class);
+                                $service = app(SignatureService::class);
 
                                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                                    Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('PIN Salah')
                                         ->danger()
                                         ->send();
@@ -116,7 +126,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                 $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                                 if (! $matchingRule) {
-                                    Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Akses Ditolak')
                                         ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
                                         ->warning()
@@ -126,7 +136,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                 }
 
                                 if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
-                                    Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Sudah Ditandatangani')
                                         ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
                                         ->warning()
@@ -137,7 +147,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
 
                                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
-                                Notifications\Notification::make()
+                                Notification::make()
                                     ->title('Dokumen Berhasil Ditandatangani')
                                     ->success()
                                     ->send();
@@ -146,7 +156,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                 if ($record->isFullyApproved() && ($record->rr_status === 'approved' || ! $record->rr_submission_id)) {
                                     $record->update(['status' => 'approved']);
                                 } elseif ($record->isFullyApproved()) {
-                                    Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Tanda Tangan Lengkap')
                                         ->body('Menunggu Status Risk Register "Approved" untuk finalisasi.')
                                         ->info()
@@ -154,14 +164,23 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                 }
                             })
                             ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
-                        Actions\Action::make('create_pa_modal')
+                        Action::make('create_pa_modal')
                             ->label('Create PA')
                             ->color('success')
-                            ->fillForm(fn (GeneralInformation $record) => [
-                                'general_information_id' => $record->id,
-                                'customer_id' => $record->customer_id,
-                                'work_scheme_id' => $record->lead?->work_scheme_id,
-                            ])
+                            ->fillForm(function (GeneralInformation $record) {
+                                $lead = $record->lead;
+                                $salesPlan = $lead?->salesPlan;
+
+                                return [
+                                    'general_information_id' => $record->id,
+                                    'customer_id' => $record->customer_id,
+                                    'work_scheme_id' => $lead?->work_scheme_id,
+                                    'product_cluster_id' => $salesPlan?->product_cluster_id ?? $lead?->product_cluster_id,
+                                    'project_area_id' => $salesPlan?->project_area_id ?? $lead?->project_area_id,
+                                    'margin_percentage' => $salesPlan?->margin_percentage,
+                                    'management_fee' => $salesPlan?->estimated_value * (($salesPlan?->management_fee_percentage ?? 0) / 100),
+                                ];
+                            })
                             ->schema(ProfitabilityAnalysisForm::schema())
                             ->action(function (GeneralInformation $record, array $data) {
                                 $data['lead_id'] = $record->lead_id;
@@ -172,24 +191,24 @@ class ManageGeneralInformations extends ManageRelatedRecords
                                 $items = $data['items'] ?? [];
                                 unset($data['items']);
 
-                                $pa = \Modules\Finance\Models\ProfitabilityAnalysis::create($data);
+                                $pa = ProfitabilityAnalysis::create($data);
 
                                 // Create items
                                 foreach ($items as $itemData) {
                                     $pa->items()->create($itemData);
                                 }
 
-                                Notifications\Notification::make()
+                                Notification::make()
                                     ->title('Profitability Analysis Created')
                                     ->success()
                                     ->send();
                             })
                             ->visible(fn (GeneralInformation $record) => $record->status === 'approved' && $record->profitabilityAnalyses()->doesntExist()),
                     ]),
-                Actions\EditAction::make()
+                EditAction::make()
                     ->schema(fn (Schema $schema) => GeneralInformationForm::configure($schema)),
-                Actions\DeleteAction::make(),
-                Actions\Action::make('pdf')
+                DeleteAction::make(),
+                Action::make('pdf')
                     ->label('Export PDF')
                     ->modalDescription(fn (GeneralInformation $record) => "Are you sure you want to export this General Information - {$record->customer->name}.pdf to PDF?")
                     ->modalHeading('Export General Information to PDF')
@@ -197,15 +216,15 @@ class ManageGeneralInformations extends ManageRelatedRecords
                     ->icon('heroicon-o-arrow-down-tray')
                     ->requiresConfirmation()
                     ->action(function (GeneralInformation $record) {
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
+                        $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "General Information - {$record->customer->name}.pdf");
                     }),
-                Actions\Action::make('check_status')
+                Action::make('check_status')
                     ->label('Check Status')
                     ->icon(Heroicon::OutlinedArrowPath)
                     ->action(function (GeneralInformation $record) {
-                        $status = app(\Modules\Project\Services\RiskRegisterService::class)->getRiskRegisterStatus($record->rr_submission_id ?? '');
+                        $status = app(RiskRegisterService::class)->getRiskRegisterStatus($record->rr_submission_id ?? '');
 
                         // Mocking status transition based on current state
                         if ($record->rr_status !== 'approved') {
@@ -217,7 +236,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                             'rr_status' => $status,
                         ]);
 
-                        Notifications\Notification::make()
+                        Notification::make()
                             ->title('RR Status Updated')
                             ->body("Risk Register status is now: {$status}")
                             ->success()
@@ -227,7 +246,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                         if ($record->isFullyApproved() && $record->rr_status === 'approved') {
                             $record->update(['status' => 'approved']);
 
-                            Notifications\Notification::make()
+                            Notification::make()
                                 ->title('General Information Approved')
                                 ->body('Dokumen telah disetujui sepenuhnya (Signatures + Risk Register).')
                                 ->success()
@@ -236,7 +255,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
                     }),
             ])
             ->groupedBulkActions([
-                Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ]);
     }
 }

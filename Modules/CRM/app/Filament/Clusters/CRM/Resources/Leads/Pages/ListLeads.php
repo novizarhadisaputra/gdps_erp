@@ -6,6 +6,7 @@ use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Schema;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 
 class ListLeads extends ListRecords
 {
@@ -19,7 +20,7 @@ class ListLeads extends ListRecords
                 ->icon('heroicon-m-view-columns')
                 ->url(LeadResource::getUrl('index')),
             Actions\CreateAction::make()
-                ->form(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm::configure($schema)),
+                ->form(fn (Schema $schema) => LeadForm::configure($schema)),
         ];
     }
 }

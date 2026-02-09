@@ -11,6 +11,10 @@ class CRMDatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // $this->call([]);
+        \Modules\CRM\Models\Lead::factory()->count(5)->create();
+
+        $this->call([
+            SalesPlanSeeder::class,
+        ]);
     }
 }

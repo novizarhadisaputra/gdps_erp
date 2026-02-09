@@ -9,6 +9,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptions\Sch
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
+use Modules\MasterData\Models\ProjectType;
+use Modules\MasterData\Models\Tax;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
 use Modules\Project\Models\Project;
 
 class ConvertToProjectAction extends Action
@@ -36,7 +39,7 @@ class ConvertToProjectAction extends Action
                     ->required()
                     ->createOptionForm(ProjectTypeForm::schema())
                     ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
-                    ->createOptionUsing(fn ($data) => \Modules\MasterData\Models\ProjectType::create($data)->id),
+                    ->createOptionUsing(fn ($data) => ProjectType::create($data)->id),
 
                 Select::make('project_area_id')
                     ->label('Project Area')
@@ -53,7 +56,7 @@ class ConvertToProjectAction extends Action
                 Select::make('tax_id')
                     ->label('Tax')
                     ->relationship('tax', 'name')
-                    ->default(\Modules\MasterData\Models\Tax::where('name', 'like', '%PPN%')->first()?->id)
+                    ->default(Tax::where('name', 'like', '%PPN%')->first()?->id)
                     ->required(),
 
                 Select::make('payment_term_id')
@@ -123,7 +126,7 @@ class ConvertToProjectAction extends Action
                 // return redirect()->to(ProjectResource::getUrl('edit', ['record' => $project]));
                 // Actions in header usually just perform action. Redirection might need proper response.
 
-                $this->redirect(\Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource::getUrl('edit', ['record' => $project]));
+                $this->redirect(ProjectResource::getUrl('edit', ['record' => $project]));
             });
     }
 }

@@ -3,14 +3,27 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas\ContractForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas\ContractInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
+use Modules\CRM\Models\Contract;
+use Modules\MasterData\Services\SignatureService;
 
 class ManageContracts extends ManageRelatedRecords
 {
@@ -40,23 +53,21 @@ class ManageContracts extends ManageRelatedRecords
         ]);
     }
 
-
-
     public function table(Table $table): Table
     {
         return $table
             ->recordTitleAttribute('contract_number')
             ->columns([
-                Tables\Columns\TextColumn::make('contract_number'),
-                Tables\Columns\TextColumn::make('status')
+                TextColumn::make('contract_number'),
+                TextColumn::make('status')
                     ->badge(),
-                Tables\Columns\TextColumn::make('expiry_date')->date(),
+                TextColumn::make('expiry_date')->date(),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make()
+                CreateAction::make()
                     ->schema(fn (Schema $schema) => ContractForm::configure($schema))
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
@@ -77,25 +88,25 @@ class ManageContracts extends ManageRelatedRecords
                     }),
             ])
             ->recordActions([
-                 Actions\ViewAction::make()
-                    ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas\ContractInfolist::configure($schema))
+                ViewAction::make()
+                    ->schema(fn (Schema $schema) => ContractInfolist::configure($schema))
                     ->modalFooterActions([
-                        Actions\Action::make('Sign')
+                        Action::make('Sign')
                             ->label('Digital Signature')
                             ->color('primary')
                             ->icon('heroicon-o-pencil-square')
                             ->schema([
-                                \Filament\Forms\Components\TextInput::make('pin')
+                                TextInput::make('pin')
                                     ->label('Signature PIN')
                                     ->password()
                                     ->required()
                                     ->helperText('Masukkan PIN tanda tangan digital Anda.'),
                             ])
-                            ->action(function (\Modules\CRM\Models\Contract $record, array $data) {
-                                $service = app(\Modules\MasterData\Services\SignatureService::class);
+                            ->action(function (Contract $record, array $data) {
+                                $service = app(SignatureService::class);
 
                                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('PIN Salah')
                                         ->danger()
                                         ->send();
@@ -107,7 +118,7 @@ class ManageContracts extends ManageRelatedRecords
                                 $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                                 if (! $matchingRule) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Akses Ditolak')
                                         ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
                                         ->warning()
@@ -117,7 +128,7 @@ class ManageContracts extends ManageRelatedRecords
                                 }
 
                                 if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Sudah Ditandatangani')
                                         ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
                                         ->warning()
@@ -128,61 +139,56 @@ class ManageContracts extends ManageRelatedRecords
 
                                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
-                                \Filament\Notifications\Notification::make()
-                                    ->title('Dokumen Berhasil Ditandatangani')
-                                    ->success()
-                                    ->send();
-
                                 if ($record->isFullyApproved()) {
-                                    $record->update(['status' => \Modules\CRM\Enums\ContractStatus::Active]);
+                                    $record->update(['status' => ContractStatus::Active]);
                                 }
                             })
-                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Draft),
+                            ->visible(fn (Contract $record) => $record->status === ContractStatus::Draft),
 
-                        Actions\Action::make('Activate')
+                        Action::make('Activate')
                             ->color('success')
                             ->icon('heroicon-o-check-circle')
                             ->requiresConfirmation()
-                            ->action(fn (\Modules\CRM\Models\Contract $record) => $record->update(['status' => \Modules\CRM\Enums\ContractStatus::Active]))
-                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Draft),
+                            ->action(fn (Contract $record) => $record->update(['status' => ContractStatus::Active]))
+                            ->visible(fn (Contract $record) => $record->status === ContractStatus::Draft),
 
-                        Actions\Action::make('Terminate')
+                        Action::make('Terminate')
                             ->color('danger')
                             ->icon('heroicon-o-x-circle')
                             ->requiresConfirmation()
                             ->form([
-                                \Filament\Forms\Components\Textarea::make('termination_reason')
+                                Textarea::make('termination_reason')
                                     ->label('Reason for Termination')
                                     ->required(),
                             ])
-                            ->action(fn (\Modules\CRM\Models\Contract $record, array $data) => $record->update([
-                                'status' => \Modules\CRM\Enums\ContractStatus::Terminated,
+                            ->action(fn (Contract $record, array $data) => $record->update([
+                                'status' => ContractStatus::Terminated,
                                 'termination_reason' => $data['termination_reason'],
                             ]))
-                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Active),
+                            ->visible(fn (Contract $record) => $record->status === ContractStatus::Active),
 
-                        Actions\Action::make('Mark Expired')
+                        Action::make('Mark Expired')
                             ->color('warning')
                             ->icon('heroicon-o-clock')
                             ->requiresConfirmation()
-                            ->action(fn (\Modules\CRM\Models\Contract $record) => $record->update(['status' => \Modules\CRM\Enums\ContractStatus::Expired]))
-                            ->visible(fn (\Modules\CRM\Models\Contract $record) => $record->status === \Modules\CRM\Enums\ContractStatus::Active),
+                            ->action(fn (Contract $record) => $record->update(['status' => ContractStatus::Expired]))
+                            ->visible(fn (Contract $record) => $record->status === ContractStatus::Active),
                     ]),
-                Actions\EditAction::make()
-                     ->schema(fn (Schema $schema) => ContractForm::configure($schema)),
-                Actions\DeleteAction::make(),
-                Actions\Action::make('pdf')
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => ContractForm::configure($schema)),
+                DeleteAction::make(),
+                Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->action(function (\Modules\CRM\Models\Contract $record) {
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $record]);
+                    ->action(function (Contract $record) {
+                        $pdf = Pdf::loadView('crm::pdf.contract', ['record' => $record]);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$record->contract_number}.pdf");
                     }),
             ])
             ->groupedBulkActions([
-                Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ]);
     }
 }

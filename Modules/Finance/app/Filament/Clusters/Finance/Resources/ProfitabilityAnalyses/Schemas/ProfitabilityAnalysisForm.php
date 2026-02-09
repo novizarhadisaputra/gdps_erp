@@ -2,6 +2,8 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
+use Filament\Actions\Action;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -11,8 +13,10 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Services\ManpowerCostingService;
+use Modules\MasterData\Enums\RiskLevel;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
@@ -20,6 +24,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxF
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
+use Modules\MasterData\Models\ManpowerTemplate;
 
 class ProfitabilityAnalysisForm
 {
@@ -49,7 +54,7 @@ class ProfitabilityAnalysisForm
                 ->disabled()
                 ->dehydrated()
                 ->createOptionForm(CustomerForm::schema())
-                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                ->createOptionAction(fn (Action $action) => $action->slideOver()),
             TextInput::make('document_number')
                 ->label('Document Number')
                 ->hidden(fn ($record) => ! ($record instanceof ProfitabilityAnalysis)),
@@ -86,7 +91,7 @@ class ProfitabilityAnalysisForm
                         ->disabled()
                         ->dehydrated()
                         ->createOptionForm(WorkSchemeForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('product_cluster_id')
                         ->relationship('productCluster', 'name')
                         ->helperText('Cluster of the product/service.')
@@ -94,7 +99,7 @@ class ProfitabilityAnalysisForm
                         ->searchable()
                         ->preload()
                         ->createOptionForm(ProductClusterForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('tax_id')
                         ->relationship('tax', 'name')
                         ->helperText('Applicable tax regulation.')
@@ -102,7 +107,7 @@ class ProfitabilityAnalysisForm
                         ->searchable()
                         ->preload()
                         ->createOptionForm(TaxForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('project_area_id')
                         ->relationship('projectArea', 'name')
                         ->helperText('Geographical area of the project.')
@@ -112,7 +117,7 @@ class ProfitabilityAnalysisForm
                         ->preload()
                         ->live()
                         ->createOptionForm(ProjectAreaForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                 ]),
 
             Section::make('Financial Analysis')
@@ -120,11 +125,8 @@ class ProfitabilityAnalysisForm
                     Grid::make(3)
                         ->schema([
                             Select::make('asset_ownership')
-                                ->options([
-                                    'gdps-owned' => 'GDPS-Owned',
-                                    'customer-owned' => 'Customer-Owned',
-                                ])
-                                ->default('gdps-owned')
+                                ->options(AssetOwnership::class)
+                                ->default(AssetOwnership::GdpsOwned)
                                 ->required()
                                 ->native(false),
                             TextInput::make('management_fee')
@@ -208,6 +210,7 @@ class ProfitabilityAnalysisForm
                                 ->options([
                                     Item::class => 'Item (General)',
                                     JobPosition::class => 'Job Position (Manpower)',
+                                    ManpowerTemplate::class => 'Manpower Template (Packet)',
                                 ])
                                 ->required()
                                 ->live()
@@ -270,19 +273,55 @@ class ProfitabilityAnalysisForm
                                         $set('cost_breakdown', $breakdown);
                                     }
 
+                                    if ($type === ManpowerTemplate::class) {
+                                        $service = app(ManpowerCostingService::class);
+                                        $areaId = $record->project_area_id;
+                                        $year = (int) ($get('../../year') ?? $get('/year') ?? date('Y'));
+
+                                        $totalPacketCost = 0;
+                                        foreach ($record->items as $item) {
+                                            $jp = $item->jobPosition;
+                                            if (! $jp) {
+                                                continue;
+                                            }
+
+                                            $allowances = [];
+                                            foreach ($jp->remunerationComponents ?? [] as $component) {
+                                                $allowances[] = [
+                                                    'name' => $component->name,
+                                                    'type' => 'nominal',
+                                                    'value' => $component->pivot->amount,
+                                                    'is_fixed' => $component->is_fixed,
+                                                ];
+                                            }
+
+                                            $res = $service->calculate(
+                                                basicSalary: $jp->basic_salary,
+                                                allowances: $allowances,
+                                                projectAreaId: $areaId,
+                                                year: $year,
+                                                riskLevel: $jp->risk_level ?? 'very_low',
+                                                isLaborIntensive: $jp->is_labor_intensive ?? false
+                                            );
+
+                                            $totalPacketCost += ($res['total_direct_cost'] * $item->quantity);
+                                        }
+
+                                        $set('unit_cost_price', $totalPacketCost);
+                                        $set('unit_of_measure', 'Packet');
+                                        $set('is_manpower', false); // Treated as Fixed Cost
+                                        $set('risk_level', 'very_low');
+                                        $set('depreciation_months', 1);
+                                        $set('cost_breakdown', []);
+                                    }
+
                                     self::calculateDirectCost($get, $set);
                                 })
                                 ->columnSpan(3),
-                            \Filament\Forms\Components\Hidden::make('is_manpower'),
+                            Hidden::make('is_manpower'),
                             Select::make('risk_level')
-                                ->options([
-                                    'very_low' => 'Very Low',
-                                    'low' => 'Low',
-                                    'medium' => 'Medium',
-                                    'high' => 'High',
-                                    'very_high' => 'Very High',
-                                ])
-                                ->default('very_low')
+                                ->options(RiskLevel::class)
+                                ->default(RiskLevel::VeryLow)
                                 ->visible(fn (Get $get) => $get('is_manpower'))
                                 ->live()
                                 ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
@@ -358,7 +397,7 @@ class ProfitabilityAnalysisForm
                                         ->required()
                                         ->live(onBlur: true)
                                         ->columnSpan(1),
-                                    \Filament\Forms\Components\Hidden::make('is_fixed')->default(true),
+                                    Hidden::make('is_fixed')->default(true),
 
                                     Repeater::make('details')
                                         ->label('Breakdown Details')

@@ -10,6 +10,7 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Enums\ReminderStatus;
 use Modules\CRM\Models\Contract;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 
@@ -54,11 +55,7 @@ class ContractForm
                         ->inline()
                         ->required(),
                     Select::make('reminder_status')
-                        ->options([
-                            '6_month' => '6 Months Before',
-                            '3_month' => '3 Months Before',
-                            '1_month' => '1 Month Before',
-                        ]),
+                        ->options(ReminderStatus::class),
                     SpatieMediaLibraryFileUpload::make('signed_contract')
                         ->collection('signed_contract')
                         ->label('Signed Contract Document')

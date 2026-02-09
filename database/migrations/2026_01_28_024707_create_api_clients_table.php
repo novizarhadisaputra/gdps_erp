@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('client_id')->unique();
             $table->string('client_secret');
             $table->boolean('is_active')->default(true);
+            $table->timestamp('last_used_at')->nullable();
             $table->timestamps();
         });
     }

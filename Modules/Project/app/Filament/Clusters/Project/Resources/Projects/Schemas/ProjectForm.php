@@ -2,11 +2,12 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -24,6 +25,7 @@ use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
+use Modules\Project\Enums\ProjectStatus;
 
 class ProjectForm
 {
@@ -32,9 +34,9 @@ class ProjectForm
         return [
             Section::make('Project Details')
                 ->schema([
-                    Placeholder::make('code')
+                    TextEntry::make('code')
                         ->label('Project Code Preview')
-                        ->content(function (Get $get): string {
+                        ->state(function (Get $get): string {
                             $customer = Customer::find($get('customer_id'))?->code ?? 'UNK';
                             $seq = str_pad($get('project_number') ?? '01', 2, '0', STR_PAD_LEFT);
                             $area = ProjectArea::find($get('project_area_id'))?->code ?? 'UNK';
@@ -50,15 +52,9 @@ class ProjectForm
                         ->maxLength(255)
                         ->live(onBlur: true),
                     Select::make('status')
-                        ->options([
-                            'planning' => 'Planning',
-                            'active' => 'Active',
-                            'completed' => 'Completed',
-                            'on hold' => 'On Hold',
-                            'cancelled' => 'Cancelled',
-                        ])
+                        ->options(ProjectStatus::class)
                         ->required()
-                        ->default('planning'),
+                        ->default(ProjectStatus::Planning),
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
                         ->required()
@@ -66,7 +62,7 @@ class ProjectForm
                         ->preload()
                         ->live()
                         ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('contract_id')
                         ->relationship('contract', 'contract_number', fn ($query, $get) => $query->where('customer_id', $get('customer_id')))
                         ->label('Contract/SPK')
@@ -87,7 +83,7 @@ class ProjectForm
                         ->preload()
                         ->live()
                         ->createOptionForm(ProjectAreaForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('work_scheme_id')
                         ->relationship('workScheme', 'name')
                         ->required()
@@ -95,7 +91,7 @@ class ProjectForm
                         ->preload()
                         ->live()
                         ->createOptionForm(WorkSchemeForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('product_cluster_id')
                         ->relationship('productCluster', 'name')
                         ->required()
@@ -103,7 +99,7 @@ class ProjectForm
                         ->preload()
                         ->live()
                         ->createOptionForm(ProductClusterForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('tax_id')
                         ->relationship('tax', 'name')
                         ->required()
@@ -111,28 +107,28 @@ class ProjectForm
                         ->preload()
                         ->live()
                         ->createOptionForm(TaxForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('payment_term_id')
                         ->relationship('paymentTerm', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->createOptionForm(PaymentTermForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('project_type_id')
                         ->relationship('projectType', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->createOptionForm(ProjectTypeForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('billing_option_id')
                         ->relationship('billingOption', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
                         ->createOptionForm(BillingOptionForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('oprep_id')
                         ->relationship('oprep', 'name')
                         ->label('OPREP')
@@ -140,7 +136,7 @@ class ProjectForm
                         ->searchable()
                         ->preload()
                         ->createOptionForm(EmployeeForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('ams_id')
                         ->relationship('ams', 'name')
                         ->label('AMS')
@@ -148,7 +144,7 @@ class ProjectForm
                         ->searchable()
                         ->preload()
                         ->createOptionForm(EmployeeForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     DatePicker::make('start_date')
                         ->required(),
                     DatePicker::make('end_date')

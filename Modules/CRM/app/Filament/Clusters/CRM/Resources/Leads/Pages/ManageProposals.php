@@ -3,17 +3,31 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions;
-use Filament\Forms\Components\DatePicker;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalInfolist;
+use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\Proposal;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Services\SignatureService;
 
 class ManageProposals extends ManageRelatedRecords
 {
@@ -45,8 +59,6 @@ class ManageProposals extends ManageRelatedRecords
         ]);
     }
 
-
-
     public function table(Table $table): Table
     {
         return $table
@@ -64,8 +76,8 @@ class ManageProposals extends ManageRelatedRecords
                 //
             ])
             ->headerActions([
-                Actions\CreateAction::make()
-                    ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm::configure($schema))
+                CreateAction::make()
+                    ->schema(fn (Schema $schema) => ProposalForm::configure($schema))
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
 
@@ -81,25 +93,25 @@ class ManageProposals extends ManageRelatedRecords
                     }),
             ])
             ->recordActions([
-                Actions\ViewAction::make()
-                    ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalInfolist::configure($schema))
+                ViewAction::make()
+                    ->schema(fn (Schema $schema) => ProposalInfolist::configure($schema))
                     ->modalFooterActions([
-                        Actions\Action::make('Sign')
+                        Action::make('Sign')
                             ->label('Digital Signature')
                             ->color('primary')
                             ->icon('heroicon-o-pencil-square')
                             ->schema([
-                                \Filament\Forms\Components\TextInput::make('pin')
+                                TextInput::make('pin')
                                     ->label('Signature PIN')
                                     ->password()
                                     ->required()
                                     ->helperText('Masukkan PIN tanda tangan digital Anda.'),
                             ])
-                            ->action(function (\Modules\CRM\Models\Proposal $record, array $data) {
-                                $service = app(\Modules\MasterData\Services\SignatureService::class);
+                            ->action(function (Proposal $record, array $data) {
+                                $service = app(SignatureService::class);
 
                                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('PIN Salah')
                                         ->danger()
                                         ->send();
@@ -111,7 +123,7 @@ class ManageProposals extends ManageRelatedRecords
                                 $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                                 if (! $matchingRule) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Akses Ditolak')
                                         ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
                                         ->warning()
@@ -121,7 +133,7 @@ class ManageProposals extends ManageRelatedRecords
                                 }
 
                                 if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Sudah Ditandatangani')
                                         ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
                                         ->warning()
@@ -132,7 +144,7 @@ class ManageProposals extends ManageRelatedRecords
 
                                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->title('Dokumen Berhasil Ditandatangani')
                                     ->success()
                                     ->send();
@@ -142,16 +154,16 @@ class ManageProposals extends ManageRelatedRecords
                                 }
                             })
                             // Check compatibility with Enum status
-                            ->visible(fn (\Modules\CRM\Models\Proposal $record) => ! in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted, ProposalStatus::Rejected])),
+                            ->visible(fn (Proposal $record) => ! in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted, ProposalStatus::Rejected])),
                     ]),
-                Actions\EditAction::make()
-                     ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm::configure($schema)),
-                Actions\DeleteAction::make(),
-                Actions\Action::make('createPA')
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => ProposalForm::configure($schema)),
+                DeleteAction::make(),
+                Action::make('createPA')
                     ->label('Create Profitability Analysis')
                     ->icon('heroicon-o-presentation-chart-line')
                     ->color('info')
-                    ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted]))
+                    ->visible(fn (Proposal $record): bool => in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted]))
                     ->form([
                         Select::make('work_scheme_id')
                             ->relationship('workScheme', 'name')
@@ -161,11 +173,11 @@ class ManageProposals extends ManageRelatedRecords
                             ->searchable()
                             ->preload(),
                     ])
-                    ->action(function (\Modules\CRM\Models\Proposal $record, array $data) {
-                        $existingPa = \Modules\Finance\Models\ProfitabilityAnalysis::where('proposal_id', $record->id)->first();
+                    ->action(function (Proposal $record, array $data) {
+                        $existingPa = ProfitabilityAnalysis::where('proposal_id', $record->id)->first();
 
                         if ($existingPa) {
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title('PA Already Exists')
                                 ->body('Redirecting to the existing Profitability Analysis.')
                                 ->warning()
@@ -174,78 +186,78 @@ class ManageProposals extends ManageRelatedRecords
                             return;
                         }
 
-                        $pa = \Modules\Finance\Models\ProfitabilityAnalysis::create([
+                        $pa = ProfitabilityAnalysis::create([
                             'proposal_id' => $record->id,
                             'customer_id' => $record->customer_id,
                             'work_scheme_id' => $data['work_scheme_id'],
                             'status' => 'draft',
                         ]);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Profitability Analysis Created')
                             ->success()
                             ->send();
                     }),
-                Actions\Action::make('convertToContract')
+                Action::make('convertToContract')
                     ->label('Convert to Contract')
                     ->icon('heroicon-o-document-duplicate')
                     ->color('success')
-                    ->visible(fn (\Modules\CRM\Models\Proposal $record): bool => ($record->status === ProposalStatus::Approved || $record->status === 'approved') && $record->contracts->count() === 0)
+                    ->visible(fn (Proposal $record): bool => ($record->status === ProposalStatus::Approved || $record->status === 'approved') && $record->contracts->count() === 0)
                     ->requiresConfirmation()
-                    ->action(function (\Modules\CRM\Models\Proposal $record) {
-                        \Modules\CRM\Models\Contract::create([
+                    ->action(function (Proposal $record) {
+                        Contract::create([
                             'customer_id' => $record->customer_id,
                             'proposal_id' => $record->id,
                             'contract_number' => 'CONTRACT-'.$record->proposal_number,
-                            'status' => \Modules\CRM\Enums\ContractStatus::Draft,
+                            'status' => ContractStatus::Draft,
                         ]);
 
                         $record->update(['status' => ProposalStatus::Converted]);
 
-                        \Filament\Notifications\Notification::make()
+                        Notification::make()
                             ->title('Converted to Contract')
                             ->success()
                             ->send();
                     }),
-                \Filament\Actions\ActionGroup::make([
-                    Actions\Action::make('export_proposal')
+                ActionGroup::make([
+                    Action::make('export_proposal')
                         ->label('Export Proposal')
                         ->icon('heroicon-o-document-text')
-                        ->action(function (\Modules\CRM\Models\Proposal $record) {
-                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+                        ->action(function (Proposal $record) {
+                            $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
 
                             return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$record->proposal_number}.pdf");
                         }),
 
-                    Actions\Action::make('export_contract')
+                    Action::make('export_contract')
                         ->label('Export Contract')
                         ->icon('heroicon-o-document-duplicate')
-                        ->visible(fn (\Modules\CRM\Models\Proposal $record) => $record->contracts()->exists())
-                        ->action(function (\Modules\CRM\Models\Proposal $record) {
+                        ->visible(fn (Proposal $record) => $record->contracts()->exists())
+                        ->action(function (Proposal $record) {
                             $contract = $record->contracts()->latest()->first();
-                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
+                            $pdf = Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
 
                             return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$contract->contract_number}.pdf");
                         }),
 
-                    Actions\Action::make('export_general_information')
+                    Action::make('export_general_information')
                         ->label('Export General Info')
                         ->icon('heroicon-o-information-circle')
-                        ->visible(fn (\Modules\CRM\Models\Proposal $record) => $record->lead?->generalInformations()->exists())
-                        ->action(function (\Modules\CRM\Models\Proposal $record) {
+                        ->visible(fn (Proposal $record) => $record->lead?->generalInformations()->exists())
+                        ->action(function (Proposal $record) {
                             $gi = $record->lead->generalInformations()->latest()->first();
-                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
+                            $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
 
                             return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$gi->customer->name}.pdf");
                         }),
                 ])
-                ->label('Export')
-                ->icon('heroicon-o-arrow-down-tray')
-                ->color('gray')
-                ->button(),
+                    ->label('Export')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->button(),
             ])
             ->groupedBulkActions([
-                Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ]);
     }
 }

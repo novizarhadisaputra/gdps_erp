@@ -9,6 +9,8 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Enums\ActiveStatus;
+use Modules\MasterData\Enums\LegalEntityType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles\Schemas\ContactRoleForm;
 use Modules\MasterData\Models\ContactRole;
 use Modules\MasterData\Models\Customer;
@@ -33,16 +35,7 @@ class CustomerForm
                         ->placeholder('Leave empty for auto-generate'),
                     Select::make('legal_entity_type')
                         ->label('Legal Entity Type')
-                        ->options([
-                            'PT' => 'PT (Limited Liability Company)',
-                            'CV' => 'CV (Limited Partnership)',
-                            'UD' => 'UD (Trading Business)',
-                            'Firma' => 'Firma (General Partnership)',
-                            'Koperasi' => 'Cooperative',
-                            'Yayasan' => 'Foundation',
-                            'Individual' => 'Individual',
-                            'Other' => 'Other',
-                        ])
+                        ->options(LegalEntityType::class)
                         ->searchable()
                         ->placeholder('Select legal entity type'),
                     TextInput::make('name')
@@ -63,12 +56,9 @@ class CustomerForm
                         ->maxLength(500),
                     Select::make('status')
                         ->label('Status')
-                        ->options([
-                            'active' => 'Active',
-                            'inactive' => 'Inactive',
-                        ])
+                        ->options(ActiveStatus::class)
                         ->required()
-                        ->default('active'),
+                        ->default(ActiveStatus::Active),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),

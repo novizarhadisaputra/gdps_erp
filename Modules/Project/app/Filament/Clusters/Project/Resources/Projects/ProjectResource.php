@@ -5,6 +5,7 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\Project\Filament\Clusters\Project\ProjectCluster;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\EditProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ListProjects;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ProjectBoard;
@@ -16,7 +17,7 @@ use Modules\Project\Models\Project;
 
 class ProjectResource extends Resource
 {
-    protected static ?string $cluster = \Modules\Project\Filament\Clusters\Project\ProjectCluster::class;
+    protected static ?string $cluster = ProjectCluster::class;
 
     protected static ?string $model = Project::class;
 

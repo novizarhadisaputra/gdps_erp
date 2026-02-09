@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas;
 
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
@@ -9,13 +10,16 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\CRM\Models\SalesPlan;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Models\ProjectArea;
 
 class GeneralInformationForm
 {
@@ -46,7 +50,7 @@ class GeneralInformationForm
                                 return;
                             }
 
-                            $plan = \Modules\CRM\Models\SalesPlan::find($state);
+                            $plan = SalesPlan::find($state);
                             if (! $plan) {
                                 return;
                             }
@@ -63,7 +67,7 @@ class GeneralInformationForm
                         ->disabled()
                         ->dehydrated()
                         ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
 
                     // Status removed from form as per request
                 ])
@@ -91,7 +95,7 @@ class GeneralInformationForm
                                         ->maxLength(255),
                                     Textarea::make('description'),
                                 ])
-                                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                                ->createOptionAction(fn (Action $action) => $action->slideOver()),
                             TextInput::make('phone')
                                 ->tel()
                                 ->maxLength(255),
@@ -120,8 +124,8 @@ class GeneralInformationForm
                         ->preload()
                         ->helperText('Location of work execution (Project Area).')
                         ->createOptionForm(ProjectAreaForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
-                        ->createOptionUsing(fn (array $data) => \Modules\MasterData\Models\ProjectArea::create($data)->id),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->createOptionUsing(fn (array $data) => ProjectArea::create($data)->id),
                     Grid::make(3)
                         ->schema([
                             DatePicker::make('estimated_start_date')
@@ -174,7 +178,7 @@ class GeneralInformationForm
                                     // If approved, populate the risk_management repeater
 
                                     if (! $state) {
-                                        \Filament\Notifications\Notification::make()
+                                        Notification::make()
                                             ->title('Error')
                                             ->body('Please enter a Risk Register Number.')
                                             ->danger()
@@ -183,7 +187,7 @@ class GeneralInformationForm
                                         return;
                                     }
 
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Synced!')
                                         ->body('Risk Management data retrieved from Document: '.$state)
                                         ->success()
@@ -250,8 +254,8 @@ class GeneralInformationForm
         $end = $get('estimated_end_date');
 
         if ($start && $end) {
-            $startDate = \Carbon\Carbon::parse($start);
-            $endDate = \Carbon\Carbon::parse($end);
+            $startDate = Carbon::parse($start);
+            $endDate = Carbon::parse($end);
 
             if ($endDate > $startDate) {
                 // simple diff in months

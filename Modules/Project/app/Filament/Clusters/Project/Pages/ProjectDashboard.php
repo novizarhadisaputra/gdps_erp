@@ -7,6 +7,8 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
+use Modules\Project\Filament\Clusters\Project\Widgets\ProjectsByStatusWidget;
+use Modules\Project\Filament\Clusters\Project\Widgets\ProjectStatsWidget;
 
 class ProjectDashboard extends Page
 {
@@ -25,8 +27,8 @@ class ProjectDashboard extends Page
     public function getWidgets(): array
     {
         return [
-            \Modules\Project\Filament\Clusters\Project\Widgets\ProjectStatsWidget::class,
-            \Modules\Project\Filament\Clusters\Project\Widgets\ProjectsByStatusWidget::class,
+            ProjectStatsWidget::class,
+            ProjectsByStatusWidget::class,
         ];
     }
 
