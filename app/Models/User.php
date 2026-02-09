@@ -123,4 +123,9 @@ class User extends Authenticatable implements FilamentUser, HasMedia
             'mobile_phone' => $data['MOBILE_PHONE'] ?? null,
         ]);
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
 }

@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ApiClient;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class ClientAuthController extends Controller
 {
+    use ApiResponse;
+
     /**
      * Handle Client Login (Client Credentials Grant).
      */
@@ -36,16 +39,12 @@ class ClientAuthController extends Controller
         $refreshTokenExpiration = now()->addWeeks(2);
         $refreshToken = $client->createToken('refresh_token', ['issue-access-token'], $refreshTokenExpiration);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Login successful',
-            'data' => [
-                'access_token' => $accessToken->plainTextToken,
-                'refresh_token' => $refreshToken->plainTextToken,
-                'token_type' => 'Bearer',
-                'expires_in' => config('sanctum.expiration') * 60,
-            ],
-        ]);
+        return $this->success([
+            'access_token' => $accessToken->plainTextToken,
+            'refresh_token' => $refreshToken->plainTextToken,
+            'token_type' => 'Bearer',
+            'expires_in' => config('sanctum.expiration') * 60,
+        ], 'Login successful');
     }
 
     /**
@@ -58,12 +57,12 @@ class ClientAuthController extends Controller
 
         // Verify it is indeed an ApiClient
         if (! $client instanceof ApiClient) {
-            return response()->json(['message' => 'Invalid token type.'], 401);
+            return $this->error('Invalid token type', 401);
         }
 
         // Check if the token capability is correct
         if (! $client->currentAccessToken()->can('issue-access-token')) {
-            return response()->json(['message' => 'Invalid token ability.'], 403);
+            return $this->error('Invalid token ability', 403);
         }
 
         // Rotate Refresh Token
@@ -77,15 +76,11 @@ class ClientAuthController extends Controller
         $refreshTokenExpiration = now()->addWeeks(2);
         $newRefreshToken = $client->createToken('refresh_token', ['issue-access-token'], $refreshTokenExpiration);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Token refreshed successfully',
-            'data' => [
-                'access_token' => $newAccessToken->plainTextToken,
-                'refresh_token' => $newRefreshToken->plainTextToken,
-                'token_type' => 'Bearer',
-                'expires_in' => config('sanctum.expiration') * 60,
-            ],
-        ]);
+        return $this->success([
+            'access_token' => $newAccessToken->plainTextToken,
+            'refresh_token' => $newRefreshToken->plainTextToken,
+            'token_type' => 'Bearer',
+            'expires_in' => config('sanctum.expiration') * 60,
+        ], 'Token refreshed successfully');
     }
 }

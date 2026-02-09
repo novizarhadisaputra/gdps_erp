@@ -2,7 +2,9 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas;
 
+use App\Filament\Infolists\Components\DigitalSignatureEntry;
 use Filament\Actions\Action;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -34,7 +36,7 @@ class GeneralInformationInfolist
                                     }),
                             ]),
 
-                        \Filament\Infolists\Components\RepeatableEntry::make('pics')
+                        RepeatableEntry::make('pics')
                             ->label('PICs')
                             ->schema([
                                 TextEntry::make('name'),
@@ -115,7 +117,7 @@ class GeneralInformationInfolist
                     ]),
                 Section::make('Digital Signatures')
                     ->schema([
-                        \App\Filament\Infolists\Components\DigitalSignatureEntry::make('signatures')
+                        DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])
                     ->visible(fn ($record) => $record->signatures()->exists()),

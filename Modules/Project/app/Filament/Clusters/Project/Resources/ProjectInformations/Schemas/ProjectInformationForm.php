@@ -73,11 +73,11 @@ class ProjectInformationForm
                                     ->default(11)
                                     ->label('PPN (%)'),
 
-                                Select::make('payment_term_id')->relationship('paymentTerm', 'name')->label('ToP')->searchable()->preload()->createOptionForm(PaymentTermForm::schema())->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
-                                Select::make('project_type_id')->relationship('projectType', 'name')->searchable()->preload()->createOptionForm(ProjectTypeForm::schema())->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
-                                Select::make('billing_option_id')->relationship('billingOption', 'name')->searchable()->preload()->createOptionForm(BillingOptionForm::schema())->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
-                                Select::make('oprep_id')->relationship('oprep', 'name')->label('Nama Oprep')->searchable()->preload()->createOptionForm(EmployeeForm::schema())->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
-                                Select::make('ams_id')->relationship('ams', 'name')->label('Nama AMS')->searchable()->preload()->createOptionForm(EmployeeForm::schema())->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                                Select::make('payment_term_id')->relationship('paymentTerm', 'name')->label('ToP')->searchable()->preload()->createOptionForm(PaymentTermForm::schema())->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('project_type_id')->relationship('projectType', 'name')->searchable()->preload()->createOptionForm(ProjectTypeForm::schema())->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('billing_option_id')->relationship('billingOption', 'name')->searchable()->preload()->createOptionForm(BillingOptionForm::schema())->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('oprep_id')->relationship('oprep', 'name')->label('Nama Oprep')->searchable()->preload()->createOptionForm(EmployeeForm::schema())->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('ams_id')->relationship('ams', 'name')->label('Nama AMS')->searchable()->preload()->createOptionForm(EmployeeForm::schema())->createOptionAction(fn (Action $action) => $action->slideOver()),
 
                                 Textarea::make('description')->columnSpanFull()->rows(3),
                                 Textarea::make('remarks')->columnSpanFull()->rows(2),

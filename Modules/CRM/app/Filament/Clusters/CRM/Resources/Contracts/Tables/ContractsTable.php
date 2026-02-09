@@ -99,7 +99,7 @@ class ContractsTable
                                             Action::make('profile')
                                                 ->label('Ke Profil')
                                                 ->button()
-                                                ->url(\App\Filament\Pages\EditProfile::getUrl()),
+                                                ->url(EditProfile::getUrl()),
                                         ])
                                         ->send();
 

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Database\Factories\LeadFactory;
 use Modules\CRM\Enums\LeadStatus;
@@ -156,7 +157,7 @@ class Lead extends Model
         return $this->belongsTo(Employee::class, 'ams_id');
     }
 
-    public function salesPlan(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function salesPlan(): HasOne
     {
         return $this->hasOne(SalesPlan::class);
     }

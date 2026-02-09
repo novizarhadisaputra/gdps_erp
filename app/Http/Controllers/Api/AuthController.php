@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
+
     public function login(Request $request)
     {
         $request->validate([
@@ -39,12 +42,12 @@ class AuthController extends Controller
         $refreshTokenExpiration = now()->addWeeks(2);
         $refreshToken = $user->createToken('refresh_token', ['issue-access-token'], $refreshTokenExpiration);
 
-        return response()->json([
+        return $this->success([
             'access_token' => $accessToken->plainTextToken,
             'refresh_token' => $refreshToken->plainTextToken,
             'token_type' => 'Bearer',
             'expires_in' => config('sanctum.expiration') * 60, // seconds
-        ]);
+        ], 'Login successful');
     }
 
     public function refresh(Request $request)
@@ -54,17 +57,17 @@ class AuthController extends Controller
 
         // Check if the current token used has the 'issue-access-token' ability
         if (! $user->currentAccessToken()->can('issue-access-token')) {
-            return response()->json(['message' => 'Invalid token ability.'], 403);
+            return $this->error('Invalid token ability', 403);
         }
 
         // Issue new Access Token
         $accessToken = $user->createToken('access_token', ['access-api']);
 
-        return response()->json([
+        return $this->success([
             'access_token' => $accessToken->plainTextToken,
             'token_type' => 'Bearer',
             'expires_in' => config('sanctum.expiration') * 60,
-        ]);
+        ], 'Token refreshed successfully');
     }
 
     public function logout(Request $request)
@@ -72,6 +75,6 @@ class AuthController extends Controller
         // Revoke the token that was used to authenticate the current request
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully.']);
+        return $this->success(null, 'Logged out successfully');
     }
 }

@@ -71,7 +71,7 @@ class CostingTemplateForm
                                     }
                                 }),
 
-                            TextArea::make('name')
+                            Textarea::make('name')
                                 ->label('Item Name / Description')
                                 ->required()
                                 ->rows(2),

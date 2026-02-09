@@ -2,7 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
-
+use App\Filament\Infolists\Components\DigitalSignatureEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -120,7 +120,7 @@ class ProfitabilityAnalysisInfolist
                     ]),
                 Section::make('Signatures')
                     ->schema([
-                        \App\Filament\Infolists\Components\DigitalSignatureEntry::make('signatures')
+                        DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])
                     ->visible(fn ($record) => $record->signatures()->exists()),

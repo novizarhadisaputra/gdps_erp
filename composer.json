@@ -19,6 +19,7 @@
         "filament/spatie-laravel-media-library-plugin": "^4.0",
         "jacobtims/filament-logger": "^1.0",
         "laravel/framework": "^12.0",
+        "laravel/octane": "^2.13",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.0",
@@ -26,6 +27,7 @@
         "mwguerra/filemanager": "^0.1",
         "pxlrbt/filament-excel": "^3.4",
         "relaticle/flowforge": "^3.0",
+        "saade/filament-laravel-log": "^4.0",
         "wikimedia/composer-merge-plugin": "^2.1"
     },
     "require-dev": {

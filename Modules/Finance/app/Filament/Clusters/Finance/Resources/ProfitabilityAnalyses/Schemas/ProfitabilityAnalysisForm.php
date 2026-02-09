@@ -8,6 +8,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -326,7 +327,7 @@ class ProfitabilityAnalysisForm
                                 ->live()
                                 ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
                                 ->columnSpan(1),
-                            \Filament\Forms\Components\Toggle::make('is_labor_intensive')
+                            Toggle::make('is_labor_intensive')
                                 ->label('Labor Intensive (50% JKK Reduction)')
                                 ->visible(fn (Get $get) => $get('is_manpower'))
                                 ->live()

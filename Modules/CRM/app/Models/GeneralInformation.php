@@ -13,6 +13,7 @@ use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityAnalysisItem;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
@@ -91,7 +92,7 @@ class GeneralInformation extends Model implements HasMedia
 
     public function projectArea(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ProjectArea::class);
+        return $this->belongsTo(ProjectArea::class);
     }
 
     public function profitabilityAnalyses(): HasMany

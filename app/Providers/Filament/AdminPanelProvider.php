@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\EditProfile;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Coolsam\Modules\ModulesPlugin;
 use Filament\Http\Middleware\Authenticate;
@@ -22,6 +23,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jacobtims\FilamentLogger\FilamentLoggerPlugin;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 use MWGuerra\FileManager\FileManagerPlugin;
+use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -36,7 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('images/logo.png'))
             ->darkModeBrandLogo(asset('images/logo-white.png'))
             ->brandLogoHeight('2.5rem')
-            ->profile(\App\Filament\Pages\EditProfile::class)
+            ->profile(EditProfile::class)
             ->sidebarCollapsibleOnDesktop()
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->colors([
@@ -63,6 +65,9 @@ class AdminPanelProvider extends PanelProvider
                 FilamentLoggerPlugin::make(),
                 FileManagerPlugin::make(),
                 FilamentApexChartsPlugin::make(),
+                FilamentLaravelLogPlugin::make()->authorize(
+                    fn () => auth()->user()->isAdmin()
+                )->navigationGroup('Settings'),
             ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

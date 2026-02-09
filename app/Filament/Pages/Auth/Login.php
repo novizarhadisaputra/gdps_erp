@@ -4,6 +4,8 @@ namespace App\Filament\Pages\Auth;
 
 use App\Models\User;
 use App\Services\SsoAuthService;
+use Exception;
+use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Auth\Pages\Login as BaseLogin;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -32,7 +34,7 @@ class Login extends BaseLogin
             ]);
     }
 
-    public function authenticate(): ?\Filament\Auth\Http\Responses\Contracts\LoginResponse
+    public function authenticate(): ?LoginResponse
     {
         try {
             $data = $this->form->getState();
@@ -72,8 +74,8 @@ class Login extends BaseLogin
 
             session()->regenerate();
 
-            return app(\Filament\Auth\Http\Responses\Contracts\LoginResponse::class);
-        } catch (\Exception $e) {
+            return app(LoginResponse::class);
+        } catch (Exception $e) {
             Notification::make()
                 ->title('Authentication Failed')
                 ->body($e->getMessage())

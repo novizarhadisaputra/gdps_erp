@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas;
 
+use App\Filament\Infolists\Components\DigitalSignatureEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -60,7 +61,7 @@ class ContractInfolist
                                 TextEntry::make('termination_reason')
                                     ->visible(fn (Contract $record) => $record->status === ContractStatus::Terminated),
                             ]),
-                        \App\Filament\Infolists\Components\DigitalSignatureEntry::make('signatures')
+                        DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => $record->signatures()->exists()),

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas;
 
+use App\Filament\Infolists\Components\DigitalSignatureEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -45,7 +46,7 @@ class ProposalInfolist
                                 TextEntry::make('status')
                                     ->badge(),
                             ]),
-                        \App\Filament\Infolists\Components\DigitalSignatureEntry::make('signatures')
+                        DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => $record->signatures()->exists()),

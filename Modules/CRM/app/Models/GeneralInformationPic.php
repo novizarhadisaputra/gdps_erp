@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\MasterData\Models\ContactRole;
 
 class GeneralInformationPic extends Model
 {
@@ -26,6 +27,6 @@ class GeneralInformationPic extends Model
 
     public function contactRole(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ContactRole::class);
+        return $this->belongsTo(ContactRole::class);
     }
 }

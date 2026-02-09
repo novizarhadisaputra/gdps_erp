@@ -3,12 +3,14 @@
 namespace Modules\CRM\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Modules\CRM\Http\Resources\GeneralInformationResource;
 use Modules\CRM\Models\GeneralInformation;
 
 class GeneralInformationApiController extends Controller
 {
-    use \App\Traits\ApiResponse;
+    use ApiResponse;
 
     /**
      * List General Information records.
@@ -22,7 +24,7 @@ class GeneralInformationApiController extends Controller
             ->with(['customer:id,name', 'lead:id,title', 'projectArea:id,name'])
             ->select([
                 'id', 'document_number', 'customer_id', 'lead_id', 'project_area_id',
-                'status', 'rr_status', 'rr_document_number', 'created_at', 'updated_at'
+                'status', 'rr_status', 'rr_document_number', 'created_at', 'updated_at',
             ]);
 
         // Optional Filters
@@ -39,7 +41,7 @@ class GeneralInformationApiController extends Controller
         }
 
         $paginator = $query->paginate($limit);
-        $data = \Modules\CRM\Http\Resources\GeneralInformationResource::collection($paginator);
+        $data = GeneralInformationResource::collection($paginator);
 
         return $this->paginated(
             $data,
@@ -62,7 +64,7 @@ class GeneralInformationApiController extends Controller
         ])->findOrFail($id);
 
         return $this->success(
-            new \Modules\CRM\Http\Resources\GeneralInformationResource($gi),
+            new GeneralInformationResource($gi),
             'General Information detail retrieved successfully'
         );
     }

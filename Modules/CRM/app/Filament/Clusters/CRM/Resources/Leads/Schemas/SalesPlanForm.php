@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas;
 
 use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -43,21 +44,21 @@ class SalesPlanForm
                                 ->label('Revenue Segment')
                                 ->required()
                                 ->createOptionForm(RevenueSegmentForm::schema())
-                                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id),
                             Select::make('service_line_id')
                                 ->relationship('serviceLine', 'name')
                                 ->label('Service Line (Project Area)')
                                 ->required()
                                 ->createOptionForm(ServiceLineForm::schema())
-                                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id),
                             Select::make('industrial_sector_id')
                                 ->relationship('industrialSector', 'name')
                                 ->label('Industrial Sector')
                                 ->required()
                                 ->createOptionForm(IndustrialSectorForm::schema())
-                                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => IndustrialSector::create($data)->id),
                         ]),
                     Grid::make(3)
@@ -67,7 +68,7 @@ class SalesPlanForm
                                 ->label('Project Type')
                                 ->required()
                                 ->createOptionForm(ProjectTypeForm::schema())
-                                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ProjectType::create($data)->id),
                             Select::make('skill_category_id')
                                 ->relationship('skillCategory', 'name')

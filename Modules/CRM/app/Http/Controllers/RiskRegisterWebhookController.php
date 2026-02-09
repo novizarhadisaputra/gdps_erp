@@ -3,12 +3,14 @@
 namespace Modules\CRM\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Log;
+use Modules\CRM\Http\Requests\RiskRegisterWebhookRequest;
 use Modules\CRM\Models\GeneralInformation;
 
 class RiskRegisterWebhookController extends Controller
 {
-    use \App\Traits\ApiResponse;
+    use ApiResponse;
 
     /**
      * Handle the incoming webhook from Risk Register system.
@@ -21,7 +23,7 @@ class RiskRegisterWebhookController extends Controller
      * }
      * Header: X-RR-Signature (Optional/Recommended for shared secret validation)
      */
-    public function handle(\Modules\CRM\Http\Requests\RiskRegisterWebhookRequest $request)
+    public function handle(RiskRegisterWebhookRequest $request)
     {
         // Validation is handled by RiskRegisterWebhookRequest
 

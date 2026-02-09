@@ -1,5 +1,7 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
+@import '../../../../vendor/saade/filament-laravel-log/resources/css/filament-laravel-log.css';
 
 @source '../../../../app/Filament/**/*';
 @source '../../../../resources/views/filament/**/*';
 @source "../../../../vendor/relaticle/flowforge/resources/views/**/*.blade.php";
+@source '../../../../vendor/saade/filament-laravel-log/resources/views/**/*.blade.php';

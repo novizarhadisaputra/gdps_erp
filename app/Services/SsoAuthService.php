@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Exception;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -28,11 +29,11 @@ class SsoAuthService
             $data = $response->json();
 
             if ($response->failed() || ! ($data['success'] ?? false)) {
-                throw new \Exception($data['message'] ?? 'SSO authentication failed');
+                throw new Exception($data['message'] ?? 'SSO authentication failed');
             }
 
             return $data['data'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('SSO login failed', [
                 'email' => $email,
                 'error' => $e->getMessage(),
@@ -58,11 +59,11 @@ class SsoAuthService
             $data = $response->json();
 
             if ($response->failed() || ! ($data['success'] ?? false)) {
-                throw new \Exception($data['message'] ?? 'Failed to retrieve employee data');
+                throw new Exception($data['message'] ?? 'Failed to retrieve employee data');
             }
 
             return $data['data'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Failed to retrieve employee data', [
                 'email' => $email,
                 'error' => $e->getMessage(),
@@ -91,11 +92,11 @@ class SsoAuthService
             $data = $response->json();
 
             if ($response->failed() || ! ($data['success'] ?? false)) {
-                throw new \Exception($data['message'] ?? 'Token refresh failed');
+                throw new Exception($data['message'] ?? 'Token refresh failed');
             }
 
             return $data['data'];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Token refresh failed', [
                 'error' => $e->getMessage(),
             ]);
