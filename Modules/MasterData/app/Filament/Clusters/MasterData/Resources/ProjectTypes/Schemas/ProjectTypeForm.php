@@ -12,6 +12,7 @@ class ProjectTypeForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->model(ProjectType::class)
             ->components(static::schema());
     }
 

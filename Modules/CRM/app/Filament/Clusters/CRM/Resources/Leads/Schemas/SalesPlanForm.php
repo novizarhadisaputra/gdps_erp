@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\CRM\Models\SalesPlan;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas\RevenueSegmentForm;
@@ -28,7 +29,9 @@ class SalesPlanForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components(static::schema());
+        return $schema
+            ->model(SalesPlan::class)
+            ->components(static::schema());
     }
 
     public static function schema(): array

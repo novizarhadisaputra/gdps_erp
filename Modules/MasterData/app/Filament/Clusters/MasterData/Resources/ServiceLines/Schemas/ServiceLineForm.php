@@ -12,6 +12,7 @@ class ServiceLineForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->model(ServiceLine::class)
             ->components(static::schema());
     }
 

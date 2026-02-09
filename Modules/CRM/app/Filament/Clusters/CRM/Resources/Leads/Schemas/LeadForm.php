@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\LeadStatus;
+use Modules\CRM\Models\Lead;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Customer;
@@ -138,6 +139,8 @@ class LeadForm
 
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components(static::schema());
+        return $schema
+            ->model(Lead::class)
+            ->components(static::schema());
     }
 }

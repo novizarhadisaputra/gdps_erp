@@ -20,6 +20,7 @@ class CustomerForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->model(Customer::class)
             ->components(static::schema());
     }
 

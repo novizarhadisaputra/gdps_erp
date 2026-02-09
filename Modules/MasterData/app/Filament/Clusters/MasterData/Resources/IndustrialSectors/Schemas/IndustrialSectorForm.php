@@ -12,6 +12,7 @@ class IndustrialSectorForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->model(IndustrialSector::class)
             ->components(static::schema());
     }
 

@@ -12,6 +12,7 @@ class SkillCategoryForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->model(SkillCategory::class)
             ->components(static::schema());
     }
 

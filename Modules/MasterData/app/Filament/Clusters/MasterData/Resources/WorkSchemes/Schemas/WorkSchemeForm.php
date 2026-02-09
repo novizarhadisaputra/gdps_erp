@@ -12,6 +12,7 @@ class WorkSchemeForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
+            ->model(WorkScheme::class)
             ->components(static::schema());
     }
 
