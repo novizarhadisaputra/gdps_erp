@@ -8,8 +8,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\RegencyMinimumWages\Pages\CreateRegencyMinimumWage;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\RegencyMinimumWages\Pages\EditRegencyMinimumWage;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RegencyMinimumWages\Pages\ListRegencyMinimumWages;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RegencyMinimumWages\Schemas\RegencyMinimumWageForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RegencyMinimumWages\Tables\RegencyMinimumWagesTable;
@@ -20,6 +18,8 @@ class RegencyMinimumWageResource extends Resource
     protected static ?string $model = RegencyMinimumWage::class;
 
     protected static ?string $cluster = MasterDataCluster::class;
+
+    protected static ?int $navigationSort = 102;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

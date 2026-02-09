@@ -8,8 +8,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsConfigs\Pages\CreateBpjsConfig;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsConfigs\Pages\EditBpjsConfig;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsConfigs\Pages\ListBpjsConfigs;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsConfigs\Schemas\BpjsConfigForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsConfigs\Tables\BpjsConfigsTable;
@@ -20,6 +18,8 @@ class BpjsConfigResource extends Resource
     protected static ?string $model = BpjsConfig::class;
 
     protected static ?string $cluster = MasterDataCluster::class;
+
+    protected static ?int $navigationSort = 101;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

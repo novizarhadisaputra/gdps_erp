@@ -17,7 +17,7 @@ class UnitOfMeasureResource extends Resource
 
     protected static ?string $model = UnitOfMeasure::class;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 82;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
 

@@ -17,7 +17,7 @@ class ProjectAreaResource extends Resource
 
     protected static ?string $model = ProjectArea::class;
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 41;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
 

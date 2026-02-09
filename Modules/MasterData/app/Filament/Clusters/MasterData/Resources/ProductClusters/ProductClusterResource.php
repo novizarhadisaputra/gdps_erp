@@ -17,7 +17,7 @@ class ProductClusterResource extends Resource
 
     protected static ?string $model = ProductCluster::class;
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 42;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-group';
 

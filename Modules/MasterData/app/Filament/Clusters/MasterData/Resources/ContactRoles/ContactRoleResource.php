@@ -20,7 +20,7 @@ class ContactRoleResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 140;
 
     public static function form(Schema $schema): Schema
     {

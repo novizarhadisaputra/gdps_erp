@@ -43,7 +43,7 @@ class ManpowerTemplateResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Costing & Referentials';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 120;
 
     public static function form(Schema $schema): Schema
     {

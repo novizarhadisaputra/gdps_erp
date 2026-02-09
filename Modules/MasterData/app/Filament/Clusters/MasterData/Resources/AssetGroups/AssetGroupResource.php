@@ -17,7 +17,7 @@ class AssetGroupResource extends Resource
 
     protected static ?string $model = AssetGroup::class;
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 83;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-line';
 

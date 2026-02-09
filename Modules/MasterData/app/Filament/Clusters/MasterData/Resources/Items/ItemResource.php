@@ -17,7 +17,7 @@ class ItemResource extends Resource
 
     protected static ?string $model = Item::class;
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 80;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 

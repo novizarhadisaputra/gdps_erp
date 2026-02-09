@@ -2,14 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Pages\CreateJobPosition;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Pages\EditJobPosition;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Pages\ListJobPositions;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Tables\JobPositionsTable;
@@ -21,7 +17,9 @@ class JobPositionResource extends Resource
 
     protected static ?string $cluster = MasterDataCluster::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?int $navigationSort = 100;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 

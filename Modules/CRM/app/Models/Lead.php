@@ -17,10 +17,13 @@ use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
+use Modules\MasterData\Models\RevenueSegment;
+use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Models\ProjectInformation;
@@ -156,5 +159,20 @@ class Lead extends Model
     public function salesPlan(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(SalesPlan::class);
+    }
+
+    public function revenueSegment(): BelongsTo
+    {
+        return $this->belongsTo(RevenueSegment::class);
+    }
+
+    public function serviceLine(): BelongsTo
+    {
+        return $this->belongsTo(ServiceLine::class);
+    }
+
+    public function industrialSector(): BelongsTo
+    {
+        return $this->belongsTo(IndustrialSector::class);
     }
 }

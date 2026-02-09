@@ -17,7 +17,7 @@ class ItemCategoryResource extends Resource
 
     protected static ?string $model = ItemCategory::class;
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 81;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-tag';
 

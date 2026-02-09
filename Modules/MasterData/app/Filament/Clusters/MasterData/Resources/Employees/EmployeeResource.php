@@ -2,11 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees;
 
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Pages\ListEmployees;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeInfolist;
@@ -19,7 +18,7 @@ class EmployeeResource extends Resource
 
     protected static ?string $model = Employee::class;
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 

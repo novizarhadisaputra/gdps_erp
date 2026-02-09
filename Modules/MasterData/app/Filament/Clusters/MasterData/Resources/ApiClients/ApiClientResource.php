@@ -17,7 +17,7 @@ class ApiClientResource extends Resource
 
     protected static ?string $model = ApiClient::class;
 
-    protected static ?int $navigationSort = 100; // Put it at the end
+    protected static ?int $navigationSort = 150;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-key';
 

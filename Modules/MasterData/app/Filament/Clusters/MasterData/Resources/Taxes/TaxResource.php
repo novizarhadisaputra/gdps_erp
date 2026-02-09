@@ -17,7 +17,7 @@ class TaxResource extends Resource
 
     protected static ?string $model = Tax::class;
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 44;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-receipt-percent';
 

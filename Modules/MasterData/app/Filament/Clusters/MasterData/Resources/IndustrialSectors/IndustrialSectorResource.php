@@ -20,7 +20,7 @@ class IndustrialSectorResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 22;
 
     protected static ?string $cluster = MasterDataCluster::class;
 

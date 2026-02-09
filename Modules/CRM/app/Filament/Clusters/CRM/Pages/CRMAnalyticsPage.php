@@ -21,7 +21,7 @@ class CRMAnalyticsPage extends AnalyticsBasePage
 
     protected static ?string $cluster = CRMCluster::class;
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 0;
 
     // Temporarily disabled - focus on other tasks
     protected static bool $shouldRegisterNavigation = false;
