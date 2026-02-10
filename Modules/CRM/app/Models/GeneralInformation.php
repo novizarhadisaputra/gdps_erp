@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\Finance\Models\ProfitabilityAnalysisItem;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
@@ -120,16 +119,6 @@ class GeneralInformation extends Model implements HasMedia
     public function tax(): BelongsTo
     {
         return $this->belongsTo(Tax::class);
-    }
-
-    public function items(): HasMany
-    {
-        return $this->hasMany(ProfitabilityAnalysisItem::class, 'profitability_analysis_id');
-    }
-
-    public function generalInformation(): BelongsTo
-    {
-        return $this->belongsTo(GeneralInformation::class, 'id');
     }
 
     public function salesPlan(): BelongsTo

@@ -29,4 +29,9 @@ class Unit extends Model
         'name',
         'superior_unit',
     ];
+
+    public function superiorUnit(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Unit::class, 'superior_unit');
+    }
 }

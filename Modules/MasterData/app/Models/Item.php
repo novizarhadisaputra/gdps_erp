@@ -57,6 +57,11 @@ class Item extends Model
         return $this->hasMany(ItemPrice::class);
     }
 
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
+    }
+
     public function getPriceForArea(?string $areaId = null): float
     {
         if ($areaId) {

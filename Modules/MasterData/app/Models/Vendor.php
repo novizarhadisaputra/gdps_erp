@@ -30,4 +30,9 @@ class Vendor extends Model
     {
         return $this->belongsTo(PaymentTerm::class);
     }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
+    }
 }

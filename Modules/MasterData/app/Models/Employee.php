@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\MasterData\Database\Factories\EmployeeFactory;
 use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
@@ -50,5 +51,10 @@ class Employee extends Model implements HasMedia
     protected static function newFactory(): EmployeeFactory
     {
         return EmployeeFactory::new();
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
     }
 }
