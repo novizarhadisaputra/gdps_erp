@@ -36,6 +36,25 @@ class ManageGeneralInformations extends ManageRelatedRecords
 
     protected static ?string $title = 'General Information';
 
+    public static function canAccess(array $parameters = []): bool
+    {
+        $record = $parameters['record'] ?? null;
+
+        if (! $record) {
+            return false;
+        }
+
+        $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
+
+        return in_array($status, [
+            'approach',
+            'proposal',
+            'negotiation',
+            'won',
+            'closed_lost',
+        ]);
+    }
+
     public function table(Table $table): Table
     {
         return $table

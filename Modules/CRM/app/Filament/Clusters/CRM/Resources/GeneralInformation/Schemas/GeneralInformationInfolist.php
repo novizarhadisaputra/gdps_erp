@@ -121,6 +121,20 @@ class GeneralInformationInfolist
                             ->columnSpanFull(),
                     ])
                     ->visible(fn ($record) => $record->signatures()->exists()),
+
+                Section::make('Risk Register (Raw Webhook Payload)')
+                    ->description('The latest raw JSON data received from the Risk Register system.')
+                    ->schema([
+                        TextEntry::make('rr_payload')
+                            ->label('')
+                            ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : 'No payload received yet.')
+                            ->monospace()
+                            ->extraAttributes(['class' => 'bg-gray-50 p-4 rounded-lg'])
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->collapsed()
+                    ->visible(fn ($record) => filled($record->rr_payload)),
             ]);
     }
 }

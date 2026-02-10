@@ -83,6 +83,7 @@ class ManageProposals extends ManageRelatedRecords
 
                         return [
                             'customer_id' => $record->customer_id,
+                            'work_scheme_id' => $record->work_scheme_id,
                             'amount' => $record->estimated_amount,
                         ];
                     })

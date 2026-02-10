@@ -48,21 +48,27 @@ class SalesPlanForm
                                 ->required()
                                 ->createOptionForm(RevenueSegmentForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id),
+                                ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id)
+                                ->editOptionForm(RevenueSegmentForm::schema())
+                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('service_line_id')
                                 ->relationship('serviceLine', 'name')
                                 ->label('Service Line (Project Area)')
                                 ->required()
                                 ->createOptionForm(ServiceLineForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id),
+                                ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id)
+                                ->editOptionForm(ServiceLineForm::schema())
+                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('industrial_sector_id')
                                 ->relationship('industrialSector', 'name')
                                 ->label('Industrial Sector')
                                 ->required()
                                 ->createOptionForm(IndustrialSectorForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => IndustrialSector::create($data)->id),
+                                ->createOptionUsing(fn (array $data) => IndustrialSector::create($data)->id)
+                                ->editOptionForm(IndustrialSectorForm::schema())
+                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
                         ]),
                     Grid::make(3)
                         ->schema([
@@ -72,14 +78,18 @@ class SalesPlanForm
                                 ->required()
                                 ->createOptionForm(ProjectTypeForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => ProjectType::create($data)->id),
+                                ->createOptionUsing(fn (array $data) => ProjectType::create($data)->id)
+                                ->editOptionForm(ProjectTypeForm::schema())
+                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('skill_category_id')
                                 ->relationship('skillCategory', 'name')
                                 ->label('Skill Category')
                                 ->required()
                                 ->createOptionForm(SkillCategoryForm::schema())
-                                ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => SkillCategory::create($data)->id),
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                ->createOptionUsing(fn (array $data) => SkillCategory::create($data)->id)
+                                ->editOptionForm(SkillCategoryForm::schema())
+                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             TextInput::make('document_reference')
                                 ->label('Doc. Reference (SPK/PO)')
                                 ->placeholder('e.g. SPK-2025-001'),

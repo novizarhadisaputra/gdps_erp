@@ -35,7 +35,26 @@ class ProposalForm
                         ->disabled()
                         ->dehydrated()
                         ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                        ->editOptionForm(CustomerForm::schema())
+                        ->editOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                    Select::make('lead_id')
+                        ->relationship('lead', 'title')
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                            if (! $state) {
+                                return;
+                            }
+                            $lead = \Modules\CRM\Models\Lead::find($state);
+                            if (! $lead) {
+                                return;
+                            }
+                            $set('customer_id', $lead->customer_id);
+                            $set('work_scheme_id', $lead->work_scheme_id);
+                            $set('amount', $lead->estimated_amount);
+                        }),
                     Select::make('work_scheme_id')
                         ->relationship('workScheme', 'name')
                         ->searchable()
@@ -43,7 +62,9 @@ class ProposalForm
                         ->disabled() // Inherited from Lead rarely changes at this stage
                         ->dehydrated()
                         ->createOptionForm(WorkSchemeForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                        ->editOptionForm(WorkSchemeForm::schema())
+                        ->editOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     TextInput::make('proposal_number')
                         ->required()
                         ->hiddenOn('create') // Auto-generated

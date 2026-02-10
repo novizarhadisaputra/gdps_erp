@@ -55,7 +55,9 @@ class ProfitabilityAnalysisForm
                 ->disabled()
                 ->dehydrated()
                 ->createOptionForm(CustomerForm::schema())
-                ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                ->createOptionAction(fn (Action $action) => $action->slideOver())
+                ->editOptionForm(CustomerForm::schema())
+                ->editOptionAction(fn (Action $action) => $action->slideOver()),
             TextInput::make('document_number')
                 ->label('Document Number')
                 ->hidden(fn ($record) => ! ($record instanceof ProfitabilityAnalysis)),
@@ -92,7 +94,9 @@ class ProfitabilityAnalysisForm
                         ->disabled()
                         ->dehydrated()
                         ->createOptionForm(WorkSchemeForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->editOptionForm(WorkSchemeForm::schema())
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('product_cluster_id')
                         ->relationship('productCluster', 'name')
                         ->helperText('Cluster of the product/service.')
@@ -100,7 +104,9 @@ class ProfitabilityAnalysisForm
                         ->searchable()
                         ->preload()
                         ->createOptionForm(ProductClusterForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->editOptionForm(ProductClusterForm::schema())
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('tax_id')
                         ->relationship('tax', 'name')
                         ->helperText('Applicable tax regulation.')
@@ -108,7 +114,9 @@ class ProfitabilityAnalysisForm
                         ->searchable()
                         ->preload()
                         ->createOptionForm(TaxForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->editOptionForm(TaxForm::schema())
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('project_area_id')
                         ->relationship('projectArea', 'name')
                         ->helperText('Geographical area of the project.')
@@ -118,7 +126,9 @@ class ProfitabilityAnalysisForm
                         ->preload()
                         ->live()
                         ->createOptionForm(ProjectAreaForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->editOptionForm(ProjectAreaForm::schema())
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                 ]),
 
             Section::make('Financial Analysis')

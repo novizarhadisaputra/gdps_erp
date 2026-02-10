@@ -12,14 +12,9 @@ class LeadObserver
      */
     public function creating(Lead $lead): void
     {
-        if (empty($lead->status)) {
-            $lead->status = LeadStatus::Lead;
-        }
-
-        // 1. Lead: Inisialisasi data standar
-        if ($lead->status === LeadStatus::Lead) {
-            $lead->probability = 10;
-        }
+        $lead->status = LeadStatus::Lead;
+        $lead->probability = 10;
+        $lead->position = Lead::max('position') + 1;
     }
 
     /**
@@ -33,7 +28,7 @@ class LeadObserver
 
         switch ($lead->status) {
             case LeadStatus::Lead:
-                 // Revert logic if needed, or do nothing
+                // Revert logic if needed, or do nothing
                 break;
 
             case LeadStatus::Approach:
@@ -65,13 +60,13 @@ class LeadObserver
             case LeadStatus::Negotiation:
                 // 4. Negotiation: Validasi minimal 1 Proposal & update probability 80%
                 if ($lead->proposals()->count() === 0) {
-                     // We can't easily stop the transition here in an observer (it's already updated).
-                     // But we can warn or auto-create one.
-                     // Ideally validation happens in the UI Action.
-                     // Here we enforce probability update.
-                     $lead->updateQuietly(['probability' => 80]);
+                    // We can't easily stop the transition here in an observer (it's already updated).
+                    // But we can warn or auto-create one.
+                    // Ideally validation happens in the UI Action.
+                    // Here we enforce probability update.
+                    $lead->updateQuietly(['probability' => 80]);
                 } else {
-                     $lead->updateQuietly(['probability' => 80]);
+                    $lead->updateQuietly(['probability' => 80]);
                 }
                 break;
 

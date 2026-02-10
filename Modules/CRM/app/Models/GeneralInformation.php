@@ -52,6 +52,7 @@ class GeneralInformation extends Model implements HasMedia
         'year',
         'rr_submission_id',
         'rr_status',
+        'rr_payload',
         'sales_plan_id',
     ];
 
@@ -61,6 +62,7 @@ class GeneralInformation extends Model implements HasMedia
             'estimated_start_date' => 'date',
             'estimated_end_date' => 'date',
             'risk_management' => 'array',
+            'rr_payload' => 'array',
         ];
     }
 

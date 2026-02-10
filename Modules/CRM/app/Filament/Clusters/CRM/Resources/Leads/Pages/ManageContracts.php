@@ -76,6 +76,7 @@ class ManageContracts extends ManageRelatedRecords
 
                         return [
                             'customer_id' => $record->customer_id,
+                            'work_scheme_id' => $record->work_scheme_id,
                             'proposal_id' => $latestProposal?->id,
                         ];
                     })

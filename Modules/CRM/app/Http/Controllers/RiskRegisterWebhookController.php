@@ -42,6 +42,7 @@ class RiskRegisterWebhookController extends Controller
             'rr_submission_id' => $validated['rr_submission_id'],
             'rr_document_number' => $validated['rr_document_number'],
             'rr_status' => $statusMap[$validated['status']] ?? 'draft',
+            'rr_payload' => $request->all(),
         ]);
 
         Log::info("Risk Register Webhook processed for GI: {$gi->document_number}, Status: {$gi->rr_status}");

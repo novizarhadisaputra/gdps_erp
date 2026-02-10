@@ -35,13 +35,26 @@ class ContractForm
                         ->disabled()
                         ->dehydrated()
                         ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                        ->editOptionForm(CustomerForm::schema())
+                        ->editOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
                     Select::make('proposal_id')
                         ->relationship('proposal', 'proposal_number')
                         ->searchable()
                         ->preload()
-                        ->disabled()
-                        ->dehydrated(),
+                        ->live()
+                        ->disabled(fn ($state) => filled($state))
+                        ->dehydrated()
+                        ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                            if (! $state) {
+                                return;
+                            }
+                            $proposal = \Modules\CRM\Models\Proposal::find($state);
+                            if (! $proposal) {
+                                return;
+                            }
+                            $set('customer_id', $proposal->customer_id);
+                        }),
                     TextInput::make('contract_number')
                         ->required()
                         ->hiddenOn('create')

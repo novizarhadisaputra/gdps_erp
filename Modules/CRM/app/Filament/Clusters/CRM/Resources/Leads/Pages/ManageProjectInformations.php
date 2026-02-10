@@ -63,9 +63,17 @@ class ManageProjectInformations extends ManageRelatedRecords
                 CreateAction::make()
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
+                        $pa = $record->profitabilityAnalyses()->where('status', 'approved')->latest()->first();
+                        $salesPlan = $record->salesPlan;
 
                         return [
                             'description' => $record->description,
+                            'direct_cost' => $pa?->direct_cost,
+                            'revenue_per_month' => $pa?->revenue_per_month,
+                            'management_fee_per_month' => $pa?->management_fee,
+                            'start_date' => $pa?->generalInformation?->estimated_start_date ?? $salesPlan?->start_date,
+                            'end_date' => $pa?->generalInformation?->estimated_end_date ?? $salesPlan?->end_date,
+                            'project_type_id' => $pa?->generalInformation?->project_type_id ?? $salesPlan?->project_type_id,
                         ];
                     }),
             ])

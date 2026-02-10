@@ -44,6 +44,7 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
         $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
 
         return in_array($status, [
+            'approach',
             'proposal',
             'negotiation',
             'won',
@@ -80,6 +81,8 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
                         return [
                             'customer_id' => $record->customer_id,
                             'work_scheme_id' => $record->work_scheme_id,
+                            'product_cluster_id' => $record->product_cluster_id,
+                            'project_area_id' => $record->project_area_id,
                             'general_information_id' => $approvedGi?->id,
                         ];
                     })

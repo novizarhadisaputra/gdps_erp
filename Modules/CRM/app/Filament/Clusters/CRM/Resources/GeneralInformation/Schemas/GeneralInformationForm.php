@@ -17,8 +17,11 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\SalesPlan;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles\Schemas\ContactRoleForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Models\ContactRole;
+use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\ProjectArea;
 
 class GeneralInformationForm
@@ -39,6 +42,26 @@ class GeneralInformationForm
                         ->disabled() // Always auto-generated/disabled
                         ->dehydrated(false) // Usually not manually input
                         ->hiddenOn('create'),
+                    Select::make('lead_id')
+                        ->relationship('lead', 'title')
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->required()
+                        ->disabled(fn ($state) => filled($state))
+                        ->dehydrated()
+                        ->afterStateUpdated(function ($state, Set $set) {
+                            if (! $state) {
+                                return;
+                            }
+                            $lead = \Modules\CRM\Models\Lead::find($state);
+                            if (! $lead) {
+                                return;
+                            }
+                            $set('customer_id', $lead->customer_id);
+                            $set('scope_of_work', $lead->title);
+                            $set('description', $lead->description);
+                        }),
                     Select::make('sales_plan_id')
                         ->label('Sales Plan (Basis)')
                         ->relationship('salesPlan', 'id', fn ($query, $get) => $query->where('lead_id', $get('../../lead_id') ?? $get('lead_id')))
@@ -67,7 +90,10 @@ class GeneralInformationForm
                         ->disabled()
                         ->dehydrated()
                         ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->createOptionUsing(fn (array $data) => Customer::create($data)->id)
+                        ->editOptionForm(CustomerForm::schema())
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
 
                     // Status removed from form as per request
                 ])
@@ -89,13 +115,11 @@ class GeneralInformationForm
                                 ->required()
                                 ->searchable()
                                 ->preload()
-                                ->createOptionForm([
-                                    TextInput::make('name')
-                                        ->required()
-                                        ->maxLength(255),
-                                    Textarea::make('description'),
-                                ])
-                                ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                ->createOptionForm(ContactRoleForm::schema())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                ->createOptionUsing(fn (array $data) => ContactRole::create($data)->id)
+                                ->editOptionForm(ContactRoleForm::schema())
+                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             TextInput::make('phone')
                                 ->tel()
                                 ->maxLength(255),
@@ -125,7 +149,9 @@ class GeneralInformationForm
                         ->helperText('Location of work execution (Project Area).')
                         ->createOptionForm(ProjectAreaForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->createOptionUsing(fn (array $data) => ProjectArea::create($data)->id),
+                        ->createOptionUsing(fn (array $data) => ProjectArea::create($data)->id)
+                        ->editOptionForm(ProjectAreaForm::schema())
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Grid::make(3)
                         ->schema([
                             DatePicker::make('estimated_start_date')
@@ -214,7 +240,16 @@ class GeneralInformationForm
                         ])
                         ->columns(2)
                         ->columnSpanFull()
-                        ->hidden(fn (Get $get) => blank($get('rr_document_number'))), // Hide by default until RR Number is filled
+                        ->hidden(fn (Get $get) => blank($get('rr_document_number'))),
+
+                    Textarea::make('rr_payload')
+                        ->label('Raw RR Webhook Payload')
+                        ->helperText('The latest raw JSON data received from the Risk Register system.')
+                        ->readOnly()
+                        ->rows(10)
+                        ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : null)
+                        ->columnSpanFull()
+                        ->visible(fn ($record) => filled($record?->rr_payload)),
                 ])
                 ->hiddenOn(operations: ['create'])
                 ->columnSpanFull(),
