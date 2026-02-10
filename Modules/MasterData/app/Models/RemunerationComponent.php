@@ -4,15 +4,13 @@ namespace Modules\MasterData\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+
 // use Modules\MasterData\Database\Factories\RemunerationComponentFactory;
 
 class RemunerationComponent extends Model
 {
     use HasUuids;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'name',
         'type',

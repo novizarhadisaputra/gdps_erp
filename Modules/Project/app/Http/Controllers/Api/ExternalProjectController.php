@@ -30,7 +30,7 @@ class ExternalProjectController extends Controller
             ->paginate(20);
         $data = ProjectResource::collection($paginator);
 
-        return $this->paginated($data, 'Projects retrieved successfully');
+        return $this->paginatedSimplified($data, 'Projects retrieved successfully');
     }
 
     /**

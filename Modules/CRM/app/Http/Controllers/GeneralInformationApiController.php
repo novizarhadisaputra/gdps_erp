@@ -43,7 +43,7 @@ class GeneralInformationApiController extends Controller
         $paginator = $query->paginate($limit);
         $data = GeneralInformationResource::collection($paginator);
 
-        return $this->paginated(
+        return $this->paginatedSimplified(
             $data,
             'General Information list retrieved successfully'
         );

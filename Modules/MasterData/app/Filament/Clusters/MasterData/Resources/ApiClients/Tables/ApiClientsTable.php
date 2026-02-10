@@ -4,6 +4,9 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApiClients\T
 
 use App\Models\ApiClient;
 use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -42,8 +45,9 @@ class ApiClientsTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
                 Action::make('regenerate_secret')
                     ->label('Regenerate Secret')
                     ->icon(Heroicon::ArrowPath)
@@ -65,6 +69,11 @@ class ApiClientsTable
                             ->persistent()
                             ->send();
                     }),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

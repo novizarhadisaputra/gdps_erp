@@ -37,6 +37,7 @@ class SalesPlanForm
                         ->searchable()
                         ->preload()
                         ->live()
+                        ->helperText('Select the associated lead or prospect for this sales plan.')
                         ->afterStateUpdated(function ($state, Set $set) {
                             if (! $state) {
                                 return;
@@ -73,19 +74,22 @@ class SalesPlanForm
                                 ->relationship('revenueSegment', 'name')
                                 ->required()
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->helperText('The category of the revenue segment.'),
                             Select::make('product_cluster_id')
                                 ->label('Product Cluster')
                                 ->relationship('productCluster', 'name')
                                 ->required()
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->helperText('The grouping of the product or service.'),
                             Select::make('project_type_id')
                                 ->label('Project Type')
                                 ->relationship('projectType', 'name')
                                 ->required()
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->helperText('The contractual type of the project (e.g., Time & Material, Fixed Price).'),
                         ]),
                     Grid::make(3)
                         ->schema([
@@ -94,25 +98,29 @@ class SalesPlanForm
                                 ->relationship('skillCategory', 'name')
                                 ->required()
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->helperText('The primary skill category required for this project.'),
                             Select::make('industrial_sector_id')
                                 ->label('Industrial Sector')
                                 ->relationship('industrialSector', 'name')
                                 ->required()
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->helperText('The industry sector the client belongs to.'),
                             Select::make('project_area_id')
                                 ->label('Project Area')
                                 ->relationship('projectArea', 'name')
                                 ->required()
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->helperText('The geographical location or area of the project.'),
                         ]),
                     Select::make('service_line_id')
                         ->label('Service Line')
                         ->relationship('serviceLine', 'name')
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->helperText('The specific service line this project falls under.'),
                 ]),
 
             Section::make('Job Positions')
@@ -123,7 +131,8 @@ class SalesPlanForm
                         ->options(JobPosition::where('is_active', true)->pluck('name', 'id'))
                         ->required()
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->helperText('Select the required job positions for this project to map the headcount.'),
                 ]),
 
             Section::make('Financials & Timeline')
@@ -135,33 +144,82 @@ class SalesPlanForm
                                 ->prefix('IDR')
                                 ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                                 ->required()
-                                ->live(),
+                                ->live()
+                                ->helperText('Total estimated contract value including all fees.'),
                             TextInput::make('management_fee_percentage')
                                 ->numeric()
                                 ->suffix('%')
-                                ->required(),
+                                ->required()
+                                ->helperText('The percentage charged for project management.'),
                             TextInput::make('margin_percentage')
                                 ->numeric()
                                 ->suffix('%')
-                                ->required(),
+                                ->required()
+                                ->helperText('The target profit margin percentage for this project.'),
                         ]),
                     Grid::make(3)
                         ->schema([
                             DatePicker::make('start_date')
                                 ->native(false)
                                 ->required()
-                                ->live(),
+                                ->live()
+                                ->helperText('The expected starting date of project activities.'),
                             DatePicker::make('end_date')
                                 ->native(false)
                                 ->required()
-                                ->live(),
+                                ->live()
+                                ->helperText('The expected completion date of project activities.'),
                             TextInput::make('top_days')
                                 ->label('ToP (Days)')
-                                ->numeric(),
+                                ->numeric()
+                                ->helperText('Terms of Payment (the number of days allowed for payment).'),
                         ]),
                 ]),
 
             Section::make('Revenue Distribution Planning')
+                ->headerActions([
+                    Action::make('generate')
+                        ->label('Generate from Timeline')
+                        ->icon('heroicon-m-sparkles')
+                        ->action(function (Get $get, Set $set) {
+                            $startDate = $get('start_date');
+                            $endDate = $get('end_date');
+                            $totalValue = (float) str_replace(',', '', $get('estimated_value') ?? 0);
+
+                            if (! $startDate || ! $endDate || $totalValue <= 0) {
+                                return;
+                            }
+
+                            $start = Carbon::parse($startDate)->startOfMonth();
+                            $end = Carbon::parse($endDate)->startOfMonth();
+
+                            $months = [];
+                            $current = $start->copy();
+
+                            $count = 0;
+                            while ($current <= $end) {
+                                $count++;
+                                $current->addMonth();
+                            }
+
+                            if ($count === 0) {
+                                return;
+                            }
+
+                            $average = $totalValue / $count;
+
+                            $current = $start->copy();
+                            for ($i = 0; $i < $count; $i++) {
+                                $months[] = [
+                                    'month' => $current->format('F Y'),
+                                    'amount' => round($average, 2),
+                                ];
+                                $current->addMonth();
+                            }
+
+                            $set('revenue_distribution_planning', $months);
+                        }),
+                ])
                 ->description('Monthly breakdown of the estimated project revenue. You can generate this automatically from the timeline.')
                 ->hiddenOn(operations: ['create'])
                 ->schema([
@@ -171,69 +229,30 @@ class SalesPlanForm
                             TextInput::make('month')
                                 ->label('Month')
                                 ->readOnly()
-                                ->required(),
+                                ->required()
+                                ->helperText('The specific month for this revenue entry.'),
                             TextInput::make('amount')
                                 ->label('Amount (IDR)')
                                 ->numeric()
                                 ->prefix('IDR')
                                 ->required()
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0),
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                ->helperText('The revenue amount allocated for this specific month.'),
                         ])
                         ->columns(2)
-                        ->reorderable(false)
-                        ->headerActions([
-                            Action::make('generate')
-                                ->label('Generate from Timeline')
-                                ->icon('heroicon-m-sparkles')
-                                ->action(function (Get $get, Set $set) {
-                                    $startDate = $get('start_date');
-                                    $endDate = $get('end_date');
-                                    $totalValue = (float) str_replace(',', '', $get('estimated_value') ?? 0);
-
-                                    if (! $startDate || ! $endDate || $totalValue <= 0) {
-                                        return;
-                                    }
-
-                                    $start = Carbon::parse($startDate)->startOfMonth();
-                                    $end = Carbon::parse($endDate)->startOfMonth();
-
-                                    $months = [];
-                                    $current = $start->copy();
-
-                                    $count = 0;
-                                    while ($current <= $end) {
-                                        $count++;
-                                        $current->addMonth();
-                                    }
-
-                                    if ($count === 0) {
-                                        return;
-                                    }
-
-                                    $average = $totalValue / $count;
-
-                                    $current = $start->copy();
-                                    for ($i = 0; $i < $count; $i++) {
-                                        $months[] = [
-                                            'month' => $current->format('F Y'),
-                                            'amount' => round($average, 2),
-                                        ];
-                                        $current->addMonth();
-                                    }
-
-                                    $set('revenue_distribution_planning', $months);
-                                }),
-                        ]),
+                        ->reorderable(false),
                 ]),
 
             Section::make('Confidence & Priority')
                 ->schema([
                     Select::make('priority_level')
                         ->options(PriorityLevel::class)
-                        ->required(),
+                        ->required()
+                        ->helperText('The level of business priority assigned to this project.'),
                     Select::make('confidence_level')
                         ->options(ConfidenceLevel::class)
-                        ->required(),
+                        ->required()
+                        ->helperText('The degree of confidence or probability of success for this project.'),
                 ])->columns(2),
         ];
     }
