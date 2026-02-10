@@ -2,16 +2,20 @@
 
 namespace Modules\MasterData\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Traits\HasRoles;
 
 class Unit extends Model
 {
+    use HasRoles, HasUuids;
+
     /**
      * The table associated with the model.
      *
      * @var string|null
      */
-    protected $table = null;
+    protected $table = 'units';
 
     /**
      * The attributes that are mass assignable.
@@ -20,26 +24,9 @@ class Unit extends Model
      */
     protected $fillable = [
         'id',
+        'external_id',
         'code',
         'name',
         'superior_unit',
     ];
-
-    /**
-     * Disable database persistence.
-     */
-    public $timestamps = false;
-
-    /**
-     * Indicate that the model exists.
-     */
-    public $exists = true;
-
-    /**
-     * Get the value of the primary key.
-     */
-    public function getKey()
-    {
-        return $this->id;
-    }
 }

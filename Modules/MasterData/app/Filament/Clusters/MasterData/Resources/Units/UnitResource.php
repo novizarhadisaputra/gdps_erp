@@ -3,12 +3,15 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units;
 
 use BackedEnum;
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages\ListUnits;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages\ManageUnitPermissions;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Schemas\UnitForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Tables\UnitsTable;
 use Modules\MasterData\Models\Unit;
@@ -22,6 +25,18 @@ class UnitResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
+
+    public static function getSubNavigationPosition(): SubNavigationPosition
+    {
+        return SubNavigationPosition::Start;
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            ManageUnitPermissions::class,
+        ]);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -44,6 +59,7 @@ class UnitResource extends Resource
     {
         return [
             'index' => ListUnits::route('/'),
+            'permissions' => ManageUnitPermissions::route('/{record}/permissions'),
         ];
     }
 }

@@ -6,9 +6,11 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\MasterData\Models\Unit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Permission\Traits\HasRoles;
@@ -108,6 +110,45 @@ class User extends Authenticatable implements FilamentUser, HasMedia
     }
 
     /**
+     * Refresh the SSO access token.
+     *
+     * @return bool True if successful, false otherwise.
+     */
+    public function refreshSsoToken(): bool
+    {
+        if (! $this->refresh_token) {
+            return false;
+        }
+
+        try {
+            $ssoService = app(\App\Services\SsoAuthService::class);
+            $tokenData = $ssoService->refreshAccessToken($this->refresh_token);
+
+            $this->update([
+                'access_token' => $tokenData['access_token'],
+                'refresh_token' => $tokenData['refresh_token'] ?? $this->refresh_token,
+                'token_expires_at' => now()->addSeconds($tokenData['expires_in'] ?? 0),
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('SSO token refresh failed for user, clearing tokens.', [
+                'user_id' => $this->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Clear stale tokens so we don't keep trying
+            $this->update([
+                'access_token' => null,
+                'refresh_token' => null,
+                'token_expires_at' => null,
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
      * Update user from employee data.
      */
     public function updateFromEmployeeData(array $data): void
@@ -127,5 +168,41 @@ class User extends Authenticatable implements FilamentUser, HasMedia
     public function isAdmin(): bool
     {
         return $this->hasRole('super_admin');
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class, 'unit_id', 'external_id');
+    }
+
+    public function unit_model(): ?Unit
+    {
+        return $this->unit;
+    }
+
+    /**
+     * Override hasPermissionTo to include unit-level permissions.
+     */
+    public function hasPermissionTo($permission, $guardName = null): bool
+    {
+        // 1. Check individual/role permissions first (Spatie default)
+        if ($this->parentHasPermissionTo($permission, $guardName)) {
+            return true;
+        }
+
+        // 2. Check unit-level permissions
+        $unit = $this->unit_model();
+
+        return $unit ? $unit->hasPermissionTo($permission, $guardName) : false;
+    }
+
+    /**
+     * Alias for Spatie's hasPermissionTo to avoid infinite recursion.
+     */
+    protected function parentHasPermissionTo($permission, $guardName = null): bool
+    {
+        $permission = $this->filterPermission($permission, $guardName);
+
+        return $this->hasDirectPermission($permission) || $this->hasPermissionViaRole($permission);
     }
 }

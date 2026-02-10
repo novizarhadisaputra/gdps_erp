@@ -19,6 +19,7 @@ class MasterDataDatabaseSeeder extends Seeder
             JobPositionSeeder::class,
             BpjsConfigSeeder::class,
             RegencyMinimumWageSeeder::class,
+            UnitSyncSeeder::class,
         ]);
     }
 }

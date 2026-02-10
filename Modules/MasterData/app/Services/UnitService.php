@@ -25,93 +25,113 @@ class UnitService
     }
 
     /**
-     * Fetch all units from the external API with global caching.
-     * This focuses on performance by minimizing API calls for the entire dataset.
+     * Fetch all units from the external API and sync with local database.
      */
-    public function getAllUnits(): Collection
+    public function syncFromApi(): Collection
     {
-        $cacheKey = self::CACHE_KEY;
-
-        // 1. Get from cache first
-        $cached = Cache::get($cacheKey);
-        if ($cached instanceof Collection && $cached->isNotEmpty()) {
-            return $cached;
-        }
-
-        // 2. Cache is empty or null, fetch from API
         $user = \Illuminate\Support\Facades\Auth::user();
-        $accessToken = null;
 
-        if ($user && $user instanceof \App\Models\User) {
-            if ($user->needsTokenRefresh() && $user->refresh_token) {
-                try {
-                    $ssoService = app(\App\Services\SsoAuthService::class);
-                    $tokenData = $ssoService->refreshAccessToken($user->refresh_token);
-
-                    $user->update([
-                        'access_token' => $tokenData['access_token'],
-                        'refresh_token' => $tokenData['refresh_token'] ?? $user->refresh_token,
-                        'token_expires_at' => now()->addSeconds($tokenData['expires_in']),
-                    ]);
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Failed to refresh token in UnitService::getAllUnits', [
-                        'user_id' => $user->id,
-                        'error' => $e->getMessage(),
-                    ]);
-
-                    // If token is already expired and refresh failed, don't use the expired token
-                    if ($user->isTokenExpired()) {
-                        $accessToken = null;
-
-                        return collect([]); // Early return as we know it will fail with 401
-                    }
-                }
-            }
-            $accessToken = $accessToken ?? $user->access_token;
+        if (! ($user instanceof \App\Models\User)) {
+            return collect([]);
         }
 
-        $request = Http::asJson();
-        if ($accessToken) {
-            $request = $request->withToken($accessToken);
+        // 1. Proactive Refresh if needed
+        if ($user->needsTokenRefresh()) {
+            if (! $user->refreshSsoToken()) {
+                \Illuminate\Support\Facades\Log::warning('UnitService::syncFromApi: Proactive refresh failed.');
+
+                return collect([]);
+            }
+        }
+
+        $accessToken = $user->access_token;
+
+        if (! $accessToken) {
+            return collect([]);
         }
 
         try {
-            $response = $request->get($this->baseUrl, [
-                'per_page' => 1000,
-            ]);
+            // 2. Initial Request
+            $response = Http::asJson()
+                ->withHeader('Accept', 'application/json')
+                ->withToken($accessToken)
+                ->get($this->baseUrl, ['per_page' => 1000]);
+
+            $json = $response->json();
+
+            // 3. Handle Unauthorized (401) or explicit "jwt expired"
+            if ($response->status() === 401 || ($json['message'] ?? '') === 'jwt expired') {
+                \Illuminate\Support\Facades\Log::info('UnitService::syncFromApi: Token expired mid-request, attempting final refresh.');
+
+                if ($user->refreshSsoToken()) {
+                    // Retry with new token
+                    $response = Http::asJson()
+                        ->withHeader('Accept', 'application/json')
+                        ->withToken($user->access_token)
+                        ->get($this->baseUrl, ['per_page' => 1000]);
+
+                    $json = $response->json();
+                } else {
+                    \Illuminate\Support\Facades\Log::warning('UnitService::syncFromApi: Final refresh failed after 401/expired JWT. User session might be expired.');
+
+                    return collect([]);
+                }
+            }
 
             if ($response->successful()) {
-                $json = $response->json();
                 $data = $json['data'] ?? (isset($json[0]) ? $json : []);
 
-                $units = collect($data)->map(function ($item) {
-                    return new Unit([
-                        'id' => $item['id'] ?? $item['ORGANISASI_ID'] ?? null,
-                        'code' => $item['code_name'] ?? $item['code'] ?? $item['ORGANISASI_CODE'] ?? $item['ORGANISASI_KODE'] ?? $item['KODE'] ?? null,
-                        'name' => $item['name'] ?? $item['ORGANISASI_NAMA'] ?? null,
-                        'superior_unit' => $item['superior_unit'] ?? null,
-                    ]);
-                });
+                \Illuminate\Support\Facades\Log::info('UnitService::syncFromApi fetched '.count($data).' units.');
 
-                // 3. Success: Cache for 1 hour (even if empty, because it's a valid API response)
-                Cache::put($cacheKey, $units, now()->addHour());
+                $syncedUnits = collect();
 
-                return $units;
+                foreach ($data as $item) {
+                    $externalId = $item['id'] ?? $item['ORGANISASI_ID'] ?? null;
+
+                    if (! $externalId) {
+                        continue;
+                    }
+
+                    $unit = Unit::updateOrCreate(
+                        ['external_id' => (string) $externalId],
+                        [
+                            'code' => $item['code_name'] ?? $item['code'] ?? $item['ORGANISASI_CODE'] ?? $item['ORGANISASI_KODE'] ?? $item['KODE'] ?? null,
+                            'name' => $item['name'] ?? $item['ORGANISASI_NAMA'] ?? null,
+                            'superior_unit' => $item['superior_unit'] ?? null,
+                        ]
+                    );
+
+                    $syncedUnits->push($unit);
+                }
+
+                self::clearCache();
+
+                return $syncedUnits;
             } else {
-                \Illuminate\Support\Facades\Log::warning('API Request unsuccessful in UnitService::getAllUnits', [
+                \Illuminate\Support\Facades\Log::error('UnitService::syncFromApi request failed after potential retry', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Exception in UnitService::getAllUnits', [
+            \Illuminate\Support\Facades\Log::error('Exception in UnitService::syncFromApi', [
                 'message' => $e->getMessage(),
             ]);
         }
 
-        // 4. Failure: Don't cache or cache very briefly (1 min) to allow retry
-        // Returns the cached (stale/empty) value or an empty collection if nothing exists
-        return $cached ?? collect([]);
+        return collect([]);
+    }
+
+    /**
+     * Get all units from the local database.
+     */
+    public function getAllUnits(): Collection
+    {
+        $cacheKey = self::CACHE_KEY;
+
+        return Cache::remember($cacheKey, now()->addHour(), function () {
+            return Unit::all();
+        });
     }
 
     /**
