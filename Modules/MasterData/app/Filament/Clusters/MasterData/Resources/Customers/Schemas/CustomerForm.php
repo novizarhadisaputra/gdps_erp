@@ -83,22 +83,28 @@ class CustomerForm
                 ->columns(2)
                 ->collapsible(),
 
-            SpatieMediaLibraryFileUpload::make('npwp')
-                ->collection('npwp')
-                ->label('NPWP Document')
-                ->disk('s3')
-                ->visibility('private'),
-            SpatieMediaLibraryFileUpload::make('legal_documents')
-                ->collection('legal_documents')
-                ->label('Legal Documents')
-                ->disk('s3')
-                ->visibility('private')
-                ->multiple(),
-            SpatieMediaLibraryFileUpload::make('company_profile')
-                ->collection('company_profile')
-                ->label('Company Profile')
-                ->disk('s3')
-                ->visibility('private'),
+            Section::make('Legal & Company Documents')
+                ->description('Official corporate and legal registration files.')
+                ->schema([
+                    SpatieMediaLibraryFileUpload::make('npwp')
+                        ->collection('npwp')
+                        ->label('NPWP Document')
+                        ->disk('s3')
+                        ->visibility('private'),
+                    SpatieMediaLibraryFileUpload::make('legal_documents')
+                        ->collection('legal_documents')
+                        ->label('Legal Documents')
+                        ->disk('s3')
+                        ->visibility('private')
+                        ->multiple(),
+                    SpatieMediaLibraryFileUpload::make('company_profile')
+                        ->collection('company_profile')
+                        ->label('Company Profile')
+                        ->disk('s3')
+                        ->visibility('private'),
+                ])
+                ->columns(3)
+                ->columnSpanFull(),
         ];
     }
 }

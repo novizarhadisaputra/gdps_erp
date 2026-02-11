@@ -12,8 +12,10 @@ class RegencyMinimumWage extends Model
 
     protected $fillable = [
         'project_area_id',
+        'province',
         'year',
         'amount',
+        'is_active',
     ];
 
     protected function casts(): array
@@ -21,6 +23,7 @@ class RegencyMinimumWage extends Model
         return [
             'amount' => 'decimal:2',
             'year' => 'integer',
+            'is_active' => 'boolean',
         ];
     }
 

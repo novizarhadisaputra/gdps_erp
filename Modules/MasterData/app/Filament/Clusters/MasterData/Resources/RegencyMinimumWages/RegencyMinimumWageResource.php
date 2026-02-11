@@ -19,9 +19,15 @@ class RegencyMinimumWageResource extends Resource
 
     protected static ?string $cluster = MasterDataCluster::class;
 
-    protected static ?int $navigationSort = 102;
+    protected static ?string $navigationLabel = 'Minimum Wage';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static ?string $modelLabel = 'Minimum Wage';
+
+    protected static ?string $pluralModelLabel = 'Minimum Wages';
+
+    protected static ?int $navigationSort = 103;
+
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 

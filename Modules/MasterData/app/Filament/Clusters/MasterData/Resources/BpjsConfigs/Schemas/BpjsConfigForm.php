@@ -57,29 +57,30 @@ class BpjsConfigForm
                 ->required(),
             Select::make('type')
                 ->options(BpjsType::class)
-                ->helperText('Select the type of BPJS configuration.')
+                ->label('BPJS TYPE')
+                ->helperText('SELECT THE TYPE OF BPJS CONFIGURATION.')
                 ->default(BpjsType::Employment)
                 ->required(),
             Select::make('calculation_basis')
-                ->label('Calculation Basis')
+                ->label('CALCULATION BASIS')
                 ->multiple()
                 ->options(RemunerationComponent::where('is_active', true)->pluck('name', 'id'))
-                ->helperText('Select components used for calculation (e.g., Gaji Pokok + Tunjangan Tetap)')
-                ->placeholder('Search components...')
+                ->helperText('SELECT COMPONENTS USED FOR CALCULATION (E.G., GAJI POKOK + TUNJANGAN TETAP)')
+                ->placeholder('SEARCH COMPONENTS...')
                 ->preload()
                 ->searchable()
                 ->required(),
             Grid::make(2)
                 ->schema([
                     TextInput::make('employer_rate')
-                        ->label('Employer Rate')
-                        ->helperText('Example: 0.04 for 4%')
+                        ->label('EMPLOYER RATE')
+                        ->helperText('EXAMPLE: 0.04 FOR 4%')
                         ->numeric()
                         ->step(0.0001)
                         ->required(),
                     TextInput::make('employee_rate')
-                        ->label('Employee Rate')
-                        ->helperText('Example: 0.01 for 1%')
+                        ->label('EMPLOYEE RATE')
+                        ->helperText('EXAMPLE: 0.01 FOR 1%')
                         ->numeric()
                         ->step(0.0001)
                         ->required(),

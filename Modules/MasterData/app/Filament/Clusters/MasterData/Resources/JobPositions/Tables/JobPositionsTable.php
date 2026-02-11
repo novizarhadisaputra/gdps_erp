@@ -17,9 +17,6 @@ class JobPositionsTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('basic_salary')
-                    ->money('IDR')
-                    ->sortable(),
                 TextColumn::make('risk_level')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {

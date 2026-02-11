@@ -26,12 +26,6 @@ class JobPositionForm
                 ->required()
                 ->maxLength(255)
                 ->helperText('The descriptive name of the job position (e.g., Manager, Specialist, Operator).'),
-            TextInput::make('basic_salary')
-                ->label('Basic Salary (Gapok)')
-                ->numeric()
-                ->default(0)
-                ->required()
-                ->helperText('The monthly base salary for this position.'),
             Select::make('risk_level')
                 ->options(RiskLevel::class)
                 ->default(RiskLevel::VeryLow)

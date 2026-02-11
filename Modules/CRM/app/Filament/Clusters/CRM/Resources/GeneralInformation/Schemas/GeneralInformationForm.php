@@ -256,30 +256,39 @@ class GeneralInformationForm
 
             // Feasibility Study removed as per request
 
-            Textarea::make('description')->columnSpanFull()->rows(3),
-            Textarea::make('remarks')->columnSpanFull()->rows(2),
-
-            Grid::make(3)
+            Section::make('Additional Information')
                 ->schema([
-                    SpatieMediaLibraryFileUpload::make('tor')
-                        ->collection('tor')
-                        ->label('ToR Document')
-                        ->disk('s3')
-                        ->visibility('private')
-                        ->required(),
-                    SpatieMediaLibraryFileUpload::make('rfp')
-                        ->collection('rfp')
-                        ->label('RFP Document')
-                        ->disk('s3')
-                        ->visibility('private')
-                        ->required(),
-                    SpatieMediaLibraryFileUpload::make('rfi')
-                        ->collection('rfi')
-                        ->label('RFI Document')
-                        ->disk('s3')
-                        ->visibility('private')
-                        ->required(),
-                ])->columnSpanFull(),
+                    Textarea::make('description')->columnSpanFull()->rows(3),
+                    Textarea::make('remarks')->columnSpanFull()->rows(2),
+                ])
+                ->columnSpanFull(),
+
+            Section::make('Project Documents')
+                ->description('Upload required project documentation.')
+                ->schema([
+                    Grid::make(3)
+                        ->schema([
+                            SpatieMediaLibraryFileUpload::make('tor')
+                                ->collection('tor')
+                                ->label('ToR Document')
+                                ->disk('s3')
+                                ->visibility('private')
+                                ->required(),
+                            SpatieMediaLibraryFileUpload::make('rfp')
+                                ->collection('rfp')
+                                ->label('RFP Document')
+                                ->disk('s3')
+                                ->visibility('private')
+                                ->required(),
+                            SpatieMediaLibraryFileUpload::make('rfi')
+                                ->collection('rfi')
+                                ->label('RFI Document')
+                                ->disk('s3')
+                                ->visibility('private')
+                                ->required(),
+                        ]),
+                ])
+                ->columnSpanFull(),
         ];
     }
 

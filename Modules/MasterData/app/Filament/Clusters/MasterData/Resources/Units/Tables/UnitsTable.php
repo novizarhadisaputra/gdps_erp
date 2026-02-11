@@ -118,6 +118,7 @@ class UnitsTable
                     ->icon('heroicon-o-shield-check')
                     ->color('primary')
                     ->url(fn (Unit $record): string => UnitResource::getUrl('permissions', ['record' => $record])),
-            ]);
+            ])
+            ->defaultPaginationPageOption(50);
     }
 }

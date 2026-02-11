@@ -24,6 +24,11 @@ class EmployeeResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return EmployeeForm::configure($schema);

@@ -13,6 +13,8 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Wizard;
+use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Models\ProfitabilityAnalysis;
@@ -37,428 +39,429 @@ class ProfitabilityAnalysisForm
     public static function schema(): array
     {
         return [
-            Select::make('general_information_id')
-                ->relationship('generalInformation', 'id')
-                ->label('GI Form (RR Submission)')
-                ->required()
-                ->searchable()
-                ->preload()
-                ->live()
-                ->disabled()
-                ->dehydrated(),
-            Select::make('customer_id')
-                ->relationship('customer', 'name')
-                ->helperText('Customer associated with the project.')
-                ->required()
-                ->searchable()
-                ->preload()
-                ->disabled()
-                ->dehydrated()
-                ->createOptionForm(CustomerForm::schema())
-                ->createOptionAction(fn (Action $action) => $action->slideOver())
-                ->editOptionForm(CustomerForm::schema())
-                ->editOptionAction(fn (Action $action) => $action->slideOver()),
-            TextInput::make('document_number')
-                ->label('Document Number')
-                ->hidden(fn ($record) => ! ($record instanceof ProfitabilityAnalysis)),
+            Wizard::make([
+                Step::make('Project Identification')
+                    ->description('Identify the RR submission and customer.')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                Select::make('general_information_id')
+                                    ->relationship('generalInformation', 'id')
+                                    ->label('GI Form (RR Submission)')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->disabled()
+                                    ->dehydrated(),
+                                Select::make('customer_id')
+                                    ->relationship('customer', 'name')
+                                    ->helperText('Customer associated with the project.')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->createOptionForm(CustomerForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                    ->editOptionForm(CustomerForm::schema())
+                                    ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                            ]),
+                        TextInput::make('document_number')
+                            ->label('Document Number')
+                            ->hidden(fn ($record) => ! ($record instanceof ProfitabilityAnalysis))
+                            ->columnSpanFull(),
 
-            Section::make('Project Documents')
-                ->columns(columns: 1)
-                ->schema([
-                    SpatieMediaLibraryFileUpload::make('tor')
-                        ->collection('tor')
-                        ->disk('s3')
-                        ->label('ToR Document')
-                        ->hint('Terms of Reference'),
-                    SpatieMediaLibraryFileUpload::make('rfp')
-                        ->collection('rfp')
-                        ->disk('s3')
-                        ->label('RFP Document')
-                        ->hint('Request for Proposal'),
-                    SpatieMediaLibraryFileUpload::make('rfi')
-                        ->collection('rfi')
-                        ->disk('s3')
-                        ->label('RFI Document')
-                        ->hint('Request for Information'),
-                ])->collapsible(),
+                        Section::make('Project Documents')
+                            ->schema([
+                                Grid::make(3)
+                                    ->schema([
+                                        SpatieMediaLibraryFileUpload::make('tor')
+                                            ->collection('tor')
+                                            ->disk('s3')
+                                            ->label('ToR Document')
+                                            ->hint('Terms of Reference'),
+                                        SpatieMediaLibraryFileUpload::make('rfp')
+                                            ->collection('rfp')
+                                            ->disk('s3')
+                                            ->label('RFP Document')
+                                            ->hint('Request for Proposal'),
+                                        SpatieMediaLibraryFileUpload::make('rfi')
+                                            ->collection('rfi')
+                                            ->disk('s3')
+                                            ->label('RFI Document')
+                                            ->hint('Request for Information'),
+                                    ]),
+                            ])->compact(),
+                    ]),
 
-            Section::make('Project Code Parameters')
-                ->columns(columns: 1)
-                ->schema([
-                    Select::make('work_scheme_id')
-                        ->relationship('workScheme', 'name')
-                        ->helperText('The work scheme for this project.')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->disabled()
-                        ->dehydrated()
-                        ->createOptionForm(WorkSchemeForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->editOptionForm(WorkSchemeForm::schema())
-                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                    Select::make('product_cluster_id')
-                        ->relationship('productCluster', 'name')
-                        ->helperText('Cluster of the product/service.')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->createOptionForm(ProductClusterForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->editOptionForm(ProductClusterForm::schema())
-                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                    Select::make('tax_id')
-                        ->relationship('tax', 'name')
-                        ->helperText('Applicable tax regulation.')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->createOptionForm(TaxForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->editOptionForm(TaxForm::schema())
-                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                    Select::make('project_area_id')
-                        ->relationship('projectArea', 'name')
-                        ->helperText('Geographical area of the project.')
-                        ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Location where project is executed.')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->live()
-                        ->createOptionForm(ProjectAreaForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->editOptionForm(ProjectAreaForm::schema())
-                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                ]),
+                Step::make('Parameters & Assets')
+                    ->description('Configure project scopes and asset ownership.')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                Select::make('work_scheme_id')
+                                    ->relationship('workScheme', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->createOptionForm(WorkSchemeForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('product_cluster_id')
+                                    ->relationship('productCluster', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm(ProductClusterForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('tax_id')
+                                    ->relationship('tax', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm(TaxForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('project_area_id')
+                                    ->relationship('projectArea', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->createOptionForm(ProjectAreaForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                            ]),
+                        Select::make('asset_ownership')
+                            ->options(AssetOwnership::class)
+                            ->default(AssetOwnership::GdpsOwned)
+                            ->required()
+                            ->native(false),
+                    ]),
 
-            Section::make('Financial Analysis')
-                ->schema([
-                    Grid::make(3)
-                        ->schema([
-                            Select::make('asset_ownership')
-                                ->options(AssetOwnership::class)
-                                ->default(AssetOwnership::GdpsOwned)
-                                ->required()
-                                ->native(false),
-                            TextInput::make('management_fee')
-                                ->label('Management Fee (Flat)')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->helperText('Additional flat fee.'),
-                            TextInput::make('margin_percentage')
-                                ->label('Gross Margin')
-                                ->numeric()
-                                ->suffix('%')
-                                ->readOnly()
-                                ->placeholder('Auto'),
-                        ]),
+                Step::make('Financial Assumptions')
+                    ->description('Set external rates and overhead expectations.')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextInput::make('management_expense_rate')
+                                    ->label('Mgmt Expense (%)')
+                                    ->numeric()
+                                    ->default(2.50)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                TextInput::make('interest_rate')
+                                    ->label('Interest Rate (%)')
+                                    ->numeric()
+                                    ->default(1.50)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                TextInput::make('tax_rate')
+                                    ->label('Corp Tax Rate (%)')
+                                    ->numeric()
+                                    ->default(22.00)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                            ]),
+                    ]),
 
-                    Grid::make(3)
-                        ->schema([
-                            TextInput::make('management_expense_rate')
-                                ->label('Mgmt Expense (%)')
-                                ->numeric()
-                                ->default(2.50)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                            TextInput::make('interest_rate')
-                                ->label('Interest Rate (%)')
-                                ->numeric()
-                                ->default(1.50)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                            TextInput::make('tax_rate')
-                                ->label('Corp Tax Rate (%)')
-                                ->numeric()
-                                ->default(22.00)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                        ]),
-
-                    Grid::make(2)
-                        ->schema([
-                            TextInput::make('revenue_per_month')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->label('Total Revenue/Mo')
-                                ->readOnly()
-                                ->live(onBlur: true),
-                            TextInput::make('direct_cost')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->label('Total Direct Cost/Mo')
-                                ->readOnly()
-                                ->live(),
-                        ]),
-
-                    Grid::make(4)
-                        ->schema([
-                            TextInput::make('ebitda')
-                                ->label('EBITDA')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->readOnly(),
-                            TextInput::make('ebit')
-                                ->label('EBIT')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->readOnly(),
-                            TextInput::make('ebt')
-                                ->label('EBT')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->readOnly(),
-                            TextInput::make('net_profit')
-                                ->label('Net Profit')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->readOnly()
-                                ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly profitability.'),
-                        ]),
-                ])->columnSpanFull(),
-
-            Section::make('Costing Details')
-                ->columnSpanFull()
-                ->schema([
-                    Repeater::make('items')
-                        ->relationship('items')
-                        ->schema([
-                            Select::make('costable_type')
-                                ->label('Cost Type')
-                                ->options([
-                                    Item::class => 'Item (General)',
-                                    JobPosition::class => 'Job Position (Manpower)',
-                                    ManpowerTemplate::class => 'Manpower Template (Packet)',
-                                ])
-                                ->required()
-                                ->live()
-                                ->afterStateUpdated(fn (Set $set) => $set('costable_id', null))
-                                ->columnSpan(1),
-                            Select::make('costable_id')
-                                ->label('Resource')
-                                ->options(fn (Get $get) => filled($get('costable_type')) ? $get('costable_type')::pluck('name', 'id') : [])
-                                ->required()
-                                ->searchable()
-                                ->preload()
-                                ->live()
-                                ->afterStateUpdated(function ($state, $get, Set $set) {
-                                    if (! $state || ! $get('costable_type')) {
-                                        return;
-                                    }
-
-                                    $type = $get('costable_type');
-                                    $record = $type::find($state);
-
-                                    if (! $record) {
-                                        return;
-                                    }
-
-                                    if ($type === Item::class) {
-                                        $set('unit_cost_price', $record->price);
-                                        $set('unit_of_measure', $record->unitOfMeasure?->name ?? 'Unit');
-                                        $isManpower = $record->category?->name === 'Manpower';
-                                        $set('is_manpower', $isManpower);
-
-                                        // Depreciation Logic
-                                        $depreciation = $record->depreciation_months;
-                                        if (empty($depreciation) || $depreciation <= 0) {
-                                            $usefulLifeYears = $record->category?->assetGroup?->useful_life_years;
-                                            if ($usefulLifeYears && $usefulLifeYears > 0) {
-                                                $depreciation = $usefulLifeYears * 12;
-                                            }
+                Step::make('Costing Details')
+                    ->description('Specify manpower, items, and additional costs.')
+                    ->schema([
+                        Repeater::make('items')
+                            ->relationship('items')
+                            ->schema([
+                                Select::make('costable_type')
+                                    ->label('Cost Type')
+                                    ->options([
+                                        Item::class => 'Item (General)',
+                                        JobPosition::class => 'Job Position (Manpower)',
+                                        ManpowerTemplate::class => 'Manpower Template (Packet)',
+                                    ])
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(fn (Set $set) => $set('costable_id', null))
+                                    ->columnSpan(1),
+                                Select::make('costable_id')
+                                    ->label('Resource')
+                                    ->options(fn (Get $get) => filled($get('costable_type')) ? $get('costable_type')::pluck('name', 'id') : [])
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, $get, Set $set) {
+                                        if (! $state || ! $get('costable_type')) {
+                                            return;
                                         }
-                                        $set('depreciation_months', $depreciation ?? 1);
-                                    }
 
-                                    if ($type === JobPosition::class) {
-                                        $set('unit_cost_price', $record->basic_salary);
-                                        $set('unit_of_measure', 'Person');
-                                        $set('is_manpower', true);
-                                        $set('risk_level', $record->risk_level);
-                                        $set('is_labor_intensive', $record->is_labor_intensive);
-                                        $set('depreciation_months', 1);
+                                        $type = $get('costable_type');
+                                        $record = $type::find($state);
 
-                                        // Sync Remuneration Components to cost_breakdown
-                                        $breakdown = [];
-                                        foreach ($record->remunerationComponents ?? [] as $component) {
-                                            $breakdown[] = [
-                                                'name' => $component->name,
-                                                'type' => 'nominal',
-                                                'value' => $component->pivot->amount,
-                                                'is_fixed' => $component->is_fixed,
-                                            ];
+                                        if (! $record) {
+                                            return;
                                         }
-                                        $set('cost_breakdown', $breakdown);
-                                    }
 
-                                    if ($type === ManpowerTemplate::class) {
-                                        $service = app(ManpowerCostingService::class);
-                                        $areaId = $record->project_area_id;
-                                        $year = (int) ($get('../../year') ?? $get('/year') ?? date('Y'));
+                                        if ($type === Item::class) {
+                                            $set('unit_cost_price', $record->price);
+                                            $set('unit_of_measure', $record->unitOfMeasure?->name ?? 'Unit');
+                                            $isManpower = $record->category?->name === 'Manpower';
+                                            $set('is_manpower', $isManpower);
 
-                                        $totalPacketCost = 0;
-                                        foreach ($record->items as $item) {
-                                            $jp = $item->jobPosition;
-                                            if (! $jp) {
-                                                continue;
+                                            // Depreciation Logic
+                                            $depreciation = $record->depreciation_months;
+                                            if (empty($depreciation) || $depreciation <= 0) {
+                                                $usefulLifeYears = $record->category?->assetGroup?->useful_life_years;
+                                                if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                                    $depreciation = $usefulLifeYears * 12;
+                                                }
                                             }
+                                            $set('depreciation_months', $depreciation ?? 1);
+                                        }
 
-                                            $allowances = [];
-                                            foreach ($jp->remunerationComponents ?? [] as $component) {
-                                                $allowances[] = [
+                                        if ($type === JobPosition::class) {
+                                            $set('unit_cost_price', $record->basic_salary);
+                                            $set('unit_of_measure', 'Person');
+                                            $set('is_manpower', true);
+                                            $set('risk_level', $record->risk_level);
+                                            $set('is_labor_intensive', $record->is_labor_intensive);
+                                            $set('depreciation_months', 1);
+
+                                            // Sync Remuneration Components to cost_breakdown
+                                            $breakdown = [];
+                                            foreach ($record->remunerationComponents ?? [] as $component) {
+                                                $breakdown[] = [
                                                     'name' => $component->name,
                                                     'type' => 'nominal',
                                                     'value' => $component->pivot->amount,
                                                     'is_fixed' => $component->is_fixed,
                                                 ];
                                             }
-
-                                            $res = $service->calculate(
-                                                basicSalary: $jp->basic_salary,
-                                                allowances: $allowances,
-                                                projectAreaId: $areaId,
-                                                year: $year,
-                                                riskLevel: $jp->risk_level ?? 'very_low',
-                                                isLaborIntensive: $jp->is_labor_intensive ?? false
-                                            );
-
-                                            $totalPacketCost += ($res['total_direct_cost'] * $item->quantity);
+                                            $set('cost_breakdown', $breakdown);
                                         }
 
-                                        $set('unit_cost_price', $totalPacketCost);
-                                        $set('unit_of_measure', 'Packet');
-                                        $set('is_manpower', false); // Treated as Fixed Cost
-                                        $set('risk_level', 'very_low');
-                                        $set('depreciation_months', 1);
-                                        $set('cost_breakdown', []);
-                                    }
+                                        if ($type === ManpowerTemplate::class) {
+                                            $service = app(ManpowerCostingService::class);
+                                            $areaId = $record->project_area_id;
+                                            $year = (int) ($get('../../year') ?? $get('/year') ?? date('Y'));
 
-                                    self::calculateDirectCost($get, $set);
-                                })
-                                ->columnSpan(3),
-                            Hidden::make('is_manpower'),
-                            Select::make('risk_level')
-                                ->options(RiskLevel::class)
-                                ->default(RiskLevel::VeryLow)
-                                ->visible(fn (Get $get) => $get('is_manpower'))
-                                ->live()
-                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
-                                ->columnSpan(1),
-                            Toggle::make('is_labor_intensive')
-                                ->label('Labor Intensive (50% JKK Reduction)')
-                                ->visible(fn (Get $get) => $get('is_manpower'))
-                                ->live()
-                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
-                                ->columnSpan(1),
-                            TextInput::make('quantity')
-                                ->numeric()
-                                ->default(1)
-                                ->live(onBlur: true)
-                                ->columnSpan(1),
-                            TextInput::make('unit_of_measure')
-                                ->label('UoM')
-                                ->disabled()
-                                ->dehydrated()
-                                ->columnSpan(1),
-                            TextInput::make('duration_months')
-                                ->label('Duration (Mo)')
-                                ->numeric()
-                                ->default(1)
-                                ->live(onBlur: true)
-                                ->columnSpan(1),
-                            TextInput::make('unit_cost_price')
-                                ->label('Base Price')
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->required()
-                                ->live(onBlur: true)
-                                ->columnSpan(1),
-                            TextInput::make('depreciation_months')
-                                ->label('Asset Depr (Mo)')
-                                ->numeric()
-                                ->default(1)
-                                ->live(onBlur: true)
-                                ->columnSpan(1),
-                            TextInput::make('markup_percentage')
-                                ->label('Markup (%)')
-                                ->numeric()
-                                ->default(0)
-                                ->live(onBlur: true)
-                                ->columnSpan(1),
+                                            $totalPacketCost = 0;
+                                            foreach ($record->items as $item) {
+                                                $jp = $item->jobPosition;
+                                                if (! $jp) {
+                                                    continue;
+                                                }
 
-                            // Dynamic Cost Breakdown
-                            Repeater::make('cost_breakdown')
-                                ->label('Additional Costs (Allowances, Taxes, etc.)')
-                                ->schema([
-                                    TextInput::make('name')
-                                        ->label('Component Name')
-                                        ->placeholder('e.g., BPJS, Transport')
-                                        ->required(),
-                                    Select::make('type')
-                                        ->options([
-                                            'nominal' => 'Nominal (Rp)',
-                                            'percentage' => 'Percentage (%)',
-                                        ])
-                                        ->default('nominal')
-                                        ->live()
-                                        ->required(),
-                                    Select::make('calculate_from')
-                                        ->label('Base On')
-                                        ->options([
-                                            'unit_cost_price' => 'Base Price',
-                                        ])
-                                        ->default('unit_cost_price')
-                                        ->visible(fn (Get $get) => $get('type') === 'percentage')
-                                        ->live(),
-                                    TextInput::make('value')
-                                        ->label('Amount/Rate')
-                                        ->numeric()
-                                        ->required()
-                                        ->live(onBlur: true)
-                                        ->columnSpan(1),
-                                    Hidden::make('is_fixed')->default(true),
+                                                $allowances = [];
+                                                foreach ($jp->remunerationComponents ?? [] as $component) {
+                                                    $allowances[] = [
+                                                        'name' => $component->name,
+                                                        'type' => 'nominal',
+                                                        'value' => $component->pivot->amount,
+                                                        'is_fixed' => $component->is_fixed,
+                                                    ];
+                                                }
 
-                                    Repeater::make('details')
-                                        ->label('Breakdown Details')
-                                        ->schema([
-                                            TextInput::make('name')
-                                                ->label('Sub-Component')
-                                                ->required(),
-                                            TextInput::make('value')
-                                                ->label('Amount')
-                                                ->numeric()
-                                                ->required()
-                                                ->live(onBlur: true),
-                                        ])
-                                        ->columns(2)
-                                        ->columnSpanFull()
-                                        ->live()
-                                        ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                            // Auto-sum details to parent value
-                                            $sum = collect($state ?? [])->sum('value');
-                                            $set('value', $sum);
+                                                $res = $service->calculate(
+                                                    basicSalary: $jp->basic_salary,
+                                                    allowances: $allowances,
+                                                    projectAreaId: $areaId,
+                                                    year: $year,
+                                                    riskLevel: $jp->risk_level ?? 'very_low',
+                                                    isLaborIntensive: $jp->is_labor_intensive ?? false
+                                                );
 
-                                            // Trigger main calculation
-                                            self::calculateDirectCost($get, $set);
-                                        }),
-                                ])
-                                ->columns(4)
-                                ->columnSpanFull()
-                                ->live()
-                                ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                                $totalPacketCost += ($res['total_direct_cost'] * $item->quantity);
+                                            }
 
-                            TextInput::make('total_monthly_cost')
-                                ->label('Total Cost/Mo')
-                                ->disabled()
-                                ->dehydrated()
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->placeholder(fn (Get $get) => self::calculateItemMonthlyCost($get))
-                                ->columnSpan(1),
-                            TextInput::make('total_monthly_sale')
-                                ->label('Selling/Mo')
-                                ->disabled()
-                                ->dehydrated()
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
-                                ->columnSpan(1),
-                        ])
-                        ->columns(6)
-                        ->columnSpanFull()
-                        ->itemLabel(fn (array $state): ?string => filled($state['costable_type'] ?? null) && filled($state['costable_id'] ?? null) ? $state['costable_type']::find($state['costable_id'])?->name : 'New Item')
-                        ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
-                ])->columnSpanFull(),
+                                            $set('unit_cost_price', $totalPacketCost);
+                                            $set('unit_of_measure', 'Packet');
+                                            $set('is_manpower', false); // Treated as Fixed Cost
+                                            $set('risk_level', 'very_low');
+                                            $set('depreciation_months', 1);
+                                            $set('cost_breakdown', []);
+                                        }
+
+                                        self::calculateDirectCost($get, $set);
+                                    })
+                                    ->columnSpan(3),
+                                Hidden::make('is_manpower'),
+                                Select::make('risk_level')
+                                    ->options(RiskLevel::class)
+                                    ->default(RiskLevel::VeryLow)
+                                    ->visible(fn (Get $get) => $get('is_manpower'))
+                                    ->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->columnSpan(1),
+                                Toggle::make('is_labor_intensive')
+                                    ->label('Labor')
+                                    ->visible(fn (Get $get) => $get('is_manpower'))
+                                    ->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->columnSpan(1),
+                                TextInput::make('quantity')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('unit_of_measure')
+                                    ->label('UoM')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->columnSpan(1),
+                                TextInput::make('duration_months')
+                                    ->label('Dur (Mo)')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('unit_cost_price')
+                                    ->label('Base Price')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('depreciation_months')
+                                    ->label('Depr (Mo)')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('markup_percentage')
+                                    ->label('Markup %')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+
+                                // Dynamic Cost Breakdown
+                                Repeater::make('cost_breakdown')
+                                    ->label('Additional Costs')
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Component Name')
+                                            ->required(),
+                                        Select::make('type')
+                                            ->options([
+                                                'nominal' => 'Nominal (Rp)',
+                                                'percentage' => 'Percentage (%)',
+                                            ])
+                                            ->default('nominal')
+                                            ->live()
+                                            ->required(),
+                                        TextInput::make('value')
+                                            ->label('Amount/Rate')
+                                            ->numeric()
+                                            ->required()
+                                            ->live(onBlur: true),
+                                        Hidden::make('is_fixed')->default(true),
+
+                                        Repeater::make('details')
+                                            ->label('Breakdown Details')
+                                            ->schema([
+                                                TextInput::make('name')
+                                                    ->label('Sub-Component')
+                                                    ->required(),
+                                                TextInput::make('value')
+                                                    ->label('Amount')
+                                                    ->numeric()
+                                                    ->required()
+                                                    ->live(onBlur: true),
+                                            ])
+                                            ->columns(2)
+                                            ->columnSpanFull()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                // Auto-sum details to parent value
+                                                $sum = collect($state ?? [])->sum('value');
+                                                $set('value', $sum);
+
+                                                // Trigger main calculation
+                                                self::calculateDirectCost($get, $set);
+                                            }),
+                                    ])
+                                    ->columns(3)
+                                    ->columnSpanFull()
+                                    ->live()
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+
+                                TextInput::make('total_monthly_cost')
+                                    ->label('Total Cost')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlyCost($get))
+                                    ->columnSpan(1),
+                                TextInput::make('total_monthly_sale')
+                                    ->label('Selling')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
+                                    ->columnSpan(1),
+                            ])
+                            ->columns(6)
+                            ->columnSpanFull()
+                            ->itemLabel(fn (array $state): ?string => filled($state['costable_type'] ?? null) && filled($state['costable_id'] ?? null) ? $state['costable_type']::find($state['costable_id'])?->name : 'New Item')
+                            ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                    ]),
+
+                Step::make('Financial Review')
+                    ->description('Review monthly revenue, costs, and profit.')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('management_fee')
+                                    ->label('Management Fee (Flat)')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                                TextInput::make('margin_percentage')
+                                    ->label('Gross Profit Margin')
+                                    ->numeric()
+                                    ->suffix('%')
+                                    ->readOnly()
+                                    ->placeholder('Auto'),
+                            ]),
+
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('revenue_per_month')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->label('Total Revenue/Mo')
+                                    ->readOnly()
+                                    ->live(onBlur: true),
+                                TextInput::make('direct_cost')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->label('Total Direct Cost/Mo')
+                                    ->readOnly()
+                                    ->live(),
+                            ]),
+
+                        Section::make('KPI Summary')
+                            ->schema([
+                                Grid::make(4)
+                                    ->schema([
+                                        TextInput::make('ebitda')
+                                            ->label('EBITDA')
+                                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                            ->readOnly(),
+                                        TextInput::make('ebit')
+                                            ->label('EBIT')
+                                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                            ->readOnly(),
+                                        TextInput::make('ebt')
+                                            ->label('EBT')
+                                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                            ->readOnly(),
+                                        TextInput::make('net_profit')
+                                            ->label('Net Profit')
+                                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                            ->readOnly()
+                                            ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly profitability.'),
+                                    ]),
+                            ])->compact(),
+                    ]),
+            ])->columnSpanFull()->persistStepInQueryString(),
         ];
     }
 

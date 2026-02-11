@@ -19,6 +19,9 @@ class RegencyMinimumWageForm
     public static function schema(): array
     {
         return [
+            TextInput::make('province')
+                ->required()
+                ->maxLength(255),
             Select::make('project_area_id')
                 ->label('Project Area')
                 ->relationship('projectArea', 'name')
@@ -34,7 +37,10 @@ class RegencyMinimumWageForm
             TextInput::make('amount')
                 ->label('Monthly Wage (UMK)')
                 ->numeric()
+                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                 ->required(),
+            \Filament\Forms\Components\Toggle::make('is_active')
+                ->default(true),
         ];
     }
 }

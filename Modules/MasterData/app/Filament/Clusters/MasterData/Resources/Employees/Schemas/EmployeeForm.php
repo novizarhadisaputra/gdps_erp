@@ -21,7 +21,7 @@ class EmployeeForm
     public static function schema(): array
     {
         return [
-            Section::make()
+            Section::make('General Information')
                 ->schema([
                     TextInput::make('code')
                         ->required()
@@ -51,21 +51,28 @@ class EmployeeForm
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
-            SpatieMediaLibraryFileUpload::make('identity_card')
-                ->collection('identity_card')
-                ->label('Identity Card')
-                ->disk('s3')
-                ->visibility('private'),
-            SpatieMediaLibraryFileUpload::make('resume')
-                ->collection('resume')
-                ->label('Resume')
-                ->disk('s3')
-                ->visibility('private'),
-            SpatieMediaLibraryFileUpload::make('employment_contract')
-                ->collection('employment_contract')
-                ->label('Employment Contract')
-                ->disk('s3')
-                ->visibility('private'),
+
+            Section::make('Employment Documents')
+                ->description('Required identity and employment files.')
+                ->schema([
+                    SpatieMediaLibraryFileUpload::make('identity_card')
+                        ->collection('identity_card')
+                        ->label('Identity Card')
+                        ->disk('s3')
+                        ->visibility('private'),
+                    SpatieMediaLibraryFileUpload::make('resume')
+                        ->collection('resume')
+                        ->label('Resume')
+                        ->disk('s3')
+                        ->visibility('private'),
+                    SpatieMediaLibraryFileUpload::make('employment_contract')
+                        ->collection('employment_contract')
+                        ->label('Employment Contract')
+                        ->disk('s3')
+                        ->visibility('private'),
+                ])
+                ->columns(3)
+                ->columnSpanFull(),
         ];
     }
 }

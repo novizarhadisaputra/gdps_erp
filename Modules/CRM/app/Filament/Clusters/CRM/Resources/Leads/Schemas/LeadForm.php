@@ -73,6 +73,23 @@ class LeadForm
                     Textarea::make('description')
                         ->rows(3)
                         ->columnSpanFull(),
+                    Grid::make(2)
+                        ->schema([
+                            Select::make('project_area_id')
+                                ->label('Project Area')
+                                ->relationship('projectArea', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->createOptionForm(ProjectAreaForm::schema())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                            Select::make('job_positions')
+                                ->label('Job Positions')
+                                ->multiple()
+                                ->options(\Modules\MasterData\Models\JobPosition::where('is_active', true)->pluck('name', 'id'))
+                                ->searchable()
+                                ->preload()
+                                ->helperText('Select the required job positions for this lead.'),
+                        ]),
                 ])
                 ->columnSpanFull()
                 ->columns(2),
@@ -159,14 +176,11 @@ class LeadForm
                     TextInput::make('estimated_amount')
                         ->numeric()
                         ->prefix('IDR')
-                        ->maxValue(42949672.95),
-                    TextInput::make('probability')
-                        ->numeric()
-                        ->suffix('%')
-                        ->minValue(0)
-                        ->maxValue(100),
+                        ->maxValue(42949672.95)
+                        ->nullable(),
                     DatePicker::make('expected_closing_date')
-                        ->native(false),
+                        ->native(false)
+                        ->nullable(),
                 ])
                 ->columnSpanFull()
                 ->columns(2),

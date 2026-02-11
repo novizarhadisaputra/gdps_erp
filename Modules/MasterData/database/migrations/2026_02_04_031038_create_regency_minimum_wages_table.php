@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('regency_minimum_wages', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('province')->nullable();
             $table->foreignUuid('project_area_id')->constrained('project_areas')->cascadeOnDelete();
             $table->integer('year');
             $table->decimal('amount', 15, 2);
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

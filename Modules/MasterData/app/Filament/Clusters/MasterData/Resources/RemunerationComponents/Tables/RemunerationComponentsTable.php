@@ -18,12 +18,28 @@ class RemunerationComponentsTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('category')
+                TextColumn::make('type')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => str($state)->title()->replace('_', ' '))
+                    ->color(fn (string $state): string => match ($state) {
+                        'fixed_allowance' => 'success',
+                        'non_fixed_allowance' => 'warning',
+                        'benefit' => 'info',
+                        default => 'gray',
+                    })
                     ->sortable(),
-                IconColumn::make('is_fixed')
+                TextColumn::make('default_amount')
+                    ->money('IDR')
+                    ->sortable(),
+                IconColumn::make('is_bpjs_base')
                     ->boolean()
-                    ->label('Fixed Allowance'),
+                    ->label('BPJS Base'),
+                IconColumn::make('is_taxable')
+                    ->boolean()
+                    ->label('Taxable'),
+                IconColumn::make('is_active')
+                    ->boolean()
+                    ->label('Active'),
             ])
             ->filters([
                 //

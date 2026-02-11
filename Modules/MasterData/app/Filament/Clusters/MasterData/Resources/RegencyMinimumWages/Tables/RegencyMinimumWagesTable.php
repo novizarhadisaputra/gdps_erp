@@ -14,6 +14,9 @@ class RegencyMinimumWagesTable
     {
         return $table
             ->columns([
+                TextColumn::make('province')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('projectArea.name')
                     ->label('Project Area')
                     ->searchable()
@@ -22,7 +25,10 @@ class RegencyMinimumWagesTable
                     ->sortable(),
                 TextColumn::make('amount')
                     ->label('Monthly Wage (UMK)')
-                    ->money('IDR')
+                    ->money('IDR', locale: 'id')
+                    ->sortable(),
+                \Filament\Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
                     ->sortable(),
             ])
             ->filters([
