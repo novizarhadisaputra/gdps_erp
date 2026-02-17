@@ -22,25 +22,51 @@ class LeadObserver
      */
     public function updated(Lead $lead): void
     {
+        // Bi-directional categorization sync to SalesPlan
+        $salesPlan = $lead->salesPlan()->first();
+
+        if ($salesPlan) {
+            $salesPlan->updateQuietly([
+                'revenue_segment_id' => $lead->revenue_segment_id,
+                'product_cluster_id' => $lead->product_cluster_id,
+                'project_type_id' => $lead->project_type_id,
+                'service_line_id' => $lead->service_line_id,
+                'industrial_sector_id' => $lead->industrial_sector_id,
+                'project_area_id' => $lead->project_area_id,
+                'estimated_value' => $lead->estimated_amount,
+                'confidence_level' => $lead->confidence_level,
+            ]);
+        }
+
         if (! $lead->wasChanged('status')) {
             return;
         }
 
         switch ($lead->status) {
             case LeadStatus::Lead:
-                // Revert logic if needed, or do nothing
                 break;
 
             case LeadStatus::Approach:
-                // 2. Approach: Otomatis buat jadwal "Activity" (Follow Up) jika belum ada
-                // We use Spatie Activitylog for history, but maybe 'Activity' here refers to a CRM Activity/Task model?
-                // Assuming we want to ensure there is a follow up task.
-                // Since we don't have a clear "CRM Task" model in the context, I will create a simple Activity Log note for now.
-                // Or if there is a 'Activity' module? Let's assume standard Filament Activity or Spatie.
-                // Given the plan says "Activity (Follow Up)", I'll log a reminder.
-                activity() // Using Spatie Activitylog helper
+                // Auto-create SalesPlan if it doesn't exist
+                if (! $lead->salesPlan) {
+                    $lead->salesPlan()->create([
+                        'revenue_segment_id' => $lead->revenue_segment_id,
+                        'product_cluster_id' => $lead->product_cluster_id,
+                        'project_type_id' => $lead->project_type_id,
+                        'service_line_id' => $lead->service_line_id,
+                        'industrial_sector_id' => $lead->industrial_sector_id,
+                        'project_area_id' => $lead->project_area_id,
+                        'estimated_value' => $lead->estimated_amount ?? 0,
+                        'confidence_level' => $lead->confidence_level ?? 'moderate',
+                        'priority_level' => 2, // Default Medium
+                        'start_date' => now(),
+                        'end_date' => now()->addYear(),
+                    ]);
+                }
+
+                activity()
                     ->performedOn($lead)
-                    ->log('Lead moved to Approach. Recommended action: Schedule a Follow Up.');
+                    ->log('Lead moved to Approach. Sales Plan draft created/synced.');
                 break;
 
             case LeadStatus::Proposal:

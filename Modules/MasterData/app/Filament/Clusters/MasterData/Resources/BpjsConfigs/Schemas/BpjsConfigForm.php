@@ -26,9 +26,11 @@ class BpjsConfigForm
     {
         return [
             TextInput::make('name')
+                ->label('NAME')
                 ->required()
                 ->maxLength(255),
             Select::make('category')
+                ->label('CATEGORY')
                 ->options(BpjsCategory::class)
                 ->live()
                 ->afterStateUpdated(function ($state, $set) {
@@ -58,15 +60,15 @@ class BpjsConfigForm
             Select::make('type')
                 ->options(BpjsType::class)
                 ->label('BPJS TYPE')
-                ->helperText('SELECT THE TYPE OF BPJS CONFIGURATION.')
+                ->helperText('Select the type of BPJS configuration.')
                 ->default(BpjsType::Employment)
                 ->required(),
             Select::make('calculation_basis')
                 ->label('CALCULATION BASIS')
                 ->multiple()
                 ->options(RemunerationComponent::where('is_active', true)->pluck('name', 'id'))
-                ->helperText('SELECT COMPONENTS USED FOR CALCULATION (E.G., GAJI POKOK + TUNJANGAN TETAP)')
-                ->placeholder('SEARCH COMPONENTS...')
+                ->helperText('Select components used for calculation (e.g., Gaji Pokok + Tunjangan Tetap)')
+                ->placeholder('Search components...')
                 ->preload()
                 ->searchable()
                 ->required(),
@@ -74,13 +76,13 @@ class BpjsConfigForm
                 ->schema([
                     TextInput::make('employer_rate')
                         ->label('EMPLOYER RATE')
-                        ->helperText('EXAMPLE: 0.04 FOR 4%')
+                        ->helperText('Example: 0.04 for 4%')
                         ->numeric()
                         ->step(0.0001)
                         ->required(),
                     TextInput::make('employee_rate')
                         ->label('EMPLOYEE RATE')
-                        ->helperText('EXAMPLE: 0.01 FOR 1%')
+                        ->helperText('Example: 0.01 for 1%')
                         ->numeric()
                         ->step(0.0001)
                         ->required(),
@@ -88,27 +90,32 @@ class BpjsConfigForm
             Grid::make(2)
                 ->schema([
                     Select::make('cap_type')
+                        ->label('CAP TYPE')
                         ->options(CalculationCapType::class)
                         ->default(CalculationCapType::None),
                     TextInput::make('cap_nominal')
+                        ->label('CAP NOMINAL')
                         ->numeric()
                         ->nullable(),
                 ]),
             Grid::make(3)
                 ->schema([
                     Select::make('floor_type')
+                        ->label('FLOOR TYPE')
                         ->options(CalculationFloorType::class)
                         ->default(CalculationFloorType::None),
                     TextInput::make('floor_nominal')
+                        ->label('FLOOR NOMINAL')
                         ->numeric()
                         ->nullable(),
                     Select::make('risk_level')
-                        ->label('Risk Level')
+                        ->label('RISK LEVEL')
                         ->options(RiskLevel::class)
                         ->helperText('Specific risk level for JKK (Kecelakaan Kerja).')
                         ->nullable(),
                 ]),
             Toggle::make('is_active')
+                ->label('IS ACTIVE')
                 ->default(true),
         ];
     }

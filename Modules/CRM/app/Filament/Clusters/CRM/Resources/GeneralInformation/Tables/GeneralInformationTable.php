@@ -8,6 +8,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
@@ -64,6 +66,43 @@ class GeneralInformationTable
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$record->customer->name}.pdf");
                     }),
+                Action::make('go_no_go')
+                    ->label('RR Go/No-Go')
+                    ->icon('heroicon-o-check-circle')
+                    ->color(fn (GeneralInformation $record) => match ($record->rr_status) {
+                        'approved' => 'success',
+                        'rejected' => 'danger',
+                        default => 'warning',
+                    })
+                    ->schema([
+                        Select::make('rr_status')
+                            ->label('Decision')
+                            ->options([
+                                'approved' => 'GO (Approved)',
+                                'rejected' => 'NO-GO (Rejected)',
+                                'in_progress' => 'IN PROGRESS',
+                            ])
+                            ->required(),
+                        Textarea::make('remarks')
+                            ->label('Remarks')
+                            ->rows(3),
+                    ])
+                    ->action(function (GeneralInformation $record, array $data) {
+                        $record->update([
+                            'rr_status' => $data['rr_status'],
+                            'remarks' => $data['remarks'],
+                        ]);
+
+                        Notification::make()
+                            ->title('Decision Recorded')
+                            ->success()
+                            ->send();
+
+                        if ($data['rr_status'] === 'approved' && $record->isFullyApproved()) {
+                            $record->update(['status' => 'approved']);
+                        }
+                    })
+                    ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
                 ViewAction::make()
                     ->modalFooterActions([
                         Action::make('Sign')

@@ -17,6 +17,12 @@ class ProposalFactory extends Factory
      */
     public function definition(): array
     {
-        return [];
+        return [
+            'proposal_number' => $this->faker->unique()->bothify('PROP/####/'.date('Y')),
+            'amount' => $this->faker->randomFloat(2, 1000000, 50000000),
+            'status' => 'draft',
+            'sequence_number' => $this->faker->numberBetween(1, 1000),
+            'year' => date('Y'),
+        ];
     }
 }

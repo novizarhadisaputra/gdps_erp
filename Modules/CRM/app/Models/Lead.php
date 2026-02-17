@@ -62,6 +62,8 @@ class Lead extends Model
         'service_line_id',
         'industrial_sector_id',
         'project_area_id',
+        'start_date',
+        'end_date',
     ];
 
     protected $casts = [
@@ -70,6 +72,8 @@ class Lead extends Model
         'estimated_amount' => 'decimal:2',
         'probability' => 'integer',
         'expected_closing_date' => 'date',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     protected static function newFactory(): LeadFactory

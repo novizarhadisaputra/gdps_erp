@@ -7,6 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 class RegencyMinimumWagesTable
 {
@@ -39,6 +40,7 @@ class RegencyMinimumWagesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    ExportAction::make(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

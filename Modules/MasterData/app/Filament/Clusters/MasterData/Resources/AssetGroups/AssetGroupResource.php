@@ -17,11 +17,11 @@ class AssetGroupResource extends Resource
 
     protected static ?string $model = AssetGroup::class;
 
-    protected static ?string $navigationLabel = 'Asset Categories';
+    protected static ?string $navigationLabel = 'Depreciation Asset Categories';
 
-    protected static ?string $modelLabel = 'Asset Category';
+    protected static ?string $modelLabel = 'Depreciation Asset Category';
 
-    protected static ?string $pluralModelLabel = 'Asset Categories';
+    protected static ?string $pluralModelLabel = 'Depreciation Asset Categories';
 
     protected static ?int $navigationSort = 84;
 

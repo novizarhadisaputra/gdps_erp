@@ -62,6 +62,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'ebit',
         'ebt',
         'net_profit',
+        'net_profit_margin',
     ];
 
     protected function casts(): array
@@ -75,6 +76,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'ebit' => 'decimal:2',
             'ebt' => 'decimal:2',
             'net_profit' => 'decimal:2',
+            'net_profit_margin' => 'decimal:2',
             'management_expense_rate' => 'decimal:2',
             'interest_rate' => 'decimal:2',
             'tax_rate' => 'decimal:2',

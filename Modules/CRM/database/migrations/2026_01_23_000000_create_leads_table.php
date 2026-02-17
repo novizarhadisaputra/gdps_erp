@@ -26,6 +26,8 @@ return new class extends Migration
             $table->foreignUuid('industrial_sector_id')->nullable()->constrained('industrial_sectors')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas')->nullOnDelete();
 
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->decimal('estimated_amount', 15, 2)->nullable();
             $table->integer('probability')->nullable(); // 0-100
             $table->date('expected_closing_date')->nullable();

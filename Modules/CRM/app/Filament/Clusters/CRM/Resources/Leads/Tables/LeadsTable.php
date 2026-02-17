@@ -24,9 +24,6 @@ class LeadsTable
                 TextColumn::make('estimated_amount')
                     ->money('IDR')
                     ->sortable(),
-                TextColumn::make('probability')
-                    ->suffix('%')
-                    ->sortable(),
                 TextColumn::make('items_count')
                     ->counts('proposals')
                     ->label('Proposals'),

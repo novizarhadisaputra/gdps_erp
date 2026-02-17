@@ -76,13 +76,6 @@ class LeadForm
                     Grid::make(2)
                         ->columnSpanFull()
                         ->schema([
-                            Select::make('project_area_id')
-                                ->label('Project Area')
-                                ->relationship('projectArea', 'name')
-                                ->searchable()
-                                ->preload()
-                                ->createOptionForm(ProjectAreaForm::schema())
-                                ->createOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('job_positions')
                                 ->label('Job Positions')
                                 ->multiple()
@@ -178,6 +171,14 @@ class LeadForm
                         ->numeric()
                         ->prefix('IDR')
                         ->maxValue(42949672.95)
+                        ->nullable(),
+                    DatePicker::make('start_date')
+                        ->label('Estimated Start Date')
+                        ->native(false)
+                        ->nullable(),
+                    DatePicker::make('end_date')
+                        ->label('Estimated End Date')
+                        ->native(false)
                         ->nullable(),
                     DatePicker::make('expected_closing_date')
                         ->native(false)

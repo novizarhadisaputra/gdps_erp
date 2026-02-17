@@ -11,7 +11,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 class ProjectsTable
 {
@@ -112,7 +112,7 @@ class ProjectsTable
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                    ExportBulkAction::make(),
+                    ExportAction::make(),
                 ]),
             ])
             ->headerActions([

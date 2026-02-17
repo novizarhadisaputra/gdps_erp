@@ -12,8 +12,9 @@ class ProposalObserver
     public function saved(Proposal $proposal): void
     {
         if ($proposal->lead && $proposal->lead->salesPlan) {
-            $proposal->lead->salesPlan->update([
+            $proposal->lead->salesPlan->updateQuietly([
                 'proposal_number' => $proposal->proposal_number,
+                'estimated_value' => $proposal->amount,
             ]);
 
             // Sync to monthly as well

@@ -28,8 +28,10 @@ class LeadInfolist
                                     ->badge(),
                                 TextEntry::make('estimated_amount')
                                     ->money('IDR'),
-                                TextEntry::make('probability')
-                                    ->suffix('%'),
+                                TextEntry::make('start_date')
+                                    ->date(),
+                                TextEntry::make('end_date')
+                                    ->date(),
                                 TextEntry::make('expected_closing_date')
                                     ->date(),
                                 TextEntry::make('user.name')

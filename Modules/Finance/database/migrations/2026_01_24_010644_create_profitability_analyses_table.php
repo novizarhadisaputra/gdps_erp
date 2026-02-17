@@ -36,6 +36,7 @@ return new class extends Migration
             $table->decimal('ebit', 15, 2)->default(0);
             $table->decimal('ebt', 15, 2)->default(0);
             $table->decimal('net_profit', 15, 2)->default(0);
+            $table->decimal('net_profit_margin', 5, 2)->default(0);
 
             $table->json('analysis_details')->nullable();
 

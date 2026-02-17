@@ -457,7 +457,13 @@ class ProfitabilityAnalysisForm
                                             ->label('Net Profit')
                                             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                                             ->readOnly()
-                                            ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly profitability.'),
+                                            ->hintIcon('heroicon-m-check-circle', tooltip: 'Final monthly net profit.'),
+                                        TextInput::make('net_profit_margin')
+                                            ->label('Net Profit Margin')
+                                            ->numeric()
+                                            ->suffix('%')
+                                            ->readOnly()
+                                            ->placeholder('Auto'),
                                     ]),
                             ])->compact(),
                     ]),
@@ -556,11 +562,13 @@ class ProfitabilityAnalysisForm
 
         $tax = $ebt > 0 ? ($ebt * ($taxRate / 100)) : 0;
         $netProfit = $ebt - $tax;
+        $netProfitMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
 
         $set('ebitda', $ebitda);
         $set('ebit', $ebit);
         $set('ebt', $ebt);
         $set('net_profit', $netProfit);
+        $set('net_profit_margin', round($netProfitMargin, 2));
 
         // Recalculate margin (GP Margin)
         self::calculateMargin($totalRevenue, $totalDirectCost, $set);
