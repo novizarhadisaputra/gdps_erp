@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Pages;
 
+use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\ProductClusterResource;
@@ -13,6 +14,8 @@ class ListProductClusters extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            ExcelImportAction::make()
+                ->color('primary'),
             CreateAction::make(),
         ];
     }

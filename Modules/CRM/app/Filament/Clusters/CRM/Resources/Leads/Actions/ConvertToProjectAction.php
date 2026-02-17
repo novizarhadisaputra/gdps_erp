@@ -38,7 +38,7 @@ class ConvertToProjectAction extends Action
                     ->searchable()
                     ->required()
                     ->createOptionForm(ProjectTypeForm::schema())
-                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                    ->createOptionAction(fn (Action $action) => $action->slideOver())
                     ->createOptionUsing(fn ($data) => ProjectType::create($data)->id),
 
                 Select::make('project_area_id')
@@ -65,7 +65,7 @@ class ConvertToProjectAction extends Action
                     ->searchable()
                     ->required()
                     ->createOptionForm(PaymentTermForm::schema())
-                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
 
                 Select::make('billing_option_id')
                     ->label('Billing Option')
@@ -73,7 +73,7 @@ class ConvertToProjectAction extends Action
                     ->searchable()
                     ->required()
                     ->createOptionForm(BillingOptionForm::schema())
-                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
 
                 Select::make('oprep_id')
                     ->label('Oprep (Person in Charge)')
@@ -81,7 +81,7 @@ class ConvertToProjectAction extends Action
                     ->searchable()
                     ->required()
                     ->createOptionForm(EmployeeForm::schema())
-                    ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
 
                 Select::make('ams_id')
                     ->label('AMS (Account Manager)')

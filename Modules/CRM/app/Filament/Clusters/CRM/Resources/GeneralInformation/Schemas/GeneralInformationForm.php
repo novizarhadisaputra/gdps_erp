@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\SalesPlan;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles\Schemas\ContactRoleForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
@@ -54,7 +55,7 @@ class GeneralInformationForm
                             if (! $state) {
                                 return;
                             }
-                            $lead = \Modules\CRM\Models\Lead::find($state);
+                            $lead = Lead::find($state);
                             if (! $lead) {
                                 return;
                             }

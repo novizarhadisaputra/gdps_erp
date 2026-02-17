@@ -7,6 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Actions\MoveToApproachAction;
 
 class LeadsTable
 {
@@ -34,6 +35,7 @@ class LeadsTable
                 //
             ])
             ->actions([
+                MoveToApproachAction::make(),
                 EditAction::make(),
             ])
             ->bulkActions([

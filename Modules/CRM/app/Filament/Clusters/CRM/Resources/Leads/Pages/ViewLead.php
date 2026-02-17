@@ -4,6 +4,8 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Actions\ConvertToProjectAction;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Actions\MoveToApproachAction;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 
 class ViewLead extends ViewRecord
@@ -13,8 +15,9 @@ class ViewLead extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            MoveToApproachAction::make(),
             Actions\EditAction::make(),
-            \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Actions\ConvertToProjectAction::make(),
+            ConvertToProjectAction::make(),
         ];
     }
 }

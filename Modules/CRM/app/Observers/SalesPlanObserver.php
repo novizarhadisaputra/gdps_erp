@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Observers;
 
+use Carbon\Carbon;
 use Modules\CRM\Models\SalesPlan;
 use Modules\CRM\Models\SalesPlanMonthly;
 
@@ -27,8 +28,8 @@ class SalesPlanObserver
 
     protected function generateDefaultDistribution(SalesPlan $salesPlan): void
     {
-        $start = \Carbon\Carbon::parse($salesPlan->start_date)->startOfMonth();
-        $end = \Carbon\Carbon::parse($salesPlan->end_date)->startOfMonth();
+        $start = Carbon::parse($salesPlan->start_date)->startOfMonth();
+        $end = Carbon::parse($salesPlan->end_date)->startOfMonth();
 
         $months = [];
         $current = $start->copy();
@@ -83,7 +84,7 @@ class SalesPlanObserver
             // item['month'] example: "February 2026"
             // We need to parse it or use the value if we added it in the form
 
-            $date = \Carbon\Carbon::parse($item['month']);
+            $date = Carbon::parse($item['month']);
 
             SalesPlanMonthly::create([
                 'sales_plan_id' => $salesPlan->id,
