@@ -3,6 +3,20 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\MasterData\Models\BillingOption;
+use Modules\MasterData\Models\IndustrialSector;
+use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\ItemCategory;
+use Modules\MasterData\Models\PaymentTerm;
+use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\ProjectType;
+use Modules\MasterData\Models\RevenueSegment;
+use Modules\MasterData\Models\ServiceLine;
+use Modules\MasterData\Models\SkillCategory;
+use Modules\MasterData\Models\Tax;
+use Modules\MasterData\Models\UnitOfMeasure;
+use Modules\MasterData\Models\WorkScheme;
 
 class MasterCodeSeeder extends Seeder
 {
@@ -18,7 +32,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'TP', 'name' => 'Third Parties'],
         ];
         foreach ($revenueSegments as $data) {
-            \Modules\MasterData\Models\RevenueSegment::updateOrCreate(['code' => $data['code']], $data);
+            RevenueSegment::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Service Lines
@@ -28,7 +42,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'IT', 'name' => 'Information Technology'],
         ];
         foreach ($serviceLines as $data) {
-            \Modules\MasterData\Models\ServiceLine::updateOrCreate(['code' => $data['code']], $data);
+            ServiceLine::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Industrial Sectors
@@ -46,7 +60,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'TRAN', 'name' => 'Transportation'],
         ];
         foreach ($industrialSectors as $data) {
-            \Modules\MasterData\Models\IndustrialSector::updateOrCreate(['code' => $data['code']], $data);
+            IndustrialSector::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Skill Categories
@@ -56,7 +70,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'HIGH', 'name' => 'High Skill'],
         ];
         foreach ($skillCategories as $data) {
-            \Modules\MasterData\Models\SkillCategory::updateOrCreate(['code' => $data['code']], $data);
+            SkillCategory::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Work Schemes
@@ -68,7 +82,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'OT', 'name' => 'Others'],
         ];
         foreach ($workSchemes as $data) {
-            \Modules\MasterData\Models\WorkScheme::updateOrCreate(['code' => $data['code']], $data);
+            WorkScheme::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Product Clusters
@@ -85,7 +99,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'OTS', 'name' => 'Product Cluster Others_'],
         ];
         foreach ($productClusters as $data) {
-            \Modules\MasterData\Models\ProductCluster::updateOrCreate(['code' => $data['code']], $data);
+            ProductCluster::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Taxes
@@ -96,7 +110,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'OT', 'name' => 'Others'],
         ];
         foreach ($taxes as $data) {
-            \Modules\MasterData\Models\Tax::updateOrCreate(['code' => $data['code']], $data);
+            Tax::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Project Areas
@@ -263,7 +277,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'ROK', 'name' => 'Korea Selatan'],
         ];
         foreach ($areas as $data) {
-            \Modules\MasterData\Models\ProjectArea::updateOrCreate(['name' => $data['name']], $data);
+            ProjectArea::updateOrCreate(['name' => $data['name']], $data);
         }
         // Payment Terms
         $paymentTerms = [
@@ -273,7 +287,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'TOP90', 'name' => '90 Hari Kalender', 'days' => 90],
         ];
         foreach ($paymentTerms as $data) {
-            \Modules\MasterData\Models\PaymentTerm::updateOrCreate(['code' => $data['code']], $data);
+            PaymentTerm::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Project Types
@@ -287,7 +301,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'OTH', 'name' => 'Others'],
         ];
         foreach ($projectTypes as $data) {
-            \Modules\MasterData\Models\ProjectType::updateOrCreate(['code' => $data['code']], $data);
+            ProjectType::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Units of Measure
@@ -301,7 +315,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'ROLL', 'name' => 'Roll'],
         ];
         foreach ($uoms as $data) {
-            \Modules\MasterData\Models\UnitOfMeasure::updateOrCreate(['code' => $data['code']], $data);
+            UnitOfMeasure::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Item Categories
@@ -311,7 +325,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'MP', 'name' => 'Manpower'],
         ];
         foreach ($categories as $data) {
-            \Modules\MasterData\Models\ItemCategory::updateOrCreate(['code' => $data['code']], $data);
+            ItemCategory::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Items
@@ -323,11 +337,11 @@ class MasterCodeSeeder extends Seeder
         ];
 
         foreach ($items as $itemData) {
-            $category = \Modules\MasterData\Models\ItemCategory::where('name', $itemData['category'])->first();
-            $uom = \Modules\MasterData\Models\UnitOfMeasure::where('code', $itemData['uom'])->first();
+            $category = ItemCategory::where('name', $itemData['category'])->first();
+            $uom = UnitOfMeasure::where('code', $itemData['uom'])->first();
 
             if ($category && $uom) {
-                \Modules\MasterData\Models\Item::updateOrCreate(
+                Item::updateOrCreate(
                     ['code' => $itemData['code']],
                     [
                         'item_category_id' => $category->id,
@@ -350,7 +364,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'OTH_BAPP', 'name' => 'Other BAPP'],
         ];
         foreach ($billingOptions as $data) {
-            \Modules\MasterData\Models\BillingOption::updateOrCreate(['code' => $data['code']], $data);
+            BillingOption::updateOrCreate(['code' => $data['code']], $data);
         }
     }
 }

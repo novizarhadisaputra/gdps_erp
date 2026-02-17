@@ -2,17 +2,20 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Enums\ReminderStatus;
 use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
 
 class ContractForm
@@ -36,9 +39,9 @@ class ContractForm
                         ->disabled()
                         ->dehydrated()
                         ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->editOptionForm(CustomerForm::schema())
-                        ->editOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('proposal_id')
                         ->relationship('proposal', 'proposal_number')
                         ->searchable()
@@ -46,11 +49,11 @@ class ContractForm
                         ->live()
                         ->disabled(fn ($state) => filled($state))
                         ->dehydrated()
-                        ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                        ->afterStateUpdated(function ($state, Set $set) {
                             if (! $state) {
                                 return;
                             }
-                            $proposal = \Modules\CRM\Models\Proposal::find($state);
+                            $proposal = Proposal::find($state);
                             if (! $proposal) {
                                 return;
                             }

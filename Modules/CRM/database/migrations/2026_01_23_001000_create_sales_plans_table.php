@@ -42,11 +42,10 @@ return new class extends Migration
             $table->integer('priority_level')->nullable(); // 1, 2, 3
             $table->string('confidence_level')->nullable(); // optimistic, moderate, pessimistic
 
-            // References
             $table->string('project_code')->nullable();
             $table->string('proposal_number')->nullable();
-            $table->foreignUuid('agreement_id')->nullable()->constrained('contracts')->nullOnDelete();
-            $table->foreignUuid('work_order_id')->nullable()->constrained('contracts')->nullOnDelete();
+            $table->uuid('agreement_id')->nullable();
+            $table->uuid('work_order_id')->nullable();
             $table->string('po_number')->nullable();
             $table->string('ba_number')->nullable();
             $table->string('so_number')->nullable();

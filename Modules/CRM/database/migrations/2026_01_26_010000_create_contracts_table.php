@@ -25,6 +25,12 @@ return new class extends Migration
             $table->json('signatures')->nullable();
             $table->timestamps();
         });
+
+        // Add foreign keys to sales_plans (after contracts table exists)
+        Schema::table('sales_plans', function (Blueprint $table) {
+            $table->foreign('agreement_id')->references('id')->on('contracts')->nullOnDelete();
+            $table->foreign('work_order_id')->references('id')->on('contracts')->nullOnDelete();
+        });
     }
 
     /**
@@ -32,6 +38,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('sales_plans', function (Blueprint $table) {
+            $table->dropForeign(['agreement_id']);
+            $table->dropForeign(['work_order_id']);
+        });
+
         Schema::dropIfExists('contracts');
     }
 };

@@ -3,6 +3,8 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\MasterData\Models\JobPosition;
+use Modules\MasterData\Models\RemunerationComponent;
 
 class JobPositionSeeder extends Seeder
 {
@@ -18,14 +20,14 @@ class JobPositionSeeder extends Seeder
         ];
 
         foreach ($components as $c) {
-            \Modules\MasterData\Models\RemunerationComponent::updateOrCreate(
+            RemunerationComponent::updateOrCreate(
                 ['name' => $c['name']],
                 $c
             );
         }
 
-        $transport = \Modules\MasterData\Models\RemunerationComponent::where('name', 'Transport Allowance')->first();
-        $meal = \Modules\MasterData\Models\RemunerationComponent::where('name', 'Meal Allowance')->first();
+        $transport = RemunerationComponent::where('name', 'Transport Allowance')->first();
+        $meal = RemunerationComponent::where('name', 'Meal Allowance')->first();
 
         $positions = [
             ['name' => 'Security', 'salary' => 3500000, 'risk' => 'low'],
@@ -39,7 +41,7 @@ class JobPositionSeeder extends Seeder
         ];
 
         foreach ($positions as $p) {
-            \Modules\MasterData\Models\JobPosition::updateOrCreate(
+            JobPosition::updateOrCreate(
                 ['name' => $p['name']],
                 [
                     'basic_salary' => $p['salary'],

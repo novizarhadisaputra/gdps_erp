@@ -261,8 +261,8 @@ class SalesPlanForm
             $currentMonth = $startDate->copy()->addMonths($i);
             $distribution[] = [
                 'month' => $currentMonth->format('F Y'),
-                'rkap_amount' => round($monthlyAmount, 2),
-                'rofo_amount' => round($monthlyAmount, 2),
+                'budget_amount' => round($monthlyAmount, 2),
+                'forecast_amount' => round($monthlyAmount, 2),
                 'actual_amount' => 0,
                 'year_val' => $currentMonth->year,
                 'month_val' => $currentMonth->month,
