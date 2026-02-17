@@ -74,6 +74,7 @@ class LeadForm
                         ->rows(3)
                         ->columnSpanFull(),
                     Grid::make(2)
+                        ->columnSpanFull()
                         ->schema([
                             Select::make('project_area_id')
                                 ->label('Project Area')

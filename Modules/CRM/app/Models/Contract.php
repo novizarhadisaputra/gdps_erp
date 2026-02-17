@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CRM\Database\Factories\ContractFactory;
 use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Observers\ContractObserver;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Traits\HasDigitalSignatures;
@@ -25,6 +26,7 @@ class Contract extends Model implements HasMedia
         'customer_id',
         'proposal_id',
         'contract_number',
+        'type',
         'expiry_date',
         'status',
         'reminder_status',
@@ -33,6 +35,7 @@ class Contract extends Model implements HasMedia
 
     protected $casts = [
         'status' => ContractStatus::class,
+        'type' => ContractType::class,
         'expiry_date' => 'date',
     ];
 

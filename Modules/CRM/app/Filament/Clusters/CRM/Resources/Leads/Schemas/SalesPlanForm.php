@@ -90,10 +90,35 @@ class SalesPlanForm
                                 ->createOptionUsing(fn (array $data) => SkillCategory::create($data)->id)
                                 ->editOptionForm(SkillCategoryForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                            TextInput::make('document_reference')
-                                ->label('Doc. Reference (SPK/PO)')
-                                ->placeholder('e.g. SPK-2025-001'),
                         ]),
+                    Grid::make(2)
+                        ->schema([
+                            Select::make('agreement_id')
+                                ->relationship('agreement', 'contract_number', fn ($query, Get $get) => $query->where('lead_id', $get('../../lead_id'))->where('type', 'agreement'))
+                                ->label('Agreement No.')
+                                ->searchable()
+                                ->preload()
+                                ->helperText('Linked to formal Agreement (PKS).'),
+                            Select::make('work_order_id')
+                                ->relationship('workOrder', 'contract_number', fn ($query, Get $get) => $query->where('lead_id', $get('../../lead_id'))->where('type', 'work_order'))
+                                ->label('Work Order No.')
+                                ->searchable()
+                                ->preload()
+                                ->helperText('Linked to informal Work Order (SPK).'),
+                        ]),
+                    Grid::make(3)
+                        ->schema([
+                            TextInput::make('po_number')
+                                ->label('Purchase Order (PO) No.'),
+                            TextInput::make('ba_number')
+                                ->label('Minutes/Handover (BA) No.'),
+                            TextInput::make('so_number')
+                                ->label('Sales Order (SO) No.'),
+                        ]),
+                    TextInput::make('document_reference')
+                        ->label('Old Doc. Reference')
+                        ->placeholder('Legacy field')
+                        ->dehydrated(false),
                 ]),
 
             Section::make('Financials & Timeline')
@@ -180,10 +205,21 @@ class SalesPlanForm
                                         ->label('Month')
                                         ->disabled()
                                         ->dehydrated(),
-                                    TextInput::make('amount')
-                                        ->label('Forecast Amount')
+                                    TextInput::make('budget_amount')
+                                        ->label('Budget Plan')
                                         ->numeric()
                                         ->prefix('IDR')
+                                        ->required(),
+                                    TextInput::make('forecast_amount')
+                                        ->label('Forecast')
+                                        ->numeric()
+                                        ->prefix('IDR')
+                                        ->required(),
+                                    TextInput::make('actual_amount')
+                                        ->label('Actual Revenue')
+                                        ->numeric()
+                                        ->prefix('IDR')
+                                        ->default(0)
                                         ->required(),
                                 ]),
                         ])
@@ -225,7 +261,9 @@ class SalesPlanForm
             $currentMonth = $startDate->copy()->addMonths($i);
             $distribution[] = [
                 'month' => $currentMonth->format('F Y'),
-                'amount' => round($monthlyAmount, 2),
+                'rkap_amount' => round($monthlyAmount, 2),
+                'rofo_amount' => round($monthlyAmount, 2),
+                'actual_amount' => 0,
                 'year_val' => $currentMonth->year,
                 'month_val' => $currentMonth->month,
             ];

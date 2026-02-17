@@ -10,6 +10,7 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Enums\ReminderStatus;
 use Modules\CRM\Models\Contract;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
@@ -59,6 +60,11 @@ class ContractForm
                         ->required()
                         ->hiddenOn('create')
                         ->unique(Contract::class, 'contract_number', ignoreRecord: true),
+                    Select::make('type')
+                        ->options(ContractType::class)
+                        ->default(ContractType::Agreement)
+                        ->required()
+                        ->native(false),
                     DatePicker::make('expiry_date'),
                     ToggleButtons::make('status')
                         ->options(ContractStatus::class)

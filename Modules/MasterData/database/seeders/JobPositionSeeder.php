@@ -27,32 +27,26 @@ class JobPositionSeeder extends Seeder
         $transport = \Modules\MasterData\Models\RemunerationComponent::where('name', 'Transport Allowance')->first();
         $meal = \Modules\MasterData\Models\RemunerationComponent::where('name', 'Meal Allowance')->first();
 
-        $security = \Modules\MasterData\Models\JobPosition::updateOrCreate(
-            ['name' => 'Security Guard'],
-            [
-                'basic_salary' => 3500000,
-                'risk_level' => 'low',
-                'is_labor_intensive' => false,
-            ]
-        );
+        $positions = [
+            ['name' => 'Security', 'salary' => 3500000, 'risk' => 'low'],
+            ['name' => 'Driver', 'salary' => 3800000, 'risk' => 'low'],
+            ['name' => 'SPG', 'salary' => 3200000, 'risk' => 'very_low'],
+            ['name' => 'Merchandizer', 'salary' => 3200000, 'risk' => 'very_low'],
+            ['name' => 'Cleaner', 'salary' => 3000000, 'risk' => 'low'],
+            ['name' => 'Engineer', 'salary' => 5500000, 'risk' => 'medium'],
+            ['name' => 'Office Boy', 'salary' => 3000000, 'risk' => 'very_low'],
+            ['name' => 'Receptionist', 'salary' => 3500000, 'risk' => 'very_low'],
+        ];
 
-        $security->remunerationComponents()->syncWithoutDetaching([
-            $transport->id => ['amount' => 500000],
-            $meal->id => ['amount' => 300000],
-        ]);
-
-        $admin = \Modules\MasterData\Models\JobPosition::updateOrCreate(
-            ['name' => 'Admin Staff'],
-            [
-                'basic_salary' => 4500000,
-                'risk_level' => 'very_low',
-                'is_labor_intensive' => false,
-            ]
-        );
-
-        $admin->remunerationComponents()->syncWithoutDetaching([
-            $transport->id => ['amount' => 600000],
-            $meal->id => ['amount' => 400000],
-        ]);
+        foreach ($positions as $p) {
+            \Modules\MasterData\Models\JobPosition::updateOrCreate(
+                ['name' => $p['name']],
+                [
+                    'basic_salary' => $p['salary'],
+                    'risk_level' => $p['risk'],
+                    'is_labor_intensive' => true,
+                ]
+            );
+        }
     }
 }

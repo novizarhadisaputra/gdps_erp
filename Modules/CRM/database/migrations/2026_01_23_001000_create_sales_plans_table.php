@@ -45,6 +45,11 @@ return new class extends Migration
             // References
             $table->string('project_code')->nullable();
             $table->string('proposal_number')->nullable();
+            $table->foreignUuid('agreement_id')->nullable()->constrained('contracts')->nullOnDelete();
+            $table->foreignUuid('work_order_id')->nullable()->constrained('contracts')->nullOnDelete();
+            $table->string('po_number')->nullable();
+            $table->string('ba_number')->nullable();
+            $table->string('so_number')->nullable();
             $table->string('document_reference')->nullable();
 
             $table->json('revenue_distribution_planning')->nullable();

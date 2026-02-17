@@ -41,6 +41,11 @@ class SalesPlan extends Model
         'confidence_level',
         'project_code',
         'proposal_number',
+        'agreement_id',
+        'work_order_id',
+        'po_number',
+        'ba_number',
+        'so_number',
         'document_reference',
         'revenue_distribution_planning',
         'product_cluster_id',
@@ -105,6 +110,16 @@ class SalesPlan extends Model
     public function projectArea(): BelongsTo
     {
         return $this->belongsTo(ProjectArea::class);
+    }
+
+    public function agreement(): BelongsTo
+    {
+        return $this->belongsTo(Contract::class, 'agreement_id');
+    }
+
+    public function workOrder(): BelongsTo
+    {
+        return $this->belongsTo(Contract::class, 'work_order_id');
     }
 
     public function monthlyBreakdowns(): HasMany

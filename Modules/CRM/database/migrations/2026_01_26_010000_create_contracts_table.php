@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
             $table->foreignUuid('proposal_id')->nullable()->constrained()->onDelete('set null');
             $table->string('contract_number')->unique();
+            $table->string('type')->default('agreement'); // agreement, work_order
             $table->date('expiry_date')->nullable();
             $table->string('status')->default('draft'); // draft, active, expired, terminated
             $table->string('reminder_status')->nullable(); // 6_month, 3_month, 1_month

@@ -3,6 +3,8 @@
 namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\CRM\Enums\ContractType;
+use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesPlan;
@@ -67,23 +69,24 @@ class SalesPlanTest extends TestCase
             'priority_level' => 1,
             'confidence_level' => 'optimistic',
             'revenue_distribution_planning' => [
-                ['month' => 'January 2026', 'amount' => 1000000],
-                ['month' => 'February 2026', 'amount' => 1000000],
-                ['month' => 'March 2026', 'amount' => 1000000],
-                ['month' => 'April 2026', 'amount' => 1000000],
-                ['month' => 'May 2026', 'amount' => 1000000],
-                ['month' => 'June 2026', 'amount' => 1000000],
-                ['month' => 'July 2026', 'amount' => 1000000],
-                ['month' => 'August 2026', 'amount' => 1000000],
-                ['month' => 'September 2026', 'amount' => 1000000],
-                ['month' => 'October 2026', 'amount' => 1000000],
-                ['month' => 'November 2026', 'amount' => 1000000],
-                ['month' => 'December 2026', 'amount' => 1000000],
+                ['month' => 'January 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'February 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'March 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'April 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'May 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'June 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'July 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'August 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'September 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'October 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'November 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
+                ['month' => 'December 2026', 'budget_amount' => 1000000, 'forecast_amount' => 1000000, 'actual_amount' => 0],
             ],
         ]);
 
         $this->assertDatabaseCount('sales_plan_monthlies', 12);
-        $this->assertEquals(1000000, $salesPlan->monthlyBreakdowns()->first()->amount);
+        $this->assertEquals(1000000, $salesPlan->monthlyBreakdowns()->first()->budget_amount);
+        $this->assertEquals(1000000, $salesPlan->monthlyBreakdowns()->first()->forecast_amount);
     }
 
     public function test_proposal_syncs_number_to_sales_plan(): void
@@ -124,5 +127,34 @@ class SalesPlanTest extends TestCase
 
         $salesPlan->refresh();
         $this->assertEquals('PROJ-999', $salesPlan->project_code);
+    }
+
+    public function test_contract_creation_auto_links_to_sales_plan(): void
+    {
+        $salesPlan = SalesPlan::create([
+            'lead_id' => $this->lead->id,
+            'confidence_level' => 'moderate',
+            'priority_level' => 2,
+        ]);
+
+        $proposal = Proposal::create([
+            'lead_id' => $this->lead->id,
+            'customer_id' => $this->customer->id,
+            'proposal_number' => 'PROP-XYZ',
+            'amount' => 1000000,
+            'status' => 'submitted',
+        ]);
+
+        $contract = Contract::create([
+            'lead_id' => $this->lead->id,
+            'customer_id' => $this->customer->id,
+            'proposal_id' => $proposal->id,
+            'contract_number' => 'WO-001',
+            'type' => ContractType::WorkOrder,
+            'status' => 'draft',
+        ]);
+
+        $salesPlan->refresh();
+        $this->assertEquals($contract->id, $salesPlan->work_order_id);
     }
 }

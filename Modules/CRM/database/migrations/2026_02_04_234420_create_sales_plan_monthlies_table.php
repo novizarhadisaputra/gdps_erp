@@ -16,7 +16,9 @@ return new class extends Migration
             $table->foreignUuid('sales_plan_id')->constrained('sales_plans')->cascadeOnDelete();
             $table->integer('year');
             $table->integer('month'); // 1-12
-            $table->decimal('amount', 15, 2);
+            $table->decimal('budget_amount', 15, 2)->default(0);
+            $table->decimal('forecast_amount', 15, 2)->default(0);
+            $table->decimal('actual_amount', 15, 2)->default(0);
             $table->string('proposal_number')->nullable();
             $table->string('project_code')->nullable();
             $table->timestamps();

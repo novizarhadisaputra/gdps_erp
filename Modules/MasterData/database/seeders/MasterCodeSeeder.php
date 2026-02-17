@@ -13,9 +13,9 @@ class MasterCodeSeeder extends Seeder
     {
         // Revenue Segments
         $revenueSegments = [
-            ['code' => 'GOV', 'name' => 'Government'],
-            ['code' => 'BUMN', 'name' => 'BUMN'],
-            ['code' => 'PRIV', 'name' => 'Private'],
+            ['code' => 'GAG', 'name' => 'GA Group'],
+            ['code' => 'GMF', 'name' => 'GMF'],
+            ['code' => 'TP', 'name' => 'Third Parties'],
         ];
         foreach ($revenueSegments as $data) {
             \Modules\MasterData\Models\RevenueSegment::updateOrCreate(['code' => $data['code']], $data);
@@ -33,9 +33,17 @@ class MasterCodeSeeder extends Seeder
 
         // Industrial Sectors
         $industrialSectors = [
-            ['code' => 'MFG', 'name' => 'Manufacturing'],
+            ['code' => 'AVN', 'name' => 'Aviation'],
+            ['code' => 'ENG', 'name' => 'Energy'],
             ['code' => 'FIN', 'name' => 'Finance'],
-            ['code' => 'HC', 'name' => 'Healthcare'],
+            ['code' => 'FMCG', 'name' => 'FMCG'],
+            ['code' => 'RETL', 'name' => 'Retail'],
+            ['code' => 'IT', 'name' => 'IT'],
+            ['code' => 'LSC', 'name' => 'Logistics & Supply Chain'],
+            ['code' => 'MFG', 'name' => 'Manufacturing'],
+            ['code' => 'ONG', 'name' => 'Oil & Gas'],
+            ['code' => 'PROP', 'name' => 'Property'],
+            ['code' => 'TRAN', 'name' => 'Transportation'],
         ];
         foreach ($industrialSectors as $data) {
             \Modules\MasterData\Models\IndustrialSector::updateOrCreate(['code' => $data['code']], $data);
@@ -70,6 +78,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'BFR', 'name' => 'Product Cluster Beyond Fresh'],
             ['code' => 'BSE', 'name' => 'Product Cluster Beyond Secure'],
             ['code' => 'BSK', 'name' => 'Product Cluster Beyond Sky'],
+            ['code' => 'BFM', 'name' => 'Product Cluster Beyond Facility'],
             ['code' => 'SFA', 'name' => 'Product Cluster Smart Facilities'],
             ['code' => 'GTR', 'name' => 'Product Cluster GDPS Terrace'],
             ['code' => 'MGT', 'name' => 'Product Cluster GDPS Other'],
@@ -271,6 +280,10 @@ class MasterCodeSeeder extends Seeder
         $projectTypes = [
             ['code' => 'HC', 'name' => 'Headcount'],
             ['code' => 'BRG', 'name' => 'Borongan'],
+            ['code' => 'FMCG', 'name' => 'FMCG'],
+            ['code' => 'RETL', 'name' => 'Retail'],
+            ['code' => 'HSK', 'name' => 'High Skill'],
+            ['code' => 'HH', 'name' => 'Head Hunter'],
             ['code' => 'OTH', 'name' => 'Others'],
         ];
         foreach ($projectTypes as $data) {

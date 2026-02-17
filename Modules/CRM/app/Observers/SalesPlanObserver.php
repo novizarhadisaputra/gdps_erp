@@ -50,7 +50,9 @@ class SalesPlanObserver
         for ($i = 0; $i < $count; $i++) {
             $months[] = [
                 'month' => $current->format('F Y'),
-                'amount' => round($average, 2),
+                'budget_amount' => round($average, 2),
+                'forecast_amount' => round($average, 2),
+                'actual_amount' => 0,
             ];
             $current->addMonth();
         }
@@ -90,7 +92,9 @@ class SalesPlanObserver
                 'sales_plan_id' => $salesPlan->id,
                 'year' => $date->year,
                 'month' => $date->month,
-                'amount' => $item['amount'],
+                'budget_amount' => $item['budget_amount'] ?? 0,
+                'forecast_amount' => $item['forecast_amount'] ?? 0,
+                'actual_amount' => $item['actual_amount'] ?? 0,
                 'proposal_number' => $salesPlan->proposal_number,
                 'project_code' => $salesPlan->project_code,
             ]);

@@ -15,9 +15,17 @@ class SalesPlanMonthly extends Model
         'sales_plan_id',
         'year',
         'month',
-        'amount',
+        'budget_amount',
+        'forecast_amount',
+        'actual_amount',
         'proposal_number',
         'project_code',
+    ];
+
+    protected $casts = [
+        'budget_amount' => 'decimal:2',
+        'forecast_amount' => 'decimal:2',
+        'actual_amount' => 'decimal:2',
     ];
 
     public function salesPlan(): BelongsTo
