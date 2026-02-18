@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Database\Factories\LeadFactory;
+use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Observers\LeadObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
@@ -64,12 +65,14 @@ class Lead extends Model
         'project_area_id',
         'start_date',
         'end_date',
+        'job_positions',
     ];
 
     protected $casts = [
         'status' => LeadStatus::class,
-        'confidence_level' => 'string',
+        'confidence_level' => ConfidenceLevel::class,
         'estimated_amount' => 'decimal:2',
+        'job_positions' => 'array',
         'probability' => 'integer',
         'expected_closing_date' => 'date',
         'start_date' => 'date',

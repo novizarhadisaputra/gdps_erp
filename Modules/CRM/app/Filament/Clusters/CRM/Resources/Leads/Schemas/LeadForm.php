@@ -47,10 +47,10 @@ class LeadForm
                         ->searchable()
                         ->preload()
                         ->required()
-                        ->createOptionForm(CustomerForm::schema())
+                        ->createOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => Customer::create($data)->id)
-                        ->editOptionForm(CustomerForm::schema())
+                        ->editOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('work_scheme_id')
                         ->relationship('workScheme', 'name')

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Observers\SalesPlanObserver;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\ProductCluster;
@@ -60,6 +61,7 @@ class SalesPlan extends Model
             'revenue_distribution_planning' => 'json',
             'start_date' => 'date',
             'end_date' => 'date',
+            'confidence_level' => ConfidenceLevel::class,
             'estimated_value' => 'decimal:2',
             'management_fee_percentage' => 'decimal:2',
             'margin_percentage' => 'decimal:2',

@@ -17,9 +17,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Wizard;
+use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -31,6 +32,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schem
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplates\Pages;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ManpowerTemplate;
+use Modules\MasterData\Models\RegencyMinimumWage;
 use UnitEnum;
 
 class ManpowerTemplateResource extends Resource
@@ -49,168 +51,232 @@ class ManpowerTemplateResource extends Resource
     {
         return $schema
             ->schema([
-                Section::make('Template Details')
-                    ->columnSpanFull()
-                    ->schema([
-                        TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
-                        Select::make('project_area_id')
-                            ->relationship('projectArea', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->helperText('Determines UMK and Risk Level for costing.'),
-                        Textarea::make('description')
-                            ->maxLength(65535)
-                            ->columnSpanFull(),
-                        Toggle::make('is_active')
-                            ->required()
-                            ->default(true),
-                    ]),
+                Wizard::make([
+                    Step::make('Template Identification')
+                        ->description('Define basic template details and project area.')
+                        ->icon('heroicon-m-identification')
+                        ->schema([
+                            TextInput::make('name')
+                                ->label('Template Name')
+                                ->placeholder('e.g., Standard Security Packet')
+                                ->required()
+                                ->maxLength(255),
+                            Select::make('project_area_id')
+                                ->label('Project Area')
+                                ->relationship('projectArea', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->helperText('Target area for this template (determines UMK/Minimum Wage).'),
+                            Textarea::make('description')
+                                ->label('Template Description')
+                                ->placeholder('Briefly describe the purpose of this manpower packet...')
+                                ->maxLength(65535)
+                                ->columnSpanFull(),
+                            Toggle::make('is_active')
+                                ->label('Active Status')
+                                ->helperText('Whether this template is available for new project costing.')
+                                ->required()
+                                ->default(true),
+                        ])
+                        ->columns(2),
 
-                Section::make('Manpower Composition')
-                    ->description('Define the job positions and quantities for this template.')
-                    ->columnSpanFull()
-                    ->schema([
-                        Repeater::make('items')
-                            ->relationship('items')
-                            ->label('Job Positions')
-                            ->schema([
-                                Select::make('job_position_id')
-                                    ->label('Job Position')
-                                    ->relationship('jobPosition', 'name')
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->live()
-                                    ->createOptionForm(JobPositionForm::schema())
-                                    ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                    ->columnSpan(2),
-                                TextInput::make('quantity')
-                                    ->numeric()
-                                    ->default(1)
-                                    ->required()
-                                    ->live(onBlur: true)
-                                    ->columnSpan(1),
-                                TextInput::make('notes')
-                                    ->label('Notes (Optional)')
-                                    ->maxLength(255)
-                                    ->columnSpan(1),
-                            ])
-                            ->columns(4)
-                            ->defaultItems(1)
-                            ->addActionLabel('Add Job Position')
-                            ->live()
-                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                // Trigger recalculation of simulation
-                                $set('simulation_trigger', uniqid());
-                            }),
-                    ]),
+                    Step::make('Manpower Composition')
+                        ->description('Add job positions and set basic salaries.')
+                        ->icon('heroicon-m-user-group')
+                        ->schema([
+                            Repeater::make('items')
+                                ->relationship('items')
+                                ->label('Job Positions & Quantities')
+                                ->schema([
+                                    Select::make('job_position_id')
+                                        ->label('Job Position')
+                                        ->relationship('jobPosition', 'name')
+                                        ->searchable()
+                                        ->preload()
+                                        ->required()
+                                        ->live()
+                                        ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                            if (! $state) {
+                                                return;
+                                            }
 
-                Section::make('Cost Simulation (Estimasi Biaya)')
-                    ->description('Rincian perhitungan biaya berdasarkan Area dan Jabatan yang dipilih.')
-                    ->collapsible()
-                    ->schema([
-                        TextEntry::make('cost_simulation_table')
-                            ->label('Rincian Biaya per Bulan (Estimasi)')
-                            ->html()
-                            ->state(function (Get $get) {
-                                $items = $get('items') ?? [];
-                                $areaId = $get('project_area_id');
+                                            $areaId = $get('../../project_area_id');
+                                            if (! $areaId) {
+                                                return;
+                                            }
 
-                                if (empty($items) || ! $areaId) {
-                                    return new HtmlString('<p class="text-sm text-gray-500">Silakan pilih Project Area dan tambahkan Job Position untuk melihat simulasi biaya.</p>');
-                                }
+                                            $umk = RegencyMinimumWage::where('project_area_id', $areaId)
+                                                ->where('year', date('Y'))
+                                                ->where('is_active', true)
+                                                ->first();
 
-                                $service = app(ManpowerCostingService::class);
-                                $totalTemplateCost = 0;
-                                $rows = '';
+                                            if ($umk) {
+                                                $set('basic_salary', $umk->amount);
+                                            }
+                                        })
+                                        ->createOptionForm(JobPositionForm::schema())
+                                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                        ->columnSpan(2),
+                                    TextInput::make('quantity')
+                                        ->label('Qty')
+                                        ->numeric()
+                                        ->default(1)
+                                        ->required()
+                                        ->live(onBlur: true)
+                                        ->columnSpan(1),
+                                    TextInput::make('basic_salary')
+                                        ->label('Basic Salary')
+                                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                        ->required()
+                                        ->live(onBlur: true)
+                                        ->suffixAction(
+                                            Action::make('reset_to_umk')
+                                                ->icon('heroicon-m-arrow-path')
+                                                ->tooltip('Reset to UMK')
+                                                ->action(function (Set $set, Get $get) {
+                                                    $areaId = $get('../../project_area_id');
+                                                    if (! $areaId) {
+                                                        return;
+                                                    }
 
-                                foreach ($items as $item) {
-                                    $jpId = $item['job_position_id'] ?? null;
-                                    $qty = (int) ($item['quantity'] ?? 0);
+                                                    $umk = RegencyMinimumWage::where('project_area_id', $areaId)
+                                                        ->where('year', date('Y'))
+                                                        ->where('is_active', true)
+                                                        ->first();
 
-                                    if (! $jpId || $qty <= 0) {
-                                        continue;
+                                                    if ($umk) {
+                                                        $set('basic_salary', $umk->amount);
+                                                    }
+                                                })
+                                        )
+                                        ->columnSpan(1),
+                                    TextInput::make('notes')
+                                        ->label('Notes')
+                                        ->placeholder('Additional notes for this role...')
+                                        ->maxLength(255)
+                                        ->columnSpan(4),
+                                ])
+                                ->columns(8)
+                                ->defaultItems(1)
+                                ->addActionLabel('Add Job Position')
+                                ->itemLabel(fn (array $state): ?string => filled($state['job_position_id'] ?? null) ? JobPosition::find($state['job_position_id'])?->name : 'New Role')
+                                ->live()
+                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                    $set('simulation_trigger', uniqid());
+                                }),
+                        ]),
+
+                    Step::make('Cost Simulation')
+                        ->description('Review estimated monthly costs for this template.')
+                        ->icon('heroicon-m-calculator')
+                        ->schema([
+                            TextEntry::make('cost_simulation_table')
+                                ->label('Projected Monthly Cost Details')
+                                ->html()
+                                ->state(function (Get $get) {
+                                    $items = $get('items') ?? [];
+                                    $areaId = $get('project_area_id');
+
+                                    if (empty($items) || ! $areaId) {
+                                        return new HtmlString('<div class="rounded-xl border border-dashed border-gray-300 p-8 text-center"><p class="text-sm text-gray-500">Please complete the previous steps to view the cost simulation.</p></div>');
                                     }
 
-                                    $jp = JobPosition::with('remunerationComponents')->find($jpId);
-                                    if (! $jp) {
-                                        continue;
+                                    $service = app(ManpowerCostingService::class);
+                                    $totalTemplateCost = 0;
+                                    $rows = '';
+
+                                    foreach ($items as $item) {
+                                        $jpId = $item['job_position_id'] ?? null;
+                                        $qty = (int) ($item['quantity'] ?? 0);
+
+                                        if (! $jpId || $qty <= 0) {
+                                            continue;
+                                        }
+
+                                        $jp = JobPosition::with('remunerationComponents')->find($jpId);
+                                        if (! $jp) {
+                                            continue;
+                                        }
+
+                                        $allowances = [];
+                                        foreach ($jp->remunerationComponents ?? [] as $component) {
+                                            $allowances[] = [
+                                                'name' => $component->name,
+                                                'type' => 'nominal',
+                                                'value' => $component->pivot->amount,
+                                                'is_fixed' => $component->is_fixed,
+                                            ];
+                                        }
+
+                                        $basicSalary = (float) ($item['basic_salary'] ?? 0);
+
+                                        $res = $service->calculate(
+                                            basicSalary: $basicSalary,
+                                            allowances: $allowances,
+                                            projectAreaId: $areaId,
+                                            year: date('Y'),
+                                            riskLevel: $jp->risk_level ?? 'very_low',
+                                            isLaborIntensive: $jp->is_labor_intensive ?? false
+                                        );
+
+                                        $unitCost = $res['total_direct_cost'];
+                                        $lineTotal = $unitCost * $qty;
+                                        $totalTemplateCost += $lineTotal;
+
+                                        $fmt = fn ($val) => number_format($val, 0, ',', '.');
+
+                                        $rows .= "
+                                            <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
+                                                <td class='px-4 py-3'>
+                                                    <div class='font-medium text-gray-900 dark:text-gray-100'>{$jp->name}</div>
+                                                    <div class='text-xs text-gray-400'>Qty: {$qty}</div>
+                                                </td>
+                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($basicSalary)}</td>
+                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['total_allowances'] ?? 0)}</td>
+                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['bpjs_total'] ?? 0)}</td>
+                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['thr_compensation'] ?? 0)}</td>
+                                                <td class='px-4 py-3 text-right font-medium text-primary-600'>Rp {$fmt($unitCost)}</td>
+                                                <td class='px-4 py-3 text-right font-bold text-gray-900 dark:text-white'>Rp {$fmt($lineTotal)}</td>
+                                            </tr>
+                                        ";
                                     }
 
-                                    $allowances = [];
-                                    foreach ($jp->remunerationComponents ?? [] as $component) {
-                                        $allowances[] = [
-                                            'name' => $component->name,
-                                            'type' => 'nominal',
-                                            'value' => $component->pivot->amount,
-                                            'is_fixed' => $component->is_fixed,
-                                        ];
-                                    }
-
-                                    // Calculate single person cost
-                                    $res = $service->calculate(
-                                        basicSalary: $jp->basic_salary,
-                                        allowances: $allowances,
-                                        projectAreaId: $areaId,
-                                        year: date('Y'), // Simulation uses current year
-                                        riskLevel: $jp->risk_level ?? 'very_low',
-                                        isLaborIntensive: $jp->is_labor_intensive ?? false
-                                    );
-
-                                    $unitCost = $res['total_direct_cost'];
-                                    $lineTotal = $unitCost * $qty;
-                                    $totalTemplateCost += $lineTotal;
-
-                                    // Format currency
-                                    $fmt = fn ($val) => number_format($val, 0, ',', '.');
-
-                                    $rows .= "
-                                        <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800'>
-                                            <td class='px-4 py-2'>{$jp->name}</td>
-                                            <td class='px-4 py-2 text-center'>{$qty}</td>
-                                            <td class='px-4 py-2 text-right'>Rp {$fmt($jp->basic_salary)}</td>
-                                            <td class='px-4 py-2 text-right'>Rp {$fmt($res['total_allowances'] ?? 0)}</td>
-                                            <td class='px-4 py-2 text-right'>Rp {$fmt($res['bpjs_total'] ?? 0)}</td>
-                                            <td class='px-4 py-2 text-right'>Rp {$fmt($res['thr_compensation'] ?? 0)}</td>
-                                            <td class='px-4 py-2 text-right font-medium'>Rp {$fmt($unitCost)}</td>
-                                            <td class='px-4 py-2 text-right font-bold'>Rp {$fmt($lineTotal)}</td>
-                                        </tr>
-                                    ";
-                                }
-
-                                return new HtmlString("
-                                    <div class='overflow-x-auto'>
-                                        <table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
-                                            <thead class='text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400'>
-                                                <tr>
-                                                    <th scope='col' class='px-4 py-3'>Job Position</th>
-                                                    <th scope='col' class='px-4 py-3 text-center'>Qty</th>
-                                                    <th scope='col' class='px-4 py-3 text-right'>Basic Salary</th>
-                                                    <th scope='col' class='px-4 py-3 text-right'>Tunjangan</th>
-                                                    <th scope='col' class='px-4 py-3 text-right'>BPJS & Tax</th>
-                                                    <th scope='col' class='px-4 py-3 text-right'>Accruals (THR)</th>
-                                                    <th scope='col' class='px-4 py-3 text-right'>Total / Pax</th>
-                                                    <th scope='col' class='px-4 py-3 text-right'>Subtotal</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {$rows}
-                                            </tbody>
-                                            <tfoot>
-                                                <tr class='font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700'>
-                                                    <td colspan='7' class='px-4 py-3 text-right'>TOTAL ESTIMATED COST / MONTH</td>
-                                                    <td class='px-4 py-3 text-right'>Rp ".number_format($totalTemplateCost, 0, ',', '.').'</td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                ');
-                            }),
-                        Hidden::make('simulation_trigger'),
-                    ]),
+                                    return new HtmlString("
+                                        <div class='relative overflow-x-auto shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700'>
+                                            <table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
+                                                <thead class='text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400'>
+                                                    <tr>
+                                                        <th scope='col' class='px-4 py-3'>Posisi & Qty</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Gaji Pokok</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Tunjangan</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>BPJS & Pajak</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>THR/Komp</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Total / Orang</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Subtotal</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {$rows}
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr class='font-bold text-gray-900 dark:text-white bg-gray-100/50 dark:bg-gray-800/50'>
+                                                        <td colspan='6' class='px-4 py-4 text-right uppercase tracking-wider'>Total Estimasi Biaya / Bulan</td>
+                                                        <td class='px-4 py-4 text-right text-lg text-primary-600'>Rp ".number_format($totalTemplateCost, 0, ',', '.')."</td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+                                        <div class='mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800'>
+                                            <p class='text-xs text-blue-700 dark:text-blue-300'>
+                                                <span class='font-bold uppercase mr-1'>Catatan:</span> Perhitungan di atas bersifat estimasi berdasarkan parameter UMK dan variabel BPJS terbaru. Nilai realisasi dapat berbeda tergantung pada konfigurasi BPJS spesifik di modul Finance.
+                                            </p>
+                                        </div>
+                                    ");
+                                }),
+                            Hidden::make('simulation_trigger'),
+                        ]),
+                ])->columnSpanFull()->persistStepInQueryString(),
             ]);
     }
 

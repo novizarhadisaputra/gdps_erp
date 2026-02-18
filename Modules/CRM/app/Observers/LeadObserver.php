@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Observers;
 
+use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
 
@@ -13,7 +14,7 @@ class LeadObserver
     public function creating(Lead $lead): void
     {
         $lead->status = LeadStatus::Lead;
-        $lead->probability = 10;
+        $lead->confidence_level = ConfidenceLevel::Pessimistic;
         $lead->position = Lead::max('position') + 1;
     }
 
@@ -23,6 +24,7 @@ class LeadObserver
     public function updated(Lead $lead): void
     {
         // Bi-directional categorization sync to SalesPlan
+        /** @var \Modules\CRM\Models\SalesPlan|null $salesPlan */
         $salesPlan = $lead->salesPlan()->first();
 
         if ($salesPlan) {
@@ -34,7 +36,7 @@ class LeadObserver
                 'industrial_sector_id' => $lead->industrial_sector_id,
                 'project_area_id' => $lead->project_area_id,
                 'estimated_value' => $lead->estimated_amount,
-                'confidence_level' => $lead->confidence_level,
+                'confidence_level' => $lead->confidence_level ?? ConfidenceLevel::Moderate,
             ]);
         }
 
@@ -57,7 +59,7 @@ class LeadObserver
                         'industrial_sector_id' => $lead->industrial_sector_id,
                         'project_area_id' => $lead->project_area_id,
                         'estimated_value' => $lead->estimated_amount ?? 0,
-                        'confidence_level' => $lead->confidence_level ?? 'moderate',
+                        'confidence_level' => $lead->confidence_level ?? ConfidenceLevel::Moderate,
                         'priority_level' => 2, // Default Medium
                         'start_date' => now(),
                         'end_date' => now()->addYear(),
@@ -84,22 +86,12 @@ class LeadObserver
                 break;
 
             case LeadStatus::Negotiation:
-                // 4. Negotiation: Validasi minimal 1 Proposal & update probability 80%
-                if ($lead->proposals()->count() === 0) {
-                    // We can't easily stop the transition here in an observer (it's already updated).
-                    // But we can warn or auto-create one.
-                    // Ideally validation happens in the UI Action.
-                    // Here we enforce probability update.
-                    $lead->updateQuietly(['probability' => 80]);
-                } else {
-                    $lead->updateQuietly(['probability' => 80]);
-                }
+                // 4. Negotiation: Validasi minimal 1 Proposal
+                // Validasi idealnya di UI Action.
                 break;
 
             case LeadStatus::Won:
-                // 5. Won: Update probability 100%, Create Draft Contract
-                // Convert to Project is handled by UI Action because it needs extra input.
-                $lead->updateQuietly(['probability' => 100]);
+                // 5. Won: Create Draft Contract
 
                 if ($lead->contracts()->count() === 0) {
                     $lead->contracts()->create([
@@ -114,8 +106,7 @@ class LeadObserver
                 break;
 
             case LeadStatus::ClosedLost:
-                // 6. Closed Lost: Update probability 0%
-                $lead->updateQuietly(['probability' => 0]);
+                // 6. Closed Lost
                 break;
         }
     }

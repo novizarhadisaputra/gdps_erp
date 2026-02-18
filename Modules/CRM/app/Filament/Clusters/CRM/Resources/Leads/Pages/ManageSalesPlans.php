@@ -6,9 +6,11 @@ use BackedEnum;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Filament\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
@@ -40,6 +42,7 @@ class ManageSalesPlans extends ManageRelatedRecords
             'proposal',
             'negotiation',
             'won',
+            'closed_lost',
         ]);
     }
 
@@ -56,7 +59,7 @@ class ManageSalesPlans extends ManageRelatedRecords
                     ->label('Value'),
                 TextColumn::make('confidence_level')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                         'optimistic' => 'success',
                         'moderate' => 'warning',
                         'pessimistic' => 'danger',
@@ -91,6 +94,33 @@ class ManageSalesPlans extends ManageRelatedRecords
             ->recordActions([
                 EditAction::make()
                     ->schema(fn (Schema $schema) => SalesPlanForm::configure($schema)),
+                Action::make('generateGI')
+                    ->label('Generate GI')
+                    ->icon('heroicon-o-document-plus')
+                    ->color('success')
+                    ->visible(fn () => $this->getOwnerRecord()->generalInformations()->doesntExist())
+                    ->action(function ($record) {
+                        $lead = $this->getOwnerRecord();
+
+                        $lead->generalInformations()->create([
+                            'customer_id' => $lead->customer_id,
+                            'project_area_id' => $record->project_area_id,
+                            'estimated_start_date' => $record->start_date,
+                            'estimated_end_date' => $record->end_date,
+                            'scope_of_work' => $lead->title,
+                            'description' => $lead->description,
+                            'sales_plan_id' => $record->id,
+                            'status' => 'draft',
+                        ]);
+
+                        Notification::make()
+                            ->title('General Information Created')
+                            ->body('Data has been synced from Sales Plan.')
+                            ->success()
+                            ->send();
+
+                        return redirect(LeadResource::getUrl('general-informations', ['record' => $lead]));
+                    }),
                 DeleteAction::make(),
             ]);
     }

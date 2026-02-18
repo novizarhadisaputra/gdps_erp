@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads;
 
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Pages\Page;
 use Filament\Resources\Resource;
@@ -44,15 +45,23 @@ class LeadResource extends Resource
 
     public static function getRecordSubNavigation(Page $page): array
     {
-        return $page->generateNavigationItems([
-            EditLead::class,
-            ManageSalesPlans::class,
-            ManageGeneralInformations::class,
-            ManageProposals::class,
-            ManageProfitabilityAnalyses::class,
-            ManageContracts::class,
-            ManageProjectInformations::class,
-        ]);
+        return [
+            ...$page->generateNavigationItems([
+                EditLead::class,
+                ManageProjectInformations::class,
+            ]),
+            ...collect($page->generateNavigationItems([
+                ManageSalesPlans::class,
+                ManageGeneralInformations::class,
+            ]))->map(fn (NavigationItem $item) => $item->group('Stage 1: Planning (Approach)'))->toArray(),
+            ...collect($page->generateNavigationItems([
+                ManageProposals::class,
+                ManageProfitabilityAnalyses::class,
+            ]))->map(fn (NavigationItem $item) => $item->group('Stage 2: Commercials (Proposal)'))->toArray(),
+            ...collect($page->generateNavigationItems([
+                ManageContracts::class,
+            ]))->map(fn (NavigationItem $item) => $item->group('Stage 3: Contracting (Negotiation)'))->toArray(),
+        ];
     }
 
     public static function form(Schema $schema): Schema

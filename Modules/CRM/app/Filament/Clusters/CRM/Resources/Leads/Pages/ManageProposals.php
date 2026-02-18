@@ -51,7 +51,6 @@ class ManageProposals extends ManageRelatedRecords
         $status = $record->status instanceof BackedEnum ? $record->status->value : $record->status;
 
         return in_array($status, [
-            'approach',
             'proposal',
             'negotiation',
             'won',

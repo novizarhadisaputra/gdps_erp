@@ -44,7 +44,6 @@ class JobPositionSeeder extends Seeder
             JobPosition::updateOrCreate(
                 ['name' => $p['name']],
                 [
-                    'basic_salary' => $p['salary'],
                     'risk_level' => $p['risk'],
                     'is_labor_intensive' => true,
                 ]

@@ -149,4 +149,19 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         return $this->hasMany(ProfitabilityAnalysisItem::class);
     }
+
+    public function manpowerItems(): HasMany
+    {
+        return $this->hasMany(ProfitabilityAnalysisItem::class)
+            ->whereIn('costable_type', [
+                \Modules\MasterData\Models\JobPosition::class,
+                \Modules\MasterData\Models\ManpowerTemplate::class,
+            ]);
+    }
+
+    public function operationalItems(): HasMany
+    {
+        return $this->hasMany(ProfitabilityAnalysisItem::class)
+            ->where('costable_type', \Modules\MasterData\Models\Item::class);
+    }
 }

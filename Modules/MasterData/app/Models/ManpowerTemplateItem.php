@@ -11,7 +11,13 @@ class ManpowerTemplateItem extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'manpower_template_id',
+        'job_position_id',
+        'quantity',
+        'basic_salary',
+        'notes',
+    ];
 
     public function template(): BelongsTo
     {

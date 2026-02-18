@@ -13,6 +13,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CRM\Enums\ContractStatus;
+use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Models\Lead;
@@ -35,7 +36,8 @@ class LeadBoard extends BoardResourcePage
                 ->url(LeadResource::getUrl('list')),
             CreateAction::make()
                 ->label('New Lead')
-                ->form(fn (Schema $schema) => LeadForm::configure($schema)),
+                ->model(Lead::class)
+                ->schema(fn (Schema $schema) => LeadForm::configure($schema)),
         ];
     }
 
@@ -75,9 +77,39 @@ class LeadBoard extends BoardResourcePage
                 ViewAction::make()->url(fn (Lead $record) => LeadResource::getUrl('view', ['record' => $record])),
                 Action::make('salesPlan')
                     ->label('Setup Sales Plan')
+                    ->visible(fn (Lead $record) => $record->status === LeadStatus::Approach && $record->salesPlan()->doesntExist())
                     ->icon('heroicon-o-presentation-chart-line')
                     ->color('info')
-                    ->url(fn (Lead $record) => LeadResource::getUrl('sales-plans', ['record' => $record])),
+                    ->action(function (Lead $record) {
+                        return redirect(LeadResource::getUrl('sales-plans', ['record' => $record]));
+                    }),
+                Action::make('setupGI')
+                    ->label('Setup General Info')
+                    ->visible(fn (Lead $record) => $record->status === LeadStatus::Approach && $record->salesPlan()->exists() && $record->generalInformations()->doesntExist())
+                    ->icon('heroicon-o-clipboard-document-list')
+                    ->color('success')
+                    ->action(function (Lead $record) {
+                        $plan = $record->salesPlan;
+
+                        $record->generalInformations()->create([
+                            'customer_id' => $record->customer_id,
+                            'project_area_id' => $plan->project_area_id,
+                            'estimated_start_date' => $plan->start_date,
+                            'estimated_end_date' => $plan->end_date,
+                            'scope_of_work' => $record->title,
+                            'description' => $record->description,
+                            'sales_plan_id' => $plan->id,
+                            'status' => 'draft',
+                        ]);
+
+                        Notification::make()
+                            ->title('General Information Created')
+                            ->body('Data has been synced from Sales Plan.')
+                            ->success()
+                            ->send();
+
+                        return redirect(LeadResource::getUrl('general-informations', ['record' => $record]));
+                    }),
                 EditAction::make()->url(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make()->model(Lead::class),
             ]);

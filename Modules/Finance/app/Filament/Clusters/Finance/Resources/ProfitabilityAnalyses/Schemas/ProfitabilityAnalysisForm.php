@@ -41,7 +41,9 @@ class ProfitabilityAnalysisForm
         return [
             Wizard::make([
                 Step::make('Project Identification')
-                    ->description('Identify the RR submission and customer.')
+                    ->label('Identitas Proyek')
+                    ->description('Identifikasi submission RR dan pelanggan terkait.')
+                    ->icon('heroicon-m-identification')
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -96,7 +98,9 @@ class ProfitabilityAnalysisForm
                     ]),
 
                 Step::make('Parameters & Assets')
-                    ->description('Configure project scopes and asset ownership.')
+                    ->label('Parameter Operasional')
+                    ->description('Konfigurasi scope proyek, skema kerja, area, dan kepemilikan aset.')
+                    ->icon('heroicon-m-adjustments-horizontal')
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -140,7 +144,9 @@ class ProfitabilityAnalysisForm
                     ]),
 
                 Step::make('Financial Assumptions')
-                    ->description('Set external rates and overhead expectations.')
+                    ->label('Asumsi Finansial')
+                    ->description('Atur ekspektasi biaya overhead, bunga, dan pajak perusahaan.')
+                    ->icon('heroicon-m-banknotes')
                     ->schema([
                         Grid::make(3)
                             ->schema([
@@ -165,18 +171,20 @@ class ProfitabilityAnalysisForm
                             ]),
                     ]),
 
-                Step::make('Costing Details')
-                    ->description('Specify manpower, items, and additional costs.')
+                Step::make('Manpower Requirements')
+                    ->label('Perencanaan Manpower')
+                    ->description('Tentukan kebutuhan personil berdasarkan jabatan atau paket manpower.')
+                    ->icon('heroicon-m-user-group')
                     ->schema([
-                        Repeater::make('items')
-                            ->relationship('items')
+                        Repeater::make('manpowerItems')
+                            ->relationship('manpowerItems')
+                            ->label('Personnel & Job Positions')
                             ->schema([
                                 Select::make('costable_type')
-                                    ->label('Cost Type')
+                                    ->label('Type')
                                     ->options([
-                                        Item::class => 'Item (General)',
-                                        JobPosition::class => 'Job Position (Manpower)',
-                                        ManpowerTemplate::class => 'Manpower Template (Packet)',
+                                        JobPosition::class => 'Job Position',
+                                        ManpowerTemplate::class => 'Manpower Template',
                                     ])
                                     ->required()
                                     ->live()
@@ -201,32 +209,14 @@ class ProfitabilityAnalysisForm
                                             return;
                                         }
 
-                                        if ($type === Item::class) {
-                                            $set('unit_cost_price', $record->price);
-                                            $set('unit_of_measure', $record->unitOfMeasure?->name ?? 'Unit');
-                                            $isManpower = $record->category?->name === 'Manpower';
-                                            $set('is_manpower', $isManpower);
-
-                                            // Depreciation Logic
-                                            $depreciation = $record->depreciation_months;
-                                            if (empty($depreciation) || $depreciation <= 0) {
-                                                $usefulLifeYears = $record->category?->assetGroup?->useful_life_years;
-                                                if ($usefulLifeYears && $usefulLifeYears > 0) {
-                                                    $depreciation = $usefulLifeYears * 12;
-                                                }
-                                            }
-                                            $set('depreciation_months', $depreciation ?? 1);
-                                        }
-
                                         if ($type === JobPosition::class) {
-                                            $set('unit_cost_price', $record->basic_salary);
+                                            $set('unit_cost_price', 0);
                                             $set('unit_of_measure', 'Person');
                                             $set('is_manpower', true);
                                             $set('risk_level', $record->risk_level);
                                             $set('is_labor_intensive', $record->is_labor_intensive);
                                             $set('depreciation_months', 1);
 
-                                            // Sync Remuneration Components to cost_breakdown
                                             $breakdown = [];
                                             foreach ($record->remunerationComponents ?? [] as $component) {
                                                 $breakdown[] = [
@@ -262,7 +252,7 @@ class ProfitabilityAnalysisForm
                                                 }
 
                                                 $res = $service->calculate(
-                                                    basicSalary: $jp->basic_salary,
+                                                    basicSalary: (float) $item->basic_salary,
                                                     allowances: $allowances,
                                                     projectAreaId: $areaId,
                                                     year: $year,
@@ -275,7 +265,7 @@ class ProfitabilityAnalysisForm
 
                                             $set('unit_cost_price', $totalPacketCost);
                                             $set('unit_of_measure', 'Packet');
-                                            $set('is_manpower', false); // Treated as Fixed Cost
+                                            $set('is_manpower', false);
                                             $set('risk_level', 'very_low');
                                             $set('depreciation_months', 1);
                                             $set('cost_breakdown', []);
@@ -333,9 +323,137 @@ class ProfitabilityAnalysisForm
                                     ->live(onBlur: true)
                                     ->columnSpan(1),
 
+                                Repeater::make('cost_breakdown')
+                                    ->label('Additional Allowances')
+                                    ->schema([
+                                        TextInput::make('name')
+                                            ->label('Component Name')
+                                            ->required(),
+                                        Select::make('type')
+                                            ->options([
+                                                'nominal' => 'Nominal (Rp)',
+                                                'percentage' => 'Percentage (%)',
+                                            ])
+                                            ->default('nominal')
+                                            ->live()
+                                            ->required(),
+                                        TextInput::make('value')
+                                            ->label('Amount/Rate')
+                                            ->numeric()
+                                            ->required()
+                                            ->live(onBlur: true),
+                                        Hidden::make('is_fixed')->default(true),
+                                    ])
+                                    ->columns(3)
+                                    ->columnSpanFull()
+                                    ->live()
+                                    ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+
+                                TextInput::make('total_monthly_cost')
+                                    ->label('Total Cost')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlyCost($get))
+                                    ->columnSpan(3),
+                                TextInput::make('total_monthly_sale')
+                                    ->label('Selling Price')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
+                                    ->columnSpan(3),
+                            ])
+                            ->columns(6)
+                            ->columnSpanFull()
+                            ->itemLabel(fn (array $state): ?string => filled($state['costable_type'] ?? null) && filled($state['costable_id'] ?? null) ? $state['costable_type']::find($state['costable_id'])?->name : 'New Personnel')
+                            ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
+                    ]),
+
+                Step::make('Operational & Equipment Costs')
+                    ->label('Biaya Operasional & Barang')
+                    ->description('Tentukan kebutuhan material, peralatan, jasa, dan biaya lainnya.')
+                    ->icon('heroicon-m-shopping-cart')
+                    ->schema([
+                        Repeater::make('operationalItems')
+                            ->relationship('operationalItems')
+                            ->label('Equipment & Material Items')
+                            ->schema([
+                                Select::make('costable_id')
+                                    ->label('Item Resource')
+                                    ->options(Item::pluck('name', 'id'))
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, $get, Set $set) {
+                                        if (! $state) {
+                                            return;
+                                        }
+
+                                        $record = Item::find($state);
+                                        if (! $record) {
+                                            return;
+                                        }
+
+                                        $set('costable_type', Item::class);
+                                        $set('unit_cost_price', $record->price);
+                                        $set('unit_of_measure', $record->unitOfMeasure?->name ?? 'Unit');
+                                        $set('is_manpower', false);
+
+                                        // Depreciation Logic
+                                        $depreciation = $record->depreciation_months;
+                                        if (empty($depreciation) || $depreciation <= 0) {
+                                            $usefulLifeYears = $record->category?->assetGroup?->useful_life_years;
+                                            if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                                $depreciation = $usefulLifeYears * 12;
+                                            }
+                                        }
+                                        $set('depreciation_months', $depreciation ?? 1);
+
+                                        self::calculateDirectCost($get, $set);
+                                    })
+                                    ->columnSpan(4),
+                                Hidden::make('costable_type')->default(Item::class),
+                                Hidden::make('is_manpower')->default(false),
+                                TextInput::make('quantity')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('unit_of_measure')
+                                    ->label('UoM')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->columnSpan(1),
+                                TextInput::make('duration_months')
+                                    ->label('Dur (Mo)')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('unit_cost_price')
+                                    ->label('Base Price')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('depreciation_months')
+                                    ->label('Depr (Mo)')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+                                TextInput::make('markup_percentage')
+                                    ->label('Markup %')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1),
+
                                 // Dynamic Cost Breakdown
                                 Repeater::make('cost_breakdown')
-                                    ->label('Additional Costs')
+                                    ->label('Add-ons (e.g. Shipping, Setup)')
                                     ->schema([
                                         TextInput::make('name')
                                             ->label('Component Name')
@@ -374,8 +492,6 @@ class ProfitabilityAnalysisForm
                                                 // Auto-sum details to parent value
                                                 $sum = collect($state ?? [])->sum('value');
                                                 $set('value', $sum);
-
-                                                // Trigger main calculation
                                                 self::calculateDirectCost($get, $set);
                                             }),
                                     ])
@@ -390,23 +506,25 @@ class ProfitabilityAnalysisForm
                                     ->dehydrated()
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                                     ->placeholder(fn (Get $get) => self::calculateItemMonthlyCost($get))
-                                    ->columnSpan(1),
+                                    ->columnSpan(3),
                                 TextInput::make('total_monthly_sale')
-                                    ->label('Selling')
+                                    ->label('Selling Price')
                                     ->disabled()
                                     ->dehydrated()
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                                     ->placeholder(fn (Get $get) => self::calculateItemMonthlySale($get))
-                                    ->columnSpan(1),
+                                    ->columnSpan(3),
                             ])
                             ->columns(6)
                             ->columnSpanFull()
-                            ->itemLabel(fn (array $state): ?string => filled($state['costable_type'] ?? null) && filled($state['costable_id'] ?? null) ? $state['costable_type']::find($state['costable_id'])?->name : 'New Item')
+                            ->itemLabel(fn (array $state): ?string => filled($state['costable_id'] ?? null) ? Item::find($state['costable_id'])?->name : 'New Item')
                             ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                     ]),
 
                 Step::make('Financial Review')
-                    ->description('Review monthly revenue, costs, and profit.')
+                    ->label('Review Finansial')
+                    ->description('Tinjau proyeksi pendapatan, biaya, dan laba bersih bulanan.')
+                    ->icon('heroicon-m-presentation-chart-line')
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -473,7 +591,10 @@ class ProfitabilityAnalysisForm
 
     protected static function calculateDirectCost($get, $set): void
     {
-        $items = $get('items') ?? [];
+        $manpowerItems = $get('manpowerItems') ?? [];
+        $operationalItems = $get('operationalItems') ?? [];
+        $items = array_merge($manpowerItems, $operationalItems);
+
         $totalDirectCost = 0;
         $totalRevenue = 0;
 

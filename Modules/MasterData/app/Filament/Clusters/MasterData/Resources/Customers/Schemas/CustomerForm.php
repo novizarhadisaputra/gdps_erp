@@ -24,7 +24,7 @@ class CustomerForm
             ->components(static::schema());
     }
 
-    public static function schema(): array
+    public static function schema(bool $isCreateOption = false): array
     {
         return [
             Section::make('Customer Profile')
@@ -33,7 +33,10 @@ class CustomerForm
                         ->label('Customer Code')
                         ->maxLength(10)
                         ->unique(Customer::class, 'code', ignoreRecord: true)
-                        ->placeholder('Leave empty for auto-generate'),
+                        ->placeholder('Leave empty for auto-generate')
+                        ->hidden($isCreateOption)
+                        ->disabled(fn ($record) => $record !== null)
+                        ->dehydrated(),
                     Select::make('legal_entity_type')
                         ->label('Legal Entity Type')
                         ->options(LegalEntityType::class)

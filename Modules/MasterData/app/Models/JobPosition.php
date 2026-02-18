@@ -19,14 +19,12 @@ class JobPosition extends Model
 
     protected $fillable = [
         'name',
-        'basic_salary',
         'risk_level',
         'is_labor_intensive',
         'is_active',
     ];
 
     protected $casts = [
-        'basic_salary' => 'decimal:2',
         'is_labor_intensive' => 'boolean',
         'is_active' => 'boolean',
     ];

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('manpower_template_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('job_position_id')->constrained('job_positions')->cascadeOnDelete();
+            $table->decimal('basic_salary', 15, 2)->default(0);
             $table->integer('quantity')->default(1);
             $table->text('notes')->nullable();
             $table->timestamps();

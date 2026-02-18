@@ -19,7 +19,6 @@ class JobPositionFactory extends Factory
     {
         return [
             'name' => $this->faker->unique()->jobTitle(),
-            'basic_salary' => $this->faker->numberBetween(5000000, 15000000),
             'risk_level' => $this->faker->randomElement(['very_low', 'low', 'medium', 'high', 'very_high']),
             'is_labor_intensive' => $this->faker->boolean(),
             'is_active' => true,
