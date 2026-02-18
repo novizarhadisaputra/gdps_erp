@@ -14,6 +14,7 @@ use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\LeadStatus;
+use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\GeneralInformationResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Models\Lead;
@@ -108,7 +109,7 @@ class LeadBoard extends BoardResourcePage
                             ->success()
                             ->send();
 
-                        return redirect(LeadResource::getUrl('general-informations', ['record' => $record]));
+                        return redirect()->to(GeneralInformationResource::getUrl());
                     }),
                 EditAction::make()->url(fn (Lead $record) => LeadResource::getUrl('edit', ['record' => $record])),
                 DeleteAction::make()->model(Lead::class),

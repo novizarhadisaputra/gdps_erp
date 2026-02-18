@@ -22,8 +22,7 @@ class RiskRegisterService
 
         return [
             'status' => 'success',
-            'external_rr_id' => 'RR-'.uniqid(),
-            'message' => 'Data uploaded successfully to Risk Register system.',
+            'message' => 'Data uploaded successfully to Risk Register system. Awaiting final ID from webhook.',
         ];
     }
 

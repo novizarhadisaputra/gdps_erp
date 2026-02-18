@@ -12,11 +12,13 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Pages\ListGen
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Tables\GeneralInformationTable;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\SalesPlanResource;
 use Modules\CRM\Models\GeneralInformation;
 
 class GeneralInformationResource extends Resource
 {
     protected static ?string $model = GeneralInformation::class;
+
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

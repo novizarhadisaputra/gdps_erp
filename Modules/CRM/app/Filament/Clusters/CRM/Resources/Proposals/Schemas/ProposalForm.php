@@ -70,8 +70,10 @@ class ProposalForm
                         ->hiddenOn('create') // Auto-generated
                         ->unique(Proposal::class, 'proposal_number', ignoreRecord: true),
                     TextInput::make('amount')
-                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                         ->prefix('IDR')
+                        ->default(0)
+                        ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                         ->required(),
                     ToggleButtons::make('status')
                         ->options(ProposalStatus::class)
@@ -91,5 +93,20 @@ class ProposalForm
                 ->columns(2)
                 ->columnSpanFull(),
         ];
+    }
+
+    protected static function parseCurrency($value): float
+    {
+        if (! $value) {
+            return 0;
+        }
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $clean = str_replace('.', '', $value);
+        $clean = str_replace(',', '.', $clean);
+
+        return (float) $clean;
     }
 }

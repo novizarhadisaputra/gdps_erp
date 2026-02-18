@@ -61,8 +61,8 @@ class LeadObserver
                         'estimated_value' => $lead->estimated_amount ?? 0,
                         'confidence_level' => $lead->confidence_level ?? ConfidenceLevel::Moderate,
                         'priority_level' => 2, // Default Medium
-                        'start_date' => now(),
-                        'end_date' => now()->addYear(),
+                        'start_date' => $lead->start_date ?? now(),
+                        'end_date' => $lead->end_date ?? now()->addYear(),
                     ]);
                 }
 

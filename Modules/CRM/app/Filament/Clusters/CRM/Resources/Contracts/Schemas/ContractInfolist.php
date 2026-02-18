@@ -55,7 +55,7 @@ class ContractInfolist
                                 TextEntry::make('status')
                                     ->badge(),
                                 TextEntry::make('reminder_status')
-                                    ->formatStateUsing(fn (string $state): string => str_replace('_', ' ', $state))
+                                    ->formatStateUsing(fn ($state): string => str_replace('_', ' ', $state instanceof \BackedEnum ? $state->value : (string) $state))
                                     ->badge()
                                     ->color('gray'),
                                 TextEntry::make('termination_reason')

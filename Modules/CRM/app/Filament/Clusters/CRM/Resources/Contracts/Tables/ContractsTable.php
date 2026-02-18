@@ -43,7 +43,7 @@ class ContractsTable
                     ->date()
                     ->sortable(),
                 TextColumn::make('reminder_status')
-                    ->formatStateUsing(fn (string $state): string => str_replace('_', ' ', $state)),
+                    ->formatStateUsing(fn ($state): string => str_replace('_', ' ', $state instanceof \BackedEnum ? $state->value : (string) $state)),
             ])
             ->filters([
                 //

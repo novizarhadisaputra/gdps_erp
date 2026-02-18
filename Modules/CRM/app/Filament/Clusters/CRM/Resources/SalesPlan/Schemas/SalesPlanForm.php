@@ -201,10 +201,11 @@ class SalesPlanForm
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('estimated_value')
-                                    ->numeric()
                                     ->prefix('IDR')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->required()
+                                    ->default(0)
+                                    ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                     ->live()
                                     ->helperText('Total estimated contract value.'),
                                 TextInput::make('management_fee_percentage')
@@ -249,7 +250,7 @@ class SalesPlanForm
                                     ->action(function (Get $get, Set $set) {
                                         $startDate = $get('start_date');
                                         $endDate = $get('end_date');
-                                        $totalValue = (float) str_replace(',', '', $get('estimated_value') ?? 0);
+                                        $totalValue = self::parseCurrency($get('estimated_value'));
 
                                         if (! $startDate || ! $endDate || $totalValue <= 0) {
                                             return;
@@ -297,10 +298,11 @@ class SalesPlanForm
                                             ->required(),
                                         TextInput::make('amount')
                                             ->label('Amount (IDR)')
-                                            ->numeric()
                                             ->prefix('IDR')
                                             ->required()
-                                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0),
+                                            ->default(0)
+                                            ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2),
                                     ])
                                     ->columns(2)
                                     ->reorderable(false),
@@ -324,5 +326,21 @@ class SalesPlanForm
                     ]),
             ])->columnSpanFull()->persistStepInQueryString(),
         ];
+    }
+
+    protected static function parseCurrency($value): float
+    {
+        if (! $value) {
+            return 0;
+        }
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        // Remove dots (thousand separator) and replace comma with dot (decimal separator)
+        $clean = str_replace('.', '', $value);
+        $clean = str_replace(',', '.', $clean);
+
+        return (float) $clean;
     }
 }

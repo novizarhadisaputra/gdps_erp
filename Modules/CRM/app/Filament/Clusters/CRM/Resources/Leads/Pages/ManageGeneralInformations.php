@@ -24,7 +24,6 @@ use Modules\CRM\Models\GeneralInformation;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Services\SignatureService;
-use Modules\Project\Services\RiskRegisterService;
 
 class ManageGeneralInformations extends ManageRelatedRecords
 {
@@ -238,39 +237,6 @@ class ManageGeneralInformations extends ManageRelatedRecords
                         $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "General Information - {$record->customer->name}.pdf");
-                    }),
-                Action::make('check_status')
-                    ->label('Check Status')
-                    ->icon(Heroicon::OutlinedArrowPath)
-                    ->action(function (GeneralInformation $record) {
-                        $status = app(RiskRegisterService::class)->getRiskRegisterStatus($record->rr_submission_id ?? '');
-
-                        // Mocking status transition based on current state
-                        if ($record->rr_status !== 'approved') {
-                            $status = 'approved';
-                        }
-
-                        // Update the RR Status column
-                        $record->update([
-                            'rr_status' => $status,
-                        ]);
-
-                        Notification::make()
-                            ->title('RR Status Updated')
-                            ->body("Risk Register status is now: {$status}")
-                            ->success()
-                            ->send();
-
-                        // Check strict approval condition: Both Signatures AND RR Status must be valid
-                        if ($record->isFullyApproved() && $record->rr_status === 'approved') {
-                            $record->update(['status' => 'approved']);
-
-                            Notification::make()
-                                ->title('General Information Approved')
-                                ->body('Dokumen telah disetujui sepenuhnya (Signatures + Risk Register).')
-                                ->success()
-                                ->send();
-                        }
                     }),
             ])
             ->groupedBulkActions([

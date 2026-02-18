@@ -38,7 +38,7 @@ class GeneralInformationTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state instanceof \BackedEnum ? $state->value : (string) $state) {
                         'draft' => 'gray',
                         'submitted' => 'info',
                         'approved' => 'success',

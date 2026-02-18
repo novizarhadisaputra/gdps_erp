@@ -37,9 +37,8 @@ class GeneralInformationObserver
     {
         $response = app(RiskRegisterService::class)->uploadGeneralInfo($info);
 
-        if (isset($response['external_rr_id'])) {
+        if ($response['status'] === 'success') {
             $info->updateQuietly([
-                'rr_submission_id' => $response['external_rr_id'],
                 'status' => 'submitted',
             ]);
         }

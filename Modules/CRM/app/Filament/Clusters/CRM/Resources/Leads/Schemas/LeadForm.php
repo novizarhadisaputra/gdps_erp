@@ -168,9 +168,11 @@ class LeadForm
                         ->placeholder('Select confidence level')
                         ->native(false),
                     TextInput::make('estimated_amount')
-                        ->numeric()
                         ->prefix('IDR')
-                        ->maxValue(42949672.95)
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                        ->maxValue(2147483647)
+                        ->default(0)
+                        ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                         ->nullable(),
                     DatePicker::make('start_date')
                         ->label('Estimated Start Date')
@@ -196,5 +198,20 @@ class LeadForm
         return $schema
             ->model(Lead::class)
             ->components(static::schema());
+    }
+
+    protected static function parseCurrency($value): float
+    {
+        if (! $value) {
+            return 0;
+        }
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $clean = str_replace('.', '', $value);
+        $clean = str_replace(',', '.', $clean);
+
+        return (float) $clean;
     }
 }

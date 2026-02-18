@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\EditLead;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\LeadBoard;
@@ -45,6 +46,8 @@ class LeadResource extends Resource
 
     public static function getRecordSubNavigation(Page $page): array
     {
+        $record = $page->getRecord();
+
         return [
             ...$page->generateNavigationItems([
                 EditLead::class,
@@ -52,15 +55,42 @@ class LeadResource extends Resource
             ]),
             ...collect($page->generateNavigationItems([
                 ManageSalesPlans::class,
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 1: Planning (Approach)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Approach,
+                    LeadStatus::Proposal,
+                    LeadStatus::Negotiation,
+                    LeadStatus::Won,
+                ])))->toArray(),
+            ...collect($page->generateNavigationItems([
                 ManageGeneralInformations::class,
-            ]))->map(fn (NavigationItem $item) => $item->group('Stage 1: Planning (Approach)'))->toArray(),
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 1: Planning (Approach)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Approach,
+                    LeadStatus::Proposal,
+                    LeadStatus::Negotiation,
+                    LeadStatus::Won,
+                ])))->toArray(),
             ...collect($page->generateNavigationItems([
                 ManageProposals::class,
                 ManageProfitabilityAnalyses::class,
-            ]))->map(fn (NavigationItem $item) => $item->group('Stage 2: Commercials (Proposal)'))->toArray(),
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 2: Commercials (Proposal)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Proposal,
+                    LeadStatus::Negotiation,
+                    LeadStatus::Won,
+                ])))->toArray(),
             ...collect($page->generateNavigationItems([
                 ManageContracts::class,
-            ]))->map(fn (NavigationItem $item) => $item->group('Stage 3: Contracting (Negotiation)'))->toArray(),
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 3: Contracting (Negotiation)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Negotiation,
+                    LeadStatus::Won,
+                ])))->toArray(),
         ];
     }
 
@@ -94,8 +124,8 @@ class LeadResource extends Resource
             'view' => ViewLead::route('/{record}'),
             'edit' => EditLead::route('/{record}/edit'),
             'sales-plans' => ManageSalesPlans::route('/{record}/sales-plans'),
-            'proposals' => ManageProposals::route('/{record}/proposals'),
             'general-informations' => ManageGeneralInformations::route('/{record}/general-informations'),
+            'proposals' => ManageProposals::route('/{record}/proposals'),
             'profitability-analyses' => ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),
             'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
             'contracts' => ManageContracts::route('/{record}/contracts'),

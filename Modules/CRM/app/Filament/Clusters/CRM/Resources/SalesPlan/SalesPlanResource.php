@@ -8,6 +8,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Pages\ListSalesPlans;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Schemas\SalesPlanForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Tables\SalesPlanTable;
@@ -16,6 +17,7 @@ use Modules\CRM\Models\SalesPlan;
 class SalesPlanResource extends Resource
 {
     protected static ?string $model = SalesPlan::class;
+
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 

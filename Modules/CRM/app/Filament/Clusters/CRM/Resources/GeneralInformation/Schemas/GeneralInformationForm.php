@@ -10,7 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -79,8 +79,8 @@ class GeneralInformationForm
                                 return;
                             }
 
-                            $set('estimated_start_date', $plan->start_date);
-                            $set('estimated_end_date', $plan->end_date);
+                            $set('estimated_start_date', $plan->start_date?->format('Y-m-d'));
+                            $set('estimated_end_date', $plan->end_date?->format('Y-m-d'));
                             $set('project_type_id', $plan->project_type_id);
                         }),
                     Select::make('customer_id')
@@ -97,6 +97,11 @@ class GeneralInformationForm
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
 
                     // Status removed from form as per request
+                    TextEntry::make('rr_sync_status')
+                        ->label('Risk Register Sync')
+                        ->default('RR Number and Status are automatically synced from the external Risk Register system via Webhook.')
+                        ->html()
+                        ->columnSpanFull(),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
@@ -191,49 +196,16 @@ class GeneralInformationForm
 
             Section::make('Risk Register & Compliance')
                 ->schema([
-                    TextInput::make('rr_document_number')
-                        ->label('Risk Register Document Number')
-                        ->placeholder('RR-xxxx-xxxx')
-                        ->live() // Make it reactive
-                        ->suffixAction(
-                            Action::make('check_status')
-                                ->icon(fn (Get $get) => filled($get('risk_management')) ? 'heroicon-m-check-circle' : 'heroicon-m-magnifying-glass')
-                                ->label('Check Status')
-                                ->tooltip('Check Approval Status')
-                                ->action(function (Get $get, Set $set, $state) {
-                                    // Simulation: Fetch data from Risk Register System
-                                    // If approved, populate the risk_management repeater
-
-                                    if (! $state) {
-                                        Notification::make()
-                                            ->title('Error')
-                                            ->body('Please enter a Risk Register Number.')
-                                            ->danger()
-                                            ->send();
-
-                                        return;
-                                    }
-
-                                    Notification::make()
-                                        ->title('Synced!')
-                                        ->body('Risk Management data retrieved from Document: '.$state)
-                                        ->success()
-                                        ->send();
-
-                                    // Simulate data sync
-                                    $set('risk_management', [
-                                        [
-                                            'risk_item' => 'Financial Risk (Synced)',
-                                            'mitigation' => 'Hedging Strategy (Synced)',
-                                        ],
-                                        [
-                                            'risk_item' => 'Operational Risk (Synced)',
-                                            'mitigation' => 'SOP Implementation (Synced)',
-                                        ],
-                                    ]);
-                                })
-                        ),
-
+                    TextEntry::make('rr_submission_id')
+                        ->label('RR Submission Reference')
+                        ->helperText('Temporary ID assigned during initial upload.'),
+                    TextEntry::make('rr_document_number')
+                        ->label('Risk Register ID')
+                        ->placeholder('Awaiting sync...')
+                        ->helperText('Final ID assigned by the Risk Register system.'),
+                    TextEntry::make('rr_status')
+                        ->label('RR Status')
+                        ->placeholder('Awaiting sync...'),
                     Repeater::make('risk_management')
                         ->schema([
                             TextInput::make('risk_item')->required(),
@@ -252,7 +224,7 @@ class GeneralInformationForm
                         ->columnSpanFull()
                         ->visible(fn ($record) => filled($record?->rr_payload)),
                 ])
-                ->hiddenOn(operations: ['create'])
+                ->hiddenOn('create')
                 ->columnSpanFull(),
 
             // Feasibility Study removed as per request

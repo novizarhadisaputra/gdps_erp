@@ -112,16 +112,46 @@ class SignatureService
     {
         $timestamp = now()->toIso8601String();
         $recordId = $model->getKey();
-        $recordClass = class_basename($model);
+        $recordClass = get_class($model); // Use FQCN for better resolution later
 
-        // Simple data format, in production this should be a signed JWT or a verification URL
-        return json_encode([
-            'signed_by' => $user->name,
-            'role' => $user->roles->first()?->name ?? 'User',
+        // Simple data format, encoded symmetrically for brevity in QR
+        $data = [
+            'class' => $recordClass,
+            'id' => $recordId,
+            'user' => $user->id,
             'type' => $type,
-            'document' => "{$recordClass} #{$recordId}",
-            'date' => $timestamp,
-            'verify' => url('/verify-signature/'.base64_encode("{$recordClass}:{$recordId}:{$user->id}:{$timestamp}")),
-        ]);
+            'time' => $timestamp,
+        ];
+
+        $token = base64_encode(json_encode($data));
+
+        return url('/verify-signature/'.$token);
+    }
+
+    /**
+     * Decode and verify signature data from a token.
+     */
+    public function decodeToken(string $token): ?array
+    {
+        try {
+            $data = json_decode(base64_decode($token), true);
+
+            if (! isset($data['class'], $data['id'], $data['user'])) {
+                return null;
+            }
+
+            $model = $data['class']::findOrFail($data['id']);
+            $user = User::findOrFail($data['user']);
+
+            return [
+                'model' => $model,
+                'user' => $user,
+                'type' => $data['type'] ?? 'approved',
+                'time' => $data['time'] ?? null,
+                'data' => $data,
+            ];
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }

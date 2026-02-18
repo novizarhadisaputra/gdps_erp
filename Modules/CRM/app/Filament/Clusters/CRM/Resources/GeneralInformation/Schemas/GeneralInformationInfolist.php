@@ -27,7 +27,7 @@ class GeneralInformationInfolist
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('status')
                                     ->badge()
-                                    ->color(fn (string $state): string => match ($state) {
+                                    ->color(fn ($state): string => match ($state instanceof \BackedEnum ? $state->value : (string) $state) {
                                         'draft' => 'gray',
                                         'submitted' => 'info',
                                         'approved' => 'success',
@@ -128,7 +128,6 @@ class GeneralInformationInfolist
                         TextEntry::make('rr_payload')
                             ->label('')
                             ->formatStateUsing(fn ($state) => $state ? json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) : 'No payload received yet.')
-                            ->monospace()
                             ->extraAttributes(['class' => 'bg-gray-50 p-4 rounded-lg'])
                             ->columnSpanFull(),
                     ])

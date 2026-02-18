@@ -127,10 +127,12 @@ class SalesPlanForm
                     Grid::make(4)
                         ->schema([
                             TextInput::make('estimated_value')
-                                ->numeric()
                                 ->prefix('IDR')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->label('Total Estimated Value')
                                 ->required()
+                                ->default(0)
+                                ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                 ->live(onBlur: true)
                                 ->afterStateUpdated(fn ($state, Get $get, Set $set) => self::distributeRevenue($state, $get, $set)),
                             TextInput::make('management_fee_percentage')
@@ -207,19 +209,24 @@ class SalesPlanForm
                                         ->dehydrated(),
                                     TextInput::make('budget_amount')
                                         ->label('Budget Plan')
-                                        ->numeric()
                                         ->prefix('IDR')
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                        ->default(0)
+                                        ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                         ->required(),
                                     TextInput::make('forecast_amount')
                                         ->label('Forecast')
-                                        ->numeric()
                                         ->prefix('IDR')
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
+                                        ->default(0)
+                                        ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                         ->required(),
                                     TextInput::make('actual_amount')
                                         ->label('Actual Revenue')
-                                        ->numeric()
                                         ->prefix('IDR')
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
                                         ->default(0)
+                                        ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                         ->required(),
                                 ]),
                         ])
@@ -235,7 +242,9 @@ class SalesPlanForm
         $start = $get('start_date');
         $end = $get('end_date');
 
-        if (! $total || ! $start || ! $end) {
+        $totalFloat = self::parseCurrency($total);
+
+        if ($totalFloat <= 0 || ! $start || ! $end) {
             return;
         }
 
@@ -254,7 +263,7 @@ class SalesPlanForm
             return;
         }
 
-        $monthlyAmount = (float) $total / $monthsCount;
+        $monthlyAmount = (float) $totalFloat / $monthsCount;
         $distribution = [];
 
         for ($i = 0; $i < $monthsCount; $i++) {
@@ -270,5 +279,21 @@ class SalesPlanForm
         }
 
         $set('revenue_distribution_planning', $distribution);
+    }
+
+    protected static function parseCurrency($value): float
+    {
+        if (! $value) {
+            return 0;
+        }
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        // Remove dots (thousand separator) and replace comma with dot (decimal separator)
+        $clean = str_replace('.', '', $value);
+        $clean = str_replace(',', '.', $clean);
+
+        return (float) $clean;
     }
 }
