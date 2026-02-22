@@ -18,7 +18,6 @@ return new class extends Migration
             // Categorization
             $table->foreignUuid('project_type_id')->nullable()->constrained('project_types')->nullOnDelete();
             $table->foreignUuid('revenue_segment_id')->nullable()->constrained('revenue_segments')->nullOnDelete();
-            $table->foreignUuid('service_line_id')->nullable()->constrained('service_lines')->nullOnDelete();
             $table->foreignUuid('industrial_sector_id')->nullable()->constrained('industrial_sectors')->nullOnDelete();
             $table->foreignUuid('skill_category_id')->nullable()->constrained('skill_categories')->nullOnDelete();
             $table->foreignUuid('product_cluster_id')->nullable()->constrained('product_clusters')->nullOnDelete();
@@ -26,12 +25,10 @@ return new class extends Migration
             $table->foreignUuid('ams_id')->nullable()->constrained('users')->nullOnDelete();
             $table->json('job_positions')->nullable();
 
-            $table->string('industry')->nullable(); // Legacy/Alternative
-
             // Financials
             $table->decimal('estimated_value', 15, 2)->nullable();
             $table->decimal('management_fee_percentage', 5, 2)->nullable();
-            $table->decimal('margin_percentage', 5, 2)->nullable();
+            $table->decimal('npm_percentage', 5, 2)->nullable();
             $table->integer('top_days')->nullable();
 
             // Timeline
@@ -49,7 +46,6 @@ return new class extends Migration
             $table->string('po_number')->nullable();
             $table->string('ba_number')->nullable();
             $table->string('so_number')->nullable();
-            $table->string('document_reference')->nullable();
 
             $table->json('revenue_distribution_planning')->nullable();
             $table->timestamps();

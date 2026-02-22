@@ -17,12 +17,9 @@ use Modules\CRM\Models\SalesPlan;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas\RevenueSegmentForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ServiceLines\Schemas\ServiceLineForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\SkillCategories\Schemas\SkillCategoryForm;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\SkillCategory;
 
 class SalesPlanForm
@@ -51,15 +48,6 @@ class SalesPlanForm
                                 ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id)
                                 ->editOptionForm(RevenueSegmentForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                            Select::make('service_line_id')
-                                ->relationship('serviceLine', 'name')
-                                ->label('Service Line (Project Area)')
-                                ->required()
-                                ->createOptionForm(ServiceLineForm::schema())
-                                ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id)
-                                ->editOptionForm(ServiceLineForm::schema())
-                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('industrial_sector_id')
                                 ->relationship('industrialSector', 'name')
                                 ->label('Industrial Sector')
@@ -84,12 +72,21 @@ class SalesPlanForm
                             Select::make('skill_category_id')
                                 ->relationship('skillCategory', 'name')
                                 ->label('Skill Category')
-                                ->required()
-                                ->createOptionForm(SkillCategoryForm::schema())
-                                ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => SkillCategory::create($data)->id)
-                                ->editOptionForm(SkillCategoryForm::schema())
-                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                                ->required(),
+                            Select::make('job_positions')
+                                ->label('Job Positions')
+                                ->multiple()
+                                ->options([
+                                    'Security' => 'Security',
+                                    'Driver' => 'Driver',
+                                    'SPG' => 'SPG',
+                                    'Merchandizer' => 'Merchandizer',
+                                    'Cleaner' => 'Cleaner',
+                                    'Engineer' => 'Engineer',
+                                    'Office Boy' => 'Office Boy',
+                                    'Receptionist' => 'Receptionist',
+                                ])
+                                ->required(),
                         ]),
                     Grid::make(2)
                         ->schema([
@@ -115,11 +112,7 @@ class SalesPlanForm
                             TextInput::make('so_number')
                                 ->label('Sales Order (SO) No.'),
                         ]),
-                    TextInput::make('document_reference')
-                        ->label('Old Doc. Reference')
-                        ->placeholder('Legacy field')
-                        ->dehydrated(false),
-                ]),
+                        ]),
 
             Section::make('Financials & Timeline')
                 ->description('Revenue forecasting and credit terms.')
@@ -140,10 +133,10 @@ class SalesPlanForm
                                 ->suffix('%')
                                 ->label('M. Fee %')
                                 ->default(0),
-                            TextInput::make('margin_percentage')
+                            TextInput::make('npm_percentage')
                                 ->numeric()
                                 ->suffix('%')
-                                ->label('Margin %')
+                                ->label('NPM %')
                                 ->default(0),
                             TextInput::make('top_days')
                                 ->numeric()
@@ -248,8 +241,8 @@ class SalesPlanForm
             return;
         }
 
-        $startDate = Carbon::parse($start);
-        $endDate = Carbon::parse($end);
+        $startDate = Carbon::parse($start)->startOfDay();
+        $endDate = Carbon::parse($end)->startOfDay();
 
         // Ensure dates are valid
         if ($endDate->lt($startDate)) {
@@ -258,24 +251,40 @@ class SalesPlanForm
             return;
         }
 
-        $monthsCount = $startDate->diffInMonths($endDate) + 1;
-        if ($monthsCount <= 0) {
+        $totalDays = $startDate->diffInDays($endDate) + 1;
+        if ($totalDays <= 0) {
             return;
         }
 
-        $monthlyAmount = (float) $totalFloat / $monthsCount;
+        $dailyAmount = $totalFloat / $totalDays;
         $distribution = [];
 
-        for ($i = 0; $i < $monthsCount; $i++) {
-            $currentMonth = $startDate->copy()->addMonths($i);
-            $distribution[] = [
-                'month' => $currentMonth->format('F Y'),
-                'budget_amount' => round($monthlyAmount, 2),
-                'forecast_amount' => round($monthlyAmount, 2),
-                'actual_amount' => 0,
-                'year_val' => $currentMonth->year,
-                'month_val' => $currentMonth->month,
-            ];
+        $current = $startDate->copy()->startOfMonth()->startOfDay();
+        $endOfMonthValue = $endDate->copy()->endOfMonth()->startOfDay();
+
+        while ($current->lte($endOfMonthValue)) {
+            $monthStart = $current->copy()->startOfMonth()->startOfDay();
+            $monthEnd = $current->copy()->endOfMonth()->startOfDay();
+
+            // Calculate overlap days
+            $overlapStart = $startDate->gt($monthStart) ? $startDate : $monthStart;
+            $overlapEnd = $endDate->lt($monthEnd) ? $endDate : $monthEnd;
+
+            if ($overlapStart->lte($overlapEnd)) {
+                $daysInMonth = $overlapStart->diffInDays($overlapEnd) + 1;
+                $monthlyBudget = $daysInMonth * $dailyAmount;
+
+                $distribution[] = [
+                    'month' => $current->format('F Y'),
+                    'budget_amount' => round($monthlyBudget, 2),
+                    'forecast_amount' => round($monthlyBudget, 2),
+                    'actual_amount' => 0,
+                    'year_val' => $current->year,
+                    'month_val' => $current->month,
+                ];
+            }
+
+            $current->addMonth();
         }
 
         $set('revenue_distribution_planning', $distribution);

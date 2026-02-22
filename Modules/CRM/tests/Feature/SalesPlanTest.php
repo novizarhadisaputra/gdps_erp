@@ -12,7 +12,6 @@ use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\SkillCategory;
 use Modules\Project\Models\Project;
 use Tests\TestCase;
@@ -22,8 +21,6 @@ class SalesPlanTest extends TestCase
     use RefreshDatabase;
 
     protected $revenueSegment;
-
-    protected $serviceLine;
 
     protected $industrialSector;
 
@@ -41,7 +38,6 @@ class SalesPlanTest extends TestCase
 
         // Setup basic master data
         $this->revenueSegment = RevenueSegment::create(['name' => 'Aviation', 'code' => 'AV']);
-        $this->serviceLine = ServiceLine::create(['name' => 'TAD', 'code' => 'TAD']);
         $this->industrialSector = IndustrialSector::create(['name' => 'Airlines', 'code' => 'AIR']);
         $this->projectType = ProjectType::create(['name' => 'Headcount', 'code' => 'HC']);
         $this->skillCategory = SkillCategory::create(['name' => 'Low Skill', 'code' => 'LS']);
@@ -59,7 +55,6 @@ class SalesPlanTest extends TestCase
         $salesPlan = SalesPlan::create([
             'lead_id' => $this->lead->id,
             'revenue_segment_id' => $this->revenueSegment->id,
-            'service_line_id' => $this->serviceLine->id,
             'industrial_sector_id' => $this->industrialSector->id,
             'project_type_id' => $this->projectType->id,
             'skill_category_id' => $this->skillCategory->id,
@@ -156,5 +151,51 @@ class SalesPlanTest extends TestCase
 
         $salesPlan->refresh();
         $this->assertEquals($contract->id, $salesPlan->work_order_id);
+    }
+
+    public function test_daily_proration_logic(): void
+    {
+        $form = new \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\SalesPlanForm();
+        
+        $get = \Mockery::mock(\Filament\Schemas\Components\Utilities\Get::class);
+        $get->shouldReceive('__invoke')->with('start_date')->andReturn('2026-02-10');
+        $get->shouldReceive('__invoke')->with('end_date')->andReturn('2026-04-20');
+        $get->shouldReceive('__invoke')->with('estimated_value')->andReturn('7000000');
+
+        $distribution = [];
+        $set = \Mockery::mock(\Filament\Schemas\Components\Utilities\Set::class);
+        $set->shouldReceive('__invoke')->with('revenue_distribution_planning', \Mockery::any())->andReturnUsing(function($key, $value) use (&$distribution) {
+            $distribution = $value;
+        });
+
+        // Call the protected method via reflection
+        $reflection = new \ReflectionClass($form);
+        $method = $reflection->getMethod('distributeRevenue');
+        $method->setAccessible(true);
+        $method->invoke(null, '7000000', $get, $set);
+
+        // Period: Feb 10 - April 20
+        // Feb: 10 to 28 (19 days)
+        // March: 1 to 31 (31 days)
+        // April: 1 to 20 (20 days)
+        // Total days: 19 + 31 + 20 = 70 days
+        // Daily rate: 7.000.000 / 70 = 100.000 per day
+
+        $this->assertCount(3, $distribution);
+        
+        // Feb
+        $this->assertEquals('February 2026', $distribution[0]['month']);
+        $this->assertEquals(1900000, $distribution[0]['budget_amount']); // 19 days * 100k
+        
+        // March
+        $this->assertEquals('March 2026', $distribution[1]['month']);
+        $this->assertEquals(3100000, $distribution[1]['budget_amount']); // 31 days * 100k
+        
+        // April
+        $this->assertEquals('April 2026', $distribution[2]['month']);
+        $this->assertEquals(2000000, $distribution[2]['budget_amount']); // 20 days * 100k
+        
+        $totalAllocated = array_sum(array_column($distribution, 'budget_amount'));
+        $this->assertEquals(7000000, $totalAllocated);
     }
 }

@@ -9,6 +9,7 @@ use Modules\CRM\Filament\Clusters\CRM\Widgets\DealStatusDistributionWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\LeadConversionTrendWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\LeadPipelineWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\RevenueForecastWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesPerformanceChartWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesTeamPerformanceWidget;
 
 class CRMAnalyticsPage extends AnalyticsBasePage
@@ -35,6 +36,7 @@ class CRMAnalyticsPage extends AnalyticsBasePage
             // Row 2: Primary metrics (2 columns on desktop)
             LeadPipelineWidget::class,              // Left: Sales funnel
             RevenueForecastWidget::class,           // Right: Revenue projection
+            SalesPerformanceChartWidget::class,     // Row 3: Performance comparison
 
             // Row 3: Trends and analysis (2 columns on desktop)
             LeadConversionTrendWidget::class,       // Left: Historical trend

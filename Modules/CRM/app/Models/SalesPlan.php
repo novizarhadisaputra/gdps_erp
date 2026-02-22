@@ -28,13 +28,11 @@ class SalesPlan extends Model
         'lead_id',
         'project_type_id',
         'revenue_segment_id',
-        'service_line_id',
         'industrial_sector_id',
         'skill_category_id',
-        'industry',
         'estimated_value',
         'management_fee_percentage',
-        'margin_percentage',
+        'npm_percentage',
         'top_days',
         'start_date',
         'end_date',
@@ -47,7 +45,6 @@ class SalesPlan extends Model
         'po_number',
         'ba_number',
         'so_number',
-        'document_reference',
         'revenue_distribution_planning',
         'product_cluster_id',
         'project_area_id',
@@ -64,7 +61,7 @@ class SalesPlan extends Model
             'confidence_level' => ConfidenceLevel::class,
             'estimated_value' => 'decimal:2',
             'management_fee_percentage' => 'decimal:2',
-            'margin_percentage' => 'decimal:2',
+            'npm_percentage' => 'decimal:2',
             'job_positions' => 'array',
         ];
     }
@@ -82,11 +79,6 @@ class SalesPlan extends Model
     public function revenueSegment(): BelongsTo
     {
         return $this->belongsTo(RevenueSegment::class);
-    }
-
-    public function serviceLine(): BelongsTo
-    {
-        return $this->belongsTo(ServiceLine::class);
     }
 
     public function industrialSector(): BelongsTo
