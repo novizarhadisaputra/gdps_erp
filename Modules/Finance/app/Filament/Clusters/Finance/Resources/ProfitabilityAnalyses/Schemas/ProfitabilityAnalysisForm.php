@@ -55,7 +55,8 @@ class ProfitabilityAnalysisForm
                                     ->preload()
                                     ->live()
                                     ->disabled()
-                                    ->dehydrated(),
+                                    ->dehydrated()
+                                    ->hidden(),
                                 Select::make('customer_id')
                                     ->relationship('customer', 'name')
                                     ->helperText('Customer associated with the project.')
@@ -64,6 +65,8 @@ class ProfitabilityAnalysisForm
                                     ->preload()
                                     ->disabled()
                                     ->dehydrated()
+                                    ->hidden()
+                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null)
                                     ->createOptionForm(CustomerForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->editOptionForm(CustomerForm::schema())
@@ -111,6 +114,7 @@ class ProfitabilityAnalysisForm
                                     ->preload()
                                     ->disabled()
                                     ->dehydrated()
+                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
                                     ->createOptionForm(WorkSchemeForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('product_cluster_id')
@@ -118,6 +122,7 @@ class ProfitabilityAnalysisForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
+                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->product_cluster_id : null)
                                     ->createOptionForm(ProductClusterForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('tax_id')
@@ -133,6 +138,7 @@ class ProfitabilityAnalysisForm
                                     ->searchable()
                                     ->preload()
                                     ->live()
+                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null)
                                     ->createOptionForm(ProjectAreaForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
                             ]),

@@ -58,4 +58,13 @@ class GeneralInformationObserver
     {
         // Logic for re-submission if needed
     }
+
+    /**
+     * Handle the GeneralInformation "deleting" event.
+     */
+    public function deleting(GeneralInformation $info): void
+    {
+        // Cascade delete PICs
+        $info->pics()->delete();
+    }
 }

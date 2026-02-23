@@ -110,4 +110,27 @@ class LeadObserver
                 break;
         }
     }
+
+    /**
+     * Handle the Lead "deleted" event.
+     */
+    public function deleted(Lead $lead): void
+    {
+        // Activity logs are preserved (Spatie LogsActivity trait handles this)
+        // We only delete related records as requested.
+    }
+
+    /**
+     * Handle the Lead "deleting" event.
+     */
+    public function deleting(Lead $lead): void
+    {
+        // Cascade delete related records
+        $lead->salesPlan()?->delete();
+        $lead->proposals()->each(fn ($p) => $p->delete());
+        $lead->generalInformations()->each(fn ($gi) => $gi->delete());
+        $lead->profitabilityAnalyses()->each(fn ($pa) => $pa->delete());
+        $lead->contracts()->each(fn ($c) => $c->delete());
+        $lead->projectInformations()->each(fn ($pi) => $pi->delete());
+    }
 }

@@ -43,6 +43,7 @@ class SalesPlanForm
                                 ->relationship('revenueSegment', 'name')
                                 ->label('Revenue Segment')
                                 ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->revenue_segment_id : null)
                                 ->createOptionForm(RevenueSegmentForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id)
@@ -52,6 +53,7 @@ class SalesPlanForm
                                 ->relationship('industrialSector', 'name')
                                 ->label('Industrial Sector')
                                 ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->industrial_sector_id : null)
                                 ->createOptionForm(IndustrialSectorForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => IndustrialSector::create($data)->id)
@@ -64,6 +66,7 @@ class SalesPlanForm
                                 ->relationship('projectType', 'name')
                                 ->label('Project Type')
                                 ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->project_type_id : null)
                                 ->createOptionForm(ProjectTypeForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ProjectType::create($data)->id)
@@ -72,14 +75,16 @@ class SalesPlanForm
                             Select::make('skill_category_id')
                                 ->relationship('skillCategory', 'name')
                                 ->label('Skill Category')
-                                ->required(),
+                                ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->skill_category_id : null),
                             Select::make('job_positions')
                                 ->label('Job Positions')
                                 ->multiple()
                                 ->options(JobPosition::where('is_active', true)->pluck('name', 'id'))
                                 ->searchable()
                                 ->preload()
-                                ->required(),
+                                ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->job_positions : null),
                         ]),
                     Grid::make(2)
                         ->schema([
@@ -117,7 +122,7 @@ class SalesPlanForm
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->label('Total Estimated Value')
                                 ->required()
-                                ->default(0)
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
                                 ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                 ->live(onBlur: true)
                                 ->afterStateUpdated(fn ($state, Get $get, Set $set) => self::distributeRevenue($state, $get, $set)),
@@ -134,18 +139,22 @@ class SalesPlanForm
                             TextInput::make('top_days')
                                 ->numeric()
                                 ->suffix('Days')
-                                ->label('Terms of Payment'),
+                                ->label('Terms of Payment')
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(fn ($state, Get $get, Set $set) => self::distributeRevenue($get('estimated_value'), $get, $set)),
                         ]),
                     Grid::make(2)
                         ->schema([
                             DatePicker::make('start_date')
                                 ->label('Project Start Date')
                                 ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->start_date : null)
                                 ->live()
                                 ->afterStateUpdated(fn ($state, Get $get, Set $set) => self::distributeRevenue($get('estimated_value'), $get, $set)),
                             DatePicker::make('end_date')
                                 ->label('Project End Date')
                                 ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->end_date : null)
                                 ->live()
                                 ->afterStateUpdated(fn ($state, Get $get, Set $set) => self::distributeRevenue($get('estimated_value'), $get, $set)),
                         ]),
@@ -171,7 +180,8 @@ class SalesPlanForm
                                     'pessimistic' => 'Pessimistic',
                                 ])
                                 ->label('Confidence Level')
-                                ->required(),
+                                ->required()
+                                ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->confidence_level : null),
                             TextInput::make('project_code')
                                 ->label('Project Code')
                                 ->placeholder('PC-XXXXX'),
@@ -227,6 +237,7 @@ class SalesPlanForm
     {
         $start = $get('start_date');
         $end = $get('end_date');
+        $topDays = (int) ($get('top_days') ?? 0);
 
         $totalFloat = self::parseCurrency($total);
 
@@ -267,13 +278,16 @@ class SalesPlanForm
                 $daysInMonth = $overlapStart->diffInDays($overlapEnd) + 1;
                 $monthlyBudget = $daysInMonth * $dailyAmount;
 
+                // Collection Basis: Shift the Month Label by top_days
+                $collectionMonth = $monthStart->copy()->addDays($topDays)->startOfMonth();
+
                 $distribution[] = [
-                    'month' => $current->format('F Y'),
+                    'month' => $collectionMonth->format('F Y'),
                     'budget_amount' => round($monthlyBudget, 2),
                     'forecast_amount' => round($monthlyBudget, 2),
                     'actual_amount' => 0,
-                    'year_val' => $current->year,
-                    'month_val' => $current->month,
+                    'year_val' => $collectionMonth->year,
+                    'month_val' => $collectionMonth->month,
                 ];
             }
 

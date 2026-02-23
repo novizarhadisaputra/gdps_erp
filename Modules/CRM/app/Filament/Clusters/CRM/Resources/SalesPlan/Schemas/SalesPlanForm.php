@@ -53,6 +53,7 @@ class SalesPlanForm
                                 Select::make('lead_id')
                                     ->relationship('lead', 'title', fn ($query) => $query->where('status', '!=', 'lead'))
                                     ->required()
+                                    ->hidden()
                                     ->searchable()
                                     ->preload()
                                     ->live()

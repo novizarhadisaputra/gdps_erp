@@ -22,7 +22,10 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 #[ObservedBy([GeneralInformationObserver::class])]
 class GeneralInformation extends Model implements HasMedia
 {
-    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
+    use HasDigitalSignatures {
+        isFullyApproved as traitIsFullyApproved;
+    }
+    use HasFactory, HasUuids, InteractsWithMedia;
 
     protected $table = 'general_informations';
 
@@ -124,5 +127,14 @@ class GeneralInformation extends Model implements HasMedia
     public function salesPlan(): BelongsTo
     {
         return $this->belongsTo(SalesPlan::class);
+    }
+
+    /**
+     * Determine if the document is fully approved.
+     * Overridden to include Risk Register status check.
+     */
+    public function isFullyApproved(): bool
+    {
+        return $this->rr_status === 'approved' && $this->traitIsFullyApproved();
     }
 }

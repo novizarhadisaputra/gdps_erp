@@ -39,4 +39,13 @@ class ProfitabilityAnalysisObserver
             ]);
         }
     }
+
+    /**
+     * Handle the ProfitabilityAnalysis "deleting" event.
+     */
+    public function deleting(ProfitabilityAnalysis $analysis): void
+    {
+        // Cascade delete items
+        $analysis->items()->each(fn ($item) => $item->delete());
+    }
 }

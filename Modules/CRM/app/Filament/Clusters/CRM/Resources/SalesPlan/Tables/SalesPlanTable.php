@@ -10,7 +10,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\GeneralInformationResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Schemas\SalesPlanForm;
 use Modules\CRM\Models\SalesPlan;
 
@@ -85,7 +84,7 @@ class SalesPlanTable
                                     return;
                                 }
 
-                                $lead->generalInformations()->create([
+                                $gi = $lead->generalInformations()->create([
                                     'customer_id' => $lead->customer_id,
                                     'project_area_id' => $record->project_area_id,
                                     'estimated_start_date' => $record->start_date,
@@ -95,6 +94,15 @@ class SalesPlanTable
                                     'sales_plan_id' => $record->id,
                                     'status' => 'draft',
                                 ]);
+
+                                foreach (($lead->customer?->contacts ?? []) as $contact) {
+                                    $gi->pics()->create([
+                                        'contact_role_id' => $contact['type'] ?? null,
+                                        'name' => $contact['name'] ?? null,
+                                        'phone' => $contact['phone'] ?? null,
+                                        'email' => $contact['email'] ?? null,
+                                    ]);
+                                }
 
                                 Notification::make()
                                     ->title('General Information Created')
@@ -126,7 +134,7 @@ class SalesPlanTable
                             return;
                         }
 
-                        $lead->generalInformations()->create([
+                        $gi = $lead->generalInformations()->create([
                             'customer_id' => $lead->customer_id,
                             'project_area_id' => $record->project_area_id,
                             'estimated_start_date' => $record->start_date,
@@ -136,6 +144,15 @@ class SalesPlanTable
                             'sales_plan_id' => $record->id,
                             'status' => 'draft',
                         ]);
+
+                        foreach (($lead->customer?->contacts ?? []) as $contact) {
+                            $gi->pics()->create([
+                                'contact_role_id' => $contact['type'] ?? null,
+                                'name' => $contact['name'] ?? null,
+                                'phone' => $contact['phone'] ?? null,
+                                'email' => $contact['email'] ?? null,
+                            ]);
+                        }
 
                         Notification::make()
                             ->title('General Information Created')

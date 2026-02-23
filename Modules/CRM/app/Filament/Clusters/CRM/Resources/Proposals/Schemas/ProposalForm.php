@@ -34,6 +34,8 @@ class ProposalForm
                         ->required()
                         ->disabled()
                         ->dehydrated()
+                        ->hidden()
+                        ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null)
                         ->createOptionForm(CustomerForm::schema())
                         ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
                         ->editOptionForm(CustomerForm::schema())
@@ -43,6 +45,7 @@ class ProposalForm
                         ->searchable()
                         ->preload()
                         ->live()
+                        ->hidden()
                         ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
                             if (! $state) {
                                 return;
@@ -61,6 +64,7 @@ class ProposalForm
                         ->preload()
                         ->disabled() // Inherited from Lead rarely changes at this stage
                         ->dehydrated()
+                        ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
                         ->createOptionForm(WorkSchemeForm::schema())
                         ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
                         ->editOptionForm(WorkSchemeForm::schema())
@@ -72,7 +76,7 @@ class ProposalForm
                     TextInput::make('amount')
                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                         ->prefix('IDR')
-                        ->default(0)
+                        ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
                         ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                         ->required(),
                     ToggleButtons::make('status')

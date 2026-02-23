@@ -1,0 +1,50 @@
+<?php
+
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal;
+
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Tables\Table;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\CreateProposal;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\EditProposal;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ListProposals;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ViewProposal;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalInfolist;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Tables\ProposalsTable;
+use Modules\CRM\Models\Proposal;
+
+class ProposalResource extends Resource
+{
+    protected static ?string $model = Proposal::class;
+
+    protected static bool $isNested = true;
+
+    protected static ?string $parentResource = LeadResource::class;
+
+    public static function form(Schema $schema): Schema
+    {
+        return ProposalForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return ProposalsTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return ProposalInfolist::configure($schema);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListProposals::route('/'),
+            'create' => CreateProposal::route('/create'),
+            'view' => ViewProposal::route('/{record}'),
+            'edit' => EditProposal::route('/{record}/edit'),
+        ];
+    }
+}

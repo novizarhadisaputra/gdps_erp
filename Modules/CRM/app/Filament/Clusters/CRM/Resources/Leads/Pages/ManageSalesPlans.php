@@ -12,10 +12,9 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\SalesPlanForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\SalesPlanResource;
 
 class ManageSalesPlans extends ManageRelatedRecords
 {
@@ -23,9 +22,9 @@ class ManageSalesPlans extends ManageRelatedRecords
 
     protected static string $relationship = 'salesPlan';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
+    protected static ?string $relatedResource = SalesPlanResource::class;
 
-    protected static ?string $title = 'Sales Plan (Approach)';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
 
     public static function canAccess(array $parameters = []): bool
     {
@@ -49,50 +48,11 @@ class ManageSalesPlans extends ManageRelatedRecords
 
     public function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                TextColumn::make('revenueSegment.name')
-                    ->label('Segment'),
-                TextColumn::make('industrialSector.name')
-                    ->label('Sector'),
-                TextColumn::make('estimated_value')
-                    ->money('IDR')
-                    ->label('Value'),
-                TextColumn::make('confidence_level')
-                    ->badge()
-                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
-                        'optimistic' => 'success',
-                        'moderate' => 'warning',
-                        'pessimistic' => 'danger',
-                        default => 'gray',
-                    }),
-                TextColumn::make('start_date')
-                    ->date()
-                    ->label('Start'),
-                TextColumn::make('end_date')
-                    ->date()
-                    ->label('End'),
-            ])
+        return SalesPlanResource::table($table)
             ->headerActions([
                 CreateAction::make()
-                    ->schema(fn (Schema $schema) => SalesPlanForm::configure($schema))
-                    ->visible(fn () => $this->getOwnerRecord()->salesPlan()->doesntExist())
-                    ->fillForm(function () {
-                        $record = $this->getOwnerRecord();
-
-                        return [
-                            'estimated_value' => $record->estimated_amount,
-                            'confidence_level' => $record->confidence_level,
-                            'job_positions' => $record->job_positions,
-                            'revenue_segment_id' => $record->revenue_segment_id,
-                            'product_cluster_id' => $record->product_cluster_id,
-                            'project_type_id' => $record->project_type_id,
-                            'industrial_sector_id' => $record->industrial_sector_id,
-                            'project_area_id' => $record->project_area_id,
-                            'start_date' => $record->start_date,
-                            'end_date' => $record->end_date,
-                        ];
-                    }),
+                    ->schema(fn (Schema $schema) => SalesPlanResource::form($schema))
+                    ->visible(fn () => $this->getOwnerRecord()->salesPlan()->doesntExist()),
                 Action::make('generateGIHeader')
                     ->label('Create General Info')
                     ->icon('heroicon-o-document-plus')
@@ -139,10 +99,8 @@ class ManageSalesPlans extends ManageRelatedRecords
                     }),
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->schema(fn (Schema $schema) => SalesPlanForm::configure($schema)),
-                EditAction::make()
-                    ->schema(fn (Schema $schema) => SalesPlanForm::configure($schema)),
+                ViewAction::make(),
+                EditAction::make(),
                 Action::make('generateGI')
                     ->label('Generate GI')
                     ->icon('heroicon-o-document-plus')
