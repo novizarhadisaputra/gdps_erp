@@ -50,10 +50,12 @@ class CustomerForm
                     TextInput::make('email')
                         ->label('Email')
                         ->email()
+                        ->required()
                         ->maxLength(255),
                     TextInput::make('phone')
                         ->label('Telepon')
                         ->tel()
+                        ->required()
                         ->maxLength(20),
                     TextInput::make('address')
                         ->label('Alamat')

@@ -14,7 +14,7 @@ class LeadObserver
     public function creating(Lead $lead): void
     {
         $lead->status = LeadStatus::Lead;
-        $lead->confidence_level = ConfidenceLevel::Pessimistic;
+        $lead->confidence_level = $lead->confidence_level ?? ConfidenceLevel::Pessimistic;
         $lead->position = Lead::max('position') + 1;
     }
 
@@ -32,11 +32,11 @@ class LeadObserver
                 'revenue_segment_id' => $lead->revenue_segment_id,
                 'product_cluster_id' => $lead->product_cluster_id,
                 'project_type_id' => $lead->project_type_id,
-                'service_line_id' => $lead->service_line_id,
                 'industrial_sector_id' => $lead->industrial_sector_id,
                 'project_area_id' => $lead->project_area_id,
                 'estimated_value' => $lead->estimated_amount,
                 'confidence_level' => $lead->confidence_level ?? ConfidenceLevel::Moderate,
+                'job_positions' => $lead->job_positions,
             ]);
         }
 
@@ -55,11 +55,11 @@ class LeadObserver
                         'revenue_segment_id' => $lead->revenue_segment_id,
                         'product_cluster_id' => $lead->product_cluster_id,
                         'project_type_id' => $lead->project_type_id,
-                        'service_line_id' => $lead->service_line_id,
                         'industrial_sector_id' => $lead->industrial_sector_id,
                         'project_area_id' => $lead->project_area_id,
                         'estimated_value' => $lead->estimated_amount ?? 0,
                         'confidence_level' => $lead->confidence_level ?? ConfidenceLevel::Moderate,
+                        'job_positions' => $lead->job_positions,
                         'priority_level' => 2, // Default Medium
                         'start_date' => $lead->start_date ?? now(),
                         'end_date' => $lead->end_date ?? now()->addYear(),

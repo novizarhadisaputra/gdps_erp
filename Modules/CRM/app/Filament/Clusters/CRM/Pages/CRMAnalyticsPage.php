@@ -24,9 +24,6 @@ class CRMAnalyticsPage extends AnalyticsBasePage
 
     protected static ?int $navigationSort = 0;
 
-    // Temporarily disabled - focus on other tasks
-    protected static bool $shouldRegisterNavigation = false;
-
     public function getWidgets(): array
     {
         return [

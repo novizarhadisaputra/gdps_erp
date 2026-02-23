@@ -24,7 +24,6 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Sc
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas\RevenueSegmentForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ServiceLines\Schemas\ServiceLineForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\SkillCategories\Schemas\SkillCategoryForm;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\JobPosition;
@@ -32,7 +31,6 @@ use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\SkillCategory;
 
 class SalesPlanForm
@@ -71,7 +69,6 @@ class SalesPlanForm
                                             $set('revenue_segment_id', $lead->revenue_segment_id);
                                             $set('product_cluster_id', $lead->product_cluster_id);
                                             $set('project_type_id', $lead->project_type_id);
-                                            $set('service_line_id', $lead->service_line_id);
                                             $set('industrial_sector_id', $lead->industrial_sector_id);
                                             $set('project_area_id', $lead->project_area_id);
                                         }
@@ -169,17 +166,6 @@ class SalesPlanForm
                                     ->editOptionForm(ProjectAreaForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             ]),
-                        Select::make('service_line_id')
-                            ->label('Service Line')
-                            ->relationship('serviceLine', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->createOptionForm(ServiceLineForm::schema())
-                            ->createOptionAction(fn (Action $action) => $action->slideOver())
-                            ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id)
-                            ->editOptionForm(ServiceLineForm::schema())
-                            ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     ]),
 
                 Step::make('Financials & Timeline')

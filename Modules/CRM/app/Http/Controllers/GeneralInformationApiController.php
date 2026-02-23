@@ -21,9 +21,13 @@ class GeneralInformationApiController extends Controller
         $limit = $request->input('limit', 15);
 
         $query = GeneralInformation::query()
-            ->with(['customer:id,name', 'lead:id,title', 'projectArea:id,name'])
+            ->with([
+                'customer' => fn ($q) => $q->withoutGlobalScopes()->select(['id', 'name']),
+                'lead' => fn ($q) => $q->select(['id', 'title']),
+                'projectArea' => fn ($q) => $q->select(['id', 'name']),
+            ])
             ->select([
-                'id', 'document_number', 'customer_id', 'lead_id', 'project_area_id',
+                'id', 'document_number', 'scope_of_work', 'customer_id', 'lead_id', 'project_area_id',
                 'status', 'rr_status', 'rr_document_number', 'created_at', 'updated_at',
             ]);
 

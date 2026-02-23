@@ -14,7 +14,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\GeneralInformationResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\SalesPlanForm;
 
@@ -84,10 +83,10 @@ class ManageSalesPlans extends ManageRelatedRecords
                         return [
                             'estimated_value' => $record->estimated_amount,
                             'confidence_level' => $record->confidence_level,
+                            'job_positions' => $record->job_positions,
                             'revenue_segment_id' => $record->revenue_segment_id,
                             'product_cluster_id' => $record->product_cluster_id,
                             'project_type_id' => $record->project_type_id,
-                            'service_line_id' => $record->service_line_id,
                             'industrial_sector_id' => $record->industrial_sector_id,
                             'project_area_id' => $record->project_area_id,
                             'start_date' => $record->start_date,
@@ -98,12 +97,19 @@ class ManageSalesPlans extends ManageRelatedRecords
                     ->label('Create General Info')
                     ->icon('heroicon-o-document-plus')
                     ->color('success')
-                    ->visible(fn () => $this->getOwnerRecord()->salesPlan()->exists() && $this->getOwnerRecord()->generalInformations()->doesntExist())
+                    ->visible(function () {
+                        $lead = $this->getOwnerRecord();
+                        $salesPlan = $lead->salesPlan;
+
+                        return $salesPlan &&
+                            $lead->generalInformations()->doesntExist() &&
+                            ! empty($salesPlan->revenue_distribution_planning);
+                    })
                     ->action(function () {
                         $lead = $this->getOwnerRecord();
                         $record = $lead->salesPlan;
 
-                        $lead->generalInformations()->create([
+                        $gi = $lead->generalInformations()->create([
                             'customer_id' => $lead->customer_id,
                             'project_area_id' => $record->project_area_id,
                             'estimated_start_date' => $record->start_date,
@@ -113,6 +119,15 @@ class ManageSalesPlans extends ManageRelatedRecords
                             'sales_plan_id' => $record->id,
                             'status' => 'draft',
                         ]);
+
+                        foreach (($lead->customer?->contacts ?? []) as $contact) {
+                            $gi->pics()->create([
+                                'contact_role_id' => $contact['type'] ?? null,
+                                'name' => $contact['name'] ?? null,
+                                'phone' => $contact['phone'] ?? null,
+                                'email' => $contact['email'] ?? null,
+                            ]);
+                        }
 
                         Notification::make()
                             ->title('General Information Created')
@@ -132,10 +147,11 @@ class ManageSalesPlans extends ManageRelatedRecords
                     ->label('Generate GI')
                     ->icon('heroicon-o-document-plus')
                     ->color('success')
+                    ->visible(fn ($record) => ! empty($record->revenue_distribution_planning))
                     ->action(function ($record) {
                         $lead = $this->getOwnerRecord();
 
-                        $lead->generalInformations()->create([
+                        $gi = $lead->generalInformations()->create([
                             'customer_id' => $lead->customer_id,
                             'project_area_id' => $record->project_area_id,
                             'estimated_start_date' => $record->start_date,
@@ -145,6 +161,15 @@ class ManageSalesPlans extends ManageRelatedRecords
                             'sales_plan_id' => $record->id,
                             'status' => 'draft',
                         ]);
+
+                        foreach (($lead->customer?->contacts ?? []) as $contact) {
+                            $gi->pics()->create([
+                                'contact_role_id' => $contact['type'] ?? null,
+                                'name' => $contact['name'] ?? null,
+                                'phone' => $contact['phone'] ?? null,
+                                'email' => $contact['email'] ?? null,
+                            ]);
+                        }
 
                         Notification::make()
                             ->title('General Information Created')

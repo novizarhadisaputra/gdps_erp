@@ -126,16 +126,16 @@ class LeadForm
                         ]),
                     Grid::make(3)
                         ->schema([
-                            Select::make('service_line_id')
-                                ->label('Service Line')
-                                ->relationship('serviceLine', 'name')
-                                ->searchable()
-                                ->preload()
-                                ->createOptionForm(ServiceLineForm::schema())
-                                ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id)
-                                ->editOptionForm(ServiceLineForm::schema())
-                                ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                            // Select::make('service_line_id')
+                            //     ->label('Service Line')
+                            //     ->relationship('serviceLine', 'name')
+                            //     ->searchable()
+                            //     ->preload()
+                            //     ->createOptionForm(ServiceLineForm::schema())
+                            //     ->createOptionAction(fn (Action $action) => $action->slideOver())
+                            //     ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id)
+                            //     ->editOptionForm(ServiceLineForm::schema())
+                            //     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('industrial_sector_id')
                                 ->label('Industrial Sector')
                                 ->relationship('industrialSector', 'name')

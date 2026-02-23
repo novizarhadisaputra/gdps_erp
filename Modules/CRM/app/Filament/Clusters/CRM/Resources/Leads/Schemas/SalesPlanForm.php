@@ -18,9 +18,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas\RevenueSegmentForm;
 use Modules\MasterData\Models\IndustrialSector;
+use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\SkillCategory;
 
 class SalesPlanForm
 {
@@ -76,16 +76,9 @@ class SalesPlanForm
                             Select::make('job_positions')
                                 ->label('Job Positions')
                                 ->multiple()
-                                ->options([
-                                    'Security' => 'Security',
-                                    'Driver' => 'Driver',
-                                    'SPG' => 'SPG',
-                                    'Merchandizer' => 'Merchandizer',
-                                    'Cleaner' => 'Cleaner',
-                                    'Engineer' => 'Engineer',
-                                    'Office Boy' => 'Office Boy',
-                                    'Receptionist' => 'Receptionist',
-                                ])
+                                ->options(JobPosition::where('is_active', true)->pluck('name', 'id'))
+                                ->searchable()
+                                ->preload()
                                 ->required(),
                         ]),
                     Grid::make(2)
@@ -112,7 +105,7 @@ class SalesPlanForm
                             TextInput::make('so_number')
                                 ->label('Sales Order (SO) No.'),
                         ]),
-                        ]),
+                ]),
 
             Section::make('Financials & Timeline')
                 ->description('Revenue forecasting and credit terms.')

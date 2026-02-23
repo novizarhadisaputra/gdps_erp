@@ -21,7 +21,6 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\Gener
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Models\GeneralInformation;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Services\SignatureService;
 
@@ -184,44 +183,35 @@ class ManageGeneralInformations extends ManageRelatedRecords
                             ->visible(fn (GeneralInformation $record) => $record->status !== 'approved'),
                         Action::make('create_pa_modal')
                             ->label('Create PA')
+                            ->icon('heroicon-o-plus')
                             ->color('success')
-                            ->fillForm(function (GeneralInformation $record) {
+                            ->requiresConfirmation()
+                            ->modalHeading('Create Profitability Analysis')
+                            ->modalDescription('A PA draft will be created from this General Information. You can add manpower and operational items in the Finance module after creation.')
+                            ->action(function (GeneralInformation $record) {
                                 $lead = $record->lead;
                                 $salesPlan = $lead?->salesPlan;
 
-                                return [
+                                $pa = ProfitabilityAnalysis::create([
                                     'general_information_id' => $record->id,
+                                    'lead_id' => $record->lead_id,
                                     'customer_id' => $record->customer_id,
                                     'work_scheme_id' => $lead?->work_scheme_id,
                                     'product_cluster_id' => $salesPlan?->product_cluster_id ?? $lead?->product_cluster_id,
                                     'project_area_id' => $salesPlan?->project_area_id ?? $lead?->project_area_id,
-                                    'margin_percentage' => $salesPlan?->margin_percentage,
-                                    'management_fee' => $salesPlan?->estimated_value * (($salesPlan?->management_fee_percentage ?? 0) / 100),
-                                ];
-                            })
-                            ->schema(ProfitabilityAnalysisForm::schema())
-                            ->action(function (GeneralInformation $record, array $data) {
-                                $data['lead_id'] = $record->lead_id;
-                                $data['general_information_id'] = $record->id;
-                                $data['status'] = 'draft';
-
-                                // Extract items to handle separately
-                                $items = $data['items'] ?? [];
-                                unset($data['items']);
-
-                                $pa = ProfitabilityAnalysis::create($data);
-
-                                // Create items
-                                foreach ($items as $itemData) {
-                                    $pa->items()->create($itemData);
-                                }
+                                    'margin_percentage' => $salesPlan?->margin_percentage ?? 0,
+                                    'status' => 'draft',
+                                ]);
 
                                 Notification::make()
-                                    ->title('Profitability Analysis Created')
+                                    ->title('Profitability Analysis Draft Created')
+                                    ->body('Document: '.($pa->document_number ?? $pa->id).'. Please open Finance > PA to add items.')
                                     ->success()
                                     ->send();
                             })
-                            ->visible(fn (GeneralInformation $record) => $record->status === 'approved' && $record->profitabilityAnalyses()->doesntExist()),
+                            ->visible(fn (GeneralInformation $record) => ! empty($record->rr_submission_id) &&
+                                $record->rr_status === 'approved' &&
+                                $record->profitabilityAnalyses()->doesntExist()),
                     ]),
                 EditAction::make()
                     ->schema(fn (Schema $schema) => GeneralInformationForm::configure($schema)),

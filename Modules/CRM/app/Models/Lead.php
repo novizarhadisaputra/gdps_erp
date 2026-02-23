@@ -25,7 +25,6 @@ use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Models\ProjectInformation;
@@ -60,7 +59,6 @@ class Lead extends Model
         'revenue_segment_id',
         'product_cluster_id',
         'project_type_id',
-        'service_line_id',
         'industrial_sector_id',
         'project_area_id',
         'start_date',
@@ -172,11 +170,6 @@ class Lead extends Model
     public function revenueSegment(): BelongsTo
     {
         return $this->belongsTo(RevenueSegment::class);
-    }
-
-    public function serviceLine(): BelongsTo
-    {
-        return $this->belongsTo(ServiceLine::class);
     }
 
     public function industrialSector(): BelongsTo

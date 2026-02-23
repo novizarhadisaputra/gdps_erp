@@ -17,7 +17,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\Schemas\GeneralInformationForm;
 use Modules\CRM\Models\GeneralInformation;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Services\SignatureService;
 
@@ -166,25 +165,33 @@ class GeneralInformationTable
                             ->label('Create PA')
                             ->icon('heroicon-o-plus')
                             ->color('success')
-                            ->fillForm(fn (GeneralInformation $record) => [
-                                'general_information_id' => $record->id,
-                                'customer_id' => $record->customer_id,
-                                'work_scheme_id' => $record->lead?->work_scheme_id,
-                            ])
-                            ->schema(ProfitabilityAnalysisForm::schema())
-                            ->action(function (GeneralInformation $record, array $data) {
-                                $data['lead_id'] = $record->lead_id;
-                                $data['general_information_id'] = $record->id;
-                                $data['status'] = 'draft';
+                            ->requiresConfirmation()
+                            ->modalHeading('Create Profitability Analysis')
+                            ->modalDescription('A PA draft will be created from this General Information. You can add manpower and operational items in the Finance module after creation.')
+                            ->action(function (GeneralInformation $record) {
+                                $lead = $record->lead;
+                                $salesPlan = $lead?->salesPlan;
 
-                                ProfitabilityAnalysis::create($data);
+                                $pa = ProfitabilityAnalysis::create([
+                                    'general_information_id' => $record->id,
+                                    'lead_id' => $record->lead_id,
+                                    'customer_id' => $record->customer_id,
+                                    'work_scheme_id' => $lead?->work_scheme_id,
+                                    'product_cluster_id' => $salesPlan?->product_cluster_id ?? $lead?->product_cluster_id,
+                                    'project_area_id' => $salesPlan?->project_area_id ?? $lead?->project_area_id,
+                                    'margin_percentage' => $salesPlan?->margin_percentage ?? 0,
+                                    'status' => 'draft',
+                                ]);
 
                                 Notification::make()
-                                    ->title('Profitability Analysis Created')
+                                    ->title('Profitability Analysis Draft Created')
+                                    ->body('Document: '.($pa->document_number ?? $pa->id).'. Please open Finance > PA to add items.')
                                     ->success()
                                     ->send();
                             })
-                            ->visible(fn (GeneralInformation $record) => $record->status === 'approved' && $record->profitabilityAnalyses()->doesntExist()),
+                            ->visible(fn (GeneralInformation $record) => ! empty($record->rr_submission_id) &&
+                                $record->rr_status === 'approved' &&
+                                $record->profitabilityAnalyses()->doesntExist()),
                     ]),
                 EditAction::make()
                     ->schema(fn (Schema $schema) => GeneralInformationForm::configure($schema)),

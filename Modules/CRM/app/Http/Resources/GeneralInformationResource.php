@@ -15,17 +15,18 @@ class GeneralInformationResource extends JsonResource
         return [
             'id' => $this->id,
             'document_number' => $this->document_number,
+            'name' => $this->scope_of_work,
             'customer' => [
                 'id' => $this->customer_id,
-                'name' => $this->whenLoaded('customer', fn () => $this->customer->name),
+                'name' => $this->whenLoaded('customer', fn () => $this->customer?->name),
             ],
             'lead' => [
                 'id' => $this->lead_id,
-                'title' => $this->whenLoaded('lead', fn () => $this->lead->title),
+                'title' => $this->whenLoaded('lead', fn () => $this->lead?->title),
             ],
             'project_area' => [
                 'id' => $this->project_area_id,
-                'name' => $this->whenLoaded('projectArea', fn () => $this->projectArea->name),
+                'name' => $this->whenLoaded('projectArea', fn () => $this->projectArea?->name),
             ],
             'status' => $this->status,
             'rr_status' => $this->rr_status,

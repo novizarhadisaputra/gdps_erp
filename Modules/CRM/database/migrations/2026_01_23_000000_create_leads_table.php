@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignUuid('revenue_segment_id')->nullable()->constrained('revenue_segments')->nullOnDelete();
             $table->foreignUuid('product_cluster_id')->nullable()->constrained('product_clusters')->nullOnDelete();
             $table->foreignUuid('project_type_id')->nullable()->constrained('project_types')->nullOnDelete();
-            $table->foreignUuid('service_line_id')->nullable()->constrained('service_lines')->nullOnDelete();
+
             $table->foreignUuid('industrial_sector_id')->nullable()->constrained('industrial_sectors')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas')->nullOnDelete();
 
