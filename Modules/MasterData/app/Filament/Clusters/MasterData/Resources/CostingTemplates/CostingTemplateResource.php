@@ -7,6 +7,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplates\Schemas\CostingTemplateForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplates\Schemas\CostingTemplateInfolist;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\CostingTemplates\Tables\CostingTemplatesTable;
 use Modules\MasterData\Models\CostingTemplate;
 
@@ -29,6 +30,11 @@ class CostingTemplateResource extends Resource
         return CostingTemplateForm::configure($schema);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return CostingTemplateInfolist::configure($schema);
+    }
+
     public static function table(Table $table): Table
     {
         return CostingTemplatesTable::configure($table);
@@ -38,6 +44,9 @@ class CostingTemplateResource extends Resource
     {
         return [
             'index' => Pages\ListCostingTemplates::route('/'),
+            'create' => Pages\CreateCostingTemplate::route('/create'),
+            'view' => Pages\ViewCostingTemplate::route('/{record}'),
+            'edit' => Pages\EditCostingTemplate::route('/{record}/edit'),
         ];
     }
 }
