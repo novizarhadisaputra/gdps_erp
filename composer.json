@@ -28,6 +28,7 @@
         "pxlrbt/filament-excel": "^3.4",
         "relaticle/flowforge": "^3.0",
         "saade/filament-laravel-log": "^4.0",
+        "spatie/laravel-medialibrary": "^11.21",
         "wikimedia/composer-merge-plugin": "^2.1"
     },
     "require-dev": {

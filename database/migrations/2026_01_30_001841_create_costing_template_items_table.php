@@ -32,6 +32,7 @@ return new class extends Migration
             // Asset Logic
             $table->foreignUuid('asset_group_id')->nullable()->constrained('asset_groups')->nullOnDelete();
             $table->integer('useful_life_years')->nullable();
+            $table->integer('depreciation_months')->nullable();
             $table->decimal('monthly_cost', 15, 2)->default(0); // Depr or Expense
 
             $table->timestamps();

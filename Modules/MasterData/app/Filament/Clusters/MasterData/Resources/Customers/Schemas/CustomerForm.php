@@ -94,18 +94,18 @@ class CustomerForm
                     SpatieMediaLibraryFileUpload::make('npwp')
                         ->collection('npwp')
                         ->label('NPWP Document')
-                        ->disk('s3')
+
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('legal_documents')
                         ->collection('legal_documents')
                         ->label('Legal Documents')
-                        ->disk('s3')
+
                         ->visibility('private')
                         ->multiple(),
                     SpatieMediaLibraryFileUpload::make('company_profile')
                         ->collection('company_profile')
                         ->label('Company Profile')
-                        ->disk('s3')
+
                         ->visibility('private'),
                 ])
                 ->columns(3)

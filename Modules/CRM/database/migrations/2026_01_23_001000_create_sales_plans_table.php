@@ -35,6 +35,8 @@ return new class extends Migration
             // Timeline
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->integer('cutoff_day')->default(25);
+            $table->string('proration_method')->default('equal'); // equal, daily
 
             // Level & Confidence
             $table->integer('priority_level')->nullable(); // 1, 2, 3

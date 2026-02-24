@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('unit_id')->nullable()->index();
             $table->foreignUuid('item_category_id')->constrained('item_categories')->onDelete('cascade');
+            $table->foreignUuid('asset_group_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignUuid('unit_of_measure_id')->constrained('units_of_measure')->onDelete('cascade');
             $table->string('code')->unique();
             $table->string('name');

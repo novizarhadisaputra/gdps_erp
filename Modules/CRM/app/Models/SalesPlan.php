@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Enums\ConfidenceLevel;
+use Modules\CRM\Enums\ProrationMethod;
 use Modules\CRM\Observers\SalesPlanObserver;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\ProductCluster;
@@ -50,6 +51,8 @@ class SalesPlan extends Model
         'ams_id',
         'payment_term_id',
         'job_positions',
+        'cutoff_day',
+        'proration_method',
     ];
 
     protected function casts(): array
@@ -63,6 +66,8 @@ class SalesPlan extends Model
             'management_fee_percentage' => 'decimal:2',
             'npm_percentage' => 'decimal:2',
             'job_positions' => 'array',
+            'cutoff_day' => 'integer',
+            'proration_method' => ProrationMethod::class,
         ];
     }
 

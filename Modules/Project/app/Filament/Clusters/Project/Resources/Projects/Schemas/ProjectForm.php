@@ -172,14 +172,14 @@ class ProjectForm
                     SpatieMediaLibraryFileUpload::make('project_documents')
                         ->collection('project_documents')
                         ->label('Project Documents')
-                        ->disk('s3')
+
                         ->visibility('private')
                         ->multiple()
                         ->columnSpanFull(),
                     SpatieMediaLibraryFileUpload::make('deliverables')
                         ->collection('deliverables')
                         ->label('Deliverables')
-                        ->disk('s3')
+
                         ->visibility('private')
                         ->multiple()
                         ->columnSpanFull(),

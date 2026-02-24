@@ -62,7 +62,7 @@ class CostingTemplateForm
                                                 $set('unit_price', (int) $item->price);
                                                 $set('depreciation_months', (int) $item->depreciation_months);
 
-                                                $assetGroupId = $item->category?->asset_group_id;
+                                                $assetGroupId = $item->asset_group_id ?? $item->category?->asset_group_id;
                                                 $set('asset_group_id', $assetGroupId);
 
                                                 if ($assetGroupId) {
@@ -139,6 +139,15 @@ class CostingTemplateForm
 
                                 TextInput::make('useful_life_years')
                                     ->label('Life (Years)')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->live()
+                                    ->afterStateUpdated(function (Set $set, $state) {
+                                        $set('depreciation_months', (int) $state * 12);
+                                    }),
+
+                                TextInput::make('depreciation_months')
+                                    ->label('Depr. (Months)')
                                     ->numeric()
                                     ->default(0)
                                     ->live()

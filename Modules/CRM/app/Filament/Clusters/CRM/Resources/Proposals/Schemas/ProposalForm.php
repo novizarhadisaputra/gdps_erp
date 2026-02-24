@@ -90,7 +90,7 @@ class ProposalForm
                     SpatieMediaLibraryFileUpload::make('final_proposal')
                         ->collection('final_proposal')
                         ->label('Final Proposal Document')
-                        ->disk('s3')
+
                         ->visibility('private')
                         ->columnSpanFull(),
                 ])

@@ -3,12 +3,14 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
 use Filament\Actions\Action;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -29,6 +31,7 @@ use Modules\MasterData\Models\CostingTemplate;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ManpowerTemplate;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProfitabilityAnalysisForm
 {
@@ -84,20 +87,116 @@ class ProfitabilityAnalysisForm
                                     ->schema([
                                         SpatieMediaLibraryFileUpload::make('tor')
                                             ->collection('tor')
-                                            ->disk('s3')
+
                                             ->label('ToR Document')
                                             ->hint('Terms of Reference'),
                                         SpatieMediaLibraryFileUpload::make('rfp')
                                             ->collection('rfp')
-                                            ->disk('s3')
+
                                             ->label('RFP Document')
                                             ->hint('Request for Proposal'),
                                         SpatieMediaLibraryFileUpload::make('rfi')
                                             ->collection('rfi')
-                                            ->disk('s3')
+
                                             ->label('RFI Document')
                                             ->hint('Request for Information'),
                                     ]),
+                            ])->compact(),
+
+                        Section::make('Opsi Impor Data')
+                            ->description('Unggah file Excel untuk mengisi kebutuhan Manpower dan Operasional secara otomatis.')
+                            ->schema([
+                                Actions::make([
+                                    Action::make('importCogs')
+                                        ->label('Impor COGS dari Excel')
+                                        ->icon('heroicon-m-arrow-up-tray')
+                                        ->color('success')
+                                        ->schema([
+                                            FileUpload::make('file')
+                                                ->label('File Excel')
+                                                ->required()
+                                                ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])
+                                                ->directory('temp-imports'),
+                                        ])
+                                        ->action(function (array $data, Set $set) {
+                                            $disk = \Illuminate\Support\Facades\Storage::disk('s3');
+                                            if (! $disk->exists($data['file'])) {
+                                                return;
+                                            }
+
+                                            $tempPath = tempnam(sys_get_temp_dir(), 'import');
+                                            file_put_contents($tempPath, $disk->get($data['file']));
+
+                                            $spreadsheet = IOFactory::load($tempPath);
+
+                                            // Process Manpower
+                                            $manpowerSheet = $spreadsheet->getSheetByName('Manpower');
+                                            $manpowerItems = [];
+                                            if ($manpowerSheet) {
+                                                $rows = $manpowerSheet->toArray();
+                                                array_shift($rows); // Header
+                                                foreach ($rows as $row) {
+                                                    if (empty($row[0])) {
+                                                        continue;
+                                                    }
+
+                                                    $jp = \Modules\MasterData\Models\JobPosition::where('name', 'like', $row[0])->first();
+                                                    if ($jp) {
+                                                        $manpowerItems[] = [
+                                                            'costable_type' => \Modules\MasterData\Models\JobPosition::class,
+                                                            'costable_id' => $jp->id,
+                                                            'quantity' => $row[1] ?? 1,
+                                                            'duration_months' => $row[2] ?? 1,
+                                                            'unit_cost_price' => $row[3] ?? $jp->price ?? 0,
+                                                            'is_manpower' => true,
+                                                            'unit_of_measure' => 'Person',
+                                                            'risk_level' => $jp->risk_level ?? 'very_low',
+                                                            'is_labor_intensive' => $jp->is_labor_intensive ?? false,
+                                                        ];
+                                                    }
+                                                }
+                                            }
+
+                                            // Process Operational
+                                            $opsSheet = $spreadsheet->getSheetByName('Operations');
+                                            $opsItems = [];
+                                            if ($opsSheet) {
+                                                $rows = $opsSheet->toArray();
+                                                array_shift($rows); // Header
+                                                foreach ($rows as $row) {
+                                                    if (empty($row[0])) {
+                                                        continue;
+                                                    }
+
+                                                    $item = \Modules\MasterData\Models\Item::where('name', 'like', $row[0])->first();
+                                                    if ($item) {
+                                                        $opsItems[] = [
+                                                            'costable_type' => \Modules\MasterData\Models\Item::class,
+                                                            'costable_id' => $item->id,
+                                                            'quantity' => $row[1] ?? 1,
+                                                            'duration_months' => $row[2] ?? 1,
+                                                            'unit_cost_price' => $row[3] ?? $item->price ?? 0,
+                                                            'depreciation_months' => $row[4] ?? $item->depreciation_months ?? 1,
+                                                            'is_manpower' => false,
+                                                            'unit_of_measure' => $item->unitOfMeasure?->name ?? 'Unit',
+                                                        ];
+                                                    }
+                                                }
+                                            }
+
+                                            if (! empty($manpowerItems)) {
+                                                $set('manpowerItems', $manpowerItems);
+                                            }
+                                            if (! empty($opsItems)) {
+                                                $set('operationalItems', $opsItems);
+                                            }
+
+                                            if (file_exists($tempPath)) {
+                                                unlink($tempPath);
+                                            }
+                                            $disk->delete($data['file']);
+                                        }),
+                                ]),
                             ])->compact(),
                     ]),
 
@@ -568,14 +667,28 @@ class ProfitabilityAnalysisForm
 
                         Grid::make(2)
                             ->schema([
+                                TextInput::make('total_project_revenue')
+                                    ->label('Total Project Revenue')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->readOnly()
+                                    ->columnSpan(1),
+                                TextInput::make('total_project_cost')
+                                    ->label('Total Project Cost')
+                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                    ->readOnly()
+                                    ->columnSpan(1),
+                            ]),
+
+                        Grid::make(2)
+                            ->schema([
                                 TextInput::make('revenue_per_month')
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->label('Total Revenue/Mo')
+                                    ->label('Avg. Revenue/Mo')
                                     ->readOnly()
                                     ->live(onBlur: true),
                                 TextInput::make('direct_cost')
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->label('Total Direct Cost/Mo')
+                                    ->label('Avg. Direct Cost/Mo')
                                     ->readOnly()
                                     ->live(),
                             ]),
@@ -616,20 +729,30 @@ class ProfitabilityAnalysisForm
 
     protected static function calculateDirectCost($get, $set): void
     {
+        // 1. Calculate Project Duration
+        $giId = $get('general_information_id');
+        $gi = $giId ? \Modules\CRM\Models\GeneralInformation::find($giId) : null;
+
+        $projectDurationMonths = 1;
+        if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {
+            $days = $gi->estimated_start_date->diffInDays($gi->estimated_end_date);
+            $projectDurationMonths = max(1, round($days / 30, 2));
+        }
+
         $manpowerItems = $get('manpowerItems') ?? [];
         $operationalItems = $get('operationalItems') ?? [];
         $items = array_merge($manpowerItems, $operationalItems);
 
-        $totalDirectCost = 0;
-        $totalRevenue = 0;
+        $totalProjectCost = 0;
+        $totalProjectRevenue = 0;
 
         foreach ($items as $item) {
             $qty = (float) ($item['quantity'] ?? 0);
             $costPrice = (float) ($item['unit_cost_price'] ?? 0);
             $deprMonths = (float) ($item['depreciation_months'] ?? 1);
-            $durationMonths = (float) ($item['duration_months'] ?? 1); // Get duration
+            $durationMonths = (float) ($item['duration_months'] ?? $projectDurationMonths);
             $markup = (float) ($item['markup_percentage'] ?? 0);
-            $costBreakdown = $item['cost_breakdown'] ?? []; // Get Addons
+            $costBreakdown = $item['cost_breakdown'] ?? [];
 
             if ($deprMonths <= 0) {
                 $deprMonths = 1;
@@ -661,14 +784,10 @@ class ProfitabilityAnalysisForm
 
                 $monthlyUnitCost = $result['total_direct_cost'];
                 $monthlyCost = $monthlyUnitCost * $qty;
-
-                // Optional: sync back certain calculated fields if needed
             } else {
-                // Calculate Add-ons (Material/Equipment)
                 $addOnTotal = 0;
                 foreach ($costBreakdown as $addon) {
                     $val = (float) ($addon['value'] ?? 0);
-                    // ... rest of existing addon logic ...
                     if (! empty($addon['details'])) {
                         $val = collect($addon['details'])->sum('value');
                     }
@@ -680,37 +799,47 @@ class ProfitabilityAnalysisForm
                     }
                 }
 
-                // Total Monthly Cost = (Base/Depr + Addons) * Qty
                 $monthlyUnitCost = ($costPrice / $deprMonths) + $addOnTotal;
                 $monthlyCost = $monthlyUnitCost * $qty;
             }
 
             $monthlySale = $monthlyCost * (1 + ($markup / 100));
 
-            $totalDirectCost += $monthlyCost;
-            $totalRevenue += $monthlySale;
+            // Accumulate Project Totals
+            $totalProjectCost += ($monthlyCost * $durationMonths);
+            $totalProjectRevenue += ($monthlySale * $durationMonths);
         }
 
-        $set('direct_cost', $totalDirectCost);
-        $set('revenue_per_month', $totalRevenue);
+        // Add Management Fee to Revenue (Pro-rated monthly)
+        $mgmtFee = (float) ($get('management_fee') ?? 0);
+        $totalProjectRevenue += ($mgmtFee * $projectDurationMonths);
+
+        $set('total_project_cost', $totalProjectCost);
+        $set('total_project_revenue', $totalProjectRevenue);
+
+        // Pro-rated values back to "Standard Monthly" for high-level summary
+        $avgMonthlyRevenue = $totalProjectRevenue / $projectDurationMonths;
+        $avgMonthlyCost = $totalProjectCost / $projectDurationMonths;
+
+        $set('direct_cost', $avgMonthlyCost);
+        $set('revenue_per_month', $avgMonthlyRevenue);
 
         // Advanced Financial Tiers
         $mgmtExpenseRate = (float) ($get('/management_expense_rate') ?? $get('management_expense_rate') ?? 3.0);
         $interestRate = (float) ($get('/interest_rate') ?? $get('interest_rate') ?? 1.5);
         $taxRate = (float) ($get('/tax_rate') ?? $get('tax_rate') ?? 22.0);
 
-        $mgmtExpense = $totalRevenue * ($mgmtExpenseRate / 100);
-        $ebitda = ($totalRevenue - $totalDirectCost) - $mgmtExpense;
+        $mgmtExpense = $avgMonthlyRevenue * ($mgmtExpenseRate / 100);
+        $ebitda = ($avgMonthlyRevenue - $avgMonthlyCost) - $mgmtExpense;
 
-        // In this project model, direct_cost is already the monthly depreciation of used assets
         $ebit = $ebitda;
 
-        $interest = $totalDirectCost * ($interestRate / 100);
+        $interest = $avgMonthlyCost * ($interestRate / 100);
         $ebt = $ebit - $interest;
 
         $tax = $ebt > 0 ? ($ebt * ($taxRate / 100)) : 0;
         $netProfit = $ebt - $tax;
-        $netProfitMargin = $totalRevenue > 0 ? ($netProfit / $totalRevenue) * 100 : 0;
+        $netProfitMargin = $avgMonthlyRevenue > 0 ? ($netProfit / $avgMonthlyRevenue) * 100 : 0;
 
         $set('ebitda', $ebitda);
         $set('ebit', $ebit);
@@ -719,7 +848,7 @@ class ProfitabilityAnalysisForm
         $set('net_profit_margin', round($netProfitMargin, 2));
 
         // Recalculate margin (GP Margin)
-        self::calculateMargin($totalRevenue, $totalDirectCost, $set);
+        self::calculateMargin($avgMonthlyRevenue, $avgMonthlyCost, $set);
     }
 
     public static function calculateItemMonthlyCost(Get $get): float

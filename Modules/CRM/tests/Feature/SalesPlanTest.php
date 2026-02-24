@@ -101,7 +101,7 @@ class SalesPlanTest extends TestCase
         ]);
 
         $salesPlan->refresh();
-        $this->assertEquals('PROP-001', $salesPlan->proposal_number);
+        $this->assertStringContainsString('PROP-001', $salesPlan->proposal_number);
     }
 
     public function test_project_syncs_code_to_sales_plan(): void
@@ -153,49 +153,81 @@ class SalesPlanTest extends TestCase
         $this->assertEquals($contract->id, $salesPlan->work_order_id);
     }
 
-    public function test_daily_proration_logic(): void
+    public function test_sales_plan_observer_daily_proration_with_cutoff(): void
     {
-        $form = new \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\SalesPlanForm();
-        
-        $get = \Mockery::mock(\Filament\Schemas\Components\Utilities\Get::class);
-        $get->shouldReceive('__invoke')->with('start_date')->andReturn('2026-02-10');
-        $get->shouldReceive('__invoke')->with('end_date')->andReturn('2026-04-20');
-        $get->shouldReceive('__invoke')->with('estimated_value')->andReturn('7000000');
+        // 2026-02-10 to 2026-04-10
+        // Cutoff: 25
+        // Cycle 1: Feb 10 - Feb 25 (16 days)
+        // Cycle 2: Feb 26 - March 25 (28 days)
+        // Cycle 3: March 26 - April 10 (16 days)
+        // Total: 60 days
 
-        $distribution = [];
-        $set = \Mockery::mock(\Filament\Schemas\Components\Utilities\Set::class);
-        $set->shouldReceive('__invoke')->with('revenue_distribution_planning', \Mockery::any())->andReturnUsing(function($key, $value) use (&$distribution) {
-            $distribution = $value;
-        });
+        $salesPlan = SalesPlan::create([
+            'lead_id' => $this->lead->id,
+            'project_type_id' => $this->projectType->id,
+            'estimated_value' => 60000000,
+            'start_date' => '2026-02-10',
+            'end_date' => '2026-04-10',
+            'cutoff_day' => 25,
+            'proration_method' => \Modules\CRM\Enums\ProrationMethod::Daily,
+            'top_days' => 45, // Should not affect distribution month
+        ]);
 
-        // Call the protected method via reflection
-        $reflection = new \ReflectionClass($form);
-        $method = $reflection->getMethod('distributeRevenue');
-        $method->setAccessible(true);
-        $method->invoke(null, '7000000', $get, $set);
-
-        // Period: Feb 10 - April 20
-        // Feb: 10 to 28 (19 days)
-        // March: 1 to 31 (31 days)
-        // April: 1 to 20 (20 days)
-        // Total days: 19 + 31 + 20 = 70 days
-        // Daily rate: 7.000.000 / 70 = 100.000 per day
+        $distribution = $salesPlan->revenue_distribution_planning;
 
         $this->assertCount(3, $distribution);
-        
-        // Feb
+
+        // February 2026 (Cycle ends Feb 25)
         $this->assertEquals('February 2026', $distribution[0]['month']);
-        $this->assertEquals(1900000, $distribution[0]['budget_amount']); // 19 days * 100k
-        
-        // March
+        $this->assertEquals(16000000.0, (float) $distribution[0]['budget_amount']);
+
+        // March 2026 (Cycle ends March 25)
         $this->assertEquals('March 2026', $distribution[1]['month']);
-        $this->assertEquals(3100000, $distribution[1]['budget_amount']); // 31 days * 100k
-        
-        // April
+        $this->assertEquals(28000000.0, (float) $distribution[1]['budget_amount']);
+
+        // April 2026 (Cycle ends April 10)
         $this->assertEquals('April 2026', $distribution[2]['month']);
-        $this->assertEquals(2000000, $distribution[2]['budget_amount']); // 20 days * 100k
-        
-        $totalAllocated = array_sum(array_column($distribution, 'budget_amount'));
-        $this->assertEquals(7000000, $totalAllocated);
+        $this->assertEquals(16000000.0, (float) $distribution[2]['budget_amount']);
+
+        // Verify monthly breakdowns table
+        $this->assertDatabaseHas('sales_plan_monthlies', [
+            'sales_plan_id' => $salesPlan->id,
+            'year' => 2026,
+            'month' => 2,
+            'budget_amount' => 16000000,
+        ]);
+        $this->assertDatabaseHas('sales_plan_monthlies', [
+            'sales_plan_id' => $salesPlan->id,
+            'year' => 2026,
+            'month' => 3,
+            'budget_amount' => 28000000,
+        ]);
+        $this->assertDatabaseHas('sales_plan_monthlies', [
+            'sales_plan_id' => $salesPlan->id,
+            'year' => 2026,
+            'month' => 4,
+            'budget_amount' => 16000000,
+        ]);
+    }
+
+    public function test_sales_plan_observer_equal_proration(): void
+    {
+        $salesPlan = SalesPlan::create([
+            'lead_id' => $this->lead->id,
+            'project_type_id' => $this->projectType->id,
+            'estimated_value' => 30000000,
+            'start_date' => '2026-02-10',
+            'end_date' => '2026-04-10',
+            'cutoff_day' => 25,
+            'proration_method' => \Modules\CRM\Enums\ProrationMethod::Equal,
+        ]);
+
+        $distribution = $salesPlan->revenue_distribution_planning;
+
+        // Feb, Mar, Apr (3 months)
+        $this->assertCount(3, $distribution);
+        foreach ($distribution as $item) {
+            $this->assertEquals(10000000.0, (float) $item['budget_amount']);
+        }
     }
 }

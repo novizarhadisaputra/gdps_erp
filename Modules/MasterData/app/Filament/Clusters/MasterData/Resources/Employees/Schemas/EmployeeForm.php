@@ -58,17 +58,17 @@ class EmployeeForm
                     SpatieMediaLibraryFileUpload::make('identity_card')
                         ->collection('identity_card')
                         ->label('Identity Card')
-                        ->disk('s3')
+
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('resume')
                         ->collection('resume')
                         ->label('Resume')
-                        ->disk('s3')
+
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('employment_contract')
                         ->collection('employment_contract')
                         ->label('Employment Contract')
-                        ->disk('s3')
+
                         ->visibility('private'),
                 ])
                 ->columns(3)

@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -15,6 +16,7 @@ use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ItemCategories\Schemas\ItemCategoryForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
+use Modules\MasterData\Models\AssetGroup;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
 
@@ -55,7 +57,24 @@ class ItemForm
                             }
                             $category = ItemCategory::find($state);
                             if ($category && $category->assetGroup) {
+                                $set('asset_group_id', $category->asset_group_id);
                                 $set('depreciation_months', $category->assetGroup->useful_life_years * 12);
+                            }
+                        }),
+                    Select::make('asset_group_id')
+                        ->label('Asset Group (Default)')
+                        ->relationship('assetGroup', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->helperText('Override the asset group if different from category default.')
+                        ->live()
+                        ->afterStateUpdated(function ($state, Set $set) {
+                            if (! $state) {
+                                return;
+                            }
+                            $group = AssetGroup::find($state);
+                            if ($group) {
+                                $set('depreciation_months', $group->useful_life_years * 12);
                             }
                         }),
                     Select::make('unit_of_measure_id')
@@ -83,6 +102,11 @@ class ItemForm
                     Toggle::make('is_active')
                         ->required()
                         ->default(true),
+                    SpatieMediaLibraryFileUpload::make('image')
+                        ->collection('image')
+                        ->image()
+                        ->visibility('private')
+                        ->columnSpanFull(),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),

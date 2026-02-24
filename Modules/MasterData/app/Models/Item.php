@@ -11,15 +11,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\MasterData\Database\Factories\ItemFactory;
 use Modules\MasterData\Observers\MasterDataObserver;
 use Modules\MasterData\Traits\HasUnitScoping;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[ObservedBy([MasterDataObserver::class])]
-class Item extends Model
+class Item extends Model implements HasMedia
 {
-    use HasFactory, HasUnitScoping, HasUuids;
+    use HasFactory, HasUnitScoping, HasUuids, InteractsWithMedia;
 
     protected $fillable = [
         'unit_id',
         'item_category_id',
+        'asset_group_id',
         'unit_of_measure_id',
         'code',
         'name',
@@ -50,6 +53,11 @@ class Item extends Model
     public function unitOfMeasure(): BelongsTo
     {
         return $this->belongsTo(UnitOfMeasure::class, 'unit_of_measure_id');
+    }
+
+    public function assetGroup(): BelongsTo
+    {
+        return $this->belongsTo(AssetGroup::class);
     }
 
     public function itemPrices(): HasMany

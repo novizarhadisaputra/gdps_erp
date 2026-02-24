@@ -3,6 +3,7 @@
 namespace Modules\CRM\Observers;
 
 use Carbon\Carbon;
+use Modules\CRM\Enums\ProrationMethod;
 use Modules\CRM\Models\SalesPlan;
 use Modules\CRM\Models\SalesPlanMonthly;
 
@@ -38,36 +39,101 @@ class SalesPlanObserver
 
     protected function generateDefaultDistribution(SalesPlan $salesPlan): void
     {
-        $start = Carbon::parse($salesPlan->start_date)->startOfMonth();
-        $end = Carbon::parse($salesPlan->end_date)->startOfMonth();
+        $startDate = $salesPlan->start_date ? Carbon::parse($salesPlan->start_date) : null;
+        $endDate = $salesPlan->end_date ? Carbon::parse($salesPlan->end_date) : null;
+        $totalValue = (float) $salesPlan->estimated_value;
+        $cutoffDay = (int) ($salesPlan->cutoff_day ?? 25);
+        $method = $salesPlan->proration_method;
+        $topDays = (int) ($salesPlan->top_days ?? 0);
 
-        $months = [];
-        $current = $start->copy();
-
-        $count = 0;
-        while ($current <= $end) {
-            $count++;
-            $current->addMonth();
-        }
-
-        if ($count === 0) {
+        if (! $startDate || ! $endDate || $totalValue <= 0 || ! $method) {
             return;
         }
 
-        $average = $salesPlan->estimated_value / $count;
+        if ($method === ProrationMethod::Equal) {
+            $start = $startDate->copy()->startOfMonth();
+            $end = $endDate->copy()->startOfMonth();
 
-        $current = $start->copy();
-        for ($i = 0; $i < $count; $i++) {
-            $months[] = [
-                'month' => $current->format('F Y'),
-                'budget_amount' => round($average, 2),
-                'forecast_amount' => round($average, 2),
-                'actual_amount' => 0,
-            ];
-            $current->addMonth();
+            $count = 0;
+            $temp = $start->copy();
+            while ($temp <= $end) {
+                $count++;
+                $temp->addMonth();
+            }
+
+            if ($count === 0) {
+                return;
+            }
+
+            $average = $totalValue / $count;
+            $months = [];
+            $current = $start->copy();
+            for ($i = 0; $i < $count; $i++) {
+                $months[] = [
+                    'month' => $current->format('F Y'),
+                    'budget_amount' => round($average, 2),
+                    'forecast_amount' => round($average, 2),
+                    'actual_amount' => 0,
+                ];
+                $current->addMonth();
+            }
+            $salesPlan->revenue_distribution_planning = $months;
+
+            return;
         }
 
-        $salesPlan->revenue_distribution_planning = $months;
+        // Daily Prorated Logic with Cut-off Day
+        $totalDays = $startDate->diffInDays($endDate) + 1;
+        if ($totalDays <= 0) {
+            return;
+        }
+
+        $distribution = [];
+        $current = $startDate->copy();
+
+        while ($current <= $endDate) {
+            if ($current->day <= $cutoffDay) {
+                $cycleEnd = $current->copy()->day($cutoffDay);
+            } else {
+                $cycleEnd = $current->copy()->addMonthNoOverflow()->day($cutoffDay);
+            }
+
+            if ($cycleEnd > $endDate) {
+                $cycleEnd = $endDate->copy();
+            }
+
+            $daysInCycle = $current->diffInDays($cycleEnd) + 1;
+            $amount = ($daysInCycle / $totalDays) * $totalValue;
+
+            $monthLabel = $cycleEnd->format('F Y');
+
+            $found = false;
+            foreach ($distribution as &$item) {
+                if ($item['month'] === $monthLabel) {
+                    $item['budget_amount'] += $amount;
+                    $item['forecast_amount'] += $amount;
+                    $found = true;
+                    break;
+                }
+            }
+            if (! $found) {
+                $distribution[] = [
+                    'month' => $monthLabel,
+                    'budget_amount' => $amount,
+                    'forecast_amount' => $amount,
+                    'actual_amount' => 0,
+                ];
+            }
+
+            $current = $cycleEnd->copy()->addDay();
+        }
+
+        foreach ($distribution as &$item) {
+            $item['budget_amount'] = round($item['budget_amount'], 2);
+            $item['forecast_amount'] = round($item['forecast_amount'], 2);
+        }
+
+        $salesPlan->revenue_distribution_planning = $distribution;
     }
 
     /**
@@ -94,8 +160,6 @@ class SalesPlanObserver
 
         foreach ($distribution as $item) {
             // item['month'] example: "February 2026"
-            // We need to parse it or use the value if we added it in the form
-
             $date = Carbon::parse($item['month']);
 
             SalesPlanMonthly::create([

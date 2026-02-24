@@ -17,6 +17,7 @@ use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\PriorityLevel;
+use Modules\CRM\Enums\ProrationMethod;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
@@ -185,6 +186,22 @@ class SalesPlanForm
                                     ->required()
                                     ->live()
                                     ->helperText('Expected completion date.'),
+                                TextInput::make('cutoff_day')
+                                    ->label('Cut-off Day')
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(28)
+                                    ->default(25)
+                                    ->required()
+                                    ->live()
+                                    ->helperText('Day of the month to cut off the revenue cycle (e.g., 25th).'),
+                                Select::make('proration_method')
+                                    ->label('Proration Method')
+                                    ->options(ProrationMethod::class)
+                                    ->default(ProrationMethod::Equal)
+                                    ->required()
+                                    ->live()
+                                    ->helperText('How to distribute revenue across the timeline.'),
                             ]),
                         Grid::make(3)
                             ->schema([
@@ -231,6 +248,8 @@ class SalesPlanForm
                                     ->label('ToP (Days)')
                                     ->numeric()
                                     ->default(30)
+                                    ->readOnly()
+                                    ->dehydrated()
                                     ->helperText('Terms of Payment (days from invoice).'),
                             ]),
                     ]),
@@ -255,45 +274,110 @@ class SalesPlanForm
                                     ->label('Generate from Timeline')
                                     ->icon('heroicon-m-sparkles')
                                     ->action(function (Get $get, Set $set) {
-                                        $startDate = $get('start_date');
-                                        $endDate = $get('end_date');
+                                        $startDateInput = $get('start_date');
+                                        $endDateInput = $get('end_date');
                                         $totalValue = self::parseCurrency($get('estimated_value'));
+                                        $cutoffDay = (int) ($get('cutoff_day') ?? 25);
+                                        $methodInput = $get('proration_method');
+                                        $method = $methodInput instanceof ProrationMethod
+                                            ? $methodInput
+                                            : ProrationMethod::tryFrom($methodInput);
 
-                                        if (! $startDate || ! $endDate || $totalValue <= 0) {
+                                        if (! $startDateInput || ! $endDateInput || $totalValue <= 0 || ! $method) {
                                             return;
                                         }
 
-                                        $start = Carbon::parse($startDate)->startOfMonth();
-                                        $end = Carbon::parse($endDate)->startOfMonth();
-
-                                        $months = [];
-                                        $current = $start->copy();
-
-                                        $count = 0;
-                                        while ($current <= $end) {
-                                            $count++;
-                                            $current->addMonth();
-                                        }
-
-                                        if ($count === 0) {
-                                            return;
-                                        }
-
-                                        $average = $totalValue / $count;
-
-                                        $current = $start->copy();
+                                        $startDate = Carbon::parse($startDateInput);
+                                        $endDate = Carbon::parse($endDateInput);
                                         $topDays = (int) ($get('top_days') ?? 0);
 
-                                        for ($i = 0; $i < $count; $i++) {
-                                            $collectionMonth = $current->copy()->addDays($topDays)->startOfMonth();
-                                            $months[] = [
-                                                'month' => $collectionMonth->format('F Y'),
-                                                'amount' => round($average, 2),
-                                            ];
-                                            $current->addMonth();
+                                        if ($method === ProrationMethod::Equal) {
+                                            $start = $startDate->copy()->startOfMonth();
+                                            $end = $endDate->copy()->startOfMonth();
+
+                                            $count = 0;
+                                            $temp = $start->copy();
+                                            while ($temp <= $end) {
+                                                $count++;
+                                                $temp->addMonth();
+                                            }
+
+                                            if ($count === 0) {
+                                                return;
+                                            }
+
+                                            $average = $totalValue / $count;
+                                            $months = [];
+                                            $current = $start->copy();
+                                            for ($i = 0; $i < $count; $i++) {
+                                                $months[] = [
+                                                    'month' => $current->format('F Y'),
+                                                    'budget_amount' => round($average, 2),
+                                                    'forecast_amount' => round($average, 2),
+                                                ];
+                                                $current->addMonth();
+                                            }
+                                            $set('revenue_distribution_planning', $months);
+
+                                            return;
                                         }
 
-                                        $set('revenue_distribution_planning', $months);
+                                        // Daily Prorated Logic with Cut-off Day
+                                        $totalDays = $startDate->diffInDays($endDate) + 1;
+                                        if ($totalDays <= 0) {
+                                            return;
+                                        }
+
+                                        $distribution = [];
+                                        $current = $startDate->copy();
+
+                                        while ($current <= $endDate) {
+                                            // Determine the end of the current cycle
+                                            // A cycle for "Month M" with cutoff D is: (D+1) of M-1 to D of M
+                                            if ($current->day <= $cutoffDay) {
+                                                $cycleEnd = $current->copy()->day($cutoffDay);
+                                            } else {
+                                                $cycleEnd = $current->copy()->addMonthNoOverflow()->day($cutoffDay);
+                                            }
+
+                                            // Clamp cycle end to project end date
+                                            if ($cycleEnd > $endDate) {
+                                                $cycleEnd = $endDate->copy();
+                                            }
+
+                                            $daysInCycle = $current->diffInDays($cycleEnd) + 1;
+                                            $amount = ($daysInCycle / $totalDays) * $totalValue;
+
+                                            // The revenue is recognized in the month of cycleEnd
+                                            $monthLabel = $cycleEnd->format('F Y');
+
+                                            // Accumulate if same month (unlikely with this logic but safe)
+                                            $found = false;
+                                            foreach ($distribution as &$item) {
+                                                if ($item['month'] === $monthLabel) {
+                                                    $item['budget_amount'] += $amount;
+                                                    $item['forecast_amount'] += $amount;
+                                                    $found = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (! $found) {
+                                                $distribution[] = [
+                                                    'month' => $monthLabel,
+                                                    'budget_amount' => $amount,
+                                                    'forecast_amount' => $amount,
+                                                ];
+                                            }
+                                            $current = $cycleEnd->copy()->addDay();
+                                        }
+
+                                        // Round amounts
+                                        foreach ($distribution as &$item) {
+                                            $item['budget_amount'] = round($item['budget_amount'], 2);
+                                            $item['forecast_amount'] = round($item['forecast_amount'], 2);
+                                        }
+
+                                        $set('revenue_distribution_planning', $distribution);
                                     }),
                             ])
                             ->description('Monthly revenue breakdown. Use the button above to auto-generate based on dates and total value.')
@@ -306,8 +390,15 @@ class SalesPlanForm
                                             ->label('Month')
                                             ->readOnly()
                                             ->required(),
-                                        TextInput::make('amount')
-                                            ->label('Amount (IDR)')
+                                        TextInput::make('budget_amount')
+                                            ->label('Budget (IDR)')
+                                            ->prefix('IDR')
+                                            ->required()
+                                            ->default(0)
+                                            ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2),
+                                        TextInput::make('forecast_amount')
+                                            ->label('Forecast (IDR)')
                                             ->prefix('IDR')
                                             ->required()
                                             ->default(0)

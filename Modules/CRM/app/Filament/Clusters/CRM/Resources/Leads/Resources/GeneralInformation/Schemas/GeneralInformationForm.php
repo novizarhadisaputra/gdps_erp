@@ -107,17 +107,14 @@ class GeneralInformationForm
                     SpatieMediaLibraryFileUpload::make('tor')
                         ->collection('tor')
                         ->label('ToR Document')
-                        ->disk(name: 's3')
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfp')
                         ->collection('rfp')
                         ->label('RFP Document')
-                        ->disk(name: 's3')
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfi')
                         ->collection('rfi')
                         ->label('RFI Document')
-                        ->disk(name: 's3')
                         ->visibility('private'),
                 ])->columns(3),
 
