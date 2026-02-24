@@ -10,6 +10,8 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Models\GeneralInformation;
@@ -48,6 +50,42 @@ class GeneralInformationTable
                     ->date()
                     ->label('End')
                     ->sortable(),
+                IconColumn::make('tor')
+                    ->label('ToR')
+                    ->getStateUsing(fn ($record) => $record->hasMedia('tor'))
+                    ->boolean()
+                    ->url(function ($record) {
+                        $media = $record->getFirstMedia('tor');
+                        if (! $media) {
+                            return null;
+                        }
+
+                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                    }, true),
+                IconColumn::make('rfp')
+                    ->label('RFP')
+                    ->getStateUsing(fn ($record) => $record->hasMedia('rfp'))
+                    ->boolean()
+                    ->url(function ($record) {
+                        $media = $record->getFirstMedia('rfp');
+                        if (! $media) {
+                            return null;
+                        }
+
+                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                    }, true),
+                IconColumn::make('rfi')
+                    ->label('RFI')
+                    ->getStateUsing(fn ($record) => $record->hasMedia('rfi'))
+                    ->boolean()
+                    ->url(function ($record) {
+                        $media = $record->getFirstMedia('rfi');
+                        if (! $media) {
+                            return null;
+                        }
+
+                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                    }, true),
             ])
             ->filters([
                 //
@@ -131,30 +169,25 @@ class GeneralInformationTable
                             ->action(fn (GeneralInformation $record) => $record->update(['status' => 'submitted']))
                             ->visible(fn (GeneralInformation $record) => $record->status === 'draft'),
                     ]),
-                EditAction::make(),
+                EditAction::make()
+                    ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::form($schema)),
                 Action::make('createPA')
                     ->label('Create PA')
                     ->icon('heroicon-o-presentation-chart-bar')
                     ->color('success')
                     ->visible(fn ($record) => $record->status === 'approved')
+                    ->requiresConfirmation()
+                    ->modalHeading('Create Profitability Analysis')
+                    ->modalDescription('Apakah Anda yakin ingin membuat data Profitability Analysis (PA) berdasarkan General Information ini?')
                     ->action(function ($record) {
-                        $lead = $record->lead;
-
-                        $lead->profitabilityAnalyses()->create([
-                            'customer_id' => $lead->customer_id,
-                            'general_information_id' => $record->id,
-                            'work_scheme_id' => $lead->work_scheme_id,
-                            'project_area_id' => $record->project_area_id,
-                            'product_cluster_id' => $lead->product_cluster_id,
-                            'status' => 'draft',
-                        ]);
+                        $record->toProfitabilityAnalysis();
 
                         Notification::make()
                             ->title('Profitability Analysis Created')
                             ->success()
                             ->send();
 
-                        return redirect()->to(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource::getUrl('profitability-analyses', ['record' => $lead]));
+                        return redirect()->to(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource::getUrl('profitability-analyses', ['record' => $record->lead]));
                     }),
             ])
             ->toolbarActions([

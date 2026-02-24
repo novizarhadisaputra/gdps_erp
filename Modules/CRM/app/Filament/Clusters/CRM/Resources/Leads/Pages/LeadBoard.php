@@ -14,8 +14,8 @@ use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\LeadStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformation\GeneralInformationResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Models\Lead;
 use Relaticle\Flowforge\Board;
@@ -55,9 +55,6 @@ class LeadBoard extends BoardResourcePage
             ->cardSchema(fn (Schema $schema) => $schema->components([
                 Text::make(fn (Lead $record) => $record->customer->name ?? 'Unknown Customer')
                     ->weight(FontWeight::Bold),
-                Text::make(fn (Lead $record) => 'Prob: '.$record->probability.'%')
-                    ->size('xs')
-                    ->color('gray'),
                 Text::make(fn (Lead $record) => 'IDR '.number_format($record->estimated_amount, 0, ',', '.'))
                     ->size('xs')
                     ->color('success'),
@@ -89,19 +86,11 @@ class LeadBoard extends BoardResourcePage
                     ->visible(fn (Lead $record) => $record->status === LeadStatus::Approach && $record->salesPlan()->exists() && $record->generalInformations()->doesntExist())
                     ->icon('heroicon-o-clipboard-document-list')
                     ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Setup General Information')
+                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
                     ->action(function (Lead $record) {
-                        $plan = $record->salesPlan;
-
-                        $record->generalInformations()->create([
-                            'customer_id' => $record->customer_id,
-                            'project_area_id' => $plan->project_area_id,
-                            'estimated_start_date' => $plan->start_date,
-                            'estimated_end_date' => $plan->end_date,
-                            'scope_of_work' => $record->title,
-                            'description' => $record->description,
-                            'sales_plan_id' => $plan->id,
-                            'status' => 'draft',
-                        ]);
+                        $record->salesPlan->toGeneralInformation();
 
                         Notification::make()
                             ->title('General Information Created')
@@ -125,12 +114,28 @@ class LeadBoard extends BoardResourcePage
         }
 
         // Validation Logic
+        $targetStatus = LeadStatus::from($targetColumnId);
+        $currentStatus = $record->status;
+
+        // 1. Hierarchy Validation (Prevent Moving Backwards)
+        // Except for special states (weight 99) which can be accessed from anywhere
+        if ($targetStatus->weight() < $currentStatus->weight() && $targetStatus->weight() !== 99) {
+            Notification::make()
+                ->title('Validation Failed')
+                ->body("Cannot move lead back to {$targetStatus->getLabel()} from {$currentStatus->getLabel()}.")
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        // 2. Prerequisite Validation
         $isValid = match ($targetColumnId) {
-            'approach' => true, // Initial approach can be done
+            'approach' => true,
             'proposal' => $record->profitabilityAnalyses()->exists() && $record->generalInformations()->exists(),
             'negotiation' => $record->proposals()->exists(),
             'won' => $record->contracts()->where('status', ContractStatus::Active)->exists(),
-            'closed_lost', 'cancelled', 'postponed' => true, // Can always move to terminal/pause states
+            'closed_lost', 'cancelled', 'postponed' => true,
             default => true,
         };
 

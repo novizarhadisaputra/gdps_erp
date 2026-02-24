@@ -25,6 +25,7 @@ class GeneralInformationInfolist
                                     ->badge(),
                                 TextEntry::make('scope_of_work')
                                     ->columnSpanFull(),
+                                TextEntry::make('location'),
                             ]),
                         TextEntry::make('description')
                             ->columnSpanFull(),
@@ -34,6 +35,83 @@ class GeneralInformationInfolist
                                     ->date(),
                                 TextEntry::make('estimated_end_date')
                                     ->date(),
+                                TextEntry::make('manpower_qualifications')
+                                    ->columnSpanFull(),
+                                TextEntry::make('work_activities')
+                                    ->columnSpanFull(),
+                                TextEntry::make('service_level')
+                                    ->columnSpanFull(),
+                                TextEntry::make('billing_requirements')
+                                    ->columnSpanFull(),
+                                TextEntry::make('risk_management')
+                                    ->badge()
+                                    ->columnSpanFull(),
+                            ]),
+                    ])->columnSpanFull(),
+
+                Section::make('Documentation')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('tor')
+                                    ->label('ToR Document')
+                                    ->state(fn ($record) => $record->getFirstMedia('tor')?->file_name)
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('tor');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
+                                    ->visible(fn ($record) => $record->hasMedia('tor')),
+                                TextEntry::make('rfp')
+                                    ->label('RFP Document')
+                                    ->state(fn ($record) => $record->getFirstMedia('rfp')?->file_name)
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('rfp');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
+                                    ->visible(fn ($record) => $record->hasMedia('rfp')),
+                                TextEntry::make('rfi')
+                                    ->label('RFI Document')
+                                    ->state(fn ($record) => $record->getFirstMedia('rfi')?->file_name)
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('rfi');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
+                                    ->visible(fn ($record) => $record->hasMedia('rfi')),
+                            ]),
+                    ])->columnSpanFull(),
+
+                Section::make('PICs')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('pics.name')
+                                    ->label('Name')
+                                    ->listWithLineBreaks()
+                                    ->bulleted(),
+                                TextEntry::make('pics.contactRole.name')
+                                    ->label('Role')
+                                    ->listWithLineBreaks()
+                                    ->bulleted(),
+                                TextEntry::make('pics.email')
+                                    ->label('Email')
+                                    ->listWithLineBreaks()
+                                    ->bulleted(),
+                                TextEntry::make('pics.phone')
+                                    ->label('Phone')
+                                    ->listWithLineBreaks()
+                                    ->bulleted(),
                             ]),
                     ])->columnSpanFull(),
                 Section::make('Approval & Signatures')

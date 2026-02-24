@@ -65,29 +65,12 @@ class ManageSalesPlans extends ManageRelatedRecords
                             $lead->generalInformations()->doesntExist() &&
                             ! empty($salesPlan->revenue_distribution_planning);
                     })
+                    ->requiresConfirmation()
+                    ->modalHeading('Create General Information')
+                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
                     ->action(function () {
                         $lead = $this->getOwnerRecord();
-                        $record = $lead->salesPlan;
-
-                        $gi = $lead->generalInformations()->create([
-                            'customer_id' => $lead->customer_id,
-                            'project_area_id' => $record->project_area_id,
-                            'estimated_start_date' => $record->start_date,
-                            'estimated_end_date' => $record->end_date,
-                            'scope_of_work' => $lead->title,
-                            'description' => $lead->description,
-                            'sales_plan_id' => $record->id,
-                            'status' => 'draft',
-                        ]);
-
-                        foreach (($lead->customer?->contacts ?? []) as $contact) {
-                            $gi->pics()->create([
-                                'contact_role_id' => $contact['type'] ?? null,
-                                'name' => $contact['name'] ?? null,
-                                'phone' => $contact['phone'] ?? null,
-                                'email' => $contact['email'] ?? null,
-                            ]);
-                        }
+                        $lead->salesPlan->toGeneralInformation();
 
                         Notification::make()
                             ->title('General Information Created')
@@ -106,28 +89,11 @@ class ManageSalesPlans extends ManageRelatedRecords
                     ->icon('heroicon-o-document-plus')
                     ->color('success')
                     ->visible(fn ($record) => ! empty($record->revenue_distribution_planning))
+                    ->requiresConfirmation()
+                    ->modalHeading('Generate General Information')
+                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
                     ->action(function ($record) {
-                        $lead = $this->getOwnerRecord();
-
-                        $gi = $lead->generalInformations()->create([
-                            'customer_id' => $lead->customer_id,
-                            'project_area_id' => $record->project_area_id,
-                            'estimated_start_date' => $record->start_date,
-                            'estimated_end_date' => $record->end_date,
-                            'scope_of_work' => $lead->title,
-                            'description' => $lead->description,
-                            'sales_plan_id' => $record->id,
-                            'status' => 'draft',
-                        ]);
-
-                        foreach (($lead->customer?->contacts ?? []) as $contact) {
-                            $gi->pics()->create([
-                                'contact_role_id' => $contact['type'] ?? null,
-                                'name' => $contact['name'] ?? null,
-                                'phone' => $contact['phone'] ?? null,
-                                'email' => $contact['email'] ?? null,
-                            ]);
-                        }
+                        $record->toGeneralInformation();
 
                         Notification::make()
                             ->title('General Information Created')
@@ -135,7 +101,7 @@ class ManageSalesPlans extends ManageRelatedRecords
                             ->success()
                             ->send();
 
-                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
+                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $this->getOwnerRecord()]));
                     }),
                 DeleteAction::make(),
             ]);

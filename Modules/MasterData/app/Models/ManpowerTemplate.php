@@ -21,10 +21,18 @@ class ManpowerTemplate extends Model
         'project_area_id',
         'name',
         'description',
+        'risk_level',
+        'is_labor_intensive',
+        'employee_type',
+        'bill_thr_monthly',
+        'bill_compensation_monthly',
         'is_active',
     ];
 
     protected $casts = [
+        'is_labor_intensive' => 'boolean',
+        'bill_thr_monthly' => 'boolean',
+        'bill_compensation_monthly' => 'boolean',
         'is_active' => 'boolean',
     ];
 

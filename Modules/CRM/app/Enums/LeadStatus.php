@@ -58,4 +58,16 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Cancelled => 'heroicon-m-no-symbol',
         };
     }
+
+    public function weight(): int
+    {
+        return match ($this) {
+            self::Lead => 1,
+            self::Approach => 2,
+            self::Proposal => 3,
+            self::Negotiation => 4,
+            self::Won => 5,
+            default => 99,
+        };
+    }
 }

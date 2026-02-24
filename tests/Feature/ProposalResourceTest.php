@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\CRM\Filament\Resources\Proposals\Pages\ListProposals;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Pages\ListProposals;
 use Modules\CRM\Models\Proposal;
 use Tests\TestCase;
 

@@ -17,6 +17,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
@@ -81,7 +82,7 @@ class ManpowerTemplateResource extends Resource
                         ])
                         ->columns(2),
 
-                    Step::make('Manpower Composition')
+                    Step::make('Personnel Composition')
                         ->description('Add job positions and set basic salaries.')
                         ->icon('heroicon-m-user-group')
                         ->schema([
@@ -167,6 +168,49 @@ class ManpowerTemplateResource extends Resource
                                 }),
                         ]),
 
+                    Step::make('Costing & BPJS Configuration')
+                        ->description('Advanced parameters for BPJS, Tax, and Accruals.')
+                        ->icon('heroicon-m-adjustments-horizontal')
+                        ->schema([
+                            Grid::make(3)
+                                ->schema([
+                                    Select::make('risk_level')
+                                        ->label('Risk Level (JKK)')
+                                        ->options([
+                                            'very_low' => 'Very Low (0.24%)',
+                                            'low' => 'Low (0.54%)',
+                                            'medium' => 'Medium (0.89%)',
+                                            'high' => 'High (1.27%)',
+                                            'very_high' => 'Very High (1.74%)',
+                                        ])
+                                        ->required()
+                                        ->default('very_low')
+                                        ->live(),
+                                    Select::make('employee_type')
+                                        ->label('Employee Participation')
+                                        ->options([
+                                            'ppu' => 'Penerima Upah (PPU)',
+                                            'pbpu' => 'Bukan Penerima Upah (PBPU/Mandiri)',
+                                        ])
+                                        ->required()
+                                        ->default('ppu')
+                                        ->live(),
+                                    Toggle::make('is_labor_intensive')
+                                        ->label('Is Labor Intensive?')
+                                        ->helperText('Enable for 50% JKK reduction if applicable.')
+                                        ->default(false)
+                                        ->live(),
+                                    Toggle::make('bill_thr_monthly')
+                                        ->label('Bill THR Monthly')
+                                        ->default(true)
+                                        ->live(),
+                                    Toggle::make('bill_compensation_monthly')
+                                        ->label('Bill Compensation Monthly')
+                                        ->default(true)
+                                        ->live(),
+                                ]),
+                        ]),
+
                     Step::make('Cost Simulation')
                         ->description('Review estimated monthly costs for this template.')
                         ->icon('heroicon-m-calculator')
@@ -185,6 +229,13 @@ class ManpowerTemplateResource extends Resource
                                     $service = app(ManpowerCostingService::class);
                                     $totalTemplateCost = 0;
                                     $rows = '';
+
+                                    // Get template-level overrides
+                                    $riskLevel = $get('risk_level') ?? 'very_low';
+                                    $isLaborIntensive = (bool) ($get('is_labor_intensive') ?? false);
+                                    $employeeType = $get('employee_type') ?? 'ppu';
+                                    $billThr = (bool) ($get('bill_thr_monthly') ?? true);
+                                    $billComp = (bool) ($get('bill_compensation_monthly') ?? true);
 
                                     foreach ($items as $item) {
                                         $jpId = $item['job_position_id'] ?? null;
@@ -216,8 +267,11 @@ class ManpowerTemplateResource extends Resource
                                             allowances: $allowances,
                                             projectAreaId: $areaId,
                                             year: date('Y'),
-                                            riskLevel: $jp->risk_level ?? 'very_low',
-                                            isLaborIntensive: $jp->is_labor_intensive ?? false
+                                            riskLevel: $riskLevel,
+                                            isLaborIntensive: $isLaborIntensive,
+                                            employeeType: $employeeType,
+                                            billThrMonthly: $billThr,
+                                            billCompensationMonthly: $billComp
                                         );
 
                                         $unitCost = $res['total_direct_cost'];

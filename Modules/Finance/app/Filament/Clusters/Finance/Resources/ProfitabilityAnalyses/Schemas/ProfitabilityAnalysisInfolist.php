@@ -33,19 +33,40 @@ class ProfitabilityAnalysisInfolist
                                 TextEntry::make('tor_document')
                                     ->label('ToR Document')
                                     ->state(fn ($record) => $record->getFirstMedia('tor')?->file_name ?? 'No ToR')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('tor'), true)
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('tor');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
                                     ->icon(Heroicon::OutlinedDocumentText)
                                     ->color(fn ($state) => $state === 'No ToR' ? 'gray' : 'primary'),
                                 TextEntry::make('rfp_document')
                                     ->label('RFP Document')
                                     ->state(fn ($record) => $record->getFirstMedia('rfp')?->file_name ?? 'No RFP')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('rfp'), true)
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('rfp');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
                                     ->icon(Heroicon::OutlinedDocumentChartBar)
                                     ->color(fn ($state) => $state === 'No RFP' ? 'gray' : 'primary'),
                                 TextEntry::make('rfi_document')
                                     ->label('RFI Document')
                                     ->state(fn ($record) => $record->getFirstMedia('rfi')?->file_name ?? 'No RFI')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('rfi'), true)
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('rfi');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
                                     ->icon(Heroicon::OutlinedInformationCircle)
                                     ->color(fn ($state) => $state === 'No RFI' ? 'gray' : 'primary'),
                             ]),

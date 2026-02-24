@@ -87,16 +87,16 @@ class MasterCodeSeeder extends Seeder
 
         // Product Clusters
         $productClusters = [
-            ['code' => 'BCA', 'name' => 'Product Cluster Beyond Care'],
-            ['code' => 'BCL', 'name' => 'Product Cluster Beyond Clean'],
-            ['code' => 'BFR', 'name' => 'Product Cluster Beyond Fresh'],
-            ['code' => 'BSE', 'name' => 'Product Cluster Beyond Secure'],
-            ['code' => 'BSK', 'name' => 'Product Cluster Beyond Sky'],
-            ['code' => 'BFM', 'name' => 'Product Cluster Beyond Facility'],
-            ['code' => 'SFA', 'name' => 'Product Cluster Smart Facilities'],
-            ['code' => 'GTR', 'name' => 'Product Cluster GDPS Terrace'],
-            ['code' => 'MGT', 'name' => 'Product Cluster GDPS Other'],
-            ['code' => 'OTS', 'name' => 'Product Cluster Others_'],
+            ['code' => 'BCA', 'name' => 'Beyond Care'],
+            ['code' => 'BCL', 'name' => 'Beyond Clean'],
+            ['code' => 'BFR', 'name' => 'Beyond Fresh'],
+            ['code' => 'BSE', 'name' => 'Beyond Secure'],
+            ['code' => 'BSK', 'name' => 'Beyond Sky'],
+            ['code' => 'BFM', 'name' => 'Beyond Facility'],
+            ['code' => 'SFA', 'name' => 'Smart Facilities'],
+            ['code' => 'GTR', 'name' => 'GDPS Terrace'],
+            ['code' => 'MGT', 'name' => 'GDPS Other'],
+            ['code' => 'OTS', 'name' => 'Others_'],
         ];
         foreach ($productClusters as $data) {
             ProductCluster::updateOrCreate(['code' => $data['code']], $data);
@@ -322,7 +322,6 @@ class MasterCodeSeeder extends Seeder
         $categories = [
             ['code' => 'MT', 'name' => 'Material'],
             ['code' => 'EQ', 'name' => 'Equipment'],
-            ['code' => 'MP', 'name' => 'Manpower'],
         ];
         foreach ($categories as $data) {
             ItemCategory::updateOrCreate(['code' => $data['code']], $data);

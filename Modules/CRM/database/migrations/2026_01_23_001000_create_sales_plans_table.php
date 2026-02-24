@@ -29,6 +29,7 @@ return new class extends Migration
             $table->decimal('estimated_value', 15, 2)->nullable();
             $table->decimal('management_fee_percentage', 5, 2)->nullable();
             $table->decimal('npm_percentage', 5, 2)->nullable();
+            $table->foreignUuid('payment_term_id')->nullable()->constrained('payment_terms')->nullOnDelete();
             $table->integer('top_days')->nullable();
 
             // Timeline

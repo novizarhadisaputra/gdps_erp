@@ -16,7 +16,6 @@ use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\SkillCategory;
 
 #[ObservedBy(SalesPlanObserver::class)]
@@ -49,6 +48,7 @@ class SalesPlan extends Model
         'product_cluster_id',
         'project_area_id',
         'ams_id',
+        'payment_term_id',
         'job_positions',
     ];
 
@@ -119,5 +119,39 @@ class SalesPlan extends Model
     public function monthlyBreakdowns(): HasMany
     {
         return $this->hasMany(SalesPlanMonthly::class);
+    }
+
+    public function paymentTerm(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\PaymentTerm::class);
+    }
+
+    public function toGeneralInformation(): GeneralInformation
+    {
+        $this->loadMissing(['lead.customer', 'lead.user', 'ams']);
+        $lead = $this->lead;
+
+        $gi = $lead->generalInformations()->create([
+            'customer_id' => $lead->customer_id,
+            'project_area_id' => $this->project_area_id,
+            'estimated_start_date' => $this->start_date,
+            'estimated_end_date' => $this->end_date,
+            'scope_of_work' => $lead->title,
+            'description' => $lead->description,
+            'sales_plan_id' => $this->id,
+            'status' => 'draft',
+        ]);
+
+        // Sync Customer Contacts from Master Data
+        foreach (($lead->customer?->contacts ?? []) as $contact) {
+            $gi->pics()->create([
+                'contact_role_id' => $contact['type'] ?? null,
+                'name' => $contact['name'] ?? null,
+                'phone' => $contact['phone'] ?? null,
+                'email' => $contact['email'] ?? null,
+            ]);
+        }
+
+        return $gi;
     }
 }

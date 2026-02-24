@@ -85,7 +85,8 @@ class SalesPlanForm
                                     ->createOptionForm(EmployeeForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->editOptionForm(EmployeeForm::schema())
-                                    ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                                    ->editOptionAction(fn (Action $action) => $action->slideOver())
+                                    ->disabled(fn () => ! auth()->user()->hasRole('super_admin')),
                             ]),
                     ]),
 
@@ -208,11 +209,30 @@ class SalesPlanForm
                                     ->required()
                                     ->helperText('Target profit margin percentage.'),
                             ]),
-                        TextInput::make('top_days')
-                            ->label('ToP (Days)')
-                            ->numeric()
-                            ->default(30)
-                            ->helperText('Terms of Payment (days from invoice).'),
+                        Grid::make(2)
+                            ->schema([
+                                Select::make('payment_term_id')
+                                    ->label('Payment Term')
+                                    ->relationship('paymentTerm', 'name')
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        if (! $state) {
+                                            return;
+                                        }
+                                        $term = \Modules\MasterData\Models\PaymentTerm::find($state);
+                                        if ($term) {
+                                            $set('top_days', $term->days);
+                                        }
+                                    })
+                                    ->helperText('Select from master data to auto-fill days.'),
+                                TextInput::make('top_days')
+                                    ->label('ToP (Days)')
+                                    ->numeric()
+                                    ->default(30)
+                                    ->helperText('Terms of Payment (days from invoice).'),
+                            ]),
                     ]),
 
                 Step::make('Revenue Distribution')
@@ -262,9 +282,12 @@ class SalesPlanForm
                                         $average = $totalValue / $count;
 
                                         $current = $start->copy();
+                                        $topDays = (int) ($get('top_days') ?? 0);
+
                                         for ($i = 0; $i < $count; $i++) {
+                                            $collectionMonth = $current->copy()->addDays($topDays)->startOfMonth();
                                             $months[] = [
-                                                'month' => $current->format('F Y'),
+                                                'month' => $collectionMonth->format('F Y'),
                                                 'amount' => round($average, 2),
                                             ];
                                             $current->addMonth();

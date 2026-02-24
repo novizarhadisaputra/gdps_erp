@@ -16,6 +16,10 @@ class LeadObserver
         $lead->status = LeadStatus::Lead;
         $lead->confidence_level = $lead->confidence_level ?? ConfidenceLevel::Pessimistic;
         $lead->position = Lead::max('position') + 1;
+
+        if (empty($lead->user_id) && auth()->check()) {
+            $lead->user_id = auth()->id();
+        }
     }
 
     /**

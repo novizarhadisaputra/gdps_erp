@@ -16,6 +16,11 @@ return new class extends Migration
             $table->foreignUuid('project_area_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
+            $table->string('risk_level')->default('very_low');
+            $table->boolean('is_labor_intensive')->default(false);
+            $table->string('employee_type')->default('ppu');
+            $table->boolean('bill_thr_monthly')->default(true);
+            $table->boolean('bill_compensation_monthly')->default(true);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

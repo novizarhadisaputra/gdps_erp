@@ -22,4 +22,9 @@ class CostingTemplate extends Model
     {
         return $this->hasMany(CostingTemplateItem::class);
     }
+
+    public function getTotalMonthlyCost(): float
+    {
+        return (float) $this->costingTemplateItems()->sum('monthly_cost');
+    }
 }

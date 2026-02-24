@@ -18,7 +18,6 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Sc
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas\RevenueSegmentForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ServiceLines\Schemas\ServiceLineForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\IndustrialSector;
@@ -26,7 +25,6 @@ use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\WorkScheme;
 
 class LeadForm
@@ -61,15 +59,6 @@ class LeadForm
                         ->createOptionUsing(fn (array $data) => WorkScheme::create($data)->id)
                         ->editOptionForm(WorkSchemeForm::schema())
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                    Select::make('user_id')
-                        ->relationship('user', 'name')
-                        ->label('Sales PIC')
-                        ->default(auth()->id())
-                        ->disabled(fn () => ! auth()->user()?->hasRole('super_admin'))
-                        ->dehydrated()
-                        ->required()
-                        ->searchable()
-                        ->preload(),
                     Textarea::make('description')
                         ->rows(3)
                         ->columnSpanFull(),
@@ -126,16 +115,6 @@ class LeadForm
                         ]),
                     Grid::make(3)
                         ->schema([
-                            // Select::make('service_line_id')
-                            //     ->label('Service Line')
-                            //     ->relationship('serviceLine', 'name')
-                            //     ->searchable()
-                            //     ->preload()
-                            //     ->createOptionForm(ServiceLineForm::schema())
-                            //     ->createOptionAction(fn (Action $action) => $action->slideOver())
-                            //     ->createOptionUsing(fn (array $data) => ServiceLine::create($data)->id)
-                            //     ->editOptionForm(ServiceLineForm::schema())
-                            //     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('industrial_sector_id')
                                 ->label('Industrial Sector')
                                 ->relationship('industrialSector', 'name')

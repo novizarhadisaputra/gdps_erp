@@ -5,6 +5,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInf
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -67,17 +68,60 @@ class GeneralInformationForm
                                 ->preload()
                                 ->required()
                                 ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null),
+                            TextInput::make('location')
+                                ->placeholder('Project site or specific location'),
                             Select::make('sales_plan_id')
                                 ->relationship('salesPlan', 'project_code')
                                 ->getOptionLabelFromRecordUsing(fn ($record) => $record->project_code ?? 'No Project Code')
                                 ->label('Source Sales Plan')
                                 ->disabled()
-                                ->placeholder('Select from Sales Plan list'),
+                                ->placeholder('Select from Sales Plan list')
+                                ->columnSpanFull(),
                         ]),
                 ]),
 
-            Section::make('PICs')
-                ->description('List of Persons in Charge for this General Information.')
+            Section::make('Requirements & Work Details')
+                ->description('Technical specifics and operational requirements.')
+                ->schema([
+                    Textarea::make('manpower_qualifications')
+                        ->rows(3)
+                        ->placeholder('Deskripsi kualifikasi tenaga kerja yang dibutuhkan'),
+                    Textarea::make('work_activities')
+                        ->rows(3)
+                        ->placeholder('Deskripsi aktivitas pekerjaan utama'),
+                    Textarea::make('service_level')
+                        ->rows(3)
+                        ->placeholder('SLA atau tingkat layanan yang disepakati'),
+                    Textarea::make('billing_requirements')
+                        ->rows(3)
+                        ->placeholder('Persyaratan penagihan (billing)'),
+                    Repeater::make('risk_management')
+                        ->label('Risk Management')
+                        ->simple(TextInput::make('risk')->required())
+                        ->columnSpanFull(),
+                ])->columns(2),
+
+            Section::make('Documentation')
+                ->description('Upload Term of Reference, RFP, and RFI documents.')
+                ->schema([
+                    SpatieMediaLibraryFileUpload::make('tor')
+                        ->collection('tor')
+                        ->label('ToR Document')
+                        ->disk(name: 's3')
+                        ->visibility('private'),
+                    SpatieMediaLibraryFileUpload::make('rfp')
+                        ->collection('rfp')
+                        ->label('RFP Document')
+                        ->disk(name: 's3')
+                        ->visibility('private'),
+                    SpatieMediaLibraryFileUpload::make('rfi')
+                        ->collection('rfi')
+                        ->label('RFI Document')
+                        ->disk(name: 's3')
+                        ->visibility('private'),
+                ])->columns(3),
+
+            Section::make('PICs & Remarks')
                 ->schema([
                     Repeater::make('pics')
                         ->relationship('pics')
@@ -91,10 +135,15 @@ class GeneralInformationForm
                                 ->label('Role')
                                 ->relationship('contactRole', 'name')
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->required(),
                         ])
                         ->columns(2)
-                        ->itemLabel(fn (array $state): ?string => $state['name'] ?? null),
+                        ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                        ->columnSpanFull(),
+                    Textarea::make('remarks')
+                        ->rows(3)
+                        ->columnSpanFull(),
                 ]),
         ];
     }

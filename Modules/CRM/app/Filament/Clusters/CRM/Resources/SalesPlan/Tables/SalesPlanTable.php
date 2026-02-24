@@ -33,6 +33,9 @@ class SalesPlanTable
                 TextColumn::make('productCluster.name')
                     ->label('Cluster')
                     ->sortable(),
+                TextColumn::make('paymentTerm.name')
+                    ->label('ToP')
+                    ->sortable(),
                 TextColumn::make('estimated_value')
                     ->label('Value')
                     ->money('IDR')
@@ -84,25 +87,7 @@ class SalesPlanTable
                                     return;
                                 }
 
-                                $gi = $lead->generalInformations()->create([
-                                    'customer_id' => $lead->customer_id,
-                                    'project_area_id' => $record->project_area_id,
-                                    'estimated_start_date' => $record->start_date,
-                                    'estimated_end_date' => $record->end_date,
-                                    'scope_of_work' => $lead->title,
-                                    'description' => $lead->description,
-                                    'sales_plan_id' => $record->id,
-                                    'status' => 'draft',
-                                ]);
-
-                                foreach (($lead->customer?->contacts ?? []) as $contact) {
-                                    $gi->pics()->create([
-                                        'contact_role_id' => $contact['type'] ?? null,
-                                        'name' => $contact['name'] ?? null,
-                                        'phone' => $contact['phone'] ?? null,
-                                        'email' => $contact['email'] ?? null,
-                                    ]);
-                                }
+                                $record->toGeneralInformation();
 
                                 Notification::make()
                                     ->title('General Information Created')
@@ -134,25 +119,7 @@ class SalesPlanTable
                             return;
                         }
 
-                        $gi = $lead->generalInformations()->create([
-                            'customer_id' => $lead->customer_id,
-                            'project_area_id' => $record->project_area_id,
-                            'estimated_start_date' => $record->start_date,
-                            'estimated_end_date' => $record->end_date,
-                            'scope_of_work' => $lead->title,
-                            'description' => $lead->description,
-                            'sales_plan_id' => $record->id,
-                            'status' => 'draft',
-                        ]);
-
-                        foreach (($lead->customer?->contacts ?? []) as $contact) {
-                            $gi->pics()->create([
-                                'contact_role_id' => $contact['type'] ?? null,
-                                'name' => $contact['name'] ?? null,
-                                'phone' => $contact['phone'] ?? null,
-                                'email' => $contact['email'] ?? null,
-                            ]);
-                        }
+                        $record->toGeneralInformation();
 
                         Notification::make()
                             ->title('General Information Created')

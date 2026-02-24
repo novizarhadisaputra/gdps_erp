@@ -25,6 +25,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Sc
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
+use Modules\MasterData\Models\CostingTemplate;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ManpowerTemplate;
@@ -385,42 +386,60 @@ class ProfitabilityAnalysisForm
                             ->relationship('operationalItems')
                             ->label('Equipment & Material Items')
                             ->schema([
+                                Select::make('costable_type')
+                                    ->label('Type')
+                                    ->options([
+                                        Item::class => 'Standard Item',
+                                        CostingTemplate::class => 'Costing Template',
+                                    ])
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(fn (Set $set) => $set('costable_id', null))
+                                    ->columnSpan(1),
                                 Select::make('costable_id')
-                                    ->label('Item Resource')
-                                    ->options(Item::pluck('name', 'id'))
+                                    ->label('Resource')
+                                    ->options(fn (Get $get) => filled($get('costable_type')) ? $get('costable_type')::pluck('name', 'id') : [])
                                     ->required()
                                     ->searchable()
                                     ->preload()
                                     ->live()
                                     ->afterStateUpdated(function ($state, $get, Set $set) {
-                                        if (! $state) {
+                                        if (! $state || ! $get('costable_type')) {
                                             return;
                                         }
 
-                                        $record = Item::find($state);
+                                        $type = $get('costable_type');
+                                        $record = $type::find($state);
                                         if (! $record) {
                                             return;
                                         }
 
-                                        $set('costable_type', Item::class);
-                                        $set('unit_cost_price', $record->price);
-                                        $set('unit_of_measure', $record->unitOfMeasure?->name ?? 'Unit');
-                                        $set('is_manpower', false);
+                                        if ($type === Item::class) {
+                                            $set('unit_cost_price', $record->price);
+                                            $set('unit_of_measure', $record->unitOfMeasure?->name ?? 'Unit');
+                                            $set('is_manpower', false);
 
-                                        // Depreciation Logic
-                                        $depreciation = $record->depreciation_months;
-                                        if (empty($depreciation) || $depreciation <= 0) {
-                                            $usefulLifeYears = $record->category?->assetGroup?->useful_life_years;
-                                            if ($usefulLifeYears && $usefulLifeYears > 0) {
-                                                $depreciation = $usefulLifeYears * 12;
+                                            // Depreciation Logic
+                                            $depreciation = $record->depreciation_months;
+                                            if (empty($depreciation) || $depreciation <= 0) {
+                                                $usefulLifeYears = $record->category?->assetGroup?->useful_life_years;
+                                                if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                                    $depreciation = $usefulLifeYears * 12;
+                                                }
                                             }
+                                            $set('depreciation_months', $depreciation ?? 1);
                                         }
-                                        $set('depreciation_months', $depreciation ?? 1);
+
+                                        if ($type === CostingTemplate::class) {
+                                            $set('unit_cost_price', $record->getTotalMonthlyCost());
+                                            $set('unit_of_measure', 'Packet');
+                                            $set('is_manpower', false);
+                                            $set('depreciation_months', 1); // Costing template total is already monthly
+                                        }
 
                                         self::calculateDirectCost($get, $set);
                                     })
-                                    ->columnSpan(4),
-                                Hidden::make('costable_type')->default(Item::class),
+                                    ->columnSpan(3),
                                 Hidden::make('is_manpower')->default(false),
                                 TextInput::make('quantity')
                                     ->numeric()
@@ -523,7 +542,7 @@ class ProfitabilityAnalysisForm
                             ])
                             ->columns(6)
                             ->columnSpanFull()
-                            ->itemLabel(fn (array $state): ?string => filled($state['costable_id'] ?? null) ? Item::find($state['costable_id'])?->name : 'New Item')
+                            ->itemLabel(fn (array $state): ?string => filled($state['costable_type'] ?? null) && filled($state['costable_id'] ?? null) ? $state['costable_type']::find($state['costable_id'])?->name : 'New Item')
                             ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                     ]),
 
@@ -624,6 +643,8 @@ class ProfitabilityAnalysisForm
                     $isManpower = $dbItem?->category?->name === 'Manpower';
                 } elseif ($item['costable_type'] === JobPosition::class) {
                     $isManpower = true;
+                } elseif ($item['costable_type'] === CostingTemplate::class) {
+                    $isManpower = false;
                 }
             }
 
@@ -715,6 +736,8 @@ class ProfitabilityAnalysisForm
                 $isManpower = $dbItem?->category?->name === 'Manpower';
             } elseif ($get('costable_type') === JobPosition::class) {
                 $isManpower = true;
+            } elseif ($get('costable_type') === CostingTemplate::class) {
+                $isManpower = false;
             }
         }
 

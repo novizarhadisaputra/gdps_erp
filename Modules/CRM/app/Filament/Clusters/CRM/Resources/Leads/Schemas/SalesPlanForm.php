@@ -136,6 +136,22 @@ class SalesPlanForm
                                 ->suffix('%')
                                 ->label('NPM %')
                                 ->default(0),
+                            Select::make('payment_term_id')
+                                ->label('Payment Term')
+                                ->relationship('paymentTerm', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->live()
+                                ->afterStateUpdated(function ($state, Set $set) {
+                                    if (! $state) {
+                                        return;
+                                    }
+                                    $term = \Modules\MasterData\Models\PaymentTerm::find($state);
+                                    if ($term) {
+                                        $set('top_days', $term->days);
+                                    }
+                                })
+                                ->helperText('Select terms from master data.'),
                             TextInput::make('top_days')
                                 ->numeric()
                                 ->suffix('Days')

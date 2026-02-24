@@ -35,7 +35,7 @@ class ProfitabilityAnalysisObserver
         // When PA is created, Lead moves to Negotiation stage
         if ($analysis->lead) {
             $analysis->lead->update([
-                'status' => \Modules\CRM\Enums\LeadStatus::Negotiation,
+                'status' => \Modules\CRM\Enums\LeadStatus::Approach,
             ]);
         }
     }
@@ -46,6 +46,6 @@ class ProfitabilityAnalysisObserver
     public function deleting(ProfitabilityAnalysis $analysis): void
     {
         // Cascade delete items
-        $analysis->items()->each(fn ($item) => $item->delete());
+        $analysis->items()->delete();
     }
 }

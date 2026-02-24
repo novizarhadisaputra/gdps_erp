@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\CRM\Database\Factories\GeneralInformationFactory;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
@@ -26,6 +27,11 @@ class GeneralInformation extends Model implements HasMedia
         isFullyApproved as traitIsFullyApproved;
     }
     use HasFactory, HasUuids, InteractsWithMedia;
+
+    protected static function newFactory(): GeneralInformationFactory
+    {
+        return GeneralInformationFactory::new();
+    }
 
     protected $table = 'general_informations';
 
@@ -136,5 +142,39 @@ class GeneralInformation extends Model implements HasMedia
     public function isFullyApproved(): bool
     {
         return $this->rr_status === 'approved' && $this->traitIsFullyApproved();
+    }
+
+    public function getPicCustomerNameAttribute(): ?string
+    {
+        return $this->pics()->first()?->name;
+    }
+
+    public function getPicCustomerPhoneAttribute(): ?string
+    {
+        return $this->pics()->first()?->phone;
+    }
+
+    public function toProfitabilityAnalysis(): ProfitabilityAnalysis
+    {
+        $lead = $this->lead;
+
+        $pa = $lead->profitabilityAnalyses()->create([
+            'customer_id' => $lead->customer_id,
+            'general_information_id' => $this->id,
+            'work_scheme_id' => $lead->work_scheme_id,
+            'project_area_id' => $this->project_area_id,
+            'product_cluster_id' => $lead->product_cluster_id,
+            'status' => 'draft',
+        ]);
+
+        // Copy media collections to the new PA
+        foreach (['tor', 'rfp', 'rfi'] as $collection) {
+            $media = $this->getFirstMedia($collection);
+            if ($media) {
+                $media->copy($pa, $collection);
+            }
+        }
+
+        return $pa;
     }
 }

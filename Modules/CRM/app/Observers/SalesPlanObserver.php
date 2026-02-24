@@ -9,6 +9,16 @@ use Modules\CRM\Models\SalesPlanMonthly;
 class SalesPlanObserver
 {
     /**
+     * Handle the SalesPlan "creating" event.
+     */
+    public function creating(SalesPlan $salesPlan): void
+    {
+        if (empty($salesPlan->ams_id) && auth()->check()) {
+            $salesPlan->ams_id = auth()->id();
+        }
+    }
+
+    /**
      * Handle the SalesPlan "saving" event.
      */
     public function saving(SalesPlan $salesPlan): void

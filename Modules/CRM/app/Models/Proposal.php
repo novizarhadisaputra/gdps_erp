@@ -32,6 +32,8 @@ class Proposal extends Model implements HasMedia
         'amount',
         'status',
         'submission_date',
+        'sequence_number',
+        'year',
     ];
 
     protected $casts = [

@@ -12,6 +12,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -60,6 +61,45 @@ class ProfitabilityAnalysesTable
                         'rejected' => 'danger',
                         default => 'gray',
                     }),
+                IconColumn::make('tor')
+                    ->label('ToR')
+                    ->getStateUsing(fn ($record) => $record->hasMedia('tor'))
+                    ->boolean()
+                    ->url(function ($record) {
+                        $media = $record->getFirstMedia('tor');
+                        if (! $media) {
+                            return null;
+                        }
+
+                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                    }, true)
+                    ->toggleable(),
+                IconColumn::make('rfp')
+                    ->label('RFP')
+                    ->getStateUsing(fn ($record) => $record->hasMedia('rfp'))
+                    ->boolean()
+                    ->url(function ($record) {
+                        $media = $record->getFirstMedia('rfp');
+                        if (! $media) {
+                            return null;
+                        }
+
+                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                    }, true)
+                    ->toggleable(),
+                IconColumn::make('rfi')
+                    ->label('RFI')
+                    ->getStateUsing(fn ($record) => $record->hasMedia('rfi'))
+                    ->boolean()
+                    ->url(function ($record) {
+                        $media = $record->getFirstMedia('rfi');
+                        if (! $media) {
+                            return null;
+                        }
+
+                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                    }, true)
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('customer_id')
