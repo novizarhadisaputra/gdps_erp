@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\MasterData\Enums;
+namespace Modules\CRM\Enums;
 
 use Filament\Support\Contracts\HasLabel;
 

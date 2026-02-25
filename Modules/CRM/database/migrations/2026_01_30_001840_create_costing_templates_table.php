@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('costing_templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->cascadeOnDelete();
+            $table->foreignUuid('pic_id')->nullable()->constrained('users');
             $table->decimal('total_amount', 15, 2)->default(0); // Total One-Time Cost/Investment
             $table->decimal('total_monthly_cost', 15, 2)->default(0); // Total Monthly Depr/Expense
             $table->text('description')->nullable();

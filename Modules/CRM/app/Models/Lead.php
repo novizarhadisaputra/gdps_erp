@@ -167,6 +167,11 @@ class Lead extends Model
         return $this->hasOne(SalesPlan::class);
     }
 
+    public function costingTemplates(): HasMany
+    {
+        return $this->hasMany(CostingTemplate::class);
+    }
+
     public function revenueSegment(): BelongsTo
     {
         return $this->belongsTo(RevenueSegment::class);

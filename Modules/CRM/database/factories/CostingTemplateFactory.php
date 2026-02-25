@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\MasterData\Database\Factories;
+namespace Modules\CRM\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\MasterData\Models\CostingTemplate;
+use Modules\CRM\Models\CostingTemplate;
 
 class CostingTemplateFactory extends Factory
 {

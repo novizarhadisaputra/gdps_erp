@@ -95,6 +95,16 @@ class LeadResource extends Resource
                 ]) && $record->profitabilityAnalyses()->where('status', 'approved')->exists()
                 ))->toArray(),
             ...collect($page->generateNavigationItems([
+                Pages\ManageCostingTemplates::class,
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 2: Commercials (Proposal)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Approach,
+                    LeadStatus::Proposal,
+                    LeadStatus::Negotiation,
+                    LeadStatus::Won,
+                ])))->toArray(),
+            ...collect($page->generateNavigationItems([
                 ManageContracts::class,
             ]))->map(fn (NavigationItem $item) => $item
                 ->group('Stage 3: Contracting (Negotiation)')
@@ -141,6 +151,7 @@ class LeadResource extends Resource
             'profitability-analyses' => ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),
             'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
             'contracts' => ManageContracts::route('/{record}/contracts'),
+            'costing-templates' => Pages\ManageCostingTemplates::route('/{record}/costing-templates'),
         ];
     }
 }

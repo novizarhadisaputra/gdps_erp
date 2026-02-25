@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\MasterData\Models;
+namespace Modules\CRM\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,14 +13,24 @@ class CostingTemplate extends Model
 
     protected static function newFactory()
     {
-        return \Modules\MasterData\Database\Factories\CostingTemplateFactory::new();
+        return \Modules\CRM\Database\Factories\CostingTemplateFactory::new();
     }
 
     protected $guarded = [];
 
+    public function lead(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
+    }
+
     public function costingTemplateItems(): HasMany
     {
         return $this->hasMany(CostingTemplateItem::class);
+    }
+
+    public function pic(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'pic_id');
     }
 
     public function getTotalMonthlyCost(): float

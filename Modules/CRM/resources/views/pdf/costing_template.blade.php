@@ -246,7 +246,7 @@
                             <td>{{ $i + 1 }}</td>
                             <td>{{ $item->name }}</td>
                             <td><span
-                                    class="badge">{{ $item->category instanceof \Modules\MasterData\Enums\CostingCategory ? $item->category->getLabel() : $item->category }}</span>
+                                    class="badge">{{ $item->category instanceof \Modules\CRM\Enums\CostingCategory ? $item->category->getLabel() : $item->category }}</span>
                             </td>
                             <td class="center">{{ $item->quantity }}</td>
                             <td class="right">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>

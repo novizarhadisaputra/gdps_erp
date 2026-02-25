@@ -34,6 +34,7 @@ return new class extends Migration
             $table->integer('useful_life_years')->nullable();
             $table->integer('depreciation_months')->nullable();
             $table->decimal('monthly_cost', 15, 2)->default(0); // Depr or Expense
+            $table->string('depreciation_method')->default('straight_line');
 
             $table->timestamps();
         });

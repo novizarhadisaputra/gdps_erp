@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Modules\CRM\Models\CostingTemplate;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Services\ManpowerCostingService;
@@ -27,7 +28,6 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Sc
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
-use Modules\MasterData\Models\CostingTemplate;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ManpowerTemplate;

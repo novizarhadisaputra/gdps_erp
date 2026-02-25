@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Pages;
 
+use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Schema;
@@ -17,6 +18,8 @@ class ListProposals extends ListRecords
         return [
             CreateAction::make()
                 ->schema(fn (Schema $schema) => ProposalForm::configure($schema)),
+            ExcelImportAction::make()
+                ->color('success'),
         ];
     }
 }
