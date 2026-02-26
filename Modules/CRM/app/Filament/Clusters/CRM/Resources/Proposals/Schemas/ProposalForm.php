@@ -27,6 +27,11 @@ class ProposalForm
         return [
             Section::make('Proposal Details')
                 ->schema([
+                    \Filament\Forms\Components\Placeholder::make('import_status')
+                        ->label('Source')
+                        ->content('Imported via AI extraction')
+                        ->visible(fn ($record) => $record?->is_imported)
+                        ->columnSpanFull(),
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
                         ->searchable()

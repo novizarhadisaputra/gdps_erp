@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('remuneration_components', function (Blueprint $table) {
+        Schema::create('master_data.remuneration_components', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('type'); // fixed_allowance, non_fixed_allowance, benefit
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('remuneration_components');
+        Schema::dropIfExists('master_data.remuneration_components');
     }
 };

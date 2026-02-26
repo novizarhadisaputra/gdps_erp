@@ -3,6 +3,7 @@
 namespace Modules\CRM\Models;
 
 use App\Models\User;
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,6 +36,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Lead extends Model
 {
     use HasFactory, HasUuids, LogsActivity, SoftDeletes;
+    use HasModuleSchema;
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -170,6 +172,11 @@ class Lead extends Model
     public function costingTemplates(): HasMany
     {
         return $this->hasMany(CostingTemplate::class);
+    }
+
+    public function manpowerTemplates(): HasMany
+    {
+        return $this->hasMany(ManpowerTemplate::class);
     }
 
     public function revenueSegment(): BelongsTo

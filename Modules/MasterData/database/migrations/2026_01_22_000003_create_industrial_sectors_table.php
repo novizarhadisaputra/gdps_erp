@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('industrial_sectors', function (Blueprint $table) {
+        Schema::create('master_data.industrial_sectors', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('code')->nullable()->unique();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('industrial_sectors');
+        Schema::dropIfExists('master_data.industrial_sectors');
     }
 };

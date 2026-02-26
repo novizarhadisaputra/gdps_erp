@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profitability_analysis_items', function (Blueprint $table) {
+        Schema::create('finance.profitability_analysis_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('profitability_analysis_id')->constrained('profitability_analyses')->cascadeOnDelete();
-            
+            $table->foreignUuid('profitability_analysis_id')->constrained('finance.profitability_analyses')->cascadeOnDelete();
+            $table->uuid('import_source_id')->nullable();
+
             // Polymorphic Columns: costable_id & costable_type
             // This allows linking to Item, JobPosition, or any other model.
-            $table->uuidMorphs('costable'); 
-            
+            $table->uuidMorphs('costable');
+
             $table->decimal('quantity', 15, 2)->default(1);
             $table->decimal('unit_cost_price', 15, 2)->default(0); // "Modal" price
             $table->decimal('markup_percentage', 5, 2)->default(0);
@@ -36,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('profitability_analysis_items');
+        Schema::dropIfExists('finance.profitability_analysis_items');
     }
 };

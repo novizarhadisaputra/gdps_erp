@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('general_informations', function (Blueprint $table) {
+        Schema::create('crm.general_informations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
+            $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->onDelete('cascade');
             $table->foreignUuid('customer_id')->constrained()->onDelete('cascade');
-            $table->foreignUuid('sales_plan_id')->nullable()->constrained('sales_plans')->nullOnDelete();
+            $table->foreignUuid('sales_plan_id')->nullable()->constrained('crm.sales_plans')->nullOnDelete();
             $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected
             $table->text('scope_of_work')->nullable();
-            $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas');
+            $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas');
             $table->string('location')->nullable(); // Keep for legacy or specific detail if needed, or deprecate
             $table->date('estimated_start_date')->nullable();
             $table->date('estimated_end_date')->nullable();
@@ -30,7 +30,6 @@ return new class extends Migration
             $table->json('risk_management')->nullable();
             $table->text('description')->nullable();
             $table->text('remarks')->nullable();
-            $table->json('signatures')->nullable();
             $table->string('rr_document_number')->nullable(); // Risk Register Document Number
             $table->string('rr_submission_id')->nullable();
             $table->string('rr_status')->nullable();
@@ -48,6 +47,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('general_informations');
+        Schema::dropIfExists('crm.general_informations');
     }
 };

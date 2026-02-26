@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,6 +19,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Item extends Model implements HasMedia
 {
     use HasFactory, HasUnitScoping, HasUuids, InteractsWithMedia;
+    use HasModuleSchema;
 
     protected $fillable = [
         'unit_id',

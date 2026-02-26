@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('work_schemes', function (Blueprint $table) {
+        Schema::create('master_data.work_schemes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('work_schemes');
+        Schema::dropIfExists('master_data.work_schemes');
     }
 };

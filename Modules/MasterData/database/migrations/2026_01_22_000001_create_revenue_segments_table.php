@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('revenue_segments', function (Blueprint $table) {
+        Schema::create('master_data.revenue_segments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('code')->nullable()->unique();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('revenue_segments');
+        Schema::dropIfExists('master_data.revenue_segments');
     }
 };

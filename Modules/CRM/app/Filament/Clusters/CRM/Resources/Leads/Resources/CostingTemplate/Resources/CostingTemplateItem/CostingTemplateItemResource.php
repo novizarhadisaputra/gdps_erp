@@ -5,12 +5,12 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Clusters\CRM\Resources\CostingTemplates\Schemas\CostingTemplateItemForm;
-use Modules\CRM\Filament\Clusters\CRM\Resources\CostingTemplates\Tables\CostingTemplateItemsTable;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Pages\CreateCostingTemplateItem;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Pages\EditCostingTemplateItem;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Pages\ListCostingTemplateItems;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Schemas\CostingTemplateItemForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Tables\CostingTemplateItemsTable;
 use Modules\CRM\Models\CostingTemplateItem;
 
 class CostingTemplateItemResource extends Resource

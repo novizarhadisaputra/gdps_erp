@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Contract extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
+    use HasModuleSchema;
 
     protected $fillable = [
         'lead_id',

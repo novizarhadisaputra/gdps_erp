@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('profitability_analyses', function (Blueprint $table) {
+        Schema::create('finance.profitability_analyses', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('document_number')->nullable()->unique();
-            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
-            $table->foreignUuid('general_information_id')->nullable()->constrained('general_informations')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->onDelete('cascade');
+            $table->foreignUuid('customer_id')->nullable()->constrained('master_data.customers')->onDelete('set null');
+            $table->foreignUuid('general_information_id')->nullable()->constrained('crm.general_informations')->onDelete('set null');
             $table->uuid('proposal_id')->nullable();
             $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('product_cluster_id')->nullable()->constrained()->onDelete('set null');
@@ -42,7 +42,8 @@ return new class extends Migration
 
             $table->integer('project_number')->nullable();
             $table->string('status')->default('draft'); // draft, approved, rejected, converted
-            $table->json('signatures')->nullable();
+            $table->boolean('is_imported')->default(false);
+            $table->uuid('import_source_id')->nullable();
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();
 
@@ -59,6 +60,6 @@ return new class extends Migration
     public function down(): void
     {
 
-        Schema::dropIfExists('profitability_analyses');
+        Schema::dropIfExists('finance.profitability_analyses');
     }
 };

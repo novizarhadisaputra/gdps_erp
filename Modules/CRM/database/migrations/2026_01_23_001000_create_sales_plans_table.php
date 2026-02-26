@@ -11,25 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales_plans', function (Blueprint $table) {
+        Schema::create('crm.sales_plans', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('lead_id')->constrained()->cascadeOnDelete();
 
             // Categorization
-            $table->foreignUuid('project_type_id')->nullable()->constrained('project_types')->nullOnDelete();
-            $table->foreignUuid('revenue_segment_id')->nullable()->constrained('revenue_segments')->nullOnDelete();
-            $table->foreignUuid('industrial_sector_id')->nullable()->constrained('industrial_sectors')->nullOnDelete();
-            $table->foreignUuid('skill_category_id')->nullable()->constrained('skill_categories')->nullOnDelete();
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained('product_clusters')->nullOnDelete();
-            $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas')->nullOnDelete();
+            $table->foreignUuid('project_type_id')->nullable()->constrained('master_data.project_types')->nullOnDelete();
+            $table->foreignUuid('revenue_segment_id')->nullable()->constrained('master_data.revenue_segments')->nullOnDelete();
+            $table->foreignUuid('industrial_sector_id')->nullable()->constrained('master_data.industrial_sectors')->nullOnDelete();
+            $table->foreignUuid('skill_category_id')->nullable()->constrained('master_data.skill_categories')->nullOnDelete();
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained('master_data.product_clusters')->nullOnDelete();
+            $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
             $table->foreignUuid('ams_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->json('job_positions')->nullable();
+            $table->json('master_data.job_positions')->nullable();
 
             // Financials
             $table->decimal('estimated_value', 15, 2)->nullable();
             $table->decimal('management_fee_percentage', 5, 2)->nullable();
             $table->decimal('npm_percentage', 5, 2)->nullable();
-            $table->foreignUuid('payment_term_id')->nullable()->constrained('payment_terms')->nullOnDelete();
+            $table->foreignUuid('payment_term_id')->nullable()->constrained('master_data.payment_terms')->nullOnDelete();
             $table->integer('top_days')->nullable();
 
             // Timeline
@@ -60,6 +60,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales_plans');
+        Schema::dropIfExists('crm.sales_plans');
     }
 };

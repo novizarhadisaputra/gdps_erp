@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('job_positions', function (Blueprint $table) {
+        Schema::create('master_data.job_positions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('risk_level')->default('very_low'); // very_low, low, medium, high, very_high
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('job_positions');
+        Schema::dropIfExists('master_data.job_positions');
     }
 };

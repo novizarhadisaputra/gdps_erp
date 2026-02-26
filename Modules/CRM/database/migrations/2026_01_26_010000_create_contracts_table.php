@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contracts', function (Blueprint $table) {
+        Schema::create('crm.contracts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->nullable()->constrained('leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->nullable()->constrained('customers')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->onDelete('cascade');
+            $table->foreignUuid('customer_id')->nullable()->constrained('master_data.customers')->onDelete('set null');
             $table->foreignUuid('proposal_id')->nullable()->constrained()->onDelete('set null');
             $table->string('contract_number')->unique();
             $table->string('type')->default('agreement'); // agreement, work_order
@@ -22,14 +22,13 @@ return new class extends Migration
             $table->string('status')->default('draft'); // draft, active, expired, terminated
             $table->string('reminder_status')->nullable(); // 6_month, 3_month, 1_month
             $table->text('termination_reason')->nullable();
-            $table->json('signatures')->nullable();
             $table->timestamps();
         });
 
         // Add foreign keys to sales_plans (after contracts table exists)
-        Schema::table('sales_plans', function (Blueprint $table) {
-            $table->foreign('agreement_id')->references('id')->on('contracts')->nullOnDelete();
-            $table->foreign('work_order_id')->references('id')->on('contracts')->nullOnDelete();
+        Schema::table('crm.sales_plans', function (Blueprint $table) {
+            $table->foreign('agreement_id')->references('id')->on('crm.contracts')->nullOnDelete();
+            $table->foreign('work_order_id')->references('id')->on('crm.contracts')->nullOnDelete();
         });
     }
 
@@ -38,11 +37,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sales_plans', function (Blueprint $table) {
+        Schema::table('crm.sales_plans', function (Blueprint $table) {
             $table->dropForeign(['agreement_id']);
             $table->dropForeign(['work_order_id']);
         });
 
-        Schema::dropIfExists('contracts');
+        Schema::dropIfExists('crm.contracts');
     }
 };

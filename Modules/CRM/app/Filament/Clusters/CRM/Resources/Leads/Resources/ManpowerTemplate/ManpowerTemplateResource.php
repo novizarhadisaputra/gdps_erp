@@ -1,8 +1,7 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate;
 
-use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -27,26 +26,20 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
+use Modules\CRM\Models\ManpowerTemplate;
 use Modules\Finance\Services\ManpowerCostingService;
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplates\Pages;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\ManpowerTemplate;
 use Modules\MasterData\Models\RegencyMinimumWage;
-use UnitEnum;
 
 class ManpowerTemplateResource extends Resource
 {
     protected static ?string $model = ManpowerTemplate::class;
 
-    protected static ?string $cluster = MasterDataCluster::class;
+    protected static bool $isNested = true;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
-
-    protected static string|UnitEnum|null $navigationGroup = 'Costing & Referentials';
-
-    protected static ?int $navigationSort = 120;
+    protected static ?string $parentResource = LeadResource::class;
 
     public static function form(Schema $schema): Schema
     {
@@ -57,6 +50,11 @@ class ManpowerTemplateResource extends Resource
                         ->description('Define basic template details and project area.')
                         ->icon('heroicon-m-identification')
                         ->schema([
+                            \Filament\Forms\Components\Placeholder::make('import_status')
+                                ->label('Source')
+                                ->content('Imported via AI')
+                                ->visible(fn ($record) => $record?->is_imported)
+                                ->columnSpanFull(),
                             TextInput::make('name')
                                 ->label('Template Name')
                                 ->placeholder('e.g., Standard Security Packet')

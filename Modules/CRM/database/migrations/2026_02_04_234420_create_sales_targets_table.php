@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales_targets', function (Blueprint $table) {
+        Schema::create('crm.sales_targets', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('unit_id')->nullable(); // Virtual relationship to Unit model
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales_targets');
+        Schema::dropIfExists('crm.sales_targets');
     }
 };

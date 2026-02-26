@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('items', function (Blueprint $table) {
+        Schema::create('master_data.items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('unit_id')->nullable()->index();
-            $table->foreignUuid('item_category_id')->constrained('item_categories')->onDelete('cascade');
+            $table->foreignUuid('item_category_id')->constrained('master_data.item_categories')->onDelete('cascade');
             $table->foreignUuid('asset_group_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignUuid('unit_of_measure_id')->constrained('units_of_measure')->onDelete('cascade');
+            $table->foreignUuid('unit_of_measure_id')->constrained('master_data.units_of_measure')->onDelete('cascade');
             $table->string('code')->unique();
             $table->string('name');
             $table->text('description')->nullable();
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('items');
+        Schema::dropIfExists('master_data.items');
     }
 };

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('asset_groups', function (Blueprint $table) {
+        Schema::create('master_data.asset_groups', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('type')->nullable(); // AssetGroupType enum
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('asset_groups');
+        Schema::dropIfExists('master_data.asset_groups');
     }
 };

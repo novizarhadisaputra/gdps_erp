@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('taxes', function (Blueprint $table) {
+        Schema::create('master_data.taxes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('taxes');
+        Schema::dropIfExists('master_data.taxes');
     }
 };

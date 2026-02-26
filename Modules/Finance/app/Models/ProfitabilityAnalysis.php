@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class ProfitabilityAnalysis extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
+    use HasModuleSchema;
 
     protected static function newFactory()
     {
@@ -63,6 +65,8 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'ebt',
         'net_profit',
         'net_profit_margin',
+        'is_imported',
+        'import_source_id',
     ];
 
     protected function casts(): array
@@ -96,6 +100,10 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             ->singleFile();
 
         $this->addMediaCollection('rfi')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('cogs_source')
             ->useDisk('s3')
             ->singleFile();
     }

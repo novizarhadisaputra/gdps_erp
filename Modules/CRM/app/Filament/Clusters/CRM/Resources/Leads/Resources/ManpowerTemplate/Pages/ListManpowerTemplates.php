@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplates\Pages;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
 
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplateResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 
 class ListManpowerTemplates extends ListRecords
 {

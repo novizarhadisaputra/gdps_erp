@@ -19,6 +19,7 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\CostingTemplate;
+use Modules\CRM\Models\ManpowerTemplate;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Services\ManpowerCostingService;
@@ -30,7 +31,6 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxF
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\ManpowerTemplate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProfitabilityAnalysisForm
@@ -97,9 +97,13 @@ class ProfitabilityAnalysisForm
                                             ->hint('Request for Proposal'),
                                         SpatieMediaLibraryFileUpload::make('rfi')
                                             ->collection('rfi')
-
                                             ->label('RFI Document')
                                             ->hint('Request for Information'),
+                                        SpatieMediaLibraryFileUpload::make('cogs_source')
+                                            ->collection('cogs_source')
+                                            ->label('Original COGS File')
+                                            ->hint('Source file for AI import')
+                                            ->visible(fn ($record) => $record?->is_imported),
                                     ]),
                             ])->compact(),
 
@@ -286,6 +290,11 @@ class ProfitabilityAnalysisForm
                             ->relationship('manpowerItems')
                             ->label('Personnel & Job Positions')
                             ->schema([
+                                \Filament\Forms\Components\Placeholder::make('import_status')
+                                    ->label('Source')
+                                    ->content('Imported via AI')
+                                    ->visible(fn ($record) => $record?->import_source_id !== null)
+                                    ->columnSpanFull(),
                                 Select::make('costable_type')
                                     ->label('Type')
                                     ->options([
@@ -485,6 +494,11 @@ class ProfitabilityAnalysisForm
                             ->relationship('operationalItems')
                             ->label('Equipment & Material Items')
                             ->schema([
+                                \Filament\Forms\Components\Placeholder::make('import_status')
+                                    ->label('Source')
+                                    ->content('Imported via AI')
+                                    ->visible(fn ($record) => $record?->import_source_id !== null)
+                                    ->columnSpanFull(),
                                 Select::make('costable_type')
                                     ->label('Type')
                                     ->options([

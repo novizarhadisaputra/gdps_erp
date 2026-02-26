@@ -1,23 +1,27 @@
 <?php
 
-namespace Modules\MasterData\Models;
+namespace Modules\CRM\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\MasterData\Models\ProjectArea;
 
 class ManpowerTemplate extends Model
 {
     use HasFactory, HasUuids;
+    use HasModuleSchema;
 
-    protected static function newFactory()
+    protected static function newFactory(): \Modules\CRM\Database\Factories\ManpowerTemplateFactory
     {
-        return \Modules\MasterData\Database\Factories\ManpowerTemplateFactory::new();
+        return \Modules\CRM\Database\Factories\ManpowerTemplateFactory::new();
     }
 
     protected $fillable = [
+        'lead_id',
         'project_area_id',
         'name',
         'description',
@@ -27,6 +31,8 @@ class ManpowerTemplate extends Model
         'bill_thr_monthly',
         'bill_compensation_monthly',
         'is_active',
+        'is_imported',
+        'import_source_id',
     ];
 
     protected $casts = [
@@ -34,7 +40,13 @@ class ManpowerTemplate extends Model
         'bill_thr_monthly' => 'boolean',
         'bill_compensation_monthly' => 'boolean',
         'is_active' => 'boolean',
+        'is_imported' => 'boolean',
     ];
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
+    }
 
     public function projectArea(): BelongsTo
     {

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use Modules\MasterData\Models\ContactRole;
 class GeneralInformationPic extends Model
 {
     use HasFactory, HasUuids;
+    use HasModuleSchema;
 
     protected $fillable = [
         'general_information_id',

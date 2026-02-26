@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplates\Pages;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
 
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplateResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 
 class ViewManpowerTemplate extends ViewRecord
 {

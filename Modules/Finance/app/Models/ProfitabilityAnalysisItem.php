@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class ProfitabilityAnalysisItem extends Model
 {
     use HasFactory, HasUuids;
+    use HasModuleSchema;
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +29,7 @@ class ProfitabilityAnalysisItem extends Model
         'total_monthly_sale',
         'cost_breakdown',
         'duration_months',
+        'import_source_id',
     ];
 
     protected function casts(): array

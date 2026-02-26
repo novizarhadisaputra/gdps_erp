@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('leads', function (Blueprint $table) {
+        Schema::create('crm.leads', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('title');
-            $table->foreignUuid('customer_id')->constrained('customers')->cascadeOnDelete();
-            $table->foreignUuid('work_scheme_id')->nullable()->constrained('work_schemes')->nullOnDelete();
+            $table->foreignUuid('customer_id')->constrained('master_data.customers')->cascadeOnDelete();
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained('master_data.work_schemes')->nullOnDelete();
             $table->string('status')->default('lead'); // lead, approach, proposal, negotiation, won, closed_lost
 
             // Categorization (Flows to Sales Plan)
-            $table->foreignUuid('revenue_segment_id')->nullable()->constrained('revenue_segments')->nullOnDelete();
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained('product_clusters')->nullOnDelete();
-            $table->foreignUuid('project_type_id')->nullable()->constrained('project_types')->nullOnDelete();
+            $table->foreignUuid('revenue_segment_id')->nullable()->constrained('master_data.revenue_segments')->nullOnDelete();
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained('master_data.product_clusters')->nullOnDelete();
+            $table->foreignUuid('project_type_id')->nullable()->constrained('master_data.project_types')->nullOnDelete();
 
-            $table->foreignUuid('industrial_sector_id')->nullable()->constrained('industrial_sectors')->nullOnDelete();
-            $table->foreignUuid('project_area_id')->nullable()->constrained('project_areas')->nullOnDelete();
+            $table->foreignUuid('industrial_sector_id')->nullable()->constrained('master_data.industrial_sectors')->nullOnDelete();
+            $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
 
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
@@ -34,13 +34,17 @@ return new class extends Migration
             $table->string('confidence_level')->nullable(); // optimistic, moderate, pessimistic
             $table->flowforgePositionColumn('position');
             $table->text('description')->nullable();
-            $table->json('job_positions')->nullable();
+            $table->json('master_data.job_positions')->nullable();
 
             // Person In Charge (Internal Sales)
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['status', 'created_at'], 'idx_leads_status_created');
+            $table->index(['user_id', 'status'], 'idx_leads_user_status');
+            $table->index('expected_closing_date', 'idx_leads_expected_closing');
         });
     }
 
@@ -49,6 +53,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('leads');
+        Schema::dropIfExists('crm.leads');
     }
 };

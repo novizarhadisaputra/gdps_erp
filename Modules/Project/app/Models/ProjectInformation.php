@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,7 @@ use Modules\Project\Observers\ProjectInformationObserver;
 class ProjectInformation extends Model
 {
     use HasDigitalSignatures, HasFactory, HasUuids;
+    use HasModuleSchema;
 
     protected $table = 'project_informations';
 

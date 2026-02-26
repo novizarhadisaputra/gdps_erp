@@ -1,4 +1,4 @@
-<?php
+    <?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('approval_rules', function (Blueprint $table) {
+        Schema::create('master_data.approval_rules', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('resource_type');         // e.g., 'Modules\Finance\Models\ProfitabilityAnalysis'
             $table->string('criteria_field')->nullable();        // e.g., 'revenue_per_month'
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('approval_rules');
+        Schema::dropIfExists('master_data.approval_rules');
     }
 };

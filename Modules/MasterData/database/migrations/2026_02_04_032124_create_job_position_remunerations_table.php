@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('job_position_remunerations', function (Blueprint $table) {
-            $table->foreignUuid('job_position_id')->constrained('job_positions')->cascadeOnDelete();
-            $table->foreignUuid('remuneration_component_id')->constrained('remuneration_components')->cascadeOnDelete();
+        Schema::create('master_data.job_position_remunerations', function (Blueprint $table) {
+            $table->foreignUuid('job_position_id')->constrained('master_data.job_positions')->cascadeOnDelete();
+            $table->foreignUuid('remuneration_component_id')->constrained('master_data.remuneration_components')->cascadeOnDelete();
             $table->decimal('amount', 15, 2)->default(0);
             $table->timestamps();
         });
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('job_position_remunerations');
+        Schema::dropIfExists('master_data.job_position_remunerations');
     }
 };

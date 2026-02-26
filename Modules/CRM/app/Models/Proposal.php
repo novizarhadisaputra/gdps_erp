@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Proposal extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
+    use HasModuleSchema;
 
     protected $fillable = [
         'lead_id',
@@ -34,6 +36,8 @@ class Proposal extends Model implements HasMedia
         'submission_date',
         'sequence_number',
         'year',
+        'is_imported',
+        'import_source_id',
     ];
 
     protected $casts = [

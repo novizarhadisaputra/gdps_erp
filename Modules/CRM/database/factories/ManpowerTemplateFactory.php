@@ -1,9 +1,9 @@
 <?php
 
-namespace Modules\MasterData\Database\Factories;
+namespace Modules\CRM\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\MasterData\Models\ManpowerTemplate;
+use Modules\CRM\Models\ManpowerTemplate;
 use Modules\MasterData\Models\ProjectArea;
 
 class ManpowerTemplateFactory extends Factory

@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('vendors', function (Blueprint $table) {
+        Schema::create('master_data.vendors', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
             $table->string('tax_id')->nullable()->comment('NPWP or Tax Identification Number');
-            $table->foreignUuid('payment_term_id')->nullable()->constrained('payment_terms')->nullOnDelete();
+            $table->foreignUuid('payment_term_id')->nullable()->constrained('master_data.payment_terms')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('vendors');
+        Schema::dropIfExists('master_data.vendors');
     }
 };

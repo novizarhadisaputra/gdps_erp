@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,7 @@ use Modules\MasterData\Traits\HasUnitScoping;
 class PaymentTerm extends Model
 {
     use HasFactory, HasUnitScoping, HasUuids;
+    use HasModuleSchema;
 
     /**
      * The attributes that are mass assignable.

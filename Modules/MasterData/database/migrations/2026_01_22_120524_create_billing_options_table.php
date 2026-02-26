@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('billing_options', function (Blueprint $table) {
+        Schema::create('master_data.billing_options', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('billing_options');
+        Schema::dropIfExists('master_data.billing_options');
     }
 };

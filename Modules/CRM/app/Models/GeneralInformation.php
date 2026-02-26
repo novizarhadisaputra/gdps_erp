@@ -2,15 +2,16 @@
 
 namespace Modules\CRM\Models;
 
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\CRM\Database\Factories\GeneralInformationFactory;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\CRM\Database\Factories\GeneralInformationFactory;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
@@ -27,6 +28,7 @@ class GeneralInformation extends Model implements HasMedia
         isFullyApproved as traitIsFullyApproved;
     }
     use HasFactory, HasUuids, InteractsWithMedia;
+    use HasModuleSchema;
 
     protected static function newFactory(): GeneralInformationFactory
     {

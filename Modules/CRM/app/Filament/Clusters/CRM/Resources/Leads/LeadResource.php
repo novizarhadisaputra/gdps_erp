@@ -17,7 +17,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\EditLead;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\LeadBoard;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ListLeads;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageContracts;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageCostingTemplates;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageGeneralInformations;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageManpowerTemplates;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProfitabilityAnalyses;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectInformations;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProposals;
@@ -53,6 +55,8 @@ class LeadResource extends Resource
             ...$page->generateNavigationItems([
                 EditLead::class,
                 ManageProjectInformations::class,
+                ManageManpowerTemplates::class,
+                ManageCostingTemplates::class,
             ]),
             ...collect($page->generateNavigationItems([
                 ManageSalesPlans::class,
@@ -148,10 +152,11 @@ class LeadResource extends Resource
             'sales-plans' => ManageSalesPlans::route('/{record}/sales-plans'),
             'general-informations' => ManageGeneralInformations::route('/{record}/general-informations'),
             'proposals' => ManageProposals::route('/{record}/proposals'),
+            'manpower-templates' => ManageManpowerTemplates::route('/{record}/manpower-templates'),
             'profitability-analyses' => ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),
             'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
             'contracts' => ManageContracts::route('/{record}/contracts'),
-            'costing-templates' => Pages\ManageCostingTemplates::route('/{record}/costing-templates'),
+            'costing-templates' => ManageCostingTemplates::route('/{record}/costing-templates'),
         ];
     }
 }
