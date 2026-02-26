@@ -17,7 +17,7 @@ class Unit extends Model
      *
      * @var string|null
      */
-    protected $table = 'units';
+    protected $table = 'master_data.units';
 
     /**
      * The attributes that are mass assignable.

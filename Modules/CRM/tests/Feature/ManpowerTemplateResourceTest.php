@@ -1,13 +1,14 @@
 <?php
 
-namespace Modules\MasterData\Tests\Feature;
+namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplateResource;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ManpowerTemplates\Pages;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
+use Modules\CRM\Models\ManpowerTemplate;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ProjectArea;
 use Tests\TestCase;
@@ -54,7 +55,6 @@ class ManpowerTemplateResourceTest extends TestCase
 
         $component = Livewire::test(Pages\CreateManpowerTemplate::class);
 
-        // Get the UUID of the initial item added by defaultItems(1)
         $uuid = array_key_first($component->get('data.items') ?? []);
 
         if (! $uuid) {
@@ -75,14 +75,14 @@ class ManpowerTemplateResourceTest extends TestCase
             ->call('create')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('manpower_templates', ['name' => 'New Manpower Template']);
+        $this->assertDatabaseHas('crm.manpower_templates', ['name' => 'New Manpower Template']);
     }
 
     public function test_can_edit_record(): void
     {
         $projectArea = ProjectArea::factory()->create();
         $jobPosition = JobPosition::factory()->create();
-        $record = \Modules\MasterData\Models\ManpowerTemplate::factory()->create([
+        $record = ManpowerTemplate::factory()->create([
             'project_area_id' => $projectArea->id,
         ]);
 
@@ -90,7 +90,6 @@ class ManpowerTemplateResourceTest extends TestCase
             'record' => $record->getRouteKey(),
         ]);
 
-        // Get the UUID of the first item
         $uuid = array_key_first($component->get('data.items') ?? []);
 
         if (! $uuid) {
@@ -109,7 +108,7 @@ class ManpowerTemplateResourceTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('manpower_templates', [
+        $this->assertDatabaseHas('crm.manpower_templates', [
             'id' => $record->id,
             'name' => 'Updated Template Name',
         ]);

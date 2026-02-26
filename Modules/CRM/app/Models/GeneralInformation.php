@@ -35,7 +35,7 @@ class GeneralInformation extends Model implements HasMedia
         return GeneralInformationFactory::new();
     }
 
-    protected $table = 'general_informations';
+    protected $table = 'crm.general_informations';
 
     /**
      * The attributes that are mass assignable.

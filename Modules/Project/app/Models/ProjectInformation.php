@@ -23,7 +23,7 @@ class ProjectInformation extends Model
     use HasDigitalSignatures, HasFactory, HasUuids;
     use HasModuleSchema;
 
-    protected $table = 'project_informations';
+    protected $table = 'project.project_informations';
 
     protected $fillable = [
         'project_id',

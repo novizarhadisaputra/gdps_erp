@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.manpower_templates', function (Blueprint $table) {
+        Schema::create('crm.manpower_templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('project_area_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('risk_level')->default('very_low');
@@ -25,9 +25,9 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('master_data.manpower_template_items', function (Blueprint $table) {
+        Schema::create('crm.manpower_template_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('manpower_template_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('manpower_template_id')->constrained('crm.manpower_templates')->cascadeOnDelete();
             $table->foreignUuid('job_position_id')->constrained('master_data.job_positions')->cascadeOnDelete();
             $table->decimal('basic_salary', 15, 2)->default(0);
             $table->integer('quantity')->default(1);
@@ -41,7 +41,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.manpower_template_items');
-        Schema::dropIfExists('master_data.manpower_templates');
+        Schema::dropIfExists('crm.manpower_template_items');
+        Schema::dropIfExists('crm.manpower_templates');
     }
 };
