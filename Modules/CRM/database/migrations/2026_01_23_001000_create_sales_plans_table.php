@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('crm.sales_plans', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('lead_id')->constrained('crm.leads')->cascadeOnDelete();
 
             // Categorization
             $table->foreignUuid('project_type_id')->nullable()->constrained('master_data.project_types')->nullOnDelete();
@@ -23,7 +23,6 @@ return new class extends Migration
             $table->foreignUuid('product_cluster_id')->nullable()->constrained('master_data.product_clusters')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
             $table->foreignUuid('ams_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->json('master_data.job_positions')->nullable();
 
             // Financials
             $table->decimal('estimated_value', 15, 2)->nullable();
@@ -50,6 +49,7 @@ return new class extends Migration
             $table->string('ba_number')->nullable();
             $table->string('so_number')->nullable();
 
+            $table->json('job_positions')->nullable();
             $table->json('revenue_distribution_planning')->nullable();
             $table->timestamps();
         });

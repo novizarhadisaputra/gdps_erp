@@ -33,8 +33,8 @@ return new class extends Migration
             $table->date('expected_closing_date')->nullable();
             $table->string('confidence_level')->nullable(); // optimistic, moderate, pessimistic
             $table->flowforgePositionColumn('position');
+            $table->json('job_positions')->nullable();
             $table->text('description')->nullable();
-            $table->json('master_data.job_positions')->nullable();
 
             // Person In Charge (Internal Sales)
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
