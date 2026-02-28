@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -33,13 +34,14 @@ class LeadsTable
             ->filters([
                 //
             ])
-            ->actions([
+            ->recordActions([
                 MoveToApproachAction::make(),
                 ViewAction::make()
                     ->schema(fn ($schema) => LeadInfolist::configure($schema)),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

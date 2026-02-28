@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\GeneralInformation;
+use Modules\MasterData\Models\ContactRole;
 
 class GeneralInformationForm
 {
@@ -121,7 +122,6 @@ class GeneralInformationForm
             Section::make('PICs & Remarks')
                 ->schema([
                     Repeater::make('pics')
-                        ->relationship('pics')
                         ->schema([
                             TextInput::make('name')
                                 ->required(),
@@ -130,9 +130,8 @@ class GeneralInformationForm
                                 ->email(),
                             Select::make('contact_role_id')
                                 ->label('Role')
-                                ->relationship('contactRole', 'name')
+                                ->options(fn () => ContactRole::pluck('name', 'id'))
                                 ->searchable()
-                                ->preload()
                                 ->required(),
                         ])
                         ->columns(2)

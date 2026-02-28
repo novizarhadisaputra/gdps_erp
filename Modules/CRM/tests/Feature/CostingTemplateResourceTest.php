@@ -58,7 +58,7 @@ class CostingTemplateResourceTest extends TestCase
                 'depreciation_months' => 1,
                 'markup_percent' => 10,
                 'unit_price_markup' => 110000,
-                'total_cost' => 220000,
+                'total_price' => 220000,
                 'monthly_cost' => 220000,
             ])
             ->assertHasNoActionErrors();

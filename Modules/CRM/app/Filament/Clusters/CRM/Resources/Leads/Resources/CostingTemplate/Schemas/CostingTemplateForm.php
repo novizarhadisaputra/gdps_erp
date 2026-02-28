@@ -5,22 +5,34 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
-use Modules\CRM\Models\CostingTemplate;
+use Modules\CRM\Models\Lead;
 
 class CostingTemplateForm
 {
+    public static function getAutoFillData(Lead $lead): array
+    {
+        $latestGi = $lead->generalInformations()->latest()->first();
+
+        return [
+            'name' => $lead->customer?->name,
+            'description' => $latestGi?->scope_of_work,
+            'pic_id' => $lead->pic_costing_id ?? auth()->id(),
+            'costingTemplateItems' => [],
+        ];
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
             Wizard::make([
-                Step::make('General Information')
+                Step::make('Core Information')
+                    ->description('Basic template details')
                     ->schema([
                         TextInput::make('name')
                             ->required()
@@ -40,28 +52,259 @@ class CostingTemplateForm
                         TextInput::make('description')
                             ->maxLength(255),
                     ]),
+
                 Step::make('Items & Costing')
+                    ->description('Manage items and calculations')
                     ->schema([
-                        ViewField::make('items_notice')
-                            ->label('')
-                            ->view('crm::costing.items-notice'),
+                        \Filament\Forms\Components\Repeater::make('costingTemplateItems')
+                            ->relationship()
+                            ->schema([
+                                Grid::make(4)
+                                    ->schema([
+                                        Select::make('category')
+                                            ->options(collect(\Modules\CRM\Enums\CostingCategory::cases())
+                                                ->filter(fn ($case) => $case !== \Modules\CRM\Enums\CostingCategory::Manpower)
+                                                ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
+                                                ->toArray())
+                                            ->required()
+                                            ->live(),
+                                        Select::make('depreciation_method')
+                                            ->label('Depreciation Method')
+                                            ->options(\Modules\CRM\Enums\DepreciationMethod::class)
+                                            ->default(\Modules\CRM\Enums\DepreciationMethod::StraightLine)
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                self::calculateItem($get, $set);
+                                            }),
+                                        Select::make('item_id')
+                                            ->label('Material/Asset')
+                                            ->relationship('item', 'name')
+                                            ->required()
+                                            ->searchable()
+                                            ->preload()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                if (! $state) {
+                                                    return;
+                                                }
+                                                $item = \Modules\MasterData\Models\Item::find($state);
+                                                if ($item) {
+                                                    $set('name', $item->name);
+                                                    $set('unit_price', $item->price);
+
+                                                    $depreciation = $item->depreciation_months;
+                                                    if (empty($depreciation) || $depreciation <= 0) {
+                                                        $assetGroup = $item->assetGroup ?? $item->category?->assetGroup;
+                                                        $usefulLifeYears = $assetGroup?->useful_life_years;
+                                                        if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                                            $depreciation = $usefulLifeYears * 12;
+                                                        }
+                                                    }
+                                                    $set('depreciation_months', $depreciation ?? 1);
+                                                    self::calculateItem($get, $set);
+                                                }
+                                            }),
+                                        TextInput::make('name')
+                                            ->label('Item Name')
+                                            ->required()
+                                            ->maxLength(255),
+                                    ]),
+
+                                Grid::make(4)
+                                    ->schema([
+                                        TextInput::make('quantity')
+                                            ->numeric()
+                                            ->default(1)
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                self::calculateItem($get, $set);
+                                            }),
+                                        TextInput::make('unit_price')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->prefix('IDR')
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                self::calculateItem($get, $set);
+                                            })
+                                            ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state)),
+                                        TextInput::make('markup_percent')
+                                            ->label('Markup %')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                self::calculateItem($get, $set, 'markup_percent');
+                                            }),
+                                        TextInput::make('depreciation_months')
+                                            ->label('Depreciation (Mo)')
+                                            ->numeric()
+                                            ->default(1)
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                self::calculateItem($get, $set);
+                                            })
+                                            ->helperText('Use 1 for monthly recurring costs.'),
+                                    ]),
+
+                                Grid::make(3)
+                                    ->schema([
+                                        TextInput::make('unit_price_markup')
+                                            ->label('Price w/ Markup')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->prefix('IDR')
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                self::calculateItem($get, $set, 'unit_price_markup');
+                                            })
+                                            ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state)),
+                                        TextInput::make('total_price')
+                                            ->label('Total Investment')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->prefix('IDR')
+                                            ->readOnly()
+                                            ->dehydrated()
+                                            ->live(),
+                                        TextInput::make('monthly_cost')
+                                            ->label('Monthly Cost')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->prefix('IDR')
+                                            ->readOnly()
+                                            ->dehydrated()
+                                            ->live(),
+                                    ]),
+                            ])
+                            ->defaultItems(0)
+                            ->columnSpanFull()
+                            ->addActionLabel('Add Item')
+                            ->collapsible()
+                            ->cloneable()
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                self::updateTotals($get, $set);
+                            })
+                            ->afterStateHydrated(function (Get $get, Set $set) {
+                                self::updateTotals($get, $set);
+                            }),
+                    ]),
+
+                Step::make('Costing Summary')
+                    ->description('Review totals and submit')
+                    ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextInput::make('total_amount')
                                     ->label('Total Investment')
-                                    ->numeric()
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR')
                                     ->readOnly()
-                                    ->placeholder(fn (Get $get, Set $set, ?CostingTemplate $record) => $record ? number_format($record->costingTemplateItems()->sum('total_cost'), 0, ',', '.') : '0'),
+                                    ->dehydrated(),
                                 TextInput::make('total_monthly_cost')
                                     ->label('Total Monthly Cost')
-                                    ->numeric()
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR')
                                     ->readOnly()
-                                    ->placeholder(fn (Get $get, Set $set, ?CostingTemplate $record) => $record ? number_format($record->getTotalMonthlyCost(), 0, ',', '.') : '0'),
+                                    ->dehydrated(),
                             ]),
                     ]),
             ])->columnSpanFull(),
         ]);
+    }
+
+    protected static function updateTotals(Get $get, Set $set): void
+    {
+        $items = $get('costingTemplateItems') ?: [];
+        $totalAmount = 0;
+        $totalMonthly = 0;
+        foreach ($items as $item) {
+            $totalAmount += self::parseCurrency($item['total_price'] ?? 0);
+            $totalMonthly += self::parseCurrency($item['monthly_cost'] ?? 0);
+        }
+        $set('total_amount', $totalAmount);
+        $set('total_monthly_cost', $totalMonthly);
+    }
+
+    protected static function calculateItem(Get $get, Set $set, ?string $trigger = null): void
+    {
+        $qty = $get('quantity');
+        $price = $get('unit_price');
+        $markupPercent = $get('markup_percent');
+        $priceAfterMarkup = $get('unit_price_markup');
+        $deprMonths = $get('depreciation_months');
+        $method = $get('depreciation_method');
+
+        $qty = is_numeric($qty) ? (float) $qty : 0;
+        $price = self::parseCurrency($price);
+        $markupPercent = is_numeric($markupPercent) ? (float) $markupPercent : 0;
+        $priceAfterMarkup = self::parseCurrency($priceAfterMarkup);
+        $deprMonths = is_numeric($deprMonths) ? (float) $deprMonths : 1;
+
+        if ($trigger === 'unit_price_markup') {
+            if ($price > 0) {
+                $markupPercent = (($priceAfterMarkup / $price) - 1) * 100;
+                $set('markup_percent', round($markupPercent, 2));
+            }
+        } elseif ($trigger === 'markup_percent' || empty($priceAfterMarkup)) {
+            $priceAfterMarkup = $price * (1 + ($markupPercent / 100));
+            $set('unit_price_markup', $priceAfterMarkup);
+        } else {
+            // Default: recalculate based on markup percent if both exist
+            $priceAfterMarkup = $price * (1 + ($markupPercent / 100));
+            $set('unit_price_markup', $priceAfterMarkup);
+        }
+
+        $total = $qty * $priceAfterMarkup;
+
+        $monthly = 0;
+        if ($deprMonths > 0) {
+            $methodValue = $method instanceof \BackedEnum ? $method->value : $method;
+
+            $itemId = $get('item_id');
+            $item = $itemId ? \Modules\MasterData\Models\Item::find($itemId) : null;
+            $ag = $item?->assetGroup ?? $item?->category?->assetGroup;
+
+            if ($methodValue === \Modules\CRM\Enums\DepreciationMethod::DecliningBalance->value) {
+                $rate = (float) ($ag?->rate_declining_balance ?? 0);
+
+                if ($rate > 0) {
+                    $monthly = ($total * $rate / 100) / 12;
+                } else {
+                    $monthly = $total / $deprMonths;
+                }
+            } else {
+                // Straight Line
+                $rate = (float) ($ag?->rate_straight_line ?? 0);
+
+                if ($rate > 0) {
+                    $monthly = ($total * $rate / 100) / 12;
+                } else {
+                    $monthly = $total / $deprMonths;
+                }
+            }
+        } else {
+            $monthly = $total;
+        }
+
+        $set('total_price', $total);
+        $set('monthly_cost', $monthly);
+    }
+
+    protected static function parseCurrency($value): float
+    {
+        if (! $value) {
+            return 0;
+        }
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        $clean = str_replace('.', '', $value);
+        $clean = str_replace(',', '.', $clean);
+
+        return (float) $clean;
     }
 }

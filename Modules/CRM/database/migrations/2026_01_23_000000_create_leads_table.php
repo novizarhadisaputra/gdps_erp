@@ -38,6 +38,7 @@ return new class extends Migration
 
             // Person In Charge (Internal Sales)
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('pic_costing_id')->nullable()->constrained('users')->nullOnDelete();
 
             $table->timestamps();
             $table->softDeletes();

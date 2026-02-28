@@ -66,6 +66,7 @@ class Lead extends Model
         'start_date',
         'end_date',
         'job_positions',
+        'pic_costing_id',
     ];
 
     protected $casts = [
@@ -162,6 +163,11 @@ class Lead extends Model
     public function ams(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'ams_id');
+    }
+
+    public function picCosting(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pic_costing_id');
     }
 
     public function salesPlan(): HasOne

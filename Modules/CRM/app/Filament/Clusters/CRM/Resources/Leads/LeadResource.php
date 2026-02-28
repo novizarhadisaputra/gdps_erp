@@ -51,12 +51,14 @@ class LeadResource extends Resource
     {
         $record = $page->getRecord();
 
+        $giApproved = $record->generalInformations()
+            ->get()
+            ->some(fn ($gi) => $gi->isFullyApproved());
+
         return [
             ...$page->generateNavigationItems([
                 EditLead::class,
                 ManageProjectInformations::class,
-                ManageManpowerTemplates::class,
-                ManageCostingTemplates::class,
             ]),
             ...collect($page->generateNavigationItems([
                 ManageSalesPlans::class,
@@ -79,15 +81,38 @@ class LeadResource extends Resource
                     LeadStatus::Won,
                 ])))->toArray(),
             ...collect($page->generateNavigationItems([
-                ManageProfitabilityAnalyses::class,
+                ManageManpowerTemplates::class,
             ]))->map(fn (NavigationItem $item) => $item
-                ->group('Stage 1: Planning (Approach)')
+                ->group('Stage 2: Commercials (Proposal)')
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Approach,
                     LeadStatus::Proposal,
                     LeadStatus::Negotiation,
                     LeadStatus::Won,
-                ])))->toArray(),
+                ]) && $giApproved
+                ))->toArray(),
+            ...collect($page->generateNavigationItems([
+                ManageCostingTemplates::class,
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 2: Commercials (Proposal)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Approach,
+                    LeadStatus::Proposal,
+                    LeadStatus::Negotiation,
+                    LeadStatus::Won,
+                ]) && $giApproved
+                ))->toArray(),
+            ...collect($page->generateNavigationItems([
+                ManageProfitabilityAnalyses::class,
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 2: Commercials (Proposal)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Approach,
+                    LeadStatus::Proposal,
+                    LeadStatus::Negotiation,
+                    LeadStatus::Won,
+                ]) && $giApproved
+                ))->toArray(),
             ...collect($page->generateNavigationItems([
                 ManageProposals::class,
             ]))->map(fn (NavigationItem $item) => $item
@@ -98,16 +123,6 @@ class LeadResource extends Resource
                     LeadStatus::Won,
                 ]) && $record->profitabilityAnalyses()->where('status', 'approved')->exists()
                 ))->toArray(),
-            ...collect($page->generateNavigationItems([
-                Pages\ManageCostingTemplates::class,
-            ]))->map(fn (NavigationItem $item) => $item
-                ->group('Stage 2: Commercials (Proposal)')
-                ->visible(fn () => in_array($record->status, [
-                    LeadStatus::Approach,
-                    LeadStatus::Proposal,
-                    LeadStatus::Negotiation,
-                    LeadStatus::Won,
-                ])))->toArray(),
             ...collect($page->generateNavigationItems([
                 ManageContracts::class,
             ]))->map(fn (NavigationItem $item) => $item

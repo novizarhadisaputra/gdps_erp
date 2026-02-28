@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Str;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
@@ -15,6 +16,8 @@ use Modules\MasterData\Services\SignatureService;
 
 class ViewGeneralInformation extends ViewRecord
 {
+    use InteractsWithParentRecord;
+
     protected static string $resource = GeneralInformationResource::class;
 
     protected function getHeaderActions(): array

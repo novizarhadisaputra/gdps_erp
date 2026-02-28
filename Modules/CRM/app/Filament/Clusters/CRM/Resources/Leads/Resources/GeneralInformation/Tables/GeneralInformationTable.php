@@ -5,6 +5,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInf
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -171,6 +172,7 @@ class GeneralInformationTable
                     ]),
                 EditAction::make()
                     ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::form($schema)),
+                DeleteAction::make(),
                 Action::make('createPA')
                     ->label('Create PA')
                     ->icon('heroicon-o-presentation-chart-bar')

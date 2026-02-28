@@ -56,7 +56,21 @@ class GeneralInformationObserver
      */
     public function updated(GeneralInformation $info): void
     {
-        // Logic for re-submission if needed
+        // Sync CostingTemplate and ManpowerTemplate description
+        if ($info->wasChanged(['scope_of_work', 'project_area_id', 'status']) && $info->status === 'approved') {
+            $lead = $info->lead;
+            if ($lead) {
+                if ($info->wasChanged(['scope_of_work', 'status'])) {
+                    $lead->costingTemplates()->update(['description' => $info->scope_of_work]);
+                    $lead->manpowerTemplates()->update(['description' => $info->scope_of_work]);
+                }
+
+                if ($info->wasChanged(['project_area_id', 'status'])) {
+                    $lead->costingTemplates()->update(['project_area_id' => $info->project_area_id]);
+                    $lead->manpowerTemplates()->update(['project_area_id' => $info->project_area_id]);
+                }
+            }
+        }
     }
 
     /**

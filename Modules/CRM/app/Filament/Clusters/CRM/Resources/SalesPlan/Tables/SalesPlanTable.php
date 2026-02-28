@@ -3,6 +3,9 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Tables;
 
 use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
@@ -98,8 +101,9 @@ class SalesPlanTable
                                 return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
                             }),
                     ]),
-                // EditAction::make()
-                //     ->schema(fn ($schema) => SalesPlanForm::configure($schema)),
+                EditAction::make()
+                    ->schema(fn ($schema) => SalesPlanForm::configure($schema)),
+                DeleteAction::make(),
                 Action::make('convertToGI')
                     ->label('Convert to GI')
                     ->icon('heroicon-o-document-plus')
@@ -129,6 +133,11 @@ class SalesPlanTable
 
                         return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
                     }),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

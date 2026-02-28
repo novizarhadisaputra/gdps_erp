@@ -114,6 +114,29 @@ class GeneralInformationInfolist
                                     ->bulleted(),
                             ]),
                     ])->columnSpanFull(),
+                Section::make('Risk Register')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('rr_status')
+                                    ->label('RR Status')
+                                    ->badge()
+                                    ->color(fn (?string $state): string => match ($state) {
+                                        'approved' => 'success',
+                                        'submitted', 'pending' => 'info',
+                                        'rejected' => 'danger',
+                                        default => 'gray',
+                                    })
+                                    ->formatStateUsing(fn (?string $state): string => $state ? ucfirst($state) : '-'),
+                                TextEntry::make('rr_document_number')
+                                    ->label('RR Document Number')
+                                    ->placeholder('-'),
+                                TextEntry::make('rr_submission_id')
+                                    ->label('RR Submission ID')
+                                    ->placeholder('-'),
+                            ]),
+                    ])->columnSpanFull()
+                    ->visible(fn ($record) => filled($record?->rr_status)),
                 Section::make('Approval & Signatures')
                     ->schema([
                         DigitalSignatureEntry::make('signatures')

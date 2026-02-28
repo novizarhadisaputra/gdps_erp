@@ -6,9 +6,12 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
+use Modules\CRM\Traits\CanImportAi;
 
 class ManageManpowerTemplates extends ManageRelatedRecords
 {
+    use CanImportAi;
+
     protected static string $resource = LeadResource::class;
 
     protected static string $relationship = 'manpowerTemplates';
@@ -26,6 +29,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
     {
         return ManpowerTemplateResource::table($table)
             ->headerActions([
+                $this->getImportManpowerAiAction(),
                 CreateAction::make()
                     ->schema(fn (\Filament\Schemas\Schema $schema) => ManpowerTemplateResource::form($schema)),
             ]);

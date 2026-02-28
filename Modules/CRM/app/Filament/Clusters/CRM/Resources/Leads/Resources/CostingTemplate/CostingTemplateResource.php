@@ -43,7 +43,6 @@ class CostingTemplateResource extends Resource
         return $page->generateNavigationItems([
             ViewCostingTemplate::class,
             EditCostingTemplate::class,
-            Pages\ManageCostingTemplateItems::class,
         ]);
     }
 
@@ -54,7 +53,6 @@ class CostingTemplateResource extends Resource
             'create' => CreateCostingTemplate::route('/create'),
             'view' => ViewCostingTemplate::route('/{record}'),
             'edit' => EditCostingTemplate::route('/{record}/edit'),
-            'items' => Pages\ManageCostingTemplateItems::route('/{record}/items'),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas;
 
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -72,6 +73,18 @@ class LeadForm
                                 ->searchable()
                                 ->preload()
                                 ->helperText('Select the required job positions for this lead.'),
+                            Select::make('pic_costing_id')
+                                ->label('Costing PIC')
+                                ->relationship('picCosting', 'name')
+                                ->options(function () {
+                                    return User::where('id', auth()->id())
+                                        ->orWhere('unit_id', '10000016')
+                                        ->pluck('name', 'id');
+                                })
+                                ->searchable()
+                                ->preload()
+                                ->default(auth()->id())
+                                ->helperText('Assign a user responsible for creating Costing Templates.'),
                         ]),
                 ])
                 ->columnSpanFull()

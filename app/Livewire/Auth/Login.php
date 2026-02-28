@@ -111,7 +111,7 @@ class Login extends Component
             // Fire Login event for plugins like Shield or Logger
             event(new LoginEvent('web', $user, $this->remember));
 
-            return redirect()->to(Filament::getUrl());
+            return redirect()->intended('/');
         } catch (Exception $e) {
             Log::error('Login process failed', [
                 'message' => $e->getMessage(),

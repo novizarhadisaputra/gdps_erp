@@ -117,7 +117,7 @@ class CostingTemplateItemForm
                                 ->prefix('IDR')
                                 ->readOnly()
                                 ->dehydrated(),
-                            TextInput::make('total_cost')
+                            TextInput::make('total_price')
                                 ->label('Total Investment')
                                 ->numeric()
                                 ->prefix('IDR')
@@ -177,7 +177,7 @@ class CostingTemplateItemForm
         }
 
         $set('unit_price_markup', $priceAfterMarkup);
-        $set('total_cost', $total);
+        $set('total_price', $total);
         $set('monthly_cost', $monthly);
     }
 }

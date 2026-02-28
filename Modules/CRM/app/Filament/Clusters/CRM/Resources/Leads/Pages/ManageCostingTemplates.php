@@ -6,9 +6,13 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm;
+use Modules\CRM\Traits\CanImportAi;
 
 class ManageCostingTemplates extends ManageRelatedRecords
 {
+    use CanImportAi;
+
     protected static string $resource = LeadResource::class;
 
     protected static string $relationship = 'costingTemplates';
@@ -26,8 +30,10 @@ class ManageCostingTemplates extends ManageRelatedRecords
     {
         return CostingTemplateResource::table($table)
             ->headerActions([
+                $this->getImportCostingAiAction(),
                 CreateAction::make()
-                    ->schema(fn (\Filament\Schemas\Schema $schema) => CostingTemplateResource::form($schema)),
+                    ->schema(fn (\Filament\Schemas\Schema $schema) => CostingTemplateResource::form($schema))
+                    ->fillForm(fn () => CostingTemplateForm::getAutoFillData($this->getOwnerRecord())),
             ]);
     }
 }

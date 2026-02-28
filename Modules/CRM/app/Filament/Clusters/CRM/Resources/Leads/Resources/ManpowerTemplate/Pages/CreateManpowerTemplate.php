@@ -2,10 +2,31 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
 
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\CreateRecord;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 
 class CreateManpowerTemplate extends CreateRecord
 {
+    use InteractsWithParentRecord;
+
     protected static string $resource = ManpowerTemplateResource::class;
+
+    protected function afterFill(): void
+    {
+        $latestGi = $this->parentRecord->generalInformations()->latest()->first();
+
+        $this->form->fill([
+            'name' => $this->parentRecord->customer?->name,
+            'description' => $latestGi?->scope_of_work,
+            'project_area_id' => $latestGi?->project_area_id ?? $this->parentRecord->project_area_id,
+        ]);
+    }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $data['lead_id'] = $this->parentRecord->id;
+
+        return $data;
+    }
 }

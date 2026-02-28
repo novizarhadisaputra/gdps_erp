@@ -3,11 +3,15 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\Pages;
 
 use Filament\Actions\DeleteAction;
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource;
+use Modules\CRM\Models\GeneralInformationPic;
 
 class EditGeneralInformation extends EditRecord
 {
+    use InteractsWithParentRecord;
+
     protected static string $resource = GeneralInformationResource::class;
 
     protected function getHeaderActions(): array
@@ -15,5 +19,48 @@ class EditGeneralInformation extends EditRecord
         return [
             DeleteAction::make(),
         ];
+    }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['pics'] = $this->getRecord()->pics()->get()->map(fn ($pic) => [
+            'id' => $pic->id,
+            'name' => $pic->name,
+            'phone' => $pic->phone,
+            'email' => $pic->email,
+            'contact_role_id' => $pic->contact_role_id,
+        ])->toArray();
+
+        return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        $record = $this->getRecord();
+        $formPics = collect($this->data['pics'] ?? []);
+
+        $submittedIds = $formPics->pluck('id')->filter()->values()->toArray();
+
+        // Delete pics that were removed from the form
+        $record->pics()->whereNotIn('id', $submittedIds)->delete();
+
+        // Upsert remaining pics
+        foreach ($formPics as $picData) {
+            if (! empty($picData['id'])) {
+                GeneralInformationPic::where('id', $picData['id'])->update([
+                    'name' => $picData['name'],
+                    'phone' => $picData['phone'] ?? null,
+                    'email' => $picData['email'] ?? null,
+                    'contact_role_id' => $picData['contact_role_id'] ?? null,
+                ]);
+            } else {
+                $record->pics()->create([
+                    'name' => $picData['name'],
+                    'phone' => $picData['phone'] ?? null,
+                    'email' => $picData['email'] ?? null,
+                    'contact_role_id' => $picData['contact_role_id'] ?? null,
+                ]);
+            }
+        }
     }
 }

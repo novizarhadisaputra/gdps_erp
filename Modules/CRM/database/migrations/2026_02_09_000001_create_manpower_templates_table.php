@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('crm.manpower_templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
@@ -22,6 +23,8 @@ return new class extends Migration
             $table->boolean('bill_thr_monthly')->default(true);
             $table->boolean('bill_compensation_monthly')->default(true);
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_imported')->default(false);
+            $table->uuid('import_source_id')->nullable();
             $table->timestamps();
         });
 

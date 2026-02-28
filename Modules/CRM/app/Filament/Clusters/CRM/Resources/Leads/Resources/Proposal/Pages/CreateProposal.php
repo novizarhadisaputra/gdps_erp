@@ -2,16 +2,19 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages;
 
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\CreateRecord;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 
 class CreateProposal extends CreateRecord
 {
+    use InteractsWithParentRecord;
+
     protected static string $resource = ProposalResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $lead = $this->getOwnerRecord();
+        $lead = $this->parentRecord;
 
         if ($lead) {
             $data['customer_id'] = $lead->customer_id;

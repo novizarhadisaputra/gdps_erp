@@ -44,6 +44,23 @@ class LeadObserver
             ]);
         }
 
+        // Sync CostingTemplate and ManpowerTemplate generic data
+        if ($lead->wasChanged(['customer_id', 'title', 'project_area_id'])) {
+            $newName = $lead->customer?->name ?? $lead->title;
+
+            if ($lead->wasChanged(['customer_id', 'title'])) {
+                $lead->costingTemplates()->update(['name' => $newName]);
+                $lead->manpowerTemplates()->update(['name' => $newName]);
+            }
+
+            if ($lead->wasChanged('project_area_id')) {
+                // Determine if we should update project_area_id on templates.
+                // Usually GeneralInformation might override this, but safe to cascade.
+                $lead->costingTemplates()->update(['project_area_id' => $lead->project_area_id]);
+                $lead->manpowerTemplates()->update(['project_area_id' => $lead->project_area_id]);
+            }
+        }
+
         if (! $lead->wasChanged('status')) {
             return;
         }
