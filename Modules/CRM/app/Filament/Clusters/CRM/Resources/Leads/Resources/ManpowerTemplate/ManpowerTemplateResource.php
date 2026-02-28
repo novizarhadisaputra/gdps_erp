@@ -2,12 +2,14 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use Filament\Actions\Action as TableAction;
+use Filament\Actions\BulkActionGroup as TableBulkActionGroup;
+use Filament\Actions\DeleteAction as TableDeleteAction;
+use Filament\Actions\DeleteBulkAction as TableDeleteBulkAction;
+use Filament\Actions\EditAction as TableEditAction;
+use Filament\Actions\ViewAction as TableViewAction;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -26,6 +28,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\Finance\Services\ManpowerCostingService;
@@ -359,13 +362,27 @@ class ManpowerTemplateResource extends Resource
                 //
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
+                TableAction::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function ($record) {
+                        $costSimulation = $record->getCostSimulation();
+                        $pdf = Pdf::loadView('crm::pdf.manpower_template', [
+                            'record' => $record,
+                            'costSimulation' => $costSimulation,
+                        ]);
+                        $name = Str::slug($record->name, '-');
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
+                    }),
+                TableViewAction::make(),
+                TableEditAction::make(),
+                TableDeleteAction::make(),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                TableBulkActionGroup::make([
+                    TableDeleteBulkAction::make(),
                 ]),
             ]);
     }

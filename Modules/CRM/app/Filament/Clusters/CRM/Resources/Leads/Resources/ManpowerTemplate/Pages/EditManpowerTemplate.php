@@ -2,10 +2,13 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Str;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 
 class EditManpowerTemplate extends EditRecord
@@ -17,6 +20,21 @@ class EditManpowerTemplate extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pdf')
+                ->label('Export PDF')
+                ->color('gray')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->action(function () {
+                    $record = $this->getRecord();
+                    $costSimulation = $record->getCostSimulation();
+                    $pdf = Pdf::loadView('crm::pdf.manpower_template', [
+                        'record' => $record,
+                        'costSimulation' => $costSimulation,
+                    ]);
+                    $name = Str::slug($record->name, '-');
+
+                    return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
+                }),
             ViewAction::make(),
             DeleteAction::make(),
         ];

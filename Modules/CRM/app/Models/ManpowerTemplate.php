@@ -57,4 +57,77 @@ class ManpowerTemplate extends Model
     {
         return $this->hasMany(ManpowerTemplateItem::class);
     }
+
+    public function getCostSimulation(): array
+    {
+        $service = app(\Modules\Finance\Services\ManpowerCostingService::class);
+        $totalTemplateCost = 0;
+        $rows = [];
+
+        $areaId = $this->project_area_id;
+
+        if (! $areaId) {
+            return ['rows' => [], 'total' => 0];
+        }
+
+        $riskLevel = $this->risk_level ?? 'very_low';
+        $isLaborIntensive = (bool) ($this->is_labor_intensive ?? false);
+        $employeeType = $this->employee_type ?? 'ppu';
+        $billThr = (bool) ($this->bill_thr_monthly ?? true);
+        $billComp = (bool) ($this->bill_compensation_monthly ?? true);
+
+        foreach ($this->items as $item) {
+            $jpId = $item->job_position_id ?? null;
+            $qty = (int) ($item->quantity ?? 0);
+
+            if (! $jpId || $qty <= 0) {
+                continue;
+            }
+
+            $jp = \Modules\MasterData\Models\JobPosition::with('remunerationComponents')->find($jpId);
+            if (! $jp) {
+                continue;
+            }
+
+            $allowances = [];
+            foreach ($jp->remunerationComponents ?? [] as $component) {
+                $allowances[] = [
+                    'name' => $component->name,
+                    'type' => 'nominal',
+                    'value' => $component->pivot->amount,
+                    'is_fixed' => $component->is_fixed,
+                ];
+            }
+
+            $basicSalary = (float) ($item->basic_salary ?? 0);
+
+            $res = $service->calculate(
+                basicSalary: $basicSalary,
+                allowances: $allowances,
+                projectAreaId: $areaId,
+                year: (int) date('Y'),
+                riskLevel: $riskLevel,
+                isLaborIntensive: $isLaborIntensive,
+                employeeType: $employeeType,
+                billThrMonthly: $billThr,
+                billCompensationMonthly: $billComp
+            );
+
+            $unitCost = $res['total_direct_cost'];
+            $lineTotal = $unitCost * $qty;
+            $totalTemplateCost += $lineTotal;
+
+            $res['job_position_name'] = $jp->name;
+            $res['qty'] = $qty;
+            $res['basic_salary'] = $basicSalary;
+            $res['line_total'] = $lineTotal;
+
+            $rows[] = $res;
+        }
+
+        return [
+            'rows' => $rows,
+            'total' => $totalTemplateCost,
+        ];
+    }
 }
