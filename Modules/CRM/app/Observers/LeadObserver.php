@@ -54,9 +54,7 @@ class LeadObserver
             }
 
             if ($lead->wasChanged('project_area_id')) {
-                // Determine if we should update project_area_id on templates.
-                // Usually GeneralInformation might override this, but safe to cascade.
-                $lead->costingTemplates()->update(['project_area_id' => $lead->project_area_id]);
+                // ManpowerTemplate has project_area_id, CostingTemplate does not.
                 $lead->manpowerTemplates()->update(['project_area_id' => $lead->project_area_id]);
             }
         }

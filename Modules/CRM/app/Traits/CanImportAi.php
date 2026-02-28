@@ -46,6 +46,8 @@ trait CanImportAi
                         $duration = $lead->start_date->diffInMonths($lead->end_date) ?: 1;
                     }
 
+                    $latestGi = $lead->generalInformations()->latest()->first();
+
                     $jobPositions = JobPosition::where('is_active', true)->get(['id', 'name'])->toArray();
                     $context = [
                         'project_area' => $lead->projectArea?->name,
@@ -69,7 +71,9 @@ trait CanImportAi
 
                     $template = ManpowerTemplate::create([
                         'lead_id' => $lead->id,
-                        'name' => 'Imported via AI - '.now()->format('Y-m-d H:i'),
+                        'name' => ($lead->customer?->name ?? $lead->title).' - AI Auto Generated ('.now()->format('Y-m-d H:i').')',
+                        'description' => $latestGi?->scope_of_work,
+                        'project_area_id' => $latestGi?->project_area_id ?? $lead->project_area_id,
                         'is_imported' => true,
                         'is_active' => true,
                     ]);
@@ -145,6 +149,8 @@ trait CanImportAi
                         $duration = $lead->start_date->diffInMonths($lead->end_date) ?: 1;
                     }
 
+                    $latestGi = $lead->generalInformations()->latest()->first();
+
                     $existingItems = Item::where('is_active', true)->get(['id', 'name'])->toArray();
                     $context = [
                         'project_area' => $lead->projectArea?->name,
@@ -169,7 +175,8 @@ trait CanImportAi
 
                     $template = CostingTemplate::create([
                         'lead_id' => $lead->id,
-                        'name' => 'Imported via AI - '.now()->format('Y-m-d H:i'),
+                        'name' => ($lead->customer?->name ?? $lead->title).' - AI Auto Generated ('.now()->format('Y-m-d H:i').')',
+                        'description' => $latestGi?->scope_of_work,
                         'pic_id' => auth()->id(),
                     ]);
 
