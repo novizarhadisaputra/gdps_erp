@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
+            $table->string('code')->nullable()->unique();
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('risk_level')->default('very_low');

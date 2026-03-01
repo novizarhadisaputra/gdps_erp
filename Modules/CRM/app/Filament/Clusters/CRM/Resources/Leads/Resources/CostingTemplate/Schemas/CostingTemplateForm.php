@@ -34,6 +34,9 @@ class CostingTemplateForm
                 Step::make('Core Information')
                     ->description('Basic template details')
                     ->schema([
+                        TextInput::make('code')
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),

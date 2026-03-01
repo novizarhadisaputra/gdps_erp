@@ -182,12 +182,14 @@ trait CanImportAi
 
                     foreach ($operationalData as $itemData) {
                         $itemId = $itemData['matched_id'];
+                        $basePrice = 0;
 
                         if (! $itemId || strtolower($itemId) === 'null') {
                             $existing = Item::where('name', 'ilike', $itemData['name'])->first();
 
                             if ($existing) {
                                 $itemId = $existing->id;
+                                $basePrice = (float) $existing->price;
                             } else {
                                 $newItem = Item::create([
                                     'name' => $itemData['name'],
@@ -197,16 +199,35 @@ trait CanImportAi
                                     'unit_id' => auth()->user()?->unit_id,
                                 ]);
                                 $itemId = $newItem->id;
+                                $basePrice = (float) $newItem->price;
+                            }
+                        } else {
+                            $existing = Item::find($itemId);
+                            if ($existing) {
+                                $basePrice = (float) $existing->price;
                             }
                         }
 
                         $qty = (float) ($itemData['quantity'] ?? 1);
-                        $price = (float) ($itemData['unit_price'] ?? 0);
+                        $excelPrice = (float) ($itemData['unit_price'] ?? 0);
+
+                        // Handle price discrepancies and setup markup
+                        $unitPrice = $basePrice > 0 ? $basePrice : $excelPrice;
                         $markupPercent = 0;
+                        $priceAfterMarkup = $unitPrice;
+
+                        if ($excelPrice > 0 && $excelPrice !== $unitPrice) {
+                            $priceAfterMarkup = $excelPrice;
+                            if ($unitPrice > 0) {
+                                $markupPercent = (($priceAfterMarkup / $unitPrice) - 1) * 100;
+                            } else {
+                                $unitPrice = $excelPrice;
+                            }
+                        }
+
                         $deprMonths = (float) ($itemData['depreciation_months'] ?? ($itemData['is_asset'] ? 48 : $duration));
                         $method = DepreciationMethod::StraightLine;
 
-                        $priceAfterMarkup = $price * (1 + ($markupPercent / 100));
                         $total = $qty * $priceAfterMarkup;
                         $monthly = $total / ($deprMonths > 0 ? $deprMonths : 1);
 
@@ -217,8 +238,8 @@ trait CanImportAi
                             'name' => $itemData['name'],
                             'quantity' => $qty,
                             'unit' => $itemData['unit'] ?? 'Pcs',
-                            'unit_price' => $price,
-                            'markup_percent' => $markupPercent,
+                            'unit_price' => $unitPrice,
+                            'markup_percent' => round($markupPercent, 2),
                             'unit_price_markup' => $priceAfterMarkup,
                             'total_price' => $total,
                             'depreciation_months' => $deprMonths,

@@ -15,8 +15,9 @@ class CostingTemplateInfolist
         return $schema->components([
             Section::make('General Information')
                 ->schema([
-                    Grid::make(3)
+                    Grid::make(4)
                         ->schema([
+                            TextEntry::make('code'),
                             TextEntry::make('name'),
                             TextEntry::make('pic.name')->label('PIC'),
                             TextEntry::make('total_monthly_cost')->money('IDR'),

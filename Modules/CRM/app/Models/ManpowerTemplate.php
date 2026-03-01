@@ -23,6 +23,7 @@ class ManpowerTemplate extends Model
     protected $fillable = [
         'lead_id',
         'project_area_id',
+        'code',
         'name',
         'description',
         'risk_level',

@@ -19,6 +19,9 @@ class CostingTemplatesTable
     {
         return $table
             ->columns([
+                TextColumn::make('code')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),

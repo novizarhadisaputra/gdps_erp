@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('crm.costing_templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('code')->nullable()->unique();
             $table->string('name');
             $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->cascadeOnDelete();
             $table->foreignUuid('pic_id')->nullable()->constrained('users');
