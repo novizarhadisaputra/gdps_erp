@@ -57,6 +57,12 @@ class ManpowerTemplateResource extends Resource
                                 ->content('Imported via AI')
                                 ->visible(fn ($record) => $record?->is_imported)
                                 ->columnSpanFull(),
+                            TextInput::make('code')
+                                ->hidden(fn (string $operation): bool => $operation === 'create')
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->maxLength(255)
+                                ->unique(ignoreRecord: true),
                             TextInput::make('name')
                                 ->label('Template Name')
                                 ->placeholder('e.g., Standard Security Packet')

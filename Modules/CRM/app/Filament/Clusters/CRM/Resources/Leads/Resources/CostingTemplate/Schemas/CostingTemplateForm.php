@@ -35,6 +35,9 @@ class CostingTemplateForm
                     ->description('Basic template details')
                     ->schema([
                         TextInput::make('code')
+                            ->hidden(fn (string $operation): bool => $operation === 'create')
+                            ->disabled()
+                            ->dehydrated(false)
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
                         TextInput::make('name')

@@ -14,6 +14,7 @@ use Modules\CRM\Models\CostingTemplateItem;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\CRM\Models\ManpowerTemplateItem;
 use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\ItemCategory;
 use Modules\MasterData\Models\JobPosition;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -79,7 +80,7 @@ trait CanImportAi
                     ]);
 
                     foreach ($manpowerData as $item) {
-                        $jobPositionId = $item['matched_id'];
+                        $jobPositionId = $item['matched_id'] ?? null;
 
                         if (! $jobPositionId || strtolower($jobPositionId) === 'null') {
                             $existing = JobPosition::where('name', 'ilike', $item['name'])->first();
@@ -128,7 +129,7 @@ trait CanImportAi
             ->label('Import via AI')
             ->icon('heroicon-o-sparkles')
             ->color('info')
-            ->form([
+            ->schema([
                 FileUpload::make('file')
                     ->label('Excel File')
                     ->disk('local')
@@ -152,11 +153,25 @@ trait CanImportAi
                     $latestGi = $lead->generalInformations()->latest()->first();
 
                     $existingItems = Item::where('is_active', true)->get(['id', 'name'])->toArray();
+                    $existingCategories = ItemCategory::get(['id', 'name'])->toArray();
+                    $existingUnits = \Modules\MasterData\Models\UnitOfMeasure::get(['id', 'name', 'code'])->toArray();
+
                     $context = [
                         'project_area' => $lead->projectArea?->name,
                         'default_duration_months' => $duration,
                         'existing_items' => $existingItems,
+                        'existing_categories' => $existingCategories,
+                        'existing_units' => $existingUnits,
                     ];
+
+                    $materialCategory = ItemCategory::with('assetGroup')->where('name', 'ilike', '%Material%')->first() ?? ItemCategory::with('assetGroup')->first();
+                    $equipmentCategory = ItemCategory::with('assetGroup')->where('name', 'ilike', '%Equipment%')->first() ?? $materialCategory;
+
+                    // Fetch default UnitOfMeasure
+                    $defaultUom = \Modules\MasterData\Models\UnitOfMeasure::where('name', 'ilike', 'pcs')
+                        ->orWhere('name', 'ilike', 'pieces')
+                        ->orWhere('name', 'ilike', 'ls')
+                        ->first() ?? \Modules\MasterData\Models\UnitOfMeasure::first();
 
                     $processedData = $aiService->processCogsData($rows, $context);
                     $operationalData = collect($processedData['operational'] ?? [])
@@ -181,7 +196,7 @@ trait CanImportAi
                     ]);
 
                     foreach ($operationalData as $itemData) {
-                        $itemId = $itemData['matched_id'];
+                        $itemId = $itemData['matched_id'] ?? null;
                         $basePrice = 0;
 
                         if (! $itemId || strtolower($itemId) === 'null') {
@@ -191,18 +206,55 @@ trait CanImportAi
                                 $itemId = $existing->id;
                                 $basePrice = (float) $existing->price;
                             } else {
+                                $isAsset = ! empty($itemData['is_asset']) && $itemData['is_asset'];
+
+                                // Map Item Category from AI or Fallback
+                                $resolvedCategoryId = $itemData['matched_category_id'] ?? null;
+                                $resolvedCategory = null;
+                                if ($resolvedCategoryId) {
+                                    $resolvedCategory = ItemCategory::with('assetGroup')->find($resolvedCategoryId);
+                                }
+
+                                if (! $resolvedCategory) {
+                                    $resolvedCategory = $isAsset ? $equipmentCategory : $materialCategory;
+                                    $resolvedCategoryId = $resolvedCategory?->id;
+                                }
+
+                                // Fallback logic for depreciation months
+                                $deprMonthsInput = $itemData['depreciation_months'] ?? null;
+                                if (! $deprMonthsInput) {
+                                    $usefulLifeYears = $resolvedCategory?->assetGroup?->useful_life_years;
+                                    if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                        $deprMonthsInput = $usefulLifeYears * 12;
+                                    } else {
+                                        $deprMonthsInput = $isAsset ? 48 : $duration;
+                                    }
+                                }
+
+                                // Map Unit Of Measure from AI
+                                $resolvedUnitId = $itemData['matched_unit_id'] ?? null;
+                                if (! $resolvedUnitId) {
+                                    $aiUnit = $itemData['unit'] ?? 'Pcs';
+                                    $resolvedUom = \Modules\MasterData\Models\UnitOfMeasure::where('name', 'ilike', trim($aiUnit))
+                                        ->orWhere('code', 'ilike', trim($aiUnit))
+                                        ->first() ?? $defaultUom;
+                                    $resolvedUnitId = $resolvedUom?->id;
+                                }
+
                                 $newItem = Item::create([
                                     'name' => $itemData['name'],
                                     'price' => (float) ($itemData['unit_price'] ?? 0),
-                                    'depreciation_months' => (float) ($itemData['depreciation_months'] ?? ($itemData['is_asset'] ? 48 : $duration)),
+                                    'item_category_id' => $resolvedCategoryId,
+                                    'depreciation_months' => (int) round((float) $deprMonthsInput),
                                     'is_active' => true,
                                     'unit_id' => auth()->user()?->unit_id,
+                                    'unit_of_measure_id' => $resolvedUnitId,
                                 ]);
                                 $itemId = $newItem->id;
                                 $basePrice = (float) $newItem->price;
                             }
                         } else {
-                            $existing = Item::find($itemId);
+                            $existing = Item::with('category.assetGroup')->find($itemId);
                             if ($existing) {
                                 $basePrice = (float) $existing->price;
                             }
@@ -225,7 +277,32 @@ trait CanImportAi
                             }
                         }
 
-                        $deprMonths = (float) ($itemData['depreciation_months'] ?? ($itemData['is_asset'] ? 48 : $duration));
+                        // Determine depreciation months for the costing item
+                        $deprMonths = null;
+                        if (! empty($itemData['depreciation_months'])) {
+                            $deprMonths = (int) round((float) $itemData['depreciation_months']);
+                        } else {
+                            $isAsset = ! empty($itemData['is_asset']) && $itemData['is_asset'];
+                            if (isset($existing) && $existing) {
+                                $deprMonths = $existing->depreciation_months;
+                                if (empty($deprMonths) || $deprMonths <= 0) {
+                                    $usefulLifeYears = $existing->category?->assetGroup?->useful_life_years;
+                                    if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                        $deprMonths = $usefulLifeYears * 12;
+                                    }
+                                }
+                            } else {
+                                $resolvedCategory = $isAsset ? $equipmentCategory : $materialCategory;
+                                $usefulLifeYears = $resolvedCategory?->assetGroup?->useful_life_years;
+                                if ($usefulLifeYears && $usefulLifeYears > 0) {
+                                    $deprMonths = $usefulLifeYears * 12;
+                                }
+                            }
+
+                            if (! $deprMonths) {
+                                $deprMonths = $isAsset ? 48 : $duration;
+                            }
+                        }
                         $method = DepreciationMethod::StraightLine;
 
                         $total = $qty * $priceAfterMarkup;
