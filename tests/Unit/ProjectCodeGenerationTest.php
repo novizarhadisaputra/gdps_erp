@@ -4,7 +4,7 @@ namespace Tests\Unit;
 
 use Mockery;
 use Modules\Project\Models\Project;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class ProjectCodeGenerationTest extends TestCase
 {

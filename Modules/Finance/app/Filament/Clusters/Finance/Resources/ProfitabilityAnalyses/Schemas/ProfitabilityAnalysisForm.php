@@ -246,11 +246,25 @@ class ProfitabilityAnalysisForm
                                     ->createOptionForm(ProjectAreaForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
                             ]),
-                        Select::make('asset_ownership')
-                            ->options(AssetOwnership::class)
-                            ->default(AssetOwnership::GdpsOwned)
-                            ->required()
-                            ->native(false),
+                        Grid::make(2)
+                            ->schema([
+                                Select::make('asset_ownership')
+                                    ->options(AssetOwnership::class)
+                                    ->default(AssetOwnership::GdpsOwned)
+                                    ->required()
+                                    ->native(false),
+                                Grid::make(2)
+                                    ->schema([
+                                        Toggle::make('require_manpower_costing')
+                                            ->label('Require Manpower Costing')
+                                            ->default(true)
+                                            ->live(),
+                                        Toggle::make('require_operational_costing')
+                                            ->label('Require Operational Costing')
+                                            ->default(true)
+                                            ->live(),
+                                    ])->columnSpan(1),
+                            ]),
                     ]),
 
                 Step::make('Financial Assumptions')
@@ -289,10 +303,14 @@ class ProfitabilityAnalysisForm
                         Repeater::make('manpowerItems')
                             ->relationship('manpowerItems')
                             ->label('Personnel & Job Positions')
+                            ->required(fn (Get $get) => $get('require_manpower_costing'))
+                            ->minItems(fn (Get $get) => $get('require_manpower_costing') ? 1 : 0)
                             ->schema([
-                                \Filament\Forms\Components\Placeholder::make('import_status')
+                                TextInput::make('import_status')
                                     ->label('Source')
-                                    ->content('Imported via AI')
+                                    ->default('Imported via AI')
+                                    ->disabled()
+                                    ->dehydrated(false)
                                     ->visible(fn ($record) => $record?->import_source_id !== null)
                                     ->columnSpanFull(),
                                 Select::make('costable_type')
@@ -493,10 +511,14 @@ class ProfitabilityAnalysisForm
                         Repeater::make('operationalItems')
                             ->relationship('operationalItems')
                             ->label('Equipment & Material Items')
+                            ->required(fn (Get $get) => $get('require_operational_costing'))
+                            ->minItems(fn (Get $get) => $get('require_operational_costing') ? 1 : 0)
                             ->schema([
-                                \Filament\Forms\Components\Placeholder::make('import_status')
+                                TextInput::make('import_status')
                                     ->label('Source')
-                                    ->content('Imported via AI')
+                                    ->default('Imported via AI')
+                                    ->disabled()
+                                    ->dehydrated(false)
                                     ->visible(fn ($record) => $record?->import_source_id !== null)
                                     ->columnSpanFull(),
                                 Select::make('costable_type')

@@ -3,6 +3,7 @@
 namespace Modules\Project\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,11 +23,13 @@ use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Database\Factories\ProjectFactory;
+use Modules\Project\Observers\ProjectObserver;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 // use Modules\Project\Database\Factories\ProjectFactory;
 
+#[ObservedBy(ProjectObserver::class)]
 class Project extends Model implements HasMedia
 {
     use HasFactory, HasUuids, InteractsWithMedia;
@@ -57,6 +60,18 @@ class Project extends Model implements HasMedia
         'profitability_analysis_id',
         'lead_id',
     ];
+
+    public static function generateProjectCode(self $project): string
+    {
+        $customerCode = $project->customer?->code ?? $project->client?->code ?? 'XXX';
+        $workSchemeCode = $project->workScheme?->code ?? 'XX';
+        $projectAreaCode = $project->projectArea?->code ?? 'XXX';
+        $projectNumber = str_pad((string) ($project->project_number ?? '1'), 2, '0', STR_PAD_LEFT);
+        $productClusterCode = $project->productCluster?->code ?? 'XXX';
+        $taxCode = $project->tax?->code ?? 'XX';
+
+        return strtoupper("{$customerCode}{$workSchemeCode}{$projectAreaCode}{$projectNumber}{$productClusterCode}{$taxCode}");
+    }
 
     public function proposal(): BelongsTo
     {

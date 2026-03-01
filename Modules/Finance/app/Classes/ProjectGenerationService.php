@@ -19,6 +19,9 @@ class ProjectGenerationService
             // 2. Map Project Type from Work Scheme
             $projectTypeId = $this->mapProjectType($pa->work_scheme_id);
 
+            // Get active contract if available
+            $contract = $pa->lead?->contracts()->where('status', 'active')->first();
+
             // 3. Create the Project
             $project = Project::create([
                 'name' => $pa->proposal?->proposal_number ?? 'Project for '.$pa->customer?->name,
@@ -32,9 +35,16 @@ class ProjectGenerationService
                 'status' => 'planning',
                 'proposal_id' => $pa->proposal_id,
                 'profitability_analysis_id' => $pa->id,
+                'lead_id' => $pa->lead_id,
+                'contract_id' => $contract?->id,
+                'oprep_id' => $pa->lead?->oprep_id,
+                'ams_id' => $pa->lead?->ams_id,
+                'payment_term_id' => $pa->lead?->payment_term_id,
+                'billing_option_id' => $pa->lead?->billing_option_id,
+                'start_date' => $pa->lead?->start_date,
+                'end_date' => $pa->lead?->end_date,
             ]);
 
-            // 4. Populate Project Information from PA
             // 4. Populate Project Information from PA
             $details = $pa->analysis_details;
             if (empty($details) && $pa->items()->exists()) {

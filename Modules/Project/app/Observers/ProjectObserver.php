@@ -7,6 +7,16 @@ use Modules\Project\Models\Project;
 class ProjectObserver
 {
     /**
+     * Handle the Project "creating" event.
+     */
+    public function creating(Project $project): void
+    {
+        if (empty($project->code)) {
+            $project->code = Project::generateProjectCode($project);
+        }
+    }
+
+    /**
      * Handle the Project "saved" event.
      */
     public function saved(Project $project): void
