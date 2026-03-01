@@ -185,7 +185,19 @@ trait CanImportAi
 
                         if (! $itemId || strtolower($itemId) === 'null') {
                             $existing = Item::where('name', 'ilike', $itemData['name'])->first();
-                            $itemId = $existing?->id;
+
+                            if ($existing) {
+                                $itemId = $existing->id;
+                            } else {
+                                $newItem = Item::create([
+                                    'name' => $itemData['name'],
+                                    'price' => (float) ($itemData['unit_price'] ?? 0),
+                                    'depreciation_months' => (float) ($itemData['depreciation_months'] ?? ($itemData['is_asset'] ? 48 : $duration)),
+                                    'is_active' => true,
+                                    'unit_id' => auth()->user()?->unit_id,
+                                ]);
+                                $itemId = $newItem->id;
+                            }
                         }
 
                         $qty = (float) ($itemData['quantity'] ?? 1);

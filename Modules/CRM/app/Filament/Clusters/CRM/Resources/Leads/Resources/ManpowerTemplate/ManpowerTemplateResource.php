@@ -4,12 +4,11 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTe
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
-use Filament\Actions\Action as TableAction;
-use Filament\Actions\BulkActionGroup as TableBulkActionGroup;
-use Filament\Actions\DeleteAction as TableDeleteAction;
-use Filament\Actions\DeleteBulkAction as TableDeleteBulkAction;
-use Filament\Actions\EditAction as TableEditAction;
-use Filament\Actions\ViewAction as TableViewAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -362,7 +361,7 @@ class ManpowerTemplateResource extends Resource
                 //
             ])
             ->recordActions([
-                TableAction::make('pdf')
+                Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
                     ->icon('heroicon-o-arrow-down-tray')
@@ -376,13 +375,13 @@ class ManpowerTemplateResource extends Resource
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
                     }),
-                TableViewAction::make(),
-                TableEditAction::make(),
-                TableDeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
-                TableBulkActionGroup::make([
-                    TableDeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
