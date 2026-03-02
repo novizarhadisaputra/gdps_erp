@@ -11,7 +11,7 @@ use function Laravel\Ai\agent;
 
 class AiProcessorService
 {
-    public function processCogsData(string $filePath, array $existingContext = []): array
+    public function processCogsData(string $filePath, array $existingContext = [], string $focus = 'all'): array
     {
         Log::info("AiProcessor: Processing COGS data from file: {$filePath}");
 
@@ -32,8 +32,22 @@ class AiProcessorService
         3. JANGAN PERNAH menyimpulkan, meringkas, atau membuang baris apapun. Jika ada 100 baris, output JSON harus berisi 100 item. Semua jenis pengadaan barang, perlengkapan, consumable, sewa, overhead, gaji, transport, wajib masuk!
         4. PISAHKAN MENJADI DUA ARRAY ('manpower' dan 'operational'):
            - 'manpower' -> HANYA untuk Personil / SDM / Pekerja Manusia (Contoh: Security, Teknisi, Admin, Project Manager).
-           - 'operational' -> UNTUK SEGALA JENIS BARANG ATAU BIAYA LAIN SELAIN MANUSIA. (Contoh: Perlengkapan, Seragam, Alat Berat, Server, Software, Transportasi, Makan Siang, ATK, Kendaraan, dll). JIKA BUKAN MANUSIA, MAKA ITU ADALAH 'operational'.
-        5. UNTUK SEMUA ITEM (Baru maupun Lama):
+           - 'operational' -> UNTUK SEGALA JENIS BARANG ATAU BIAYA LAIN SELAIN MANUSIA. (Contoh: Perlengkapan, Seragam, Alat Berat, Server, Software, Transportasi, Makan Siang, ATK, Kendaraan, dll). JIKA BUKAN MANUSIA, MAKA ITU ADALAH 'operational'.";
+
+        if ($focus === 'items') {
+            $prompt .= "\n\n        FOKUS KHUSUS (ITEMS ONLY):
+        - PRIORITASKAN BARANG, PERALATAN, MATERIAL, DAN JASA OPERASIONAL.
+        - ABAIKAN/BUANG SEMUA HUMAN RESOURCES / PERSONIL / SDM (Gaji, Tunjangan, Gaji Pokok, dll).
+        - ABAIKAN/BUANG SEMUA BIAYA FEE (Management Fee, Overhead Fee, Taxes/Pajak, Keuntungan, dll).
+        - Output 'manpower' harus KOSONG [].";
+        } elseif ($focus === 'manpower') {
+            $prompt .= "\n\n        FOKUS KHUSUS (MANPOWER ONLY):
+        - PRIORITASKAN PERSONIL / SDM / PEKERJA.
+        - ABAIKAN SEMUA BARANG DAN PERALATAN.
+        - Output 'operational' harus KOSONG [].";
+        }
+
+        $prompt .= "\n\n        5. UNTUK SEMUA ITEM (Baru maupun Lama):
            - Kami melampirkan data Master Referensi di bawah (items, job_positions, dst).
            - JIKA COCOK secara semantik: isi field 'matched_id' dengan ID dari referensi.
            - JIKA TIDAK ADA DI REFERENSI: Biarkan 'matched_id' berisi null. TETAP MASUKKAN BARANG TERSEBUT KE DALAM JSON.

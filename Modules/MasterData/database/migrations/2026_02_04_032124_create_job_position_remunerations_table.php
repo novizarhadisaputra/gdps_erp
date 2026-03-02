@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('master_data.job_position_remunerations', function (Blueprint $table) {
+            $table->uuid('id')->primary();
             $table->foreignUuid('job_position_id')->constrained('master_data.job_positions')->cascadeOnDelete();
             $table->foreignUuid('remuneration_component_id')->constrained('master_data.remuneration_components')->cascadeOnDelete();
             $table->decimal('amount', 15, 2)->default(0);

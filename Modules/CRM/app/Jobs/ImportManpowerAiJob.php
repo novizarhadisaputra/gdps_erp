@@ -80,7 +80,7 @@ class ImportManpowerAiJob implements ShouldQueue
             }
 
             Log::info('ImportManpowerAiJob: Calling AiProcessorService...');
-            $processedData = $aiService->processCogsData($this->filePath, $this->context);
+            $processedData = $aiService->processCogsData($this->filePath, $this->context, 'manpower');
             $manpowerData = $processedData['manpower'] ?? [];
 
             Log::info('ImportManpowerAiJob: AI returned '.count($manpowerData).' manpower items.');

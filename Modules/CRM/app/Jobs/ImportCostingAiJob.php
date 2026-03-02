@@ -91,7 +91,7 @@ class ImportCostingAiJob implements ShouldQueue
                 ->first() ?? UnitOfMeasure::first();
 
             Log::info('ImportCostingAiJob: Calling AiProcessorService...');
-            $processedData = $aiService->processCogsData($this->filePath, $this->context);
+            $processedData = $aiService->processCogsData($this->filePath, $this->context, 'items');
             $operationalData = collect($processedData['operational'] ?? [])
                 ->filter(fn ($item) => $this->mapCategory($item['category'] ?? '') !== CostingCategory::Manpower)
                 ->toArray();

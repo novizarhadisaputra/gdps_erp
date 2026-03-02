@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Services;
 
+use Modules\MasterData\Enums\RiskLevel;
 use Modules\MasterData\Models\BpjsConfig;
 use Modules\MasterData\Models\RegencyMinimumWage;
 
@@ -15,12 +16,16 @@ class ManpowerCostingService
         array $allowances,
         string $projectAreaId,
         int $year,
-        string $riskLevel = 'very_low',
+        string|RiskLevel $riskLevel = 'very_low',
         bool $isLaborIntensive = false,
         string $employeeType = 'ppu', // ppu or pbpu
         bool $billThrMonthly = true,
         bool $billCompensationMonthly = true
     ): array {
+        if ($riskLevel instanceof RiskLevel) {
+            $riskLevel = $riskLevel->value;
+        }
+
         $umk = RegencyMinimumWage::where('project_area_id', $projectAreaId)
             ->where('year', $year)
             ->first()?->amount ?? 0;

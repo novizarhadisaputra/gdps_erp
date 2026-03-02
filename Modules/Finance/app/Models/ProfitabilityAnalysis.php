@@ -12,10 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
+use Modules\CRM\Models\ManpowerTemplate;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
 use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
 use Modules\MasterData\Models\Customer;
+use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
@@ -162,14 +165,14 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         return $this->hasMany(ProfitabilityAnalysisItem::class)
             ->whereIn('costable_type', [
-                \Modules\MasterData\Models\JobPosition::class,
-                \Modules\MasterData\Models\ManpowerTemplate::class,
+                JobPosition::class,
+                ManpowerTemplate::class,
             ]);
     }
 
     public function operationalItems(): HasMany
     {
         return $this->hasMany(ProfitabilityAnalysisItem::class)
-            ->where('costable_type', \Modules\MasterData\Models\Item::class);
+            ->where('costable_type', Item::class);
     }
 }

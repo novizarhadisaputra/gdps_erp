@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Modules\CRM\Database\Factories\LeadFactory;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\LeadStatus;
@@ -21,6 +22,8 @@ use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\IndustrialSector;
+use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
@@ -193,5 +196,77 @@ class Lead extends Model
     public function industrialSector(): BelongsTo
     {
         return $this->belongsTo(IndustrialSector::class);
+    }
+
+    public function createProfitabilityAnalysis(array $additionalData = []): ProfitabilityAnalysis
+    {
+        return DB::transaction(function () use ($additionalData) {
+            // Ensure necessary relations are loaded to avoid N+1 issues
+            $this->loadMissing([
+                'manpowerTemplates.items.jobPosition.remunerationComponents',
+                'costingTemplates.costingTemplateItems.item',
+            ]);
+
+            $pa = ProfitabilityAnalysis::create(array_merge([
+                'lead_id' => $this->id,
+                'customer_id' => $this->customer_id,
+                'work_scheme_id' => $this->work_scheme_id,
+                'project_area_id' => $this->project_area_id,
+                'product_cluster_id' => $this->product_cluster_id,
+                'tax_id' => $this->tax_id ?? $this->customer?->tax_id,
+                'status' => 'draft',
+            ], $additionalData));
+
+            // 1. Manpower Items from Lead's templates
+            foreach ($this->manpowerTemplates as $template) {
+                foreach ($template->items as $item) {
+                    $jp = $item->jobPosition;
+                    if (! $jp) {
+                        continue;
+                    }
+
+                    $breakdown = [];
+                    foreach ($jp->remunerationComponents ?? [] as $component) {
+                        // Skip 'Gaji Pokok' because it is already handled by unit_cost_price
+                        if (str_contains(strtolower($component->name), 'gaji pokok')) {
+                            continue;
+                        }
+
+                        $breakdown[] = [
+                            'name' => $component->name,
+                            'type' => 'nominal',
+                            'value' => $component->pivot->amount,
+                            'is_fixed' => (bool) $component->is_fixed,
+                        ];
+                    }
+
+                    $pa->items()->create([
+                        'costable_type' => JobPosition::class,
+                        'costable_id' => $jp->id,
+                        'quantity' => $item->quantity ?? 1,
+                        'unit_cost_price' => $item->basic_salary ?? 0,
+                        'duration_months' => 1,
+                        'depreciation_months' => 1,
+                        'cost_breakdown' => $breakdown,
+                    ]);
+                }
+            }
+
+            // 2. Operational Items from Lead's templates
+            foreach ($this->costingTemplates as $template) {
+                foreach ($template->costingTemplateItems as $item) {
+                    $pa->items()->create([
+                        'costable_type' => Item::class,
+                        'costable_id' => $item->item_id,
+                        'quantity' => $item->quantity ?? 1,
+                        'unit_cost_price' => $item->unit_price ?? 0,
+                        'duration_months' => 1,
+                        'depreciation_months' => $item->item?->depreciation_months ?? 1,
+                    ]);
+                }
+            }
+
+            return $pa;
+        });
     }
 }

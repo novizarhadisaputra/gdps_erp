@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Tables;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -89,7 +90,7 @@ class ProposalsTable
                             return redirect(ProfitabilityAnalysisResource::getUrl('index'));
                         }
 
-                        $pa = ProfitabilityAnalysis::create([
+                        $pa = $record->lead->createProfitabilityAnalysis([
                             'proposal_id' => $record->id,
                             'customer_id' => $record->customer_id,
                             'work_scheme_id' => $data['work_scheme_id'],
@@ -217,7 +218,7 @@ class ProposalsTable
                                 ->label('Export Proposal')
                                 ->icon('heroicon-o-document-text')
                                 ->action(function (Proposal $record) {
-                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+                                    $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
 
                                     return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$record->proposal_number}.pdf");
                                 }),
@@ -228,7 +229,7 @@ class ProposalsTable
                                 ->visible(fn (Proposal $record) => $record->contracts()->exists())
                                 ->action(function (Proposal $record) {
                                     $contract = $record->contracts()->latest()->first();
-                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
+                                    $pdf = Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
 
                                     return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$contract->contract_number}.pdf");
                                 }),
@@ -239,7 +240,7 @@ class ProposalsTable
                                 ->visible(fn (Proposal $record) => $record->lead?->generalInformations()->exists())
                                 ->action(function (Proposal $record) {
                                     $gi = $record->lead->generalInformations()->latest()->first();
-                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
+                                    $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
 
                                     return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$gi->customer->name}.pdf");
                                 }),

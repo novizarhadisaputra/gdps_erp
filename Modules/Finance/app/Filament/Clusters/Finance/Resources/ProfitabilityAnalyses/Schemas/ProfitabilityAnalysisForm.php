@@ -3,14 +3,13 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Actions;
+use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -19,9 +18,9 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\CostingTemplate;
+use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\Finance\Enums\AssetOwnership;
-use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Enums\RiskLevel;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
@@ -31,7 +30,6 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxF
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProfitabilityAnalysisForm
 {
@@ -49,37 +47,52 @@ class ProfitabilityAnalysisForm
                     ->description('Identifikasi submission RR dan pelanggan terkait.')
                     ->icon('heroicon-m-identification')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
                                 Select::make('general_information_id')
-                                    ->relationship('generalInformation', 'id')
+                                    ->relationship('generalInformation', 'document_number')
                                     ->label('GI Form (RR Submission)')
                                     ->required()
                                     ->searchable()
                                     ->preload()
                                     ->live()
-                                    ->disabled()
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        if (! $state) {
+                                            return;
+                                        }
+                                        $gi = GeneralInformation::with('lead')->find($state);
+                                        if (! $gi) {
+                                            return;
+                                        }
+                                        $set('lead_id', $gi->lead_id);
+                                        $set('customer_id', $gi->customer_id ?? $gi->lead?->customer_id);
+                                        $set('work_scheme_id', $gi->work_scheme_id ?? $gi->lead?->work_scheme_id);
+                                        $set('project_area_id', $gi->project_area_id ?? $gi->lead?->project_area_id);
+                                        $set('product_cluster_id', $gi->product_cluster_id ?? $gi->lead?->product_cluster_id);
+                                        $set('tax_id', $gi->tax_id ?? $gi->lead?->tax_id);
+                                    })
                                     ->dehydrated()
-                                    ->hidden(),
+                                    ->columnSpan(1),
                                 Select::make('customer_id')
                                     ->relationship('customer', 'name')
+                                    ->label('Customer')
                                     ->helperText('Customer associated with the project.')
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->disabled()
-                                    ->dehydrated()
-                                    ->hidden()
-                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null)
+                                    ->live()
+                                    ->columnSpan(1)
                                     ->createOptionForm(CustomerForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->editOptionForm(CustomerForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                                TextInput::make('document_number')
+                                    ->label('Document Number')
+                                    ->disabled()
+                                    ->placeholder('Auto-generated')
+                                    ->columnSpan(1),
+                                Hidden::make('lead_id'),
                             ]),
-                        TextInput::make('document_number')
-                            ->label('Document Number')
-                            ->hidden(fn ($record) => ! ($record instanceof ProfitabilityAnalysis))
-                            ->columnSpanFull(),
 
                         Section::make('Project Documents')
                             ->schema([
@@ -99,109 +112,9 @@ class ProfitabilityAnalysisForm
                                             ->collection('rfi')
                                             ->label('RFI Document')
                                             ->hint('Request for Information'),
-                                        SpatieMediaLibraryFileUpload::make('cogs_source')
-                                            ->collection('cogs_source')
-                                            ->label('Original COGS File')
-                                            ->hint('Source file for AI import')
-                                            ->visible(fn ($record) => $record?->is_imported),
                                     ]),
                             ])->compact(),
 
-                        Section::make('Opsi Impor Data')
-                            ->description('Unggah file Excel untuk mengisi kebutuhan Manpower dan Operasional secara otomatis.')
-                            ->schema([
-                                Actions::make([
-                                    Action::make('importCogs')
-                                        ->label('Impor COGS dari Excel')
-                                        ->icon('heroicon-m-arrow-up-tray')
-                                        ->color('success')
-                                        ->schema([
-                                            FileUpload::make('file')
-                                                ->label('File Excel')
-                                                ->required()
-                                                ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])
-                                                ->directory('temp-imports'),
-                                        ])
-                                        ->action(function (array $data, Set $set) {
-                                            $disk = \Illuminate\Support\Facades\Storage::disk('s3');
-                                            if (! $disk->exists($data['file'])) {
-                                                return;
-                                            }
-
-                                            $tempPath = tempnam(sys_get_temp_dir(), 'import');
-                                            file_put_contents($tempPath, $disk->get($data['file']));
-
-                                            $spreadsheet = IOFactory::load($tempPath);
-
-                                            // Process Manpower
-                                            $manpowerSheet = $spreadsheet->getSheetByName('Manpower');
-                                            $manpowerItems = [];
-                                            if ($manpowerSheet) {
-                                                $rows = $manpowerSheet->toArray();
-                                                array_shift($rows); // Header
-                                                foreach ($rows as $row) {
-                                                    if (empty($row[0])) {
-                                                        continue;
-                                                    }
-
-                                                    $jp = \Modules\MasterData\Models\JobPosition::where('name', 'like', $row[0])->first();
-                                                    if ($jp) {
-                                                        $manpowerItems[] = [
-                                                            'costable_type' => \Modules\MasterData\Models\JobPosition::class,
-                                                            'costable_id' => $jp->id,
-                                                            'quantity' => $row[1] ?? 1,
-                                                            'duration_months' => $row[2] ?? 1,
-                                                            'unit_cost_price' => $row[3] ?? $jp->price ?? 0,
-                                                            'is_manpower' => true,
-                                                            'unit_of_measure' => 'Person',
-                                                            'risk_level' => $jp->risk_level ?? 'very_low',
-                                                            'is_labor_intensive' => $jp->is_labor_intensive ?? false,
-                                                        ];
-                                                    }
-                                                }
-                                            }
-
-                                            // Process Operational
-                                            $opsSheet = $spreadsheet->getSheetByName('Operations');
-                                            $opsItems = [];
-                                            if ($opsSheet) {
-                                                $rows = $opsSheet->toArray();
-                                                array_shift($rows); // Header
-                                                foreach ($rows as $row) {
-                                                    if (empty($row[0])) {
-                                                        continue;
-                                                    }
-
-                                                    $item = \Modules\MasterData\Models\Item::where('name', 'like', $row[0])->first();
-                                                    if ($item) {
-                                                        $opsItems[] = [
-                                                            'costable_type' => \Modules\MasterData\Models\Item::class,
-                                                            'costable_id' => $item->id,
-                                                            'quantity' => $row[1] ?? 1,
-                                                            'duration_months' => $row[2] ?? 1,
-                                                            'unit_cost_price' => $row[3] ?? $item->price ?? 0,
-                                                            'depreciation_months' => $row[4] ?? $item->depreciation_months ?? 1,
-                                                            'is_manpower' => false,
-                                                            'unit_of_measure' => $item->unitOfMeasure?->name ?? 'Unit',
-                                                        ];
-                                                    }
-                                                }
-                                            }
-
-                                            if (! empty($manpowerItems)) {
-                                                $set('manpowerItems', $manpowerItems);
-                                            }
-                                            if (! empty($opsItems)) {
-                                                $set('operationalItems', $opsItems);
-                                            }
-
-                                            if (file_exists($tempPath)) {
-                                                unlink($tempPath);
-                                            }
-                                            $disk->delete($data['file']);
-                                        }),
-                                ]),
-                            ])->compact(),
                     ]),
 
                 Step::make('Parameters & Assets')
@@ -216,9 +129,8 @@ class ProfitabilityAnalysisForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->disabled()
                                     ->dehydrated()
-                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
+                                    ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
                                     ->createOptionForm(WorkSchemeForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('product_cluster_id')
@@ -226,7 +138,8 @@ class ProfitabilityAnalysisForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->product_cluster_id : null)
+                                    ->dehydrated()
+                                    ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->product_cluster_id : null)
                                     ->createOptionForm(ProductClusterForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('tax_id')
@@ -242,7 +155,7 @@ class ProfitabilityAnalysisForm
                                     ->searchable()
                                     ->preload()
                                     ->live()
-                                    ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null)
+                                    ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null)
                                     ->createOptionForm(ProjectAreaForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
                             ]),
@@ -306,13 +219,6 @@ class ProfitabilityAnalysisForm
                             ->required(fn (Get $get) => $get('require_manpower_costing'))
                             ->minItems(fn (Get $get) => $get('require_manpower_costing') ? 1 : 0)
                             ->schema([
-                                TextInput::make('import_status')
-                                    ->label('Source')
-                                    ->default('Imported via AI')
-                                    ->disabled()
-                                    ->dehydrated(false)
-                                    ->visible(fn ($record) => $record?->import_source_id !== null)
-                                    ->columnSpanFull(),
                                 Select::make('costable_type')
                                     ->label('Type')
                                     ->options([
@@ -514,13 +420,6 @@ class ProfitabilityAnalysisForm
                             ->required(fn (Get $get) => $get('require_operational_costing'))
                             ->minItems(fn (Get $get) => $get('require_operational_costing') ? 1 : 0)
                             ->schema([
-                                TextInput::make('import_status')
-                                    ->label('Source')
-                                    ->default('Imported via AI')
-                                    ->disabled()
-                                    ->dehydrated(false)
-                                    ->visible(fn ($record) => $record?->import_source_id !== null)
-                                    ->columnSpanFull(),
                                 Select::make('costable_type')
                                     ->label('Type')
                                     ->options([
@@ -767,7 +666,7 @@ class ProfitabilityAnalysisForm
     {
         // 1. Calculate Project Duration
         $giId = $get('general_information_id');
-        $gi = $giId ? \Modules\CRM\Models\GeneralInformation::find($giId) : null;
+        $gi = $giId ? GeneralInformation::find($giId) : null;
 
         $projectDurationMonths = 1;
         if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {
