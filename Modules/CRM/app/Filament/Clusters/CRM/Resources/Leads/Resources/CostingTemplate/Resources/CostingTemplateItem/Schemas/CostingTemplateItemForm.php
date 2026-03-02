@@ -9,8 +9,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\CRM\Enums\CostingCategory;
 use Modules\CRM\Enums\DepreciationMethod;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
 use Modules\MasterData\Models\Item;
 
 class CostingTemplateItemForm
@@ -23,13 +23,17 @@ class CostingTemplateItemForm
                     Grid::make(3)
                         ->schema([
                             Select::make('category')
-                                ->options(CostingCategory::class)
+                                ->options(collect(\Modules\CRM\Enums\CostingCategory::cases())
+                                    ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
+                                    ->toArray())
                                 ->required()
                                 ->live(),
                             Select::make('depreciation_method')
                                 ->label('Depreciation Method')
-                                ->options(DepreciationMethod::class)
-                                ->default(DepreciationMethod::StraightLine)
+                                ->options(collect(\Modules\CRM\Enums\DepreciationMethod::cases())
+                                    ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
+                                    ->toArray())
+                                ->default(\Modules\CRM\Enums\DepreciationMethod::StraightLine)
                                 ->required()
                                 ->live()
                                 ->helperText(function (Get $get) {
@@ -48,7 +52,9 @@ class CostingTemplateItemForm
                                 ->afterStateUpdated(fn (Get $get, Set $set) => self::calculate($get, $set)),
                             Select::make('item_id')
                                 ->label('Material/Asset')
-                                ->options(Item::class)
+                                ->relationship('item', 'name')
+                                ->createOptionForm(ItemForm::schema())
+                                ->editOptionForm(ItemForm::schema())
                                 ->required()
                                 ->searchable()
                                 ->preload()

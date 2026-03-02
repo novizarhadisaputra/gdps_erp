@@ -11,12 +11,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\ManpowerTemplateObserver;
 use Modules\MasterData\Models\ProjectArea;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[ObservedBy(ManpowerTemplateObserver::class)]
-class ManpowerTemplate extends Model
+class ManpowerTemplate extends Model implements HasMedia
 {
     use HasFactory, HasUuids;
     use HasModuleSchema;
+    use InteractsWithMedia;
 
     protected static function newFactory(): \Modules\CRM\Database\Factories\ManpowerTemplateFactory
     {

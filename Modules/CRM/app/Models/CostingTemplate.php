@@ -9,12 +9,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Observers\CostingTemplateObserver;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[ObservedBy(CostingTemplateObserver::class)]
-class CostingTemplate extends Model
+class CostingTemplate extends Model implements HasMedia
 {
     use HasFactory, HasUuids;
     use HasModuleSchema;
+    use InteractsWithMedia;
 
     protected static function newFactory()
     {
@@ -41,5 +44,13 @@ class CostingTemplate extends Model
     public function getTotalMonthlyCost(): float
     {
         return (float) $this->costingTemplateItems()->sum('monthly_cost');
+    }
+
+    public function refreshTotals(): void
+    {
+        $this->update([
+            'total_amount' => (float) $this->costingTemplateItems()->sum('total_price'),
+            'total_monthly_cost' => (float) $this->costingTemplateItems()->sum('monthly_cost'),
+        ]);
     }
 }

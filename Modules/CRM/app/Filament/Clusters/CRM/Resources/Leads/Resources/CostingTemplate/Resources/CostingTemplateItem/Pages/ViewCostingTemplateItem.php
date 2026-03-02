@@ -3,19 +3,12 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Pages;
 
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
-use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\CostingTemplateItemResource;
 
-class CreateCostingTemplateItem extends CreateRecord
+class ViewCostingTemplateItem extends ViewRecord
 {
     use InteractsWithParentRecord;
 
     protected static string $resource = CostingTemplateItemResource::class;
-
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['costing_template_id'] = $this->parentRecord->id;
-
-        return $data;
-    }
 }

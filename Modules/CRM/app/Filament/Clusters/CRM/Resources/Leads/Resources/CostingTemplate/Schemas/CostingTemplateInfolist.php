@@ -7,6 +7,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
 
 class CostingTemplateInfolist
 {
@@ -15,36 +16,73 @@ class CostingTemplateInfolist
         return $schema->components([
             Section::make('General Information')
                 ->schema([
-                    Grid::make(4)
+                    Grid::make(3)
                         ->schema([
-                            TextEntry::make('code'),
-                            TextEntry::make('name'),
-                            TextEntry::make('pic.name')->label('PIC'),
-                            TextEntry::make('total_monthly_cost')->money('IDR'),
+                            TextEntry::make('code')
+                                ->label('Template Code')
+                                ->weight(FontWeight::Bold),
+                            TextEntry::make('name')
+                                ->label('Template Name'),
+                            TextEntry::make('pic.name')
+                                ->label('PIC'),
                         ]),
-                    TextEntry::make('description'),
-                ]),
+                    Grid::make(2)
+                        ->schema([
+                            TextEntry::make('total_monthly_cost')
+                                ->label('Monthly Total')
+                                ->money('IDR')
+                                ->color('success')
+                                ->weight(FontWeight::Bold),
+                            TextEntry::make('total_price')
+                                ->label('Overall Total')
+                                ->money('IDR')
+                                ->weight(FontWeight::Bold),
+                        ]),
+                    TextEntry::make('description')
+                        ->placeholder('No description provided.'),
+                ])->columnSpanFull(),
 
-            Section::make('Items & Costing')
+            Section::make('Items & Costing Breakdown')
+                ->description('List of operational items extracted from the COGS document.')
                 ->schema([
                     RepeatableEntry::make('costingTemplateItems')
+                        ->label(false)
                         ->schema([
-                            Grid::make(4)
+                            Grid::make(6)
                                 ->schema([
-                                    TextEntry::make('category'),
-                                    TextEntry::make('name')->label('Item Name'),
-                                    TextEntry::make('quantity'),
-                                    TextEntry::make('unit_price')->money('IDR'),
+                                    TextEntry::make('category')
+                                        ->badge(),
+                                    TextEntry::make('name')
+                                        ->label('Item Name')
+                                        ->columnSpan(2)
+                                        ->weight(FontWeight::Bold),
+                                    TextEntry::make('quantity')
+                                        ->numeric(),
+                                    TextEntry::make('unit')
+                                        ->label('UOM'),
+                                    TextEntry::make('total_price')
+                                        ->label('Sub-Total Cost')
+                                        ->money('IDR')
+                                        ->weight(FontWeight::Bold)
+                                        ->color('primary'),
                                 ]),
                             Grid::make(3)
                                 ->schema([
-                                    TextEntry::make('unit_price_markup')->label('Price w/ Markup')->money('IDR'),
-                                    TextEntry::make('total_price')->money('IDR'),
-                                    TextEntry::make('monthly_cost')->money('IDR'),
-                                ]),
+                                    TextEntry::make('unit_price')
+                                        ->label('Unit Price')
+                                        ->money('IDR'),
+                                    TextEntry::make('markup_percent')
+                                        ->label('Markup (%)')
+                                        ->suffix('%'),
+                                    TextEntry::make('monthly_cost')
+                                        ->label('Monthly Impact')
+                                        ->money('IDR'),
+                                ])
+                                ->visible(fn ($record) => $record->unit_price > 0),
                         ])
-                        ->columnSpanFull(),
-                ]),
+                        ->columnSpanFull()
+                        ->grid(1), // Force single column for better readability if needed
+                ])->columnSpanFull(),
         ]);
     }
 }

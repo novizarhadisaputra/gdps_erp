@@ -30,8 +30,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
         return ManpowerTemplateResource::table($table)
             ->headerActions([
                 $this->getImportManpowerAiAction(),
-                CreateAction::make()
-                    ->schema(fn (\Filament\Schemas\Schema $schema) => ManpowerTemplateResource::form($schema)),
+                CreateAction::make(),
             ]);
     }
 }
