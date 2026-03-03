@@ -10,6 +10,16 @@ use Modules\CRM\Models\Contract;
 class ContractObserver
 {
     /**
+     * Handle the Contract "creating" event.
+     */
+    public function creating(Contract $contract): void
+    {
+        if (! $contract->lead_id && $contract->proposal_id && $contract->proposal) {
+            $contract->lead_id = $contract->proposal->lead_id;
+        }
+    }
+
+    /**
      * Handle the Contract "created" event.
      */
     public function created(Contract $contract): void

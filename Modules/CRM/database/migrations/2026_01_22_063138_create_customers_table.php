@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.customers', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.customers');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers');
     }
 };

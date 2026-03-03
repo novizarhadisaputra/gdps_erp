@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.contact_roles', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'contact_roles' : 'master_data.contact_roles', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->text('description')->nullable();
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.contact_roles');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'contact_roles' : 'master_data.contact_roles');
     }
 };

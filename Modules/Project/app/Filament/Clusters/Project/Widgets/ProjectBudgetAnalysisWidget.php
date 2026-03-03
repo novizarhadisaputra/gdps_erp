@@ -20,7 +20,7 @@ class ProjectBudgetAnalysisWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberHourly('project.budget_analysis', function () {
+        $data = $cache->rememberHourly('budget_analysis', function () {
             $projects = Project::with(['proposal', 'contract', 'profitabilityAnalysis'])
                 ->whereNotNull('start_date')
                 ->get()

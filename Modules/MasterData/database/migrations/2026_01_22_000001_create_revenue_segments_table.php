@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.revenue_segments', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'revenue_segments' : 'master_data.revenue_segments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('code')->nullable()->unique();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.revenue_segments');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'revenue_segments' : 'master_data.revenue_segments');
     }
 };

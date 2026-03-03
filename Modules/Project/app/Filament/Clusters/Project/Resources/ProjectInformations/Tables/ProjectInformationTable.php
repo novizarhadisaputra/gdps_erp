@@ -21,7 +21,7 @@ class ProjectInformationTable
     {
         return $table
             ->columns([
-                TextColumn::make('project.name')
+                TextColumn::make('name')
                     ->label('Project')
                     ->searchable()
                     ->sortable(),

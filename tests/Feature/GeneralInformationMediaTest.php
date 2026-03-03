@@ -11,7 +11,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformati
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\Pages\EditGeneralInformation;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\ProjectArea;
 use Tests\TestCase;
 

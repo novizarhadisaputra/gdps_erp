@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Pages;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Pages;
 
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Schema;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\CustomerResource;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\CustomerResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 
 class ListCustomers extends ListRecords
 {

@@ -3,6 +3,7 @@
 namespace Modules\Project\Observers;
 
 use Modules\Project\Models\Project;
+use Modules\Project\Enums\ProjectInformationStatus;
 
 class ProjectObserver
 {
@@ -14,6 +15,16 @@ class ProjectObserver
         if (empty($project->code)) {
             $project->code = Project::generateProjectCode($project);
         }
+    }
+
+    /**
+     * Handle the Project \"created\" event.
+     */
+    public function created(Project $project): void
+    {
+        $project->information()->create([
+            'status' => ProjectInformationStatus::Planning,
+        ]);
     }
 
     /**

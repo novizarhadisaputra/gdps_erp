@@ -105,6 +105,31 @@ class ViewProposal extends ViewRecord
                 })
                 ->visible(fn () => $this->record->status === ProposalStatus::Submitted),
 
+            Action::make('convertToContract')
+                ->label('Convert to Contract')
+                ->icon('heroicon-o-document-duplicate')
+                ->color('success')
+                ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->contracts()->exists())
+                ->requiresConfirmation()
+                ->action(function () {
+                    $contract = \Modules\CRM\Models\Contract::create([
+                        'customer_id' => $this->record->customer_id,
+                        'lead_id' => $this->record->lead_id,
+                        'proposal_id' => $this->record->id,
+                        'contract_number' => 'CONTRACT-'.$this->record->proposal_number,
+                        'status' => \Modules\CRM\Enums\ContractStatus::Draft,
+                    ]);
+
+                    $this->record->update(['status' => ProposalStatus::Converted]);
+
+                    Notification::make()
+                        ->title('Converted to Contract')
+                        ->success()
+                        ->send();
+
+                    $this->redirect(\Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\ContractResource::getUrl('index'));
+                }),
+
             Action::make('Reject')
                 ->color('danger')
                 ->icon('heroicon-o-x-mark')

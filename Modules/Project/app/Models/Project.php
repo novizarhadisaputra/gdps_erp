@@ -10,11 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\BillingOption;
-use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
@@ -23,6 +23,7 @@ use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Database\Factories\ProjectFactory;
+use Modules\Project\Enums\ProjectStatus;
 use Modules\Project\Observers\ProjectObserver;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -63,14 +64,14 @@ class Project extends Model implements HasMedia
 
     public static function generateProjectCode(self $project): string
     {
-        $customerCode = $project->customer?->code ?? $project->client?->code ?? 'XXX';
+        $customerCode = $project->customer?->code ?? 'XXX';
         $workSchemeCode = $project->workScheme?->code ?? 'XX';
         $projectAreaCode = $project->projectArea?->code ?? 'XXX';
-        $projectNumber = str_pad((string) ($project->project_number ?? '1'), 2, '0', STR_PAD_LEFT);
+        $projectNumber = str_pad((string) ($project->project_number ?? '1'), 4, '0', STR_PAD_LEFT);
         $productClusterCode = $project->productCluster?->code ?? 'XXX';
         $taxCode = $project->tax?->code ?? 'XX';
 
-        return strtoupper("{$customerCode}{$workSchemeCode}{$projectAreaCode}{$projectNumber}{$productClusterCode}{$taxCode}");
+        return strtoupper("{$workSchemeCode}{$productClusterCode}{$taxCode}{$customerCode}{$projectAreaCode}{$projectNumber}");
     }
 
     public function proposal(): BelongsTo
@@ -85,7 +86,9 @@ class Project extends Model implements HasMedia
 
     protected function casts(): array
     {
-        return [];
+        return [
+            'status' => ProjectStatus::class,
+        ];
     }
 
     public function registerMediaCollections(): void

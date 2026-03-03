@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('crm.sales_plan_monthlies', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'sales_plan_monthlies' : 'crm.sales_plan_monthlies', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('sales_plan_id')->constrained('crm.sales_plans')->cascadeOnDelete();
+            $table->foreignUuid('sales_plan_id')->constrained(config('database.default') === 'sqlite' ? 'sales_plans' : 'crm.sales_plans')->cascadeOnDelete();
             $table->integer('year');
             $table->integer('month'); // 1-12
             $table->decimal('budget_amount', 15, 2)->default(0);
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('crm.sales_plan_monthlies');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'sales_plan_monthlies' : 'crm.sales_plan_monthlies');
     }
 };

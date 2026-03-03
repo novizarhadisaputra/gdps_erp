@@ -1,20 +1,20 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Pages\ListCustomers;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerInfolist;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Tables\CustomersTable;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Pages\ListCustomers;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerInfolist;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Tables\CustomersTable;
+use Modules\CRM\Models\Customer;
 
 class CustomerResource extends Resource
 {
-    protected static ?string $cluster = MasterDataCluster::class;
+    protected static ?string $cluster = CRMCluster::class;
 
     protected static ?string $model = Customer::class;
 

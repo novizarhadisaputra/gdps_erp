@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Tables;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -8,7 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 
 class CustomersTable
 {
@@ -37,12 +37,7 @@ class CustomersTable
                     ->limit(50)
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'active' => 'success',
-                        'inactive' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->badge(),
             ])
             ->filters([
                 //

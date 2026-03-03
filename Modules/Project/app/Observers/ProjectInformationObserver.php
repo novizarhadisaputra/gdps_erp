@@ -46,14 +46,6 @@ class ProjectInformationObserver
         $info->document_number = sprintf('GDPS/UB/PI-%03d/%s', $sequence, $shortYear);
     }
 
-    /**
-     * Handle the ProjectInformation "created" event.
-     */
-    public function created(ProjectInformation $info): void
-    {
-        // Upload to 3rd party Risk Register
-        app(\Modules\Project\Services\RiskRegisterService::class)->uploadProjectInfo($info);
-    }
 
     /**
      * Handle the ProjectInformation "updated" event.

@@ -16,6 +16,7 @@ use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Database\Factories\ProjectInformationFactory;
 use Modules\Project\Observers\ProjectInformationObserver;
+use Modules\Project\Enums\ProjectInformationStatus;
 
 #[ObservedBy(ProjectInformationObserver::class)]
 class ProjectInformation extends Model
@@ -23,7 +24,7 @@ class ProjectInformation extends Model
     use HasDigitalSignatures, HasFactory, HasUuids;
     use HasModuleSchema;
 
-    protected $table = 'project.project_informations';
+    protected $table = 'project_informations';
 
     protected $fillable = [
         'project_id',
@@ -75,6 +76,7 @@ class ProjectInformation extends Model
             'analysis_details' => 'array',
             'remuneration_details' => 'array',
             'signatures' => 'array',
+            'status' => ProjectInformationStatus::class,
         ];
     }
 

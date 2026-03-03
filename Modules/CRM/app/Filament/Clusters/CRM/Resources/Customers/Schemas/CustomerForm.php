@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas;
 
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
@@ -9,11 +9,11 @@ use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Enums\ActiveStatus;
 use Modules\MasterData\Enums\LegalEntityType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles\Schemas\ContactRoleForm;
 use Modules\MasterData\Models\ContactRole;
-use Modules\MasterData\Models\Customer;
 
 class CustomerForm
 {

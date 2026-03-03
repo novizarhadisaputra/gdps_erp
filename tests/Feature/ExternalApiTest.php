@@ -87,7 +87,7 @@ class ExternalApiTest extends TestCase
 
         // For robustness, mock Project creation or try-catch.
         // But better: create dependencies.
-        // Modules\MasterData\Models\Customer usually needed.
+        // Modules\CRM\Models\Customer usually needed.
         // Let's rely on factory handling it, or just assert empty list 200 OK.
 
         $response = $this->getJson('/api/v1/external/projects', [

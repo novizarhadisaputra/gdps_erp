@@ -4,6 +4,7 @@ namespace Modules\Project\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Project\Models\Project;
+use Modules\Project\Enums\ProjectInformationStatus;
 
 class ProjectInformationFactory extends Factory
 {
@@ -19,7 +20,7 @@ class ProjectInformationFactory extends Factory
     {
         return [
             'project_id' => Project::factory(),
-            'status' => 'planning',
+            'status' => ProjectInformationStatus::Planning,
             'start_date' => now(),
             'end_date' => now()->addYear(),
         ];

@@ -8,7 +8,7 @@ use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesPlan;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;

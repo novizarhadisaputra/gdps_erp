@@ -11,24 +11,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('crm.sales_plans', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'sales_plans' : 'crm.sales_plans', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->constrained('crm.leads')->cascadeOnDelete();
+            $table->foreignUuid('lead_id')->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->cascadeOnDelete();
 
             // Categorization
-            $table->foreignUuid('project_type_id')->nullable()->constrained('master_data.project_types')->nullOnDelete();
-            $table->foreignUuid('revenue_segment_id')->nullable()->constrained('master_data.revenue_segments')->nullOnDelete();
-            $table->foreignUuid('industrial_sector_id')->nullable()->constrained('master_data.industrial_sectors')->nullOnDelete();
-            $table->foreignUuid('skill_category_id')->nullable()->constrained('master_data.skill_categories')->nullOnDelete();
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained('master_data.product_clusters')->nullOnDelete();
-            $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
+            $table->foreignUuid('project_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_types' : 'crm.project_types')->nullOnDelete();
+            $table->foreignUuid('revenue_segment_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_segments' : 'crm.revenue_segments')->nullOnDelete();
+            $table->foreignUuid('industrial_sector_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'industrial_sectors' : 'crm.industrial_sectors')->nullOnDelete();
+            $table->foreignUuid('skill_category_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'skill_categories' : 'crm.skill_categories')->nullOnDelete();
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'crm.product_clusters')->nullOnDelete();
+            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'crm.project_areas')->nullOnDelete();
             $table->foreignUuid('ams_id')->nullable()->constrained('users')->nullOnDelete();
 
             // Financials
             $table->decimal('estimated_value', 15, 2)->nullable();
             $table->decimal('management_fee_percentage', 5, 2)->nullable();
             $table->decimal('npm_percentage', 5, 2)->nullable();
-            $table->foreignUuid('payment_term_id')->nullable()->constrained('master_data.payment_terms')->nullOnDelete();
+            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'crm.payment_terms')->nullOnDelete();
             $table->integer('top_days')->nullable();
 
             // Timeline
@@ -60,6 +60,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('crm.sales_plans');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'sales_plans' : 'crm.sales_plans');
     }
 };

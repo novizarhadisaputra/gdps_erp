@@ -5,7 +5,7 @@ namespace Modules\CRM\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
 
 class LeadFactory extends Factory

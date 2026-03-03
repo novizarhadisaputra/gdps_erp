@@ -4,7 +4,6 @@ namespace Modules\CRM\Observers;
 
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\GeneralInformation;
-use Modules\Project\Services\RiskRegisterService;
 
 // Duplicate import removed
 
@@ -35,13 +34,9 @@ class GeneralInformationObserver
      */
     public function created(GeneralInformation $info): void
     {
-        $response = app(RiskRegisterService::class)->uploadGeneralInfo($info);
-
-        if ($response['status'] === 'success') {
-            $info->updateQuietly([
-                'status' => 'submitted',
-            ]);
-        }
+        $info->updateQuietly([
+            'status' => 'submitted',
+        ]);
 
         // Update Lead Status to Approach
         if ($info->lead_id && $info->lead) {

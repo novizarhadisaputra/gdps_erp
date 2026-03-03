@@ -17,9 +17,10 @@ use Modules\CRM\Database\Factories\LeadFactory;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Observers\LeadObserver;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\BillingOption;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\Item;
@@ -222,7 +223,7 @@ class Lead extends Model
                 'product_cluster_id' => $this->product_cluster_id,
                 'payment_term_id' => $this->payment_term_id ?? $this->salesPlan?->payment_term_id,
                 'management_fee_rate' => $this->salesPlan?->management_fee_percentage ?? 0,
-                'status' => 'draft',
+                'status' => ProfitabilityAnalysisStatus::Draft,
             ], $additionalData));
 
             // 1. Manpower Items from Lead's templates

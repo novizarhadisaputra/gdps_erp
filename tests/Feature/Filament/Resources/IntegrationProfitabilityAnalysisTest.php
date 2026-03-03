@@ -10,7 +10,7 @@ use Modules\CRM\Models\GeneralInformation;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\CreateProfitabilityAnalysis;
 use Modules\MasterData\Enums\AssetGroupType;
 use Modules\MasterData\Models\AssetGroup;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
 use Modules\MasterData\Models\ProductCluster;

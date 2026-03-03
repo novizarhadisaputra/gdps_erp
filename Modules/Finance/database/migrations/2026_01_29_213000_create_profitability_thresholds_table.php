@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('finance.profitability_thresholds', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'profitability_thresholds' : 'finance.profitability_thresholds', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name'); // e.g. "Standard Project"
             $table->decimal('min_gpm', 5, 2); // Gross Profit Margin
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('finance.profitability_thresholds');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'profitability_thresholds' : 'finance.profitability_thresholds');
     }
 };

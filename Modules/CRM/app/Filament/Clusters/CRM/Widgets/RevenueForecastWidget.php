@@ -22,7 +22,7 @@ class RevenueForecastWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberHourly('crm.revenue_forecast', function () {
+        $data = $cache->rememberHourly('revenue_forecast', function () {
             $months = [];
             $actualRevenue = [];
             $forecastedRevenue = [];

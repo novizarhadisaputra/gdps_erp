@@ -24,7 +24,7 @@ class LeadSalesPlanSyncTest extends TestCase
 
         $lead = Lead::create([
             'title' => 'Test Lead',
-            'customer_id' => \Modules\MasterData\Models\Customer::factory()->create()->id,
+            'customer_id' => \Modules\CRM\Models\Customer::factory()->create()->id,
             'status' => LeadStatus::Lead,
             'revenue_segment_id' => $revenueSegment->id,
             'estimated_amount' => 1000000,
@@ -48,7 +48,7 @@ class LeadSalesPlanSyncTest extends TestCase
     {
         $lead = Lead::create([
             'title' => 'Test Lead',
-            'customer_id' => \Modules\MasterData\Models\Customer::factory()->create()->id,
+            'customer_id' => \Modules\CRM\Models\Customer::factory()->create()->id,
             'estimated_amount' => 1000000,
         ]);
 
@@ -77,7 +77,7 @@ class LeadSalesPlanSyncTest extends TestCase
     {
         $lead = Lead::create([
             'title' => 'Test Lead',
-            'customer_id' => \Modules\MasterData\Models\Customer::factory()->create()->id,
+            'customer_id' => \Modules\CRM\Models\Customer::factory()->create()->id,
         ]);
 
         // Trigger SalesPlan creation

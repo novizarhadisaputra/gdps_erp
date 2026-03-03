@@ -10,13 +10,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
+use Modules\Finance\Enums\AssetOwnership;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
-use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
@@ -78,6 +80,8 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     protected function casts(): array
     {
         return [
+            'status' => ProfitabilityAnalysisStatus::class,
+            'asset_ownership' => AssetOwnership::class,
             'revenue_per_month' => 'decimal:2',
             'direct_cost' => 'decimal:2',
             'depreciation' => 'decimal:2',

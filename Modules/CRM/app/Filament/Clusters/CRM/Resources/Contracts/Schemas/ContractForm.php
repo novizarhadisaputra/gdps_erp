@@ -16,7 +16,7 @@ use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Enums\ReminderStatus;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Proposal;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 
 class ContractForm
 {

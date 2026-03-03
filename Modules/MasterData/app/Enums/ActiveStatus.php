@@ -2,9 +2,10 @@
 
 namespace Modules\MasterData\Enums;
 
+use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasLabel;
 
-enum ActiveStatus: string implements HasLabel
+enum ActiveStatus: string implements HasColor, HasLabel
 {
     case Active = 'active';
     case Inactive = 'inactive';
@@ -14,6 +15,14 @@ enum ActiveStatus: string implements HasLabel
         return match ($this) {
             self::Active => 'Active',
             self::Inactive => 'Inactive',
+        };
+    }
+
+    public function getColor(): string|array|null
+    {
+        return match ($this) {
+            self::Active => 'success',
+            self::Inactive => 'danger',
         };
     }
 }

@@ -168,6 +168,7 @@ trait HasProfitabilityAnalysisActions
             ->action(function (ProfitabilityAnalysis $record, array $data) {
                 $proposal = Proposal::create([
                     'customer_id' => $record->customer_id,
+                    'lead_id' => $record->lead_id,
                     'profitability_analysis_id' => $record->id,
                     'work_scheme_id' => $record->work_scheme_id,
                     'amount' => $data['amount'],
@@ -192,7 +193,6 @@ trait HasProfitabilityAnalysisActions
             $this->getSubmitAction(),
             $this->getApproveAction(),
             $this->getRejectAction(),
-            // $this->getGenerateProjectAction(),
             $this->getCreateProposalAction(),
         ];
     }

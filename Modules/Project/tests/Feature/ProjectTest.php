@@ -3,6 +3,7 @@
 namespace Modules\Project\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Modules\CRM\Models\Customer;
 use Modules\Project\Models\Project;
 use Tests\TestCase;
 
@@ -10,8 +11,8 @@ class ProjectTest extends TestCase
 {
     use RefreshDatabase;
 
-    #[Test]
-    public function it_can_create_a_project()
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_can_create_a_project(): void
     {
         $project = Project::factory()->create();
 
@@ -21,11 +22,11 @@ class ProjectTest extends TestCase
         ]);
 
         $this->assertNotNull($project->code);
-        $this->assertNotNull($project->client_id);
+        $this->assertNotNull($project->customer_id);
     }
 
-    #[Test]
-    public function it_generates_unique_project_code()
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_generates_unique_project_code(): void
     {
         $project1 = Project::factory()->create();
         $project2 = Project::factory()->create();
@@ -33,12 +34,12 @@ class ProjectTest extends TestCase
         $this->assertNotEquals($project1->code, $project2->code);
     }
 
-    #[Test]
-    public function it_has_correct_relationships()
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function it_has_correct_relationships(): void
     {
         $project = Project::factory()->create();
 
-        $this->assertInstanceOf(\Modules\MasterData\Models\Client::class, $project->client);
+        $this->assertInstanceOf(\Modules\CRM\Models\Customer::class, $project->customer);
         $this->assertInstanceOf(\Modules\MasterData\Models\Employee::class, $project->oprep);
         $this->assertInstanceOf(\Modules\MasterData\Models\Employee::class, $project->ams);
     }

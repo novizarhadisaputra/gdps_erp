@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\MasterData\Policies;
+namespace Modules\CRM\Policies;
 
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 
 class CustomerPolicy
 {

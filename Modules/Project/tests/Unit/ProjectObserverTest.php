@@ -3,7 +3,7 @@
 namespace Modules\Project\Tests\Unit;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\MasterData\Models\Client;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
@@ -19,7 +19,7 @@ class ProjectObserverTest extends TestCase
     public function it_generates_project_code_automatically(): void
     {
         // Create master data
-        $client = Client::factory()->create(['code' => 'GIA']);
+        $customer = Customer::factory()->create(['code' => 'GIA']);
         $scheme = WorkScheme::factory()->create(['code' => '01']);
         $cluster = ProductCluster::factory()->create(['code' => 'BCA']);
         $tax = Tax::factory()->create(['code' => 'P1']);
@@ -27,7 +27,7 @@ class ProjectObserverTest extends TestCase
 
         $project = Project::create([
             'name' => 'Test Project',
-            'client_id' => $client->id,
+            'customer_id' => $customer->id,
             'work_scheme_id' => $scheme->id,
             'product_cluster_id' => $cluster->id,
             'tax_id' => $tax->id,
@@ -35,15 +35,15 @@ class ProjectObserverTest extends TestCase
             'project_number' => '0001',
         ]);
 
-        // Expected format: 01BCA P1GIACGK0001
+        // Expected format: 01BCAP1GIACGK0001
         $this->assertEquals('01BCAP1GIACGK0001', $project->code);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_creates_project_information_automatically(): void
     {
-        $client = Client::factory()->create();
-        $project = Project::factory()->create(['client_id' => $client->id]);
+        $customer = Customer::factory()->create();
+        $project = Project::factory()->create(['customer_id' => $customer->id]);
 
         $this->assertNotNull($project->information);
         $this->assertInstanceOf(\Modules\Project\Models\ProjectInformation::class, $project->information);
@@ -52,7 +52,7 @@ class ProjectObserverTest extends TestCase
     #[\PHPUnit\Framework\Attributes\Test]
     public function it_pads_project_number_to_4_digits(): void
     {
-        $client = Client::factory()->create(['code' => 'TST']);
+        $customer = Customer::factory()->create(['code' => 'TST']);
         $scheme = WorkScheme::factory()->create(['code' => '01']);
         $cluster = ProductCluster::factory()->create(['code' => 'BCA']);
         $tax = Tax::factory()->create(['code' => 'P1']);
@@ -60,7 +60,7 @@ class ProjectObserverTest extends TestCase
 
         $project = Project::create([
             'name' => 'Test Project',
-            'client_id' => $client->id,
+            'customer_id' => $customer->id,
             'work_scheme_id' => $scheme->id,
             'product_cluster_id' => $cluster->id,
             'tax_id' => $tax->id,

@@ -11,18 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('finance.profitability_analyses', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('document_number')->nullable()->unique();
-            $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->nullable()->constrained('master_data.customers')->onDelete('set null');
-            $table->foreignUuid('general_information_id')->nullable()->constrained('crm.general_informations')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'finance.leads')->onDelete('cascade');
+            $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'finance.customers')->onDelete('set null');
+            $table->foreignUuid('general_information_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'general_informations' : 'finance.general_informations')->onDelete('set null');
             $table->uuid('proposal_id')->nullable();
             $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('product_cluster_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('tax_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('project_area_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignUuid('payment_term_id')->nullable()->constrained('master_data.payment_terms')->onDelete('set null');
+            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'finance.payment_terms')->onDelete('set null');
 
             $table->string('asset_ownership')->default('gdps-owned');
             $table->decimal('management_expense_rate', 5, 2)->default(3.00);
@@ -63,6 +63,6 @@ return new class extends Migration
     public function down(): void
     {
 
-        Schema::dropIfExists('finance.profitability_analyses');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses');
     }
 };

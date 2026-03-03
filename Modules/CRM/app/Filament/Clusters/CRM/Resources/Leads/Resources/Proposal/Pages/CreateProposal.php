@@ -17,6 +17,7 @@ class CreateProposal extends CreateRecord
         $lead = $this->parentRecord;
 
         if ($lead) {
+            $data['lead_id'] = $lead->id;
             $data['customer_id'] = $lead->customer_id;
             $data['work_scheme_id'] = $lead->work_scheme_id;
             $data['amount'] = $data['amount'] ?? $lead->estimated_amount;

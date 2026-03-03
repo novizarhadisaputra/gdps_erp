@@ -75,7 +75,7 @@ class ManpowerTemplateResourceTest extends TestCase
             ->call('create')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('crm.manpower_templates', ['name' => 'New Manpower Template']);
+        $this->assertDatabaseHas('manpower_templates', ['name' => 'New Manpower Template']);
     }
 
     public function test_can_edit_record(): void
@@ -108,7 +108,7 @@ class ManpowerTemplateResourceTest extends TestCase
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('crm.manpower_templates', [
+        $this->assertDatabaseHas('manpower_templates', [
             'id' => $record->id,
             'name' => 'Updated Template Name',
         ]);

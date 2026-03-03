@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('crm.proposals', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->nullable()->constrained('master_data.customers')->onDelete('set null');
-            $table->foreignUuid('profitability_analysis_id')->nullable()->constrained('finance.profitability_analyses')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
+            $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('set null');
+            $table->foreignUuid('profitability_analysis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'crm.profitability_analyses')->onDelete('set null');
             $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');
             $table->string('proposal_number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('crm.proposals');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals');
     }
 };

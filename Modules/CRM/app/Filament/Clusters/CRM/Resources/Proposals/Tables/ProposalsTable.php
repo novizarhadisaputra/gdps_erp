@@ -64,7 +64,7 @@ class ProposalsTable
                     ->label('Convert to Contract')
                     ->icon('heroicon-o-document-duplicate')
                     ->color('success')
-                    ->visible(fn (Proposal $record): bool => $record->status === ProposalStatus::Approved || $record->contracts->count() === 0)
+                    ->visible(fn (Proposal $record): bool => $record->status === ProposalStatus::Approved && ! $record->contracts()->exists())
                     ->requiresConfirmation()
                     ->action(function (Proposal $record) {
                         $contract = Contract::create([

@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.job_position_remunerations', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'job_position_remunerations' : 'master_data.job_position_remunerations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('job_position_id')->constrained('master_data.job_positions')->cascadeOnDelete();
-            $table->foreignUuid('remuneration_component_id')->constrained('master_data.remuneration_components')->cascadeOnDelete();
+            $table->foreignUuid('job_position_id')->constrained(config('database.default') === 'sqlite' ? 'job_positions' : 'master_data.job_positions')->cascadeOnDelete();
+            $table->foreignUuid('remuneration_component_id')->constrained(config('database.default') === 'sqlite' ? 'remuneration_components' : 'master_data.remuneration_components')->cascadeOnDelete();
             $table->decimal('amount', 15, 2)->default(0);
             $table->timestamps();
         });
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.job_position_remunerations');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'job_position_remunerations' : 'master_data.job_position_remunerations');
     }
 };

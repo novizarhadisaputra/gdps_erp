@@ -25,7 +25,7 @@ use Modules\CRM\Models\ManpowerTemplate;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Enums\RiskLevel;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;

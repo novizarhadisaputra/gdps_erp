@@ -19,7 +19,7 @@ class UnitOfMeasure extends Model
     use HasFactory, HasUnitScoping, HasUuids;
     use HasModuleSchema;
 
-    protected $table = 'master_data.units_of_measure';
+    protected $table = 'units_of_measure';
 
     protected $fillable = ['unit_id', 'name', 'code'];
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Customers\Schemas;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;

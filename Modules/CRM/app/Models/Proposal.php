@@ -13,7 +13,7 @@ use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Observers\ProposalObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;

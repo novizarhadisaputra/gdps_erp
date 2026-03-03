@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.bpjs_configs', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'bpjs_configs' : 'master_data.bpjs_configs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('type'); // employment, health
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.bpjs_configs');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'bpjs_configs' : 'master_data.bpjs_configs');
     }
 };

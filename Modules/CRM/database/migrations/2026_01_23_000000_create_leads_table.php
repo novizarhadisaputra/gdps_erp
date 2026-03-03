@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('crm.leads', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('title');
-            $table->foreignUuid('customer_id')->constrained('master_data.customers')->cascadeOnDelete();
-            $table->foreignUuid('work_scheme_id')->nullable()->constrained('master_data.work_schemes')->nullOnDelete();
+            $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->cascadeOnDelete();
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'crm.work_schemes')->nullOnDelete();
             $table->string('status')->default('lead'); // lead, approach, proposal, negotiation, won, closed_lost
 
             // Categorization (Flows to Sales Plan)
-            $table->foreignUuid('revenue_segment_id')->nullable()->constrained('master_data.revenue_segments')->nullOnDelete();
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained('master_data.product_clusters')->nullOnDelete();
-            $table->foreignUuid('project_type_id')->nullable()->constrained('master_data.project_types')->nullOnDelete();
+            $table->foreignUuid('revenue_segment_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_segments' : 'crm.revenue_segments')->nullOnDelete();
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'crm.product_clusters')->nullOnDelete();
+            $table->foreignUuid('project_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_types' : 'crm.project_types')->nullOnDelete();
 
-            $table->foreignUuid('industrial_sector_id')->nullable()->constrained('master_data.industrial_sectors')->nullOnDelete();
-            $table->foreignUuid('project_area_id')->nullable()->constrained('master_data.project_areas')->nullOnDelete();
+            $table->foreignUuid('industrial_sector_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'industrial_sectors' : 'crm.industrial_sectors')->nullOnDelete();
+            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'crm.project_areas')->nullOnDelete();
 
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
@@ -54,6 +54,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('crm.leads');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads');
     }
 };

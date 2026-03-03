@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('crm.contracts', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'contracts' : 'crm.contracts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->nullable()->constrained('crm.leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->nullable()->constrained('master_data.customers')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
+            $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('set null');
             $table->foreignUuid('proposal_id')->nullable()->constrained()->onDelete('set null');
             $table->string('contract_number')->unique();
             $table->string('type')->default('agreement'); // agreement, work_order
@@ -26,9 +26,9 @@ return new class extends Migration
         });
 
         // Add foreign keys to sales_plans (after contracts table exists)
-        Schema::table('crm.sales_plans', function (Blueprint $table) {
-            $table->foreign('agreement_id')->references('id')->on('crm.contracts')->nullOnDelete();
-            $table->foreign('work_order_id')->references('id')->on('crm.contracts')->nullOnDelete();
+        Schema::table(config('database.default') === 'sqlite' ? 'sales_plans' : 'crm.sales_plans', function (Blueprint $table) {
+            $table->foreign('agreement_id')->references('id')->on(config('database.default') === 'sqlite' ? 'contracts' : 'crm.contracts')->nullOnDelete();
+            $table->foreign('work_order_id')->references('id')->on(config('database.default') === 'sqlite' ? 'contracts' : 'crm.contracts')->nullOnDelete();
         });
     }
 
@@ -37,11 +37,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('crm.sales_plans', function (Blueprint $table) {
+        Schema::table(config('database.default') === 'sqlite' ? 'sales_plans' : 'crm.sales_plans', function (Blueprint $table) {
             $table->dropForeign(['agreement_id']);
             $table->dropForeign(['work_order_id']);
         });
 
-        Schema::dropIfExists('crm.contracts');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'contracts' : 'crm.contracts');
     }
 };

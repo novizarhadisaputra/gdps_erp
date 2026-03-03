@@ -39,6 +39,20 @@ class ProposalObserver
     }
 
     /**
+     * Handle the Proposal "updated" event.
+     */
+    public function updated(Proposal $proposal): void
+    {
+        if ($proposal->wasChanged('status') && $proposal->status === \Modules\CRM\Enums\ProposalStatus::Approved) {
+            if ($proposal->lead) {
+                $proposal->lead->update([
+                    'status' => \Modules\CRM\Enums\LeadStatus::Negotiation,
+                ]);
+            }
+        }
+    }
+
+    /**
      * Handle the Proposal "saved" event.
      */
     public function saved(Proposal $proposal): void

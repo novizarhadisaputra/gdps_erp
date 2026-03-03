@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('finance.profitability_analysis_items', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'profitability_analysis_items' : 'finance.profitability_analysis_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('profitability_analysis_id')->constrained('finance.profitability_analyses')->cascadeOnDelete();
+            $table->foreignUuid('profitability_analysis_id')->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')->cascadeOnDelete();
             $table->uuid('import_source_id')->nullable();
 
             // Polymorphic Columns: costable_id & costable_type
@@ -37,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('finance.profitability_analysis_items');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'profitability_analysis_items' : 'finance.profitability_analysis_items');
     }
 };

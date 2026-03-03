@@ -21,7 +21,7 @@ class LeadPipelineWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberRealtime('crm.lead_pipeline', function () {
+        $data = $cache->rememberRealtime('lead_pipeline', function () {
             return [
                 'leads' => Lead::where('status', LeadStatus::Lead)->count(),
                 'approach' => Lead::where('status', LeadStatus::Approach)->count(),

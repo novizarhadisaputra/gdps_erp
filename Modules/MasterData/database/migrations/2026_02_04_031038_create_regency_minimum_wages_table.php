@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.regency_minimum_wages', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'regency_minimum_wages' : 'master_data.regency_minimum_wages', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('province')->nullable();
-            $table->foreignUuid('project_area_id')->constrained('master_data.project_areas')->cascadeOnDelete();
+            $table->foreignUuid('project_area_id')->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->cascadeOnDelete();
             $table->integer('year');
             $table->decimal('amount', 15, 2);
             $table->boolean('is_active')->default(true);
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.regency_minimum_wages');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'regency_minimum_wages' : 'master_data.regency_minimum_wages');
     }
 };

@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('master_data.item_prices', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'item_prices' : 'master_data.item_prices', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
             $table->foreignUuid('item_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('project_area_id')->constrained('master_data.project_areas')->cascadeOnDelete();
+            $table->foreignUuid('project_area_id')->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->cascadeOnDelete();
             $table->decimal('price', 15, 2);
             $table->timestamps();
 
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('master_data.item_prices');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'item_prices' : 'master_data.item_prices');
     }
 };

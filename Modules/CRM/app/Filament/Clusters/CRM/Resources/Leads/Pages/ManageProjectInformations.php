@@ -52,7 +52,7 @@ class ManageProjectInformations extends ManageRelatedRecords
                 TextColumn::make('document_number'),
                 TextColumn::make('status')
                     ->badge(),
-                TextColumn::make('project.name')
+                TextColumn::make('name')
                     ->label('Project'),
                 TextColumn::make('start_date')->date(),
             ])

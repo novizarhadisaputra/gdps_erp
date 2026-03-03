@@ -12,7 +12,7 @@ use Modules\CRM\Database\Factories\ContractFactory;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Observers\ContractObserver;
-use Modules\MasterData\Models\Customer;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
