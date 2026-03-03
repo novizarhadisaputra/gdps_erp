@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignUuid('product_cluster_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('tax_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignUuid('project_area_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignUuid('payment_term_id')->nullable()->constrained('master_data.payment_terms')->onDelete('set null');
 
             $table->string('asset_ownership')->default('gdps-owned');
             $table->decimal('management_expense_rate', 5, 2)->default(3.00);
@@ -30,7 +31,9 @@ return new class extends Migration
 
             $table->decimal('revenue_per_month', 15, 2)->default(0);
             $table->decimal('direct_cost', 15, 2)->default(0);
+            $table->decimal('depreciation', 15, 2)->default(0);
             $table->decimal('management_fee', 15, 2)->default(0);
+            $table->decimal('management_fee_rate', 5, 2)->default(0);
             $table->decimal('margin_percentage', 5, 2)->default(0);
             $table->decimal('ebitda', 15, 2)->default(0);
             $table->decimal('ebit', 15, 2)->default(0);

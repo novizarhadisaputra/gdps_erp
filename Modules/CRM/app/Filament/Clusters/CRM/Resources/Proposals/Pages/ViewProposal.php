@@ -37,7 +37,7 @@ class ViewProposal extends ViewRecord
                 ->color('success')
                 ->icon('heroicon-o-check')
                 ->requiresConfirmation()
-                ->form([
+                ->schema([
                     \Filament\Forms\Components\TextInput::make('pin')
                         ->label('Signature PIN')
                         ->password()

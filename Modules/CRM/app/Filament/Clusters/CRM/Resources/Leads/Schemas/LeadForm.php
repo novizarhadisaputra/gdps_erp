@@ -39,6 +39,7 @@ class LeadForm
                     TextInput::make('title')
                         ->required()
                         ->maxLength(255)
+                        ->placeholder('Example: IT Support Outsourcing or Laptop Procurement')
                         ->columnSpanFull(),
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
@@ -46,6 +47,7 @@ class LeadForm
                         ->searchable()
                         ->preload()
                         ->required()
+                        ->placeholder('Select customer')
                         ->createOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => Customer::create($data)->id)
@@ -55,6 +57,7 @@ class LeadForm
                         ->relationship('workScheme', 'name')
                         ->label('Work Scheme')
                         ->required()
+                        ->placeholder('Select work scheme')
                         ->createOptionForm(WorkSchemeForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => WorkScheme::create($data)->id)
@@ -62,6 +65,7 @@ class LeadForm
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Textarea::make('description')
                         ->rows(3)
+                        ->placeholder('Provide a brief description of the scope of work or the purpose of this project')
                         ->columnSpanFull(),
                     Grid::make(2)
                         ->columnSpanFull()
@@ -72,7 +76,8 @@ class LeadForm
                                 ->options(\Modules\MasterData\Models\JobPosition::where('is_active', true)->pluck('name', 'id'))
                                 ->searchable()
                                 ->preload()
-                                ->helperText('Select the required job positions for this lead.'),
+                                ->placeholder('Select required positions')
+                                ->helperText('Select one or more positions to be placed in this project.'),
                             Select::make('pic_costing_id')
                                 ->label('Costing PIC')
                                 ->relationship('picCosting', 'name')
@@ -84,7 +89,8 @@ class LeadForm
                                 ->searchable()
                                 ->preload()
                                 ->default(auth()->id())
-                                ->helperText('Assign a user responsible for creating Costing Templates.'),
+                                ->placeholder('Select Costing PIC')
+                                ->helperText('User responsible for preparing the costing template.'),
                         ]),
                 ])
                 ->columnSpanFull()
@@ -100,6 +106,7 @@ class LeadForm
                                 ->relationship('revenueSegment', 'name')
                                 ->searchable()
                                 ->preload()
+                                ->placeholder('Select revenue segment')
                                 ->createOptionForm(RevenueSegmentForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id)
@@ -110,6 +117,7 @@ class LeadForm
                                 ->relationship('productCluster', 'name')
                                 ->searchable()
                                 ->preload()
+                                ->placeholder('Select product cluster')
                                 ->createOptionForm(ProductClusterForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ProductCluster::create($data)->id)
@@ -120,6 +128,7 @@ class LeadForm
                                 ->relationship('projectType', 'name')
                                 ->searchable()
                                 ->preload()
+                                ->placeholder('Select project type')
                                 ->createOptionForm(ProjectTypeForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ProjectType::create($data)->id)
@@ -133,6 +142,7 @@ class LeadForm
                                 ->relationship('industrialSector', 'name')
                                 ->searchable()
                                 ->preload()
+                                ->placeholder('Select industrial sector')
                                 ->createOptionForm(IndustrialSectorForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => IndustrialSector::create($data)->id)
@@ -143,6 +153,7 @@ class LeadForm
                                 ->relationship('projectArea', 'name')
                                 ->searchable()
                                 ->preload()
+                                ->placeholder('Select project area')
                                 ->createOptionForm(ProjectAreaForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ProjectArea::create($data)->id)
@@ -164,18 +175,23 @@ class LeadForm
                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                         ->maxValue(2147483647)
                         ->default(0)
+                        ->placeholder('1.000.000.000')
+                        ->helperText('Estimated total project value during the contract duration.')
                         ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                         ->nullable(),
                     DatePicker::make('start_date')
                         ->label('Estimated Start Date')
                         ->native(false)
+                        ->placeholder('Select start date')
                         ->nullable(),
                     DatePicker::make('end_date')
                         ->label('Estimated End Date')
                         ->native(false)
+                        ->placeholder('Select end date')
                         ->nullable(),
                     DatePicker::make('expected_closing_date')
                         ->native(false)
+                        ->placeholder('Select closing date')
                         ->nullable(),
                 ])
                 ->columnSpanFull()

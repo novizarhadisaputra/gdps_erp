@@ -70,7 +70,7 @@ class CostingTemplateForm
                             ->content(function () {
                                 return new \Illuminate\Support\HtmlString('
                                     <div class="p-4 bg-primary-50 rounded-lg border border-primary-200 text-primary-900">
-                                        Saat ini Anda sedang dalam mode <strong>Edit</strong>. Untuk mengelola item costing secara rinci dan aman (menghindari memory crash), silakan gunakan tab <strong>"Cost Items"</strong> di menu samping.
+                                        You are currently in <strong>Edit</strong> mode. To manage costing items in detail and securely (to avoid memory crashes), please use the <strong>"Cost Items"</strong> tab in the sidebar menu.
                                     </div>
                                 ');
                             })
@@ -155,7 +155,7 @@ class CostingTemplateForm
                                                             }),
                                                         TextInput::make('unit_price')
                                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix('IDR')
+                                                            ->prefix('IDR ')
                                                             ->required()
                                                             ->live(onBlur: true)
                                                             ->afterStateUpdated(function (Get $get, Set $set) {
@@ -187,14 +187,14 @@ class CostingTemplateForm
                                                         TextInput::make('total_price')
                                                             ->label('Investment')
                                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix('IDR')
+                                                            ->prefix('IDR ')
                                                             ->readOnly()
                                                             ->dehydrated()
                                                             ->extraAttributes(['class' => 'font-bold']),
                                                         TextInput::make('monthly_cost')
                                                             ->label('Monthly Impact')
                                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix('IDR')
+                                                            ->prefix('IDR ')
                                                             ->readOnly()
                                                             ->dehydrated()
                                                             ->extraAttributes(['class' => 'font-bold']),
@@ -226,13 +226,13 @@ class CostingTemplateForm
                                 TextInput::make('total_amount')
                                     ->label('Total Investment')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                    ->prefix('IDR')
+                                    ->prefix('IDR ')
                                     ->readOnly()
                                     ->dehydrated(),
                                 TextInput::make('total_monthly_cost')
                                     ->label('Total Monthly Cost')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                    ->prefix('IDR')
+                                    ->prefix('IDR ')
                                     ->readOnly()
                                     ->dehydrated(),
                             ]),

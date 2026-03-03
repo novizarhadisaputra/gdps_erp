@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use Illuminate\Contracts\JsonSchema\JsonSchema;
+use App\Ai\Agents\CogsDataAgent;
+use App\Ai\Agents\ProposalMetadataAgent;
 use Illuminate\Support\Facades\Log;
-use Laravel\Ai\Responses\StructuredAgentResponse;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-
-use function Laravel\Ai\agent;
 
 class AiProcessorService
 {
@@ -102,40 +100,8 @@ class AiProcessorService
         }
 
         return retry(3, function () use ($prompt, $attachments) {
-            $agent = agent(
-                schema: fn (JsonSchema $schema) => [
-                    'manpower' => $schema->array()->items(
-                        $schema->object([
-                            'name' => $schema->string()->description('Nama Jabatan')->required(),
-                            'matched_id' => $schema->string()->description('ID dari data referensi jika cocok'),
-                            'quantity' => $schema->number()->description('Jumlah Personel')->required(),
-                            'basic_salary' => $schema->number()->description('Gaji Pokok per Bulan')->required(),
-                            'duration_months' => $schema->number()->description('Durasi Kerja (bulan)'),
-                            'notes' => $schema->string(),
-                        ])
-                    ),
-                    'operational' => $schema->array()->items(
-                        $schema->object([
-                            'name' => $schema->string()->description('Nama Barang/Jasa')->required(),
-                            'matched_id' => $schema->string()->description('ID dari data referensi jika cocok'),
-                            'matched_category_id' => $schema->string()->description('ID dari data referensi kategori (item_categories)'),
-                            'matched_unit_id' => $schema->string()->description('ID dari data referensi satuan (units_of_measure)'),
-                            'matched_asset_group_id' => $schema->string()->description('ID dari data referensi kelompok aset (asset_groups)'),
-                            'category' => $schema->string()->description('Kategori (Tools, Material, IT, etc.)'),
-                            'quantity' => $schema->number()->required(),
-                            'unit' => $schema->string()->description('Satuan (Pcs, Set, Lot, dll)'),
-                            'unit_price' => $schema->number()->description('Harga Satuan')->required(),
-                            'duration_months' => $schema->number()->description('Durasi Penggunaan (bulan)'),
-                            'is_asset' => $schema->boolean()->description('Apakah ini barang investasi/aset?')->required(),
-                            'useful_life_years' => $schema->number()->description('Masa Pakai (tahun) jika aset'),
-                            'depreciation_months' => $schema->number()->description('Bulan Depresiasi (jika aset)'),
-                        ])
-                    ),
-                ]
-            );
-
-            /** @var StructuredAgentResponse $response */
-            $response = $agent->prompt($prompt, $attachments);
+            /** @var \Laravel\Ai\Responses\StructuredAgentResponse $response */
+            $response = CogsDataAgent::make()->prompt($prompt, $attachments);
 
             return $response->toArray();
         }, 10000); // Retry 3 times with 10 seconds delay to respect rate limits
@@ -201,17 +167,8 @@ class AiProcessorService
         }
 
         return retry(3, function () use ($prompt, $attachments) {
-            $agent = agent(
-                schema: fn (JsonSchema $schema) => [
-                    'proposal_number' => $schema->string(),
-                    'total_amount' => $schema->number(),
-                    'customer_name' => $schema->string(),
-                    'submission_date' => $schema->string()->format('date'),
-                ]
-            );
-
-            /** @var StructuredAgentResponse $response */
-            $response = $agent->prompt($prompt, $attachments);
+            /** @var \Laravel\Ai\Responses\StructuredAgentResponse $response */
+            $response = ProposalMetadataAgent::make()->prompt($prompt, $attachments);
 
             return $response->toArray();
         }, 10000);

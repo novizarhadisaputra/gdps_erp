@@ -32,7 +32,7 @@ class JobPositionForm
                 ->required()
                 ->helperText('The work-related risk level, affecting insurance (JKK) calculations.'),
             Toggle::make('is_labor_intensive')
-                ->label('Labor Intensive (Padat Karya)')
+                ->label('Labor Intensive')
                 ->helperText('Enable for 50% JKK reduction if applicable.')
                 ->default(false),
             Repeater::make('jobPositionRemunerations')
@@ -46,9 +46,12 @@ class JobPositionForm
                         ->required()
                         ->searchable()
                         ->preload()
+                        ->placeholder('Select remuneration component')
                         ->helperText('Select the specific remuneration component (allowance, benefit, etc.).'),
                     TextInput::make('amount')
-                        ->numeric()
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                        ->prefix('IDR ')
+                        ->placeholder('e.g. 5.000.000')
                         ->default(0)
                         ->required()
                         ->helperText('The specific monthly amount for this component.'),

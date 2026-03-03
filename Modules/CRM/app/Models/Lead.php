@@ -31,6 +31,7 @@ use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
+use Modules\Project\Models\Project;
 use Modules\Project\Models\ProjectInformation;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
@@ -111,6 +112,11 @@ class Lead extends Model
     public function generalInformations(): HasMany
     {
         return $this->hasMany(GeneralInformation::class);
+    }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class);
     }
 
     public function projectInformations(): HasMany
@@ -203,6 +209,7 @@ class Lead extends Model
         return DB::transaction(function () use ($additionalData) {
             // Ensure necessary relations are loaded to avoid N+1 issues
             $this->loadMissing([
+                'salesPlan',
                 'manpowerTemplates.items.jobPosition.remunerationComponents',
                 'costingTemplates.costingTemplateItems.item',
             ]);
@@ -213,7 +220,8 @@ class Lead extends Model
                 'work_scheme_id' => $this->work_scheme_id,
                 'project_area_id' => $this->project_area_id,
                 'product_cluster_id' => $this->product_cluster_id,
-                'tax_id' => $this->tax_id ?? $this->customer?->tax_id,
+                'payment_term_id' => $this->payment_term_id ?? $this->salesPlan?->payment_term_id,
+                'management_fee_rate' => $this->salesPlan?->management_fee_percentage ?? 0,
                 'status' => 'draft',
             ], $additionalData));
 
@@ -261,7 +269,7 @@ class Lead extends Model
                         'quantity' => $item->quantity ?? 1,
                         'unit_cost_price' => $item->unit_price ?? 0,
                         'duration_months' => 1,
-                        'depreciation_months' => $item->item?->depreciation_months ?? 1,
+                        'depreciation_months' => $item->depreciation_months ?? 1,
                     ]);
                 }
             }

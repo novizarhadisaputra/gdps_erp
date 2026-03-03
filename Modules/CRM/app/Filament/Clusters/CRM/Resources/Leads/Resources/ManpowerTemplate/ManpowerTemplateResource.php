@@ -134,7 +134,8 @@ class ManpowerTemplateResource extends Resource
                                         ->columnSpan(1),
                                     TextInput::make('basic_salary')
                                         ->label('Basic Salary')
-                                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                        ->prefix('IDR ')
                                         ->required()
                                         ->live(onBlur: true)
                                         ->suffixAction(
@@ -307,12 +308,12 @@ class ManpowerTemplateResource extends Resource
                                             <table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
                                                 <thead class='text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400'>
                                                     <tr>
-                                                        <th scope='col' class='px-4 py-3'>Posisi & Qty</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Gaji Pokok</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Tunjangan</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>BPJS & Pajak</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>THR/Komp</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Total / Orang</th>
+                                                        <th scope='col' class='px-4 py-3'>Position & Qty</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Basic Salary</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Allowance</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>BPJS & Tax</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Holiday Allowance / Comp.</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Total / Person</th>
                                                         <th scope='col' class='px-4 py-3 text-right'>Subtotal</th>
                                                     </tr>
                                                 </thead>
@@ -321,7 +322,7 @@ class ManpowerTemplateResource extends Resource
                                                 </tbody>
                                                 <tfoot>
                                                     <tr class='font-bold text-gray-900 dark:text-white bg-gray-100/50 dark:bg-gray-800/50'>
-                                                        <td colspan='6' class='px-4 py-4 text-right uppercase tracking-wider'>Total Estimasi Biaya / Bulan</td>
+                                                        <td colspan='6' class='px-4 py-4 text-right uppercase tracking-wider'>Total Estimated Monthly Cost</td>
                                                         <td class='px-4 py-4 text-right text-lg text-primary-600'>Rp ".number_format($totalTemplateCost, 0, ',', '.')."</td>
                                                     </tr>
                                                 </tfoot>
@@ -329,7 +330,7 @@ class ManpowerTemplateResource extends Resource
                                         </div>
                                         <div class='mt-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800'>
                                             <p class='text-xs text-blue-700 dark:text-blue-300'>
-                                                <span class='font-bold uppercase mr-1'>Catatan:</span> Perhitungan di atas bersifat estimasi berdasarkan parameter UMK dan variabel BPJS terbaru. Nilai realisasi dapat berbeda tergantung pada konfigurasi BPJS spesifik di modul Finance.
+                                                <span class='font-bold uppercase mr-1'>Note:</span> The calculation above is an estimate based on the latest Minimum Wage (UMK) parameters and BPJS variables. The actual realization may differ depending on the specific BPJS configuration in the Finance module.
                                             </p>
                                         </div>
                                     ");

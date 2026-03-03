@@ -37,7 +37,8 @@ class ItemForm
                         ->required()
                         ->unique(Item::class, 'code', ignoreRecord: true)
                         ->maxLength(255)
-                        ->placeholder('ITM001'),
+                        ->placeholder('e.g. ITM-001')
+                        ->helperText('Unique item code.'),
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
@@ -48,6 +49,7 @@ class ItemForm
                         ->required()
                         ->searchable()
                         ->preload()
+                        ->placeholder('Select item category')
                         ->createOptionForm(ItemCategoryForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->live()
@@ -83,13 +85,15 @@ class ItemForm
                         ->required()
                         ->searchable()
                         ->preload()
+                        ->placeholder('Select unit')
                         ->createOptionForm(UnitOfMeasureForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Textarea::make('description')
                         ->maxLength(65535)
                         ->columnSpanFull(),
                     TextInput::make('price')
-                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                        ->prefix('IDR ')
                         ->helperText('Standard price for this item.'),
                     TextInput::make('depreciation_months')
                         ->numeric()
@@ -122,7 +126,8 @@ class ItemForm
                         ->searchable()
                         ->distinct(),
                     TextInput::make('price')
-                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                        ->prefix('IDR ')
                         ->required(),
                 ])
                 ->columnSpanFull()

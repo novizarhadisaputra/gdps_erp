@@ -164,7 +164,6 @@ class GeneralInformation extends Model implements HasMedia
             'work_scheme_id' => $this->work_scheme_id ?? $this->lead->work_scheme_id,
             'project_area_id' => $this->project_area_id ?? $this->lead->project_area_id,
             'product_cluster_id' => $this->product_cluster_id ?? $this->lead->product_cluster_id,
-            'tax_id' => $this->tax_id ?? $this->lead->tax_id,
         ]);
 
         // Copy media collections to the new PA

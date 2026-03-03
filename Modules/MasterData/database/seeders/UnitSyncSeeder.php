@@ -19,6 +19,20 @@ class UnitSyncSeeder extends Seeder
 
         $synced = $service->syncFromApi();
 
+        if ($synced->isEmpty()) {
+            $this->command->warn('No units found from API. Creating fallback unit.');
+
+            $fallback = \Modules\MasterData\Models\Unit::updateOrCreate(
+                ['code' => 'INT'],
+                [
+                    'name' => 'Internal Unit',
+                    'external_id' => '0',
+                ]
+            );
+
+            $synced->push($fallback);
+        }
+
         $this->command->info("Successfully synced {$synced->count()} units.");
     }
 }

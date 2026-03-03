@@ -32,20 +32,24 @@ class GeneralInformationForm
                             'rejected' => 'Rejected',
                         ])
                         ->required()
+                        ->placeholder('Select status')
                         ->default('draft'),
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
                         ->searchable()
                         ->preload()
                         ->required()
+                        ->placeholder('Select customer')
                         ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null),
                     TextInput::make('scope_of_work')
                         ->required()
                         ->maxLength(255)
+                        ->placeholder('Example: Integrated Security Manpower Procurement')
                         ->columnSpanFull()
                         ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->title : null),
                     Textarea::make('description')
                         ->rows(3)
+                        ->placeholder('Provide detailed description regarding the work scope or project objectives')
                         ->columnSpanFull()
                         ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->description : null),
                 ])->columns(2),
@@ -57,10 +61,12 @@ class GeneralInformationForm
                             DatePicker::make('estimated_start_date')
                                 ->required()
                                 ->native(false)
+                                ->placeholder('Select start date')
                                 ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->start_date : null),
                             DatePicker::make('estimated_end_date')
                                 ->required()
                                 ->native(false)
+                                ->placeholder('Select end date')
                                 ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->end_date : null),
                             Select::make('project_area_id')
                                 ->relationship('projectArea', 'name')
@@ -68,9 +74,10 @@ class GeneralInformationForm
                                 ->searchable()
                                 ->preload()
                                 ->required()
+                                ->placeholder('Select project area')
                                 ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null),
                             TextInput::make('location')
-                                ->placeholder('Project site or specific location'),
+                                ->placeholder('Example: Terminal 3 Bandara Soekarno-Hatta'),
                             Select::make('sales_plan_id')
                                 ->relationship('salesPlan', 'project_code')
                                 ->getOptionLabelFromRecordUsing(fn ($record) => $record->project_code ?? 'No Project Code')
@@ -86,16 +93,16 @@ class GeneralInformationForm
                 ->schema([
                     Textarea::make('manpower_qualifications')
                         ->rows(3)
-                        ->placeholder('Deskripsi kualifikasi tenaga kerja yang dibutuhkan'),
+                        ->placeholder('Example: Min. height 170cm, Gada Pratama certificate, min. high school education, max age 35 years'),
                     Textarea::make('work_activities')
                         ->rows(3)
-                        ->placeholder('Deskripsi aktivitas pekerjaan utama'),
+                        ->placeholder('Example: Airport area patrol, personnel ID check, CCTV monitoring, baggage screening'),
                     Textarea::make('service_level')
                         ->rows(3)
-                        ->placeholder('SLA atau tingkat layanan yang disepakati'),
+                        ->placeholder('Example: Incident response time < 5 minutes, 100% personnel availability per shift'),
                     Textarea::make('billing_requirements')
                         ->rows(3)
-                        ->placeholder('Persyaratan penagihan (billing)'),
+                        ->placeholder('Example: Invoice sent no later than the 5th of each month, complete BAPP attachments'),
                     Repeater::make('risk_management')
                         ->label('Risk Management')
                         ->simple(TextInput::make('risk')->required())
@@ -139,6 +146,7 @@ class GeneralInformationForm
                         ->columnSpanFull(),
                     Textarea::make('remarks')
                         ->rows(3)
+                        ->placeholder('Add notes or additional information if any')
                         ->columnSpanFull(),
                 ]),
         ];

@@ -90,8 +90,12 @@ class ImportCostingAiJob implements ShouldQueue
                 ->orWhere('name', 'ilike', 'ls')
                 ->first() ?? UnitOfMeasure::first();
 
-            Log::info('ImportCostingAiJob: Calling AiProcessorService...');
+            Log::info('ImportCostingAiJob: Calling AiProcessorService with file: '.$this->filePath);
+            $startTime = microtime(true);
             $processedData = $aiService->processCogsData($this->filePath, $this->context, 'items');
+            $endTime = microtime(true);
+            Log::info('ImportCostingAiJob: AiProcessorService finished in '.round($endTime - $startTime, 2).'s');
+
             $operationalData = collect($processedData['operational'] ?? [])
                 ->filter(fn ($item) => $this->mapCategory($item['category'] ?? '') !== CostingCategory::Manpower)
                 ->toArray();
@@ -118,6 +122,12 @@ class ImportCostingAiJob implements ShouldQueue
 
             foreach ($operationalData as $itemData) {
                 $itemId = $itemData['matched_id'] ?? null;
+                if ($itemId && strtolower($itemId) !== 'null') {
+                    if (! Item::where('id', $itemId)->exists()) {
+                        $itemId = null;
+                    }
+                }
+
                 $basePrice = 0;
 
                 if (! $itemId || strtolower($itemId) === 'null') {
@@ -154,6 +164,12 @@ class ImportCostingAiJob implements ShouldQueue
 
                         // Map Unit Of Measure from AI
                         $resolvedUnitId = $itemData['matched_unit_id'] ?? null;
+                        if ($resolvedUnitId && strtolower($resolvedUnitId) !== 'null') {
+                            if (! UnitOfMeasure::where('id', $resolvedUnitId)->exists()) {
+                                $resolvedUnitId = null;
+                            }
+                        }
+
                         if (! $resolvedUnitId) {
                             $aiUnit = $itemData['unit'] ?? 'Pcs';
                             $resolvedUom = UnitOfMeasure::where('name', 'ilike', trim($aiUnit))

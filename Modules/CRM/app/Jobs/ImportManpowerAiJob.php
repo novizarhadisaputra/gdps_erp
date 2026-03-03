@@ -106,6 +106,12 @@ class ImportManpowerAiJob implements ShouldQueue
             foreach ($manpowerData as $item) {
                 $jobPositionId = $item['matched_id'] ?? null;
 
+                if ($jobPositionId && strtolower($jobPositionId) !== 'null') {
+                    if (! JobPosition::where('id', $jobPositionId)->exists()) {
+                        $jobPositionId = null;
+                    }
+                }
+
                 if (! $jobPositionId || strtolower($jobPositionId) === 'null') {
                     $existing = JobPosition::where('name', 'ilike', $item['name'])->first();
                     if ($existing) {

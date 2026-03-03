@@ -36,8 +36,8 @@ class RegencyMinimumWageForm
                 ->required(),
             TextInput::make('amount')
                 ->label('Monthly Wage (UMK)')
-                ->numeric()
-                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                ->prefix('IDR ')
                 ->required(),
             \Filament\Forms\Components\Toggle::make('is_active')
                 ->default(true),

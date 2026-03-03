@@ -208,6 +208,53 @@ class ContractsTable
                     ]),
                 EditAction::make()
                     ->schema(fn (Schema $schema) => ContractForm::configure($schema)),
+                Action::make('generateProject')
+                    ->label('Generate Project')
+                    ->icon('heroicon-o-plus-circle')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (Contract $record) => $record->lead && ! $record->lead->projects()->exists() &&
+                        $record->status === ContractStatus::Active &&
+                        ($pa = $record->proposal?->profitabilityAnalysis) &&
+                        $pa->status === 'approved'
+                    )
+                    ->schema([
+                        TextInput::make('summary')
+                            ->label('Summary')
+                            ->default(fn (Contract $record) => "You are about to generate a Project for '{$record->customer?->name}'. This will consume the next sequence number for this customer and work scheme.")
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->columnSpanFull(),
+                        TextInput::make('project_name_override')
+                            ->label('Project Name (Optional)')
+                            ->placeholder(fn (Contract $record) => $record->proposal?->proposal_number ?? 'Project for '.$record->customer?->name),
+                    ])
+                    ->action(function (Contract $record, array $data) {
+                        $pa = $record->proposal?->profitabilityAnalysis;
+
+                        if (! $pa) {
+                            Notification::make()
+                                ->title('Gagal')
+                                ->body('Analisis Profitabilitas (PA) tidak ditemukan untuk kontrak ini.')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        $service = app(\Modules\Finance\Classes\ProjectGenerationService::class);
+                        $project = $service->generateFromPA($pa);
+
+                        if (! empty($data['project_name_override'])) {
+                            $project->update(['name' => $data['project_name_override']]);
+                        }
+
+                        Notification::make()
+                            ->title('Project Generated')
+                            ->body("Project Code: {$project->code}")
+                            ->success()
+                            ->send();
+                    }),
                 DeleteAction::make(),
             ])
             ->toolbarActions([

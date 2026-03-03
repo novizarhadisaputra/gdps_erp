@@ -10,7 +10,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
@@ -23,8 +22,6 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\ContractResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Proposal;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
-use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Services\SignatureService;
 
 class ProposalsTable
@@ -63,47 +60,6 @@ class ProposalsTable
                     ->options(ProposalStatus::class),
             ])
             ->recordActions([
-                Action::make('createPA')
-                    ->label('Create Profitability Analysis')
-                    ->icon('heroicon-o-presentation-chart-line')
-                    ->color('info')
-                    ->visible(fn (Proposal $record): bool => in_array($record->status, [ProposalStatus::Approved, ProposalStatus::Converted]))
-                    ->form([
-                        Select::make('work_scheme_id')
-                            ->relationship('workScheme', 'name')
-                            ->label('Select Work Scheme')
-                            ->default(fn ($record) => $record->work_scheme_id)
-                            ->required()
-                            ->searchable()
-                            ->preload(),
-                    ])
-                    ->action(function (Proposal $record, array $data) {
-                        $existingPa = ProfitabilityAnalysis::where('proposal_id', $record->id)->first();
-
-                        if ($existingPa) {
-                            Notification::make()
-                                ->title('PA Already Exists')
-                                ->body('Redirecting to the existing Profitability Analysis.')
-                                ->warning()
-                                ->send();
-
-                            return redirect(ProfitabilityAnalysisResource::getUrl('index'));
-                        }
-
-                        $pa = $record->lead->createProfitabilityAnalysis([
-                            'proposal_id' => $record->id,
-                            'customer_id' => $record->customer_id,
-                            'work_scheme_id' => $data['work_scheme_id'],
-                            'status' => 'draft',
-                        ]);
-
-                        Notification::make()
-                            ->title('Profitability Analysis Created')
-                            ->success()
-                            ->send();
-
-                        return redirect(ProfitabilityAnalysisResource::getUrl('index'));
-                    }),
                 Action::make('convertToContract')
                     ->label('Convert to Contract')
                     ->icon('heroicon-o-document-duplicate')
@@ -113,6 +69,7 @@ class ProposalsTable
                     ->action(function (Proposal $record) {
                         $contract = Contract::create([
                             'customer_id' => $record->customer_id,
+                            'lead_id' => $record->lead_id,
                             'proposal_id' => $record->id,
                             'contract_number' => 'CONTRACT-'.$record->proposal_number,
                             'status' => ContractStatus::Draft,
@@ -127,13 +84,20 @@ class ProposalsTable
 
                         return redirect(ContractResource::getUrl('index'));
                     }),
+                Action::make('resetToApproved')
+                    ->label('Reset to Approved')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->visible(fn (Proposal $record): bool => in_array($record->status, [ProposalStatus::Converted, ProposalStatus::Rejected]))
+                    ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Approved])),
                 ViewAction::make()
                     ->modalFooterActions([
                         Action::make('Sign')
                             ->label('Digital Signature')
                             ->color('primary')
                             ->icon('heroicon-o-pencil-square')
-                            ->form([
+                            ->schema([
                                 TextInput::make('pin')
                                     ->label('Signature PIN')
                                     ->password()

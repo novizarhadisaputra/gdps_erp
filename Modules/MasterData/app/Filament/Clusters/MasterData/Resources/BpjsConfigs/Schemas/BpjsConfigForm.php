@@ -26,11 +26,9 @@ class BpjsConfigForm
     {
         return [
             TextInput::make('name')
-                ->label('NAME')
                 ->required()
                 ->maxLength(255),
             Select::make('category')
-                ->label('CATEGORY')
                 ->options(BpjsCategory::class)
                 ->live()
                 ->afterStateUpdated(function ($state, $set) {
@@ -59,15 +57,14 @@ class BpjsConfigForm
                 ->required(),
             Select::make('type')
                 ->options(BpjsType::class)
-                ->label('BPJS TYPE')
+                ->label('BPJS Type')
                 ->helperText('Select the type of BPJS configuration.')
                 ->default(BpjsType::Employment)
                 ->required(),
             Select::make('calculation_basis')
-                ->label('CALCULATION BASIS')
                 ->multiple()
                 ->options(RemunerationComponent::where('is_active', true)->pluck('name', 'id'))
-                ->helperText('Select components used for calculation (e.g., Gaji Pokok + Tunjangan Tetap)')
+                ->helperText('Select components used for calculation (e.g., Basic Salary + Fixed Allowance)')
                 ->placeholder('Search components...')
                 ->preload()
                 ->searchable()
@@ -75,13 +72,11 @@ class BpjsConfigForm
             Grid::make(2)
                 ->schema([
                     TextInput::make('employer_rate')
-                        ->label('EMPLOYER RATE')
                         ->helperText('Example: 0.04 for 4%')
                         ->numeric()
                         ->step(0.0001)
                         ->required(),
                     TextInput::make('employee_rate')
-                        ->label('EMPLOYEE RATE')
                         ->helperText('Example: 0.01 for 1%')
                         ->numeric()
                         ->step(0.0001)
@@ -90,33 +85,34 @@ class BpjsConfigForm
             Grid::make(2)
                 ->schema([
                     Select::make('cap_type')
-                        ->label('CAP TYPE')
+                        ->label('CAP Type')
                         ->options(CalculationCapType::class)
                         ->default(CalculationCapType::None),
                     TextInput::make('cap_nominal')
-                        ->label('CAP NOMINAL')
-                        ->numeric()
+                        ->label('CAP Nominal')
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                        ->prefix('IDR ')
                         ->nullable(),
                 ]),
-            Grid::make(3)
+            Grid::make(4)
                 ->schema([
                     Select::make('floor_type')
-                        ->label('FLOOR TYPE')
+                        ->label('Floor Type')
                         ->options(CalculationFloorType::class)
                         ->default(CalculationFloorType::None),
                     TextInput::make('floor_nominal')
-                        ->label('FLOOR NOMINAL')
-                        ->numeric()
+                        ->label('Floor Nominal')
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                        ->prefix('IDR ')
                         ->nullable(),
                     Select::make('risk_level')
-                        ->label('RISK LEVEL')
+                        ->label('Risk Level')
                         ->options(RiskLevel::class)
-                        ->helperText('Specific risk level for JKK (Kecelakaan Kerja).')
+                        ->helperText('Specific risk level for JKK (Work Accident).')
                         ->nullable(),
-                ]),
-            Toggle::make('is_active')
-                ->label('IS ACTIVE')
-                ->default(true),
+                    Toggle::make('is_active')
+                        ->default(true),
+                ])->columnSpanFull(),
         ];
     }
 }

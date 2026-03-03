@@ -49,6 +49,7 @@ class ContractForm
                         ->live()
                         ->disabled(fn ($state) => filled($state))
                         ->dehydrated()
+                        ->placeholder('Select proposal')
                         ->afterStateUpdated(function ($state, Set $set) {
                             if (! $state) {
                                 return;
@@ -62,13 +63,17 @@ class ContractForm
                     TextInput::make('contract_number')
                         ->required()
                         ->hiddenOn('create')
-                        ->unique(Contract::class, 'contract_number', ignoreRecord: true),
+                        ->unique(Contract::class, 'contract_number', ignoreRecord: true)
+                        ->placeholder('e.g. CNT-2024-001')
+                        ->helperText('Official signed contract number.'),
                     Select::make('type')
                         ->options(ContractType::class)
                         ->default(ContractType::Agreement)
                         ->required()
                         ->native(false),
-                    DatePicker::make('expiry_date'),
+                    DatePicker::make('expiry_date')
+                        ->placeholder('Select expiry date')
+                        ->helperText('Contract expiration date.'),
                     ToggleButtons::make('status')
                         ->options(ContractStatus::class)
                         ->default(ContractStatus::Draft)
@@ -77,12 +82,14 @@ class ContractForm
                         ->inline()
                         ->required(),
                     Select::make('reminder_status')
-                        ->options(ReminderStatus::class),
+                        ->options(ReminderStatus::class)
+                        ->placeholder('Reminder status'),
                     SpatieMediaLibraryFileUpload::make('signed_contract')
                         ->collection('signed_contract')
                         ->label('Signed Contract Document')
 
                         ->visibility('private')
+                        ->helperText('Upload signed contract document (PDF).')
                         ->columnSpanFull(),
                     SpatieMediaLibraryFileUpload::make('termination_evidence')
                         ->collection('termination_evidence')
@@ -90,6 +97,7 @@ class ContractForm
 
                         ->visibility('private')
                         ->visible(fn ($get) => $get('status') === ContractStatus::Terminated->value)
+                        ->helperText('Upload evidence or supporting documents for contract termination.')
                         ->columnSpanFull(),
                 ])
                 ->columns(2)

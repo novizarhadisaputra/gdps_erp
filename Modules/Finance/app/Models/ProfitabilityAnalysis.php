@@ -19,6 +19,7 @@ use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
 use Modules\MasterData\Models\Customer;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
+use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
@@ -50,11 +51,12 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'proposal_id',
         'work_scheme_id',
         'product_cluster_id',
-        'tax_id',
         'project_area_id',
         'revenue_per_month',
         'direct_cost',
+        'depreciation',
         'management_fee',
+        'management_fee_rate',
         'margin_percentage',
         'analysis_details',
         'project_number',
@@ -70,6 +72,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'net_profit_margin',
         'is_imported',
         'import_source_id',
+        'payment_term_id',
     ];
 
     protected function casts(): array
@@ -77,7 +80,9 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         return [
             'revenue_per_month' => 'decimal:2',
             'direct_cost' => 'decimal:2',
+            'depreciation' => 'decimal:2',
             'management_fee' => 'decimal:2',
+            'management_fee_rate' => 'decimal:2',
             'margin_percentage' => 'decimal:2',
             'ebitda' => 'decimal:2',
             'ebit' => 'decimal:2',
@@ -149,6 +154,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function projectArea(): BelongsTo
     {
         return $this->belongsTo(ProjectArea::class);
+    }
+
+    public function paymentTerm(): BelongsTo
+    {
+        return $this->belongsTo(PaymentTerm::class);
     }
 
     public function project(): HasOne

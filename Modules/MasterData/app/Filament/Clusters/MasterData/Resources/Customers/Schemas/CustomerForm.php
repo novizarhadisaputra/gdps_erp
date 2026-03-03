@@ -31,35 +31,42 @@ class CustomerForm
                 ->schema([
                     TextInput::make('code')
                         ->label('Customer Code')
-                        ->maxLength(10)
+                        ->required()
                         ->unique(Customer::class, 'code', ignoreRecord: true)
-                        ->placeholder('Leave empty for auto-generate')
+                        ->maxLength(255)
+                        ->placeholder('e.g. CUST-001')
+                        ->helperText('Unique customer code.')
                         ->hidden($isCreateOption)
                         ->disabled(fn ($record) => $record !== null)
                         ->dehydrated(),
                     Select::make('legal_entity_type')
                         ->label('Legal Entity Type')
                         ->options(LegalEntityType::class)
+                        ->required()
                         ->searchable()
-                        ->placeholder('Select legal entity type'),
+                        ->placeholder('Select legal entity')
+                        ->native(false),
                     TextInput::make('name')
                         ->label('Customer Name')
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('Contoh: Garuda Indonesia'),
+                        ->placeholder('Example: Garuda Indonesia'),
                     TextInput::make('email')
                         ->label('Email')
                         ->email()
                         ->required()
-                        ->maxLength(255),
+                        ->maxLength(255)
+                        ->placeholder('example@email.com'),
                     TextInput::make('phone')
-                        ->label('Telepon')
+                        ->label('Phone')
                         ->tel()
                         ->required()
-                        ->maxLength(20),
+                        ->maxLength(255)
+                        ->placeholder('081234567890'),
                     TextInput::make('address')
-                        ->label('Alamat')
-                        ->maxLength(500),
+                        ->label('Address')
+                        ->maxLength(500)
+                        ->placeholder('Example St. No. 123'),
                     Select::make('status')
                         ->label('Status')
                         ->options(ActiveStatus::class)

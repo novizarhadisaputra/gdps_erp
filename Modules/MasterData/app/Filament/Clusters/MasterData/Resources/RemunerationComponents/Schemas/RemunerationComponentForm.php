@@ -21,7 +21,7 @@ class RemunerationComponentForm
             TextInput::make('name')
                 ->required()
                 ->maxLength(255)
-                ->helperText('The unique name of the remuneration component (e.g., Transport Allowance, THR).'),
+                ->helperText('The unique name of the remuneration component (e.g., Transport Allowance, Religious Holiday Allowance (THR)).'),
             Select::make('type')
                 ->options([
                     'fixed_allowance' => 'Fixed Allowance',

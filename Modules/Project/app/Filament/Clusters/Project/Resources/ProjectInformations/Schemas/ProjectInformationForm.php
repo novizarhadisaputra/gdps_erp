@@ -10,6 +10,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptions\Schemas\BillingOptionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
@@ -18,6 +19,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schem
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
+use Modules\Project\Models\Project;
 
 class ProjectInformationForm
 {
@@ -30,6 +32,18 @@ class ProjectInformationForm
                     ->required()
                     ->searchable()
                     ->preload()
+                    ->placeholder('Select project')
+                    ->live()
+                    ->afterStateUpdated(function ($state, Set $set) {
+                        if (! $state) {
+                            return;
+                        }
+                        $project = Project::find($state);
+                        if (! $project) {
+                            return;
+                        }
+                        $set('customer_id', $project->customer_id);
+                    })
                     ->columnSpanFull(),
                 Tabs::make('Operational Information')
                     ->tabs([
@@ -46,24 +60,39 @@ class ProjectInformationForm
                                     ->required()
                                     ->default('planning'),
                                 TextInput::make('previous_code')
-                                    ->label('Sebelum Revisi'),
-                                DatePicker::make('start_date')->native(false),
-                                DatePicker::make('end_date')->after('start_date')->native(false),
+                                    ->label('Pre-revision Code'),
+                                DatePicker::make('start_date')
+                                    ->required()
+                                    ->native(false)
+                                    ->placeholder('Select start date'),
+                                DatePicker::make('end_date')
+                                    ->required()
+                                    ->after('start_date')
+                                    ->native(false)
+                                    ->placeholder('Select end date'),
 
                                 // Operational & Financial Details
-                                TextInput::make('operational_visit_schedule')->label('Jadwal Kunjungan Operasional'),
-                                DatePicker::make('bapp_cut_off_date')->label('Tanggal Cut Off BAPP')->native(false),
-                                DatePicker::make('process_date')->label('Tanggal Proses Verifikasi BAPP')->native(false),
-                                DatePicker::make('max_invoice_send_date')->label('Tanggal Maks. Pengiriman Invoice')->native(false),
+                                TextInput::make('operational_visit_schedule')->label('Operational Visit Schedule'),
+                                DatePicker::make('bapp_cut_off_date')->label('BAPP Cut Off Date')->native(false),
+                                DatePicker::make('process_date')->label('BAPP Verification Process Date')->native(false),
+                                DatePicker::make('max_invoice_send_date')->label('Max. Invoice Delivery Date')->native(false),
 
                                 TextInput::make('direct_cost')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->label('Nilai Direct Cost/month')
-                                    ->helperText('Contoh: 80,000,000'),
+                                    ->prefix('IDR')
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                    ->maxValue(2147483647)
+                                    ->default(0)
+                                    ->placeholder('1.000.000.000')
+                                    ->label('Monthly Direct Cost')
+                                    ->helperText('Total project direct costs per month.'),
                                 TextInput::make('revenue_per_month')
-                                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                                    ->label('Nilai Revenue / bulan')
-                                    ->helperText('Contoh: 100,000,000'),
+                                    ->prefix('IDR')
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                    ->maxValue(2147483647)
+                                    ->default(0)
+                                    ->placeholder('1.200.000.000')
+                                    ->label('Monthly Revenue')
+                                    ->helperText('Total project revenue per month.'),
                                 TextInput::make('management_fee_per_month')
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                                     ->label('Management Fee / month'),
@@ -71,7 +100,7 @@ class ProjectInformationForm
                                     ->numeric()
                                     ->suffix('%')
                                     ->default(11)
-                                    ->label('PPN (%)'),
+                                    ->label('VAT (%)'),
 
                                 Select::make('payment_term_id')
                                     ->relationship('paymentTerm', 'name')
@@ -100,7 +129,7 @@ class ProjectInformationForm
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('oprep_id')
                                     ->relationship('oprep', 'name')
-                                    ->label('Nama Oprep')
+                                    ->label('OPREP Name')
                                     ->searchable()
                                     ->preload()
                                     ->createOptionForm(EmployeeForm::schema())
@@ -109,7 +138,7 @@ class ProjectInformationForm
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('ams_id')
                                     ->relationship('ams', 'name')
-                                    ->label('Nama AMS')
+                                    ->label('AMS Name')
                                     ->searchable()
                                     ->preload()
                                     ->createOptionForm(EmployeeForm::schema())
@@ -167,24 +196,24 @@ class ProjectInformationForm
                             }),
                         Tab::make('Remuneration')
                             ->schema([
-                                DatePicker::make('payroll_date')->label('Tanggal Penggajian TAD')->native(false),
-                                DatePicker::make('overtime_cut_off_date')->label('Tanggal Cut Off Lembur')->native(false),
+                                DatePicker::make('payroll_date')->label('TAD Payroll Date')->native(false),
+                                DatePicker::make('overtime_cut_off_date')->label('Overtime Cut Off Date')->native(false),
                                 Select::make('ipk_status')
                                     ->options([
                                         'ACCRUE' => 'ACCRUE',
                                         'REIMBURSE' => 'REIMBURSE',
-                                        'DITAGIHKAN TERPISAH' => 'DITAGIHKAN TERPISAH',
+                                        'DITAGIHKAN TERPISAH' => 'BILLED SEPARATELY',
                                     ])->label('Accrued - IPK'),
                                 Select::make('thr_status')
                                     ->options([
                                         'ACCRUE' => 'ACCRUE',
                                         'REIMBURSE' => 'REIMBURSE',
-                                        'DITAGIHKAN TERPISAH' => 'DITAGIHKAN TERPISAH',
+                                        'DITAGIHKAN TERPISAH' => 'BILLED SEPARATELY',
                                     ])->label('Accrued - THR'),
 
                                 Repeater::make('remuneration_details')
                                     ->schema([
-                                        TextInput::make('component_name')->required()->placeholder('e.g., Gaji Pokok, Tunjangan Shift'),
+                                        TextInput::make('component_name')->required()->placeholder('e.g., Basic Salary, Shift Allowance'),
                                         TextInput::make('amount')->numeric()->prefix('IDR')->required(),
                                         TextInput::make('notes'),
                                     ])

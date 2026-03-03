@@ -8,37 +8,72 @@ use Modules\MasterData\Models\RegencyMinimumWage;
 
 class ManpowerCostingService
 {
+    protected static array $umkCache = [];
+
+    protected static array $bpjsCache = [];
+
     /**
      * Calculate manpower cost breakdown.
      */
     public function calculate(
         float $basicSalary,
         array $allowances,
-        string $projectAreaId,
-        int $year,
+        ?string $projectAreaId,
+        ?int $year,
         string|RiskLevel $riskLevel = 'very_low',
         bool $isLaborIntensive = false,
         string $employeeType = 'ppu', // ppu or pbpu
         bool $billThrMonthly = true,
         bool $billCompensationMonthly = true
     ): array {
+        $fixedAllowances = 0.0;
+        $nonFixedAllowances = 0.0;
+
+        foreach ($allowances as $allowance) {
+            $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
+            $type = $allowance['type'] ?? 'nominal';
+            $isFixed = (bool) ($allowance['is_fixed'] ?? true);
+
+            $amount = $type === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+
+            if ($isFixed) {
+                $fixedAllowances += $amount;
+            } else {
+                $nonFixedAllowances += $amount;
+            }
+        }
+
+        $upah = $basicSalary + $fixedAllowances;
+
+        if (! $projectAreaId || ! $year) {
+            return [
+                'umk' => 0,
+                'upah' => $upah,
+                'allowances' => ['fixed' => $fixedAllowances, 'non_fixed' => $nonFixedAllowances],
+                'bpjs_health' => ['employer_total' => 0, 'employee_total' => 0, 'base' => 0],
+                'bpjs_employment' => ['employer_total' => 0, 'employee_total' => 0],
+                'pph21' => ['total' => 0, 'rate' => 0, 'taxable_income' => 0],
+                'accruals' => ['thr' => 0, 'compensation' => 0],
+                'total_direct_cost' => $upah + $nonFixedAllowances,
+                'total_allowances' => $nonFixedAllowances,
+                'bpjs_total' => 0,
+                'thr_compensation' => 0,
+            ];
+        }
+
         if ($riskLevel instanceof RiskLevel) {
             $riskLevel = $riskLevel->value;
         }
 
-        $umk = RegencyMinimumWage::where('project_area_id', $projectAreaId)
-            ->where('year', $year)
-            ->first()?->amount ?? 0;
-
-        $fixedAllowances = collect($allowances)
-            ->filter(fn ($a) => ($a['type'] ?? '') === 'nominal' && ($a['is_fixed'] ?? true))
-            ->sum(fn ($a) => $a['value'] ?? $a['amount'] ?? 0);
-
-        $nonFixedAllowances = collect($allowances)
-            ->filter(fn ($a) => ($a['type'] ?? '') === 'nominal' && ! ($a['is_fixed'] ?? true))
-            ->sum(fn ($a) => $a['value'] ?? $a['amount'] ?? 0);
-
-        $upah = $basicSalary + $fixedAllowances;
+        $cacheKey = "{$projectAreaId}-{$year}";
+        if (isset(self::$umkCache[$cacheKey])) {
+            $umk = self::$umkCache[$cacheKey];
+        } else {
+            $umk = RegencyMinimumWage::where('project_area_id', $projectAreaId)
+                ->where('year', $year)
+                ->first()?->amount ?? 0;
+            self::$umkCache[$cacheKey] = (float) $umk;
+        }
 
         // BPJS Base is usually Upah, but floored by UMK and capped by specified limits
         $bpjsHealth = $this->calculateBpjsHealth($upah, $umk, $employeeType);
@@ -84,7 +119,13 @@ class ManpowerCostingService
             ];
         }
 
-        $config = BpjsConfig::where('category', 'Health')->where('is_active', true)->first();
+        $cacheKey = 'Health-active';
+        if (isset(self::$bpjsCache[$cacheKey])) {
+            $config = self::$bpjsCache[$cacheKey];
+        } else {
+            $config = BpjsConfig::where('category', 'Health')->where('is_active', true)->first();
+            self::$bpjsCache[$cacheKey] = $config;
+        }
 
         if (! $config) {
             return ['employer_total' => 0, 'employee_total' => 0];
