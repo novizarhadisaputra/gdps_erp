@@ -13,6 +13,7 @@ class MasterDataDatabaseSeeder extends Seeder
     {
         $this->call([
             RemunerationParameterSeeder::class,
+            TaxRateTerSeeder::class,
             MasterCodeSeeder::class,
             ApprovalRuleSeeder::class,
             ContactRoleSeeder::class,

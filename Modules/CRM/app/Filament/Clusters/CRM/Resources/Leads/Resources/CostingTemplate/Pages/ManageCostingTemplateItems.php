@@ -19,9 +19,9 @@ class ManageCostingTemplateItems extends ManageRelatedRecords
 
     protected static ?string $relatedResource = CostingTemplateItemResource::class;
 
-    protected static ?string $title = 'Cost Items';
+    protected static ?string $title = 'Costing Tools & Equipment';
 
-    protected static ?string $navigationLabel = 'Cost Items';
+    protected static ?string $navigationLabel = 'Costing Tools & Equipment';
 
     public function form(Schema $schema): Schema
     {

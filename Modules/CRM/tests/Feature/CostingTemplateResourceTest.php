@@ -47,7 +47,10 @@ class CostingTemplateResourceTest extends TestCase
 
         $this->actingAs(\App\Models\User::factory()->create());
 
-        Livewire::test(ManageCostingTemplateItems::class, ['record' => $template->id])
+        Livewire::test(ManageCostingTemplateItems::class, [
+            'lead' => $lead->id,
+            'record' => $template->id,
+        ])
             ->assertSuccessful()
             ->callTableAction('create', data: [
                 'item_id' => $item->id,

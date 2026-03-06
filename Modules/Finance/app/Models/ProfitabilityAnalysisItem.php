@@ -31,6 +31,7 @@ class ProfitabilityAnalysisItem extends Model
         'duration_months',
         'import_source_id',
         'direct_cost_category_id',
+        'ptkp_config_id',
         'calculation_type',
         'percentage_basis',
     ];
@@ -65,5 +66,10 @@ class ProfitabilityAnalysisItem extends Model
     public function costable(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function ptkpConfig(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\PtkpConfig::class, 'ptkp_config_id');
     }
 }

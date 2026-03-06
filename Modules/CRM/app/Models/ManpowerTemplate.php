@@ -103,18 +103,26 @@ class ManpowerTemplate extends Model implements HasMedia
                 continue;
             }
 
-            $jp = \Modules\MasterData\Models\JobPosition::with('remunerationComponents')->find($jpId);
+            $jp = \Modules\MasterData\Models\JobPosition::with(['fixedAllowances', 'nonFixedAllowances'])->find($jpId);
             if (! $jp) {
                 continue;
             }
 
             $allowances = [];
-            foreach ($jp->remunerationComponents ?? [] as $component) {
+            foreach ($jp->fixedAllowances ?? [] as $allowance) {
                 $allowances[] = [
-                    'name' => $component->name,
+                    'name' => $allowance->name,
                     'type' => 'nominal',
-                    'value' => $component->pivot->amount,
-                    'is_fixed' => $component->is_fixed,
+                    'value' => $allowance->pivot->amount,
+                    'is_fixed' => true,
+                ];
+            }
+            foreach ($jp->nonFixedAllowances ?? [] as $allowance) {
+                $allowances[] = [
+                    'name' => $allowance->name,
+                    'type' => 'nominal',
+                    'value' => $allowance->pivot->amount,
+                    'is_fixed' => false,
                 ];
             }
 

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignUuid('profitability_analysis_id')->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')->cascadeOnDelete();
             $table->uuid('import_source_id')->nullable();
             $table->uuid('direct_cost_category_id')->nullable();
+            $table->uuid('ptkp_config_id')->nullable();
 
             // Polymorphic Columns: costable_id & costable_type
             // This allows linking to Item, JobPosition, or any other model.

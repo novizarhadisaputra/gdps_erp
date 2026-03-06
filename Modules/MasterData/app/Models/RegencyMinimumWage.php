@@ -15,6 +15,7 @@ class RegencyMinimumWage extends Model
     protected $fillable = [
         'project_area_id',
         'province',
+        'type',
         'year',
         'amount',
         'is_active',
@@ -23,6 +24,7 @@ class RegencyMinimumWage extends Model
     protected function casts(): array
     {
         return [
+            'type' => \Modules\MasterData\Enums\RegencyMinimumWageType::class,
             'amount' => 'decimal:2',
             'year' => 'integer',
             'is_active' => 'boolean',

@@ -118,6 +118,8 @@ class ManpowerTemplateResource extends Resource
                                         ->preload()
                                         ->required()
                                         ->live()
+                                        ->placeholder('Pilih jabatan')
+                                        ->helperText('Pilih jabatan untuk mendaftarkan personil.')
                                         ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                             if (! $state) {
                                                 return;
@@ -146,6 +148,8 @@ class ManpowerTemplateResource extends Resource
                                         ->default(1)
                                         ->required()
                                         ->live(onBlur: true)
+                                        ->placeholder('Jumlah personil')
+                                        ->helperText('Jumlah personil untuk jabatan ini.')
                                         ->columnSpan(1),
                                     TextInput::make('basic_salary')
                                         ->label('Basic Salary')
@@ -153,6 +157,8 @@ class ManpowerTemplateResource extends Resource
                                         ->prefix('IDR ')
                                         ->required()
                                         ->live(onBlur: true)
+                                        ->placeholder('Gaji pokok')
+                                        ->helperText('Besaran gaji pokok per bulan (Default UMK).')
                                         ->suffixAction(
                                             Action::make('reset_to_umk')
                                                 ->icon('heroicon-m-arrow-path')
@@ -198,6 +204,7 @@ class ManpowerTemplateResource extends Resource
                                 ->schema([
                                     Select::make('risk_level')
                                         ->label('Risk Level (JKK)')
+                                        ->helperText('Menentukan tarif premi JKK.')
                                         ->options([
                                             'very_low' => 'Very Low (0.24%)',
                                             'low' => 'Low (0.54%)',
@@ -210,6 +217,7 @@ class ManpowerTemplateResource extends Resource
                                         ->live(),
                                     Select::make('employee_type')
                                         ->label('Employee Participation')
+                                        ->helperText('Metode keikutsertaan BPJS.')
                                         ->options([
                                             'ppu' => 'Penerima Upah (PPU)',
                                             'pbpu' => 'Bukan Penerima Upah (PBPU/Mandiri)',
@@ -219,15 +227,17 @@ class ManpowerTemplateResource extends Resource
                                         ->live(),
                                     Toggle::make('is_labor_intensive')
                                         ->label('Is Labor Intensive?')
-                                        ->helperText('Enable for 50% JKK reduction if applicable.')
+                                        ->helperText('Aktifkan jika pekerjaan padat karya (diskon 50% JKK).')
                                         ->default(false)
                                         ->live(),
                                     Toggle::make('bill_thr_monthly')
                                         ->label('Bill THR Monthly')
+                                        ->helperText('Apakah THR ditagihkan secara akrual bulanan?')
                                         ->default(true)
                                         ->live(),
                                     Toggle::make('bill_compensation_monthly')
                                         ->label('Bill Compensation Monthly')
+                                        ->helperText('Apakah dana kompensasi ditagihkan secara akrual bulanan?')
                                         ->default(true)
                                         ->live(),
                                 ]),
@@ -267,18 +277,26 @@ class ManpowerTemplateResource extends Resource
                                             continue;
                                         }
 
-                                        $jp = JobPosition::with('remunerationComponents')->find($jpId);
+                                        $jp = JobPosition::with(['fixedAllowances', 'nonFixedAllowances'])->find($jpId);
                                         if (! $jp) {
                                             continue;
                                         }
 
                                         $allowances = [];
-                                        foreach ($jp->remunerationComponents ?? [] as $component) {
+                                        foreach ($jp->fixedAllowances ?? [] as $allowance) {
                                             $allowances[] = [
-                                                'name' => $component->name,
+                                                'name' => $allowance->name,
                                                 'type' => 'nominal',
-                                                'value' => $component->pivot->amount,
-                                                'is_fixed' => $component->is_fixed,
+                                                'value' => $allowance->pivot->amount,
+                                                'is_fixed' => true,
+                                            ];
+                                        }
+                                        foreach ($jp->nonFixedAllowances ?? [] as $allowance) {
+                                            $allowances[] = [
+                                                'name' => $allowance->name,
+                                                'type' => 'nominal',
+                                                'value' => $allowance->pivot->amount,
+                                                'is_fixed' => false,
                                             ];
                                         }
 
@@ -295,7 +313,8 @@ class ManpowerTemplateResource extends Resource
                                             isLaborIntensive: $isLaborIntensive,
                                             employeeType: $employeeType,
                                             billThrMonthly: $billThr,
-                                            billCompensationMonthly: $billComp
+                                            billCompensationMonthly: $billComp,
+                                            ptkpCode: 'TK/0'
                                         );
 
                                         $unitCost = $res['total_direct_cost'];

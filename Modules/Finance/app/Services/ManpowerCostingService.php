@@ -28,7 +28,8 @@ class ManpowerCostingService
         bool $billThrMonthly = true,
         bool $billCompensationMonthly = true,
         float $adminFeePercentage = 0.0,
-        float $managementFeeFlat = 0.0
+        float $managementFeeFlat = 0.0,
+        string $ptkpCode = 'TK/0'
     ): array {
         $fixedAllowances = 0.0;
         $nonFixedAllowances = 0.0;
@@ -39,13 +40,14 @@ class ManpowerCostingService
         foreach ($allowances as $allowance) {
             $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
             $type = $allowance['type'] ?? 'nominal';
-            $category = $allowance['category'] ?? ($allowance['is_fixed'] ?? true ? 'fixed' : 'variable');
 
-            // Scaling for non-fixed allowances based on working days if applicable
-            // In many cases, non-fixed are per day. Assuming 'val' is per month for now unless specified.
+            // Determination of fixed/non-fixed
+            // If the allowance comes from the new model, it might have an 'is_fixed' flag.
+            $isFixed = $allowance['is_fixed'] ?? true;
+
             $amount = $type === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
 
-            if ($category === 'fixed') {
+            if ($isFixed) {
                 $fixedAllowances += $amount;
             } else {
                 $nonFixedAllowances += $amount;
@@ -94,8 +96,8 @@ class ManpowerCostingService
         $thr = $billThrMonthly ? ($upah / 12) : 0;
         $compensation = $billCompensationMonthly ? ($upah / 12) : 0;
 
-        // PPH21 Calculation
-        $pph21 = $this->calculatePph21($upah + $nonFixedAllowances, $bpjsHealth, $bpjsEmployment);
+        // PPH21 Calculation (Gross for PPh 21 = Upah + NonFixed + BPJS Employer)
+        $pph21 = $this->calculatePph21($upah + $nonFixedAllowances, $bpjsHealth, $bpjsEmployment, $ptkpCode);
 
         $totalDirectCost = $upah + $nonFixedAllowances + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $thr + $compensation + $pph21['total'];
 
@@ -231,35 +233,39 @@ class ManpowerCostingService
         ];
     }
 
-    protected function calculatePph21(float $grossIncome, array $bpjsHealth, array $bpjsEmployment): array
+    protected function calculatePph21(float $grossIncomeValue, array $bpjsHealth, array $bpjsEmployment, ?string $ptkpCode = 'TK/0'): array
     {
-        // 1. Calculate Deductions
-        // Biaya Jabatan: 5% of gross income, max 500k/month
-        $biayaJabatan = min(500000, $grossIncome * 0.05);
+        // 2024 TER Method (PMK 168/2023)
+        // Gross income for PPh 21 includes employer-paid BPJS (JKN, JKK, JKM, JP)
+        // Note: JP is included according to some interpretations, but mostly JKN, JKK, JKM are standard.
+        // Based on spreadsheet formula, they include all employer BPJS.
 
-        // Employee paid JHT/JP are deductible
-        $jhtEmployee = $bpjsEmployment['details']['jht']['employee'] ?? 0;
-        $jpEmployee = $bpjsEmployment['details']['jp']['employee'] ?? 0;
+        $employerBpjs = $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'];
+        $grossTaxBase = $grossIncomeValue + $employerBpjs;
 
-        $totalDeductions = $biayaJabatan + $jhtEmployee + $jpEmployee;
+        // 1. Get PTKP and Category
+        $ptkp = \Modules\MasterData\Models\PtkpConfig::where('code', $ptkpCode)->first();
+        $category = $ptkp?->tax_category ?? 'A';
 
-        // 2. Net Income
-        $netMonthlyIncome = $grossIncome - $totalDeductions;
-        $netAnnualIncome = $netMonthlyIncome * 12;
+        // 2. Find TER rate from database
+        $terRate = \Modules\MasterData\Models\TaxRateTer::where('category', $category)
+            ->where('min_gross', '<=', $grossTaxBase)
+            ->where(function ($query) use ($grossTaxBase) {
+                $query->where('max_gross', '>=', $grossTaxBase)
+                    ->orWhereNull('max_gross');
+            })
+            ->first();
 
-        // 3. PTKP (Simplified: assuming Single/K0 = 54M/year)
-        $ptkp = 54000000;
-        $pkp = max(0, $netAnnualIncome - $ptkp);
-
-        // 4. Annual Tax (Progressive - Simplified to first bracket 5%)
-        $annualTax = $pkp * 0.05;
-        $monthlyTax = $annualTax / 12;
+        $rateValue = $terRate?->rate ?? 0;
+        $monthlyTax = $grossTaxBase * ($rateValue / 100);
 
         return [
             'total' => $monthlyTax,
-            'rate' => 0.05,
-            'taxable_income' => $pkp / 12,
-            'deductions' => $totalDeductions,
+            'rate' => $rateValue / 100,
+            'taxable_income' => $grossTaxBase,
+            'category' => $category,
+            'ptkp_code' => $ptkpCode,
+            'gross_tax_base' => $grossTaxBase,
         ];
     }
 }

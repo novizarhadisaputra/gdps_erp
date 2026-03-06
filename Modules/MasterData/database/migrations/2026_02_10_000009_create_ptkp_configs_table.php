@@ -12,6 +12,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('code')->unique(); // TK/0, K/1 etc
             $table->string('name');
+            $table->string('tax_category'); // A, B, C
             $table->decimal('annual_amount', 15, 2);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

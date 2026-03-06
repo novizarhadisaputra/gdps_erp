@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'regency_minimum_wages' : 'master_data.regency_minimum_wages', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('province')->nullable();
+            $table->string('type')->nullable();
             $table->foreignUuid('project_area_id')->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->cascadeOnDelete();
             $table->integer('year');
             $table->decimal('amount', 15, 2);

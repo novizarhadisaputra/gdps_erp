@@ -22,6 +22,9 @@ class RegencyMinimumWageForm
             TextInput::make('province')
                 ->required()
                 ->maxLength(255),
+            Select::make('type')
+                ->options(\Modules\MasterData\Enums\RegencyMinimumWageType::class)
+                ->required(),
             Select::make('project_area_id')
                 ->label('Project Area')
                 ->relationship('projectArea', 'name')

@@ -15,6 +15,7 @@ class PtkpConfig extends Model
     protected $fillable = [
         'code',   // TK/0, K/1 etc
         'name',   // Tidak Kawin 0 Tanggungan etc
+        'tax_category', // A, B, C
         'annual_amount',
         'is_active',
     ];

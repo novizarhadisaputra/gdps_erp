@@ -62,7 +62,7 @@ class CostingTemplateForm
                             ->maxLength(255),
                     ]),
 
-                Step::make('Items & Costing')
+                Step::make('Tools & Equipment Costing')
                     ->description('Manage items and calculations')
                     ->schema([
                         Placeholder::make('items_hint')
@@ -70,7 +70,7 @@ class CostingTemplateForm
                             ->content(function () {
                                 return new \Illuminate\Support\HtmlString('
                                     <div class="p-4 bg-primary-50 rounded-lg border border-primary-200 text-primary-900">
-                                        You are currently in <strong>Edit</strong> mode. To manage costing items in detail and securely (to avoid memory crashes), please use the <strong>"Cost Items"</strong> tab in the sidebar menu.
+                                        You are currently in <strong>Edit</strong> mode. To manage costing tools & equipment in detail and securely (to avoid memory crashes), please use the <strong>"Costing Tools & Equipment"</strong> tab in the sidebar menu.
                                     </div>
                                 ');
                             })

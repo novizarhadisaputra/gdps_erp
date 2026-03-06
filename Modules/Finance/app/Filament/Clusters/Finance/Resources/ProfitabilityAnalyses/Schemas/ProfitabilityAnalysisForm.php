@@ -219,7 +219,7 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(2.50)
                                     ->placeholder('2.50')
-                                    ->helperText('Central management overhead costs.')
+                                    ->helperText('Persentase biaya overhead manajemen pusat (Overhead HQ).')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                                 TextInput::make('management_fee_rate')
@@ -227,7 +227,7 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(fn (Get $get, $livewire) => $get('/management_fee_rate') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->management_fee_percentage : 0) ?? 15.00)
                                     ->placeholder('15.00')
-                                    ->helperText('Project Target Gross Profit Margin (Fee).')
+                                    ->helperText('Target persentase margin laba kotor (Fee Proyek).')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                                 Select::make('payment_term_id')
@@ -245,7 +245,7 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(1.50)
                                     ->placeholder('1.50')
-                                    ->helperText('Estimated interest cost (Cost of Money).')
+                                    ->helperText('Estimasi biaya bunga atau biaya modal (Cost of Money).')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                                 TextInput::make('tax_rate')
@@ -253,7 +253,7 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(22.00)
                                     ->placeholder('22.00')
-                                    ->helperText('Corporate Income Tax (PPh) rate.')
+                                    ->helperText('Tarif Pajak Penghasilan Badan (Corporate Income Tax).')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn ($get, $set) => self::calculateDirectCost($get, $set)),
                             ]),
@@ -279,7 +279,8 @@ class ProfitabilityAnalysisForm
                                     ])
                                     ->required()
                                     ->live(onBlur: true)
-                                    ->placeholder('Select resource type')
+                                    ->placeholder('Pilih tipe sumber daya')
+                                    ->helperText('Pilih antara Jabatan tunggal atau Paket Template.')
                                     ->afterStateUpdated(fn (Set $set) => $set('costable_id', null))
                                     ->columnSpan(1),
                                 Select::make('direct_cost_category_id')
@@ -298,6 +299,8 @@ class ProfitabilityAnalysisForm
                                     ->searchable()
                                     ->preload()
                                     ->live(onBlur: true)
+                                    ->placeholder('Pilih data Resource')
+                                    ->helperText('Pilih Jabatan atau Template yang akan digunakan.')
                                     ->afterStateUpdated(function ($state, $get, Set $set) {
                                         if (! $state || ! $get('costable_type')) {
                                             return;
@@ -319,12 +322,20 @@ class ProfitabilityAnalysisForm
                                             $set('depreciation_months', 1);
 
                                             $breakdown = [];
-                                            foreach ($record->remunerationComponents ?? [] as $component) {
+                                            foreach ($record->fixedAllowances ?? [] as $allowance) {
                                                 $breakdown[] = [
-                                                    'name' => $component->name,
+                                                    'name' => $allowance->name,
                                                     'type' => 'nominal',
-                                                    'value' => $component->pivot->amount,
-                                                    'is_fixed' => $component->is_fixed,
+                                                    'value' => $allowance->pivot->amount,
+                                                    'is_fixed' => true,
+                                                ];
+                                            }
+                                            foreach ($record->nonFixedAllowances ?? [] as $allowance) {
+                                                $breakdown[] = [
+                                                    'name' => $allowance->name,
+                                                    'type' => 'nominal',
+                                                    'value' => $allowance->pivot->amount,
+                                                    'is_fixed' => false,
                                                 ];
                                             }
                                             $set('cost_breakdown', $breakdown);
@@ -343,12 +354,20 @@ class ProfitabilityAnalysisForm
                                                 }
 
                                                 $allowances = [];
-                                                foreach ($jp->remunerationComponents ?? [] as $component) {
+                                                foreach ($jp->fixedAllowances ?? [] as $allowance) {
                                                     $allowances[] = [
-                                                        'name' => $component->name,
+                                                        'name' => $allowance->name,
                                                         'type' => 'nominal',
-                                                        'value' => (float) $component->pivot->amount,
-                                                        'is_fixed' => $component->is_fixed,
+                                                        'value' => (float) $allowance->pivot->amount,
+                                                        'is_fixed' => true,
+                                                    ];
+                                                }
+                                                foreach ($jp->nonFixedAllowances ?? [] as $allowance) {
+                                                    $allowances[] = [
+                                                        'name' => $allowance->name,
+                                                        'type' => 'nominal',
+                                                        'value' => (float) $allowance->pivot->amount,
+                                                        'is_fixed' => false,
                                                     ];
                                                 }
 
@@ -381,7 +400,8 @@ class ProfitabilityAnalysisForm
                                     ->default(RiskLevel::VeryLow)
                                     ->visible(fn (Get $get) => $get('costable_type') === JobPosition::class)
                                     ->live(onBlur: true)
-                                    ->placeholder('Select risk level')
+                                    ->placeholder('Pilih tingkat risiko')
+                                    ->helperText('Menentukan tarif BPJS Ketenagakerjaan (JKK).')
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         self::updateItemTotals($get, $set);
                                         self::calculateDirectCost($get, $set);
@@ -390,7 +410,24 @@ class ProfitabilityAnalysisForm
                                 Toggle::make('is_labor_intensive')
                                     ->label('Labor')
                                     ->visible(fn (Get $get) => $get('costable_type') === JobPosition::class)
+                                    ->helperText('Aktifkan jika pekerjaan padat karya (diskon 50% JKK).')
                                     ->live(onBlur: true)
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        self::updateItemTotals($get, $set);
+                                        self::calculateDirectCost($get, $set);
+                                    })
+                                    ->columnSpan(1),
+                                Select::make('ptkp_config_id')
+                                    ->label('PTKP')
+                                    ->relationship('ptkpConfig', 'code')
+                                    ->visible(fn (Get $get) => $get('costable_type') === JobPosition::class)
+                                    ->placeholder('Select PTKP')
+                                    ->default(fn () => \Modules\MasterData\Models\PtkpConfig::where('code', 'TK/0')->first()?->id)
+                                    ->searchable()
+                                    ->preload()
+                                    ->live(onBlur: true)
+                                    ->placeholder('Pilih status PTKP')
+                                    ->helperText('Status Pajak untuk perhitungan metode TER.')
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         self::updateItemTotals($get, $set);
                                         self::calculateDirectCost($get, $set);
@@ -399,8 +436,8 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('quantity')
                                     ->numeric()
                                     ->default(1)
-                                    ->placeholder('1')
-                                    ->helperText('Number of personnel required.')
+                                    ->placeholder('Jumlah personil')
+                                    ->helperText('Jumlah tenaga kerja yang dibutuhkan.')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         self::updateItemTotals($get, $set);
@@ -1157,7 +1194,8 @@ class ProfitabilityAnalysisForm
                 projectAreaId: (string) ($get('/project_area_id')),
                 year: (int) ($get('/year') ?? date('Y')),
                 riskLevel: $get('risk_level') ?? 'very_low',
-                isLaborIntensive: (bool) $get('is_labor_intensive')
+                isLaborIntensive: (bool) $get('is_labor_intensive'),
+                ptkpCode: \Modules\MasterData\Models\PtkpConfig::find($get('ptkp_config_id'))?->code ?? 'TK/0'
             );
 
             return (float) ($result['total_direct_cost'] ?? 0) * $qty;

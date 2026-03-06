@@ -18,6 +18,14 @@ class RegencyMinimumWagesTable
                 TextColumn::make('province')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('type')
+                    ->badge()
+                    ->color(fn (\Modules\MasterData\Enums\RegencyMinimumWageType $state): string => match ($state) {
+                        \Modules\MasterData\Enums\RegencyMinimumWageType::Kabupaten => 'info',
+                        \Modules\MasterData\Enums\RegencyMinimumWageType::Kota => 'warning',
+                    })
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('projectArea.name')
                     ->label('Project Area')
                     ->searchable()

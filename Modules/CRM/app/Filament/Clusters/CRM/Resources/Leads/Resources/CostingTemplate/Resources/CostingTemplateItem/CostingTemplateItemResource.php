@@ -17,6 +17,10 @@ class CostingTemplateItemResource extends Resource
 {
     protected static ?string $model = CostingTemplateItem::class;
 
+    protected static ?string $label = 'Costing Tool & Equipment';
+
+    protected static ?string $pluralLabel = 'Costing Tools & Equipment';
+
     protected static bool $isNested = true;
 
     protected static ?string $parentResource = CostingTemplateResource::class;
