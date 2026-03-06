@@ -9,6 +9,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
+use Modules\Finance\Models\DirectCostCategory;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 
 class ProfitabilityAnalysisInfolist
 {
@@ -92,48 +94,121 @@ class ProfitabilityAnalysisInfolist
                                     }),
                             ]),
                     ]),
-                Section::make('Financials')
+                Section::make('Financial Performance')
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('asset_ownership')
-                                    ->label('Asset Ownership')
-                                    ->badge()
-                                    ->color('info'),
-                                TextEntry::make('margin_percentage')
-                                    ->label('Gross Margin')
-                                    ->suffix('%')
-                                    ->color(fn (float $state): string => $state < 10 ? 'danger' : ($state < 20 ? 'warning' : 'success')),
-                            ]),
-                        Grid::make(4)
-                            ->schema([
                                 TextEntry::make('revenue_per_month')
-                                    ->label('Revenue/Mo')
-                                    ->money('IDR'),
+                                    ->label('1. TOTAL REVENUE')
+                                    ->money('IDR')
+                                    ->weight(FontWeight::Bold),
                                 TextEntry::make('direct_cost')
-                                    ->label('Direct Cost/Mo')
-                                    ->money('IDR'),
-                                TextEntry::make('management_fee')
-                                    ->label('Mgmt Fee (Flat)')
-                                    ->money('IDR'),
-                                TextEntry::make('management_expense_rate')
-                                    ->label('Mgmt Expense Rate')
-                                    ->suffix('%'),
+                                    ->label('2. TOTAL DIRECT COST')
+                                    ->money('IDR')
+                                    ->weight(FontWeight::Bold),
                             ]),
+
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('direct_cost_manpower')
+                                    ->label(' - Manpower')
+                                    ->state(function (ProfitabilityAnalysis $record) {
+                                        if ($record->is_manual_cost) {
+                                            $cat = DirectCostCategory::where('code', 'manpower')->first();
+                                            $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+
+                                            return collect($manualCosts)
+                                                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $cat?->id)
+                                                ->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+                                        }
+
+                                        return $record->items()
+                                            ->whereHas('category', fn ($q) => $q->where('code', 'manpower'))
+                                            ->sum('total_monthly_cost');
+                                    })
+                                    ->money('IDR'),
+                                TextEntry::make('direct_cost_tools')
+                                    ->label(' - Tools & Eq')
+                                    ->state(function (ProfitabilityAnalysis $record) {
+                                        if ($record->is_manual_cost) {
+                                            $cat = DirectCostCategory::where('code', 'tools_equipment')->first();
+                                            $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+
+                                            return collect($manualCosts)
+                                                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $cat?->id)
+                                                ->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+                                        }
+
+                                        return $record->items()
+                                            ->whereHas('category', fn ($q) => $q->where('code', 'tools_equipment'))
+                                            ->sum('total_monthly_cost');
+                                    })
+                                    ->money('IDR'),
+                                TextEntry::make('direct_cost_material')
+                                    ->label(' - Material')
+                                    ->state(function (ProfitabilityAnalysis $record) {
+                                        if ($record->is_manual_cost) {
+                                            $cat = DirectCostCategory::where('code', 'material')->first();
+                                            $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+
+                                            return collect($manualCosts)
+                                                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $cat?->id)
+                                                ->sum(fn ($item) => (float) ($item['amount'] ?? 0));
+                                        }
+
+                                        return $record->items()
+                                            ->whereHas('category', fn ($q) => $q->where('code', 'material'))
+                                            ->sum('total_monthly_cost');
+                                    })
+                                    ->money('IDR'),
+                            ])->columnSpanFull(),
+
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('gross_profit')
+                                    ->label('3. GROSS PROFIT')
+                                    ->money('IDR')
+                                    ->weight(FontWeight::Bold)
+                                    ->color('info'),
+                                TextEntry::make('total_indirect_cost')
+                                    ->label('4. TOTAL INDIRECT COST')
+                                    ->state(function (ProfitabilityAnalysis $record) {
+                                        $total = 0;
+                                        $revenue = (float) $record->revenue_per_month;
+                                        $directCost = (float) $record->direct_cost;
+
+                                        foreach ($record->indirectItems as $item) {
+                                            $val = (float) $item->unit_cost_price;
+                                            if ($item->calculation_type === 'percentage') {
+                                                $basis = $item->percentage_basis ?? 'revenue';
+                                                $basisValue = $basis === 'revenue' ? $revenue : $directCost;
+                                                $total += $basisValue * ($val / 100);
+                                            } else {
+                                                $total += $val;
+                                            }
+                                        }
+
+                                        return $total;
+                                    })
+                                    ->money('IDR')
+                                    ->weight(FontWeight::Bold),
+                            ]),
+
                         Grid::make(4)
                             ->schema([
                                 TextEntry::make('ebitda')
-                                    ->label('EBITDA')
+                                    ->label('5. EBITDA')
                                     ->money('IDR')
-                                    ->weight(FontWeight::Bold),
+                                    ->weight(FontWeight::Bold)
+                                    ->color('success'),
                                 TextEntry::make('ebit')
-                                    ->label('EBIT')
+                                    ->label('6. EBIT')
                                     ->money('IDR'),
                                 TextEntry::make('ebt')
-                                    ->label('EBT')
+                                    ->label('7. EBT')
                                     ->money('IDR'),
                                 TextEntry::make('net_profit')
-                                    ->label('Net Profit')
+                                    ->label('8. NET PROFIT')
                                     ->money('IDR')
                                     ->weight(FontWeight::Bold)
                                     ->color('success'),

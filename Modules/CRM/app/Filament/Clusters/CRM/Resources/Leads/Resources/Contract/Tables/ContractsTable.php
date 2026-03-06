@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Tables;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Tables;
 
 use App\Filament\Pages\EditProfile;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,7 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ContractStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas\ContractForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas\ContractForm;
 use Modules\CRM\Models\Contract;
 use Modules\MasterData\Services\SignatureService;
 

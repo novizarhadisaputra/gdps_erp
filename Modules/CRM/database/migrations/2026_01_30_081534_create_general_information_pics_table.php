@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'general_information_pics' : 'crm.general_information_pics', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('general_information_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('contact_role_id')->constrained(config('database.default') === 'sqlite' ? 'contact_roles' : 'crm.contact_roles');
+            $table->foreignUuid('contact_role_id')->constrained(config('database.default') === 'sqlite' ? 'contact_roles' : 'master_data.contact_roles');
             $table->string('name');
             $table->string('phone')->nullable();
             $table->string('email')->nullable();

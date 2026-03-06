@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas;
 
 use App\Filament\Infolists\Components\DigitalSignatureEntry;
 use Filament\Infolists\Components\TextEntry;

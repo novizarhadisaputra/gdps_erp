@@ -10,8 +10,8 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Pages\
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Pages\EditSalesPlan;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Pages\ListSalesPlans;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Pages\ViewSalesPlan;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Schemas\SalesPlanForm;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Tables\SalesPlanTable;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Schemas\SalesPlanForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Tables\SalesPlanTable;
 use Modules\CRM\Models\SalesPlan;
 
 class SalesPlanResource extends Resource

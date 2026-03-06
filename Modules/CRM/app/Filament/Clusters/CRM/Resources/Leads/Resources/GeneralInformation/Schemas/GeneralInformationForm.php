@@ -115,14 +115,17 @@ class GeneralInformationForm
                     SpatieMediaLibraryFileUpload::make('tor')
                         ->collection('tor')
                         ->label('ToR Document')
+                        ->disk('s3')
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfp')
                         ->collection('rfp')
                         ->label('RFP Document')
+                        ->disk('s3')
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfi')
                         ->collection('rfi')
                         ->label('RFI Document')
+                        ->disk('s3')
                         ->visibility('private'),
                 ])->columns(3),
 
@@ -155,7 +158,6 @@ class GeneralInformationForm
     public static function configure(Schema $schema): Schema
     {
         return $schema
-            ->model(GeneralInformation::class)
             ->components(static::schema());
     }
 }

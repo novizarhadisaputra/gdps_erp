@@ -10,9 +10,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\C
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\EditProposal;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ListProposals;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ViewProposal;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalInfolist;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Tables\ProposalsTable;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalInfolist;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Tables\ProposalsTable;
 use Modules\CRM\Models\Proposal;
 
 class ProposalResource extends Resource

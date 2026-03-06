@@ -30,6 +30,9 @@ class ProfitabilityAnalysisItem extends Model
         'cost_breakdown',
         'duration_months',
         'import_source_id',
+        'direct_cost_category_id',
+        'calculation_type',
+        'percentage_basis',
     ];
 
     protected function casts(): array
@@ -43,7 +46,15 @@ class ProfitabilityAnalysisItem extends Model
             'total_monthly_sale' => 'decimal:2',
             'cost_breakdown' => 'array',
             'duration_months' => 'integer',
+            'direct_cost_category_id' => 'string',
+            'calculation_type' => 'string',
+            'percentage_basis' => 'string',
         ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(DirectCostCategory::class, 'direct_cost_category_id');
     }
 
     public function profitabilityAnalysis(): BelongsTo

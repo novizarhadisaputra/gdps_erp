@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'costing_template_items' : 'crm.costing_template_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('costing_template_id')->constrained(config('database.default') === 'sqlite' ? 'costing_templates' : 'crm.costing_templates')->onDelete('cascade');
-            $table->foreignUuid('item_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'items' : 'crm.items')->nullOnDelete();
+            $table->foreignUuid('item_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'items' : 'master_data.items')->nullOnDelete();
 
             // Enum for Costing Category (Tools, Material, IT, etc.)
             $table->string('category')->nullable();
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->decimal('total_price', 15, 2)->default(0); // Qty * Price Markup
 
             // Asset Logic
-            $table->foreignUuid('asset_group_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'asset_groups' : 'crm.asset_groups')->nullOnDelete();
+            $table->foreignUuid('asset_group_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'asset_groups' : 'master_data.asset_groups')->nullOnDelete();
             $table->integer('useful_life_years')->nullable();
             $table->integer('depreciation_months')->nullable();
             $table->decimal('monthly_cost', 15, 2)->default(0); // Depr or Expense

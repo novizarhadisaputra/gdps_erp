@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\Schemas;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas;
 
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -14,9 +14,9 @@ use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Enums\ReminderStatus;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Proposal;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 
 class ContractForm
 {
@@ -87,14 +87,14 @@ class ContractForm
                     SpatieMediaLibraryFileUpload::make('signed_contract')
                         ->collection('signed_contract')
                         ->label('Signed Contract Document')
-
+                        ->disk('s3')
                         ->visibility('private')
                         ->helperText('Upload signed contract document (PDF).')
                         ->columnSpanFull(),
                     SpatieMediaLibraryFileUpload::make('termination_evidence')
                         ->collection('termination_evidence')
                         ->label('Termination Evidence')
-
+                        ->disk('s3')
                         ->visibility('private')
                         ->visible(fn ($get) => $get('status') === ContractStatus::Terminated->value)
                         ->helperText('Upload evidence or supporting documents for contract termination.')

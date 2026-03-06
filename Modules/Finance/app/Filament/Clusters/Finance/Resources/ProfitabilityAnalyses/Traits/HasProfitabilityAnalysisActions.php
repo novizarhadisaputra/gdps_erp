@@ -11,6 +11,7 @@ use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Classes\ProjectGenerationService;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Finance\Models\ProfitabilityThreshold;
 use Modules\MasterData\Services\SignatureService;
 
 trait HasProfitabilityAnalysisActions
@@ -132,6 +133,10 @@ trait HasProfitabilityAnalysisActions
                     ->placeholder(fn (ProfitabilityAnalysis $record) => $record->proposal?->proposal_number ?? 'Project for '.$record->customer?->name),
             ])
             ->action(function (ProfitabilityAnalysis $record, array $data) {
+                if (! $this->validateProfitability($record)) {
+                    return;
+                }
+
                 $service = app(ProjectGenerationService::class);
 
                 $project = $service->generateFromPA($record);
@@ -166,6 +171,10 @@ trait HasProfitabilityAnalysisActions
                     ->required(),
             ])
             ->action(function (ProfitabilityAnalysis $record, array $data) {
+                if (! $this->validateProfitability($record)) {
+                    return;
+                }
+
                 $proposal = Proposal::create([
                     'customer_id' => $record->customer_id,
                     'lead_id' => $record->lead_id,
@@ -195,5 +204,35 @@ trait HasProfitabilityAnalysisActions
             $this->getRejectAction(),
             $this->getCreateProposalAction(),
         ];
+    }
+
+    protected function validateProfitability(ProfitabilityAnalysis $record): bool
+    {
+        $threshold = ProfitabilityThreshold::first();
+        if (! $threshold) {
+            return true;
+        }
+
+        if ($record->margin_percentage < $threshold->min_gpm) {
+            Notification::make()
+                ->title('GPM Below Threshold')
+                ->body('The Gross Profit Margin ('.number_format($record->margin_percentage, 2).'%) is below the required minimum of '.number_format($threshold->min_gpm, 2).'%.')
+                ->danger()
+                ->send();
+
+            return false;
+        }
+
+        if ($record->net_profit_margin < $threshold->min_npm) {
+            Notification::make()
+                ->title('NPM Below Threshold')
+                ->body('The Net Profit Margin ('.number_format($record->net_profit_margin, 2).'%) is below the required minimum of '.number_format($threshold->min_npm, 2).'%.')
+                ->danger()
+                ->send();
+
+            return false;
+        }
+
+        return true;
     }
 }

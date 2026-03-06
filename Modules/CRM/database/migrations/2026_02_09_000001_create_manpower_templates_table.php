@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'manpower_templates' : 'crm.manpower_templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->nullOnDelete();
-            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'crm.project_areas')->nullOnDelete();
+            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->nullOnDelete();
             $table->string('code')->nullable()->unique();
             $table->string('name');
             $table->text('description')->nullable();
@@ -32,7 +32,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'manpower_template_items' : 'crm.manpower_template_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('manpower_template_id')->constrained(config('database.default') === 'sqlite' ? 'manpower_templates' : 'crm.manpower_templates')->cascadeOnDelete();
-            $table->foreignUuid('job_position_id')->constrained(config('database.default') === 'sqlite' ? 'job_positions' : 'crm.job_positions')->cascadeOnDelete();
+            $table->foreignUuid('job_position_id')->constrained(config('database.default') === 'sqlite' ? 'job_positions' : 'master_data.job_positions')->cascadeOnDelete();
             $table->decimal('basic_salary', 15, 2)->default(0);
             $table->integer('quantity')->default(1);
             $table->text('notes')->nullable();

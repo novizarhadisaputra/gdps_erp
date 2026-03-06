@@ -15,8 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
             $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('set null');
-            $table->foreignUuid('profitability_analysis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'crm.profitability_analyses')->onDelete('set null');
-            $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignUuid('profitability_analysis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')->onDelete('set null');
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'master_data.work_schemes')->onDelete('set null');
             $table->string('proposal_number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected, converted

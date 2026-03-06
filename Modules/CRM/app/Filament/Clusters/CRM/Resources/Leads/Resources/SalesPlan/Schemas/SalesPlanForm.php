@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Schemas;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Schemas;
 
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -16,7 +16,6 @@ use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ConfidenceLevel;
-use Modules\CRM\Enums\PriorityLevel;
 use Modules\CRM\Enums\ProrationMethod;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
@@ -411,14 +410,10 @@ class SalesPlanForm
                     ]),
 
                 Step::make('Governance')
-                    ->description('Review priority and confidence levels.')
+                    ->description('Review confidence levels.')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(1)
                             ->schema([
-                                Select::make('priority_level')
-                                    ->options(PriorityLevel::class)
-                                    ->required()
-                                    ->helperText('The level of business priority assigned to this project.'),
                                 Select::make('confidence_level')
                                     ->options(ConfidenceLevel::class)
                                     ->required()

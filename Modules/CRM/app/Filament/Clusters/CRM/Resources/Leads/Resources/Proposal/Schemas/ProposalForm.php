@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -10,8 +10,8 @@ use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ProposalStatus;
-use Modules\CRM\Models\Proposal;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 
 class ProposalForm
@@ -95,7 +95,7 @@ class ProposalForm
                     SpatieMediaLibraryFileUpload::make('final_proposal')
                         ->collection('final_proposal')
                         ->label('Final Proposal Document')
-
+                        ->disk('s3')
                         ->visibility('private')
                         ->columnSpanFull(),
                 ])

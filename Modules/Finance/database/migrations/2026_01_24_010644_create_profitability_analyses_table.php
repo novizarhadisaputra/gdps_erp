@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('document_number')->nullable()->unique();
-            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'finance.leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'finance.customers')->onDelete('set null');
-            $table->foreignUuid('general_information_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'general_informations' : 'finance.general_informations')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
+            $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('set null');
+            $table->foreignUuid('general_information_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'general_informations' : 'crm.general_informations')->onDelete('set null');
             $table->uuid('proposal_id')->nullable();
-            $table->foreignUuid('work_scheme_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignUuid('tax_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignUuid('project_area_id')->nullable()->constrained()->onDelete('set null');
-            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'finance.payment_terms')->onDelete('set null');
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'master_data.work_schemes')->onDelete('set null');
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters')->onDelete('set null');
+            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->onDelete('set null');
+            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->onDelete('set null');
+            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'master_data.payment_terms')->onDelete('set null');
 
             $table->string('asset_ownership')->default('gdps-owned');
             $table->decimal('management_expense_rate', 5, 2)->default(3.00);

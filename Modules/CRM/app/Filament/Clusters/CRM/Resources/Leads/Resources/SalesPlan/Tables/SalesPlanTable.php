@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Tables;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -13,7 +13,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesPlan\Schemas\SalesPlanForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Schemas\SalesPlanForm;
 use Modules\CRM\Models\SalesPlan;
 
 class SalesPlanTable
@@ -42,16 +42,6 @@ class SalesPlanTable
                 TextColumn::make('estimated_value')
                     ->label('Value')
                     ->money('IDR')
-                    ->sortable(),
-                TextColumn::make('priority_level')
-                    ->label('Priority')
-                    ->badge()
-                    ->color(fn ($state): string => match ($state instanceof \BackedEnum ? $state->value : (int) $state) {
-                        1 => 'danger',
-                        2 => 'warning',
-                        3 => 'success',
-                        default => 'secondary',
-                    })
                     ->sortable(),
                 TextColumn::make('confidence_level')
                     ->label('Confidence')

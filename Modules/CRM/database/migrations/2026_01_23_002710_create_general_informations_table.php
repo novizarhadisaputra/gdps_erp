@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'general_informations' : 'crm.general_informations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->constrained()->onDelete('cascade');
+            $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
             $table->foreignUuid('sales_plan_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'sales_plans' : 'crm.sales_plans')->nullOnDelete();
             $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected
             $table->text('scope_of_work')->nullable();
-            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'crm.project_areas');
+            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas');
             $table->string('location')->nullable(); // Keep for legacy or specific detail if needed, or deprecate
             $table->date('estimated_start_date')->nullable();
             $table->date('estimated_end_date')->nullable();

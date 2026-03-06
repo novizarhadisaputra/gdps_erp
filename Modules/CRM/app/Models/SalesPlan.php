@@ -38,7 +38,6 @@ class SalesPlan extends Model
         'top_days',
         'start_date',
         'end_date',
-        'priority_level',
         'confidence_level',
         'project_code',
         'proposal_number',

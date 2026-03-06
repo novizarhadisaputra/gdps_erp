@@ -75,6 +75,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'is_imported',
         'import_source_id',
         'payment_term_id',
+        'is_manual_cost',
     ];
 
     protected function casts(): array
@@ -98,6 +99,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'tax_rate' => 'decimal:2',
             'analysis_details' => 'array',
             'project_number' => 'integer',
+            'is_manual_cost' => 'boolean',
         ];
     }
 
@@ -188,5 +190,13 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         return $this->hasMany(ProfitabilityAnalysisItem::class)
             ->where('costable_type', Item::class);
+    }
+
+    public function indirectItems(): HasMany
+    {
+        return $this->hasMany(ProfitabilityAnalysisItem::class)
+            ->whereHas('category', function ($query) {
+                $query->where('type', 'indirect');
+            });
     }
 }

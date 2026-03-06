@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Tables;
+namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Tables;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
@@ -18,8 +18,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ProposalStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Contracts\ContractResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\Schemas\ProposalForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalForm;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Services\SignatureService;
@@ -82,7 +82,7 @@ class ProposalsTable
                             ->success()
                             ->send();
 
-                        return redirect(ContractResource::getUrl('index'));
+                        return redirect(ContractResource::getUrl('index', ['record' => $record->lead_id]));
                     }),
                 Action::make('resetToApproved')
                     ->label('Reset to Approved')
