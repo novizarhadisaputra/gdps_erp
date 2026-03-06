@@ -12,7 +12,7 @@ class MasterDataDatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RemunerationComponentSeeder::class,
+            RemunerationParameterSeeder::class,
             MasterCodeSeeder::class,
             ApprovalRuleSeeder::class,
             ContactRoleSeeder::class,

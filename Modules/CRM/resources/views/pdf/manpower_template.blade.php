@@ -209,6 +209,17 @@
                     </td>
                 </tr>
                 <tr>
+                    <td width="50%" style="padding-bottom: 12px; vertical-align: top;">
+                        <span class="info-label">Tipe Kontrak</span>
+                        <span class="info-value">{{ $record->contractType?->name ?? '-' }}</span>
+                    </td>
+                    <td width="50%" style="padding-bottom: 12px; vertical-align: top;">
+                        <span class="info-label">Pola Kerja</span>
+                        <span class="info-value">{{ $record->workScheme?->name ?? '-' }}
+                            ({{ $record->workScheme?->working_days ?? 21 }} Hari)</span>
+                    </td>
+                </tr>
+                <tr>
                     <td width="33%" style="padding-bottom: 12px; vertical-align: top;">
                         <span class="info-label">Dibuat pada</span>
                         <span class="info-value">{{ $record->created_at->format('d M Y') }}</span>
@@ -229,19 +240,21 @@
                 <div class="description-box">{{ $record->description }}</div>
             @endif
 
-            <div class="section-title">{{ $record->description ? 'III.' : 'II.' }} Rincian Simulasi Biaya Manpower</div>
+            <div class="section-title">{{ $record->description ? 'III.' : 'II.' }} Rincian Simulasi Biaya Manpower
+            </div>
 
             <table class="items">
                 <thead>
                     <tr>
                         <th width="4%">#</th>
-                        <th width="28%">Posisi Pekerjaan</th>
+                        <th width="24%">Posisi Pekerjaan</th>
                         <th class="center" width="5%">Qty</th>
-                        <th class="right" width="13%">Gaji Pokok</th>
-                        <th class="right" width="12%">Tunjangan</th>
-                        <th class="right" width="12%">BPJS & Pajak</th>
-                        <th class="right" width="12%">THR/Komp</th>
-                        <th class="right" width="14%">Total Subcost</th>
+                        <th class="right" width="12%">Gaji Pokok</th>
+                        <th class="right" width="11%">Tunjangan</th>
+                        <th class="right" width="11%">BPJS</th>
+                        <th class="right" width="11%">Pajak (PPh)</th>
+                        <th class="right" width="11%">THR/Komp</th>
+                        <th class="right" width="11%">Total Subcost</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -253,6 +266,7 @@
                             <td class="right">Rp {{ number_format($row['basic_salary'], 0, ',', '.') }}</td>
                             <td class="right">Rp {{ number_format($row['total_allowances'], 0, ',', '.') }}</td>
                             <td class="right">Rp {{ number_format($row['bpjs_total'], 0, ',', '.') }}</td>
+                            <td class="right">Rp {{ number_format($row['pph21']['total'] ?? 0, 0, ',', '.') }}</td>
                             <td class="right">Rp {{ number_format($row['thr_compensation'], 0, ',', '.') }}</td>
                             <td class="right">Rp {{ number_format($row['line_total'], 0, ',', '.') }}</td>
                         </tr>

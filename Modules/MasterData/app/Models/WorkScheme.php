@@ -27,12 +27,14 @@ class WorkScheme extends Model
         'unit_id',
         'code',
         'name',
+        'working_days',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
+            'working_days' => 'integer',
             'is_active' => 'boolean',
         ];
     }

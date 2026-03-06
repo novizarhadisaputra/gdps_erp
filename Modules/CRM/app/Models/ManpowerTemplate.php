@@ -29,6 +29,8 @@ class ManpowerTemplate extends Model implements HasMedia
     protected $fillable = [
         'lead_id',
         'project_area_id',
+        'contract_type_id',
+        'work_scheme_id',
         'code',
         'name',
         'description',
@@ -49,6 +51,16 @@ class ManpowerTemplate extends Model implements HasMedia
         'is_active' => 'boolean',
         'is_imported' => 'boolean',
     ];
+
+    public function contractType(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\ContractType::class);
+    }
+
+    public function workScheme(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\WorkScheme::class);
+    }
 
     public function lead(): BelongsTo
     {
@@ -113,6 +125,8 @@ class ManpowerTemplate extends Model implements HasMedia
                 allowances: $allowances,
                 projectAreaId: $areaId,
                 year: (int) date('Y'),
+                contractTypeId: $this->contract_type_id,
+                workSchemeId: $this->work_scheme_id,
                 riskLevel: $riskLevel,
                 isLaborIntensive: $isLaborIntensive,
                 employeeType: $employeeType,

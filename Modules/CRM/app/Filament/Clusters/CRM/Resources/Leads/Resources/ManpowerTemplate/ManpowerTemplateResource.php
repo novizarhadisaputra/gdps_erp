@@ -74,7 +74,22 @@ class ManpowerTemplateResource extends Resource
                                 ->searchable()
                                 ->preload()
                                 ->required()
+                                ->live()
                                 ->helperText('Target area for this template (determines UMK/Minimum Wage).'),
+                            Select::make('contract_type_id')
+                                ->label('Contract Type')
+                                ->relationship('contractType', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->live(),
+                            Select::make('work_scheme_id')
+                                ->label('Work Scheme')
+                                ->relationship('workScheme', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->live(),
                             Textarea::make('description')
                                 ->label('Template Description')
                                 ->placeholder('Briefly describe the purpose of this manpower packet...')
@@ -274,6 +289,8 @@ class ManpowerTemplateResource extends Resource
                                             allowances: $allowances,
                                             projectAreaId: $areaId,
                                             year: date('Y'),
+                                            contractTypeId: $get('contract_type_id'),
+                                            workSchemeId: $get('work_scheme_id'),
                                             riskLevel: $riskLevel,
                                             isLaborIntensive: $isLaborIntensive,
                                             employeeType: $employeeType,
@@ -291,11 +308,12 @@ class ManpowerTemplateResource extends Resource
                                             <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
                                                 <td class='px-4 py-3'>
                                                     <div class='font-medium text-gray-900 dark:text-gray-100'>{$jp->name}</div>
-                                                    <div class='text-xs text-gray-400'>Qty: {$qty}</div>
+                                                    <div class='text-xs text-gray-400'>Qty: {$qty} | Days: {$res['working_days']}</div>
                                                 </td>
                                                 <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($basicSalary)}</td>
                                                 <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['total_allowances'] ?? 0)}</td>
                                                 <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['bpjs_total'] ?? 0)}</td>
+                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['pph21']['total'] ?? 0)}</td>
                                                 <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['thr_compensation'] ?? 0)}</td>
                                                 <td class='px-4 py-3 text-right font-medium text-primary-600'>Rp {$fmt($unitCost)}</td>
                                                 <td class='px-4 py-3 text-right font-bold text-gray-900 dark:text-white'>Rp {$fmt($lineTotal)}</td>
@@ -311,9 +329,10 @@ class ManpowerTemplateResource extends Resource
                                                         <th scope='col' class='px-4 py-3'>Position & Qty</th>
                                                         <th scope='col' class='px-4 py-3 text-right'>Basic Salary</th>
                                                         <th scope='col' class='px-4 py-3 text-right'>Allowance</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>BPJS & Tax</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Holiday Allowance / Comp.</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Total / Person</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>BPJS</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Tax (PPh)</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>THR / Comp.</th>
+                                                        <th scope='col' class='px-4 py-3 text-right'>Direct Cost / Person</th>
                                                         <th scope='col' class='px-4 py-3 text-right'>Subtotal</th>
                                                     </tr>
                                                 </thead>

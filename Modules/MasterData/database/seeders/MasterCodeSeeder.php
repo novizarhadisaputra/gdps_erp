@@ -75,10 +75,16 @@ class MasterCodeSeeder extends Seeder
 
         // Work Schemes
         $workSchemes = [
-            ['code' => '01', 'name' => 'TAD/Headcount'],
-            ['code' => '02', 'name' => 'Borongan'],
-            ['code' => '03', 'name' => 'Mitra'],
-            ['code' => '04', 'name' => 'Head Hunter'],
+            ['code' => '5HK', 'name' => '5 Hari Kerja'],
+            ['code' => '6HK', 'name' => '6 Hari Kerja'],
+            ['code' => '2SHFT', 'name' => '2 Shift'],
+            ['code' => '3SHFT', 'name' => '3 Shift'],
+            ['code' => 'REM', 'name' => 'Remote / Hybrid'],
+            ['code' => 'ONQ', 'name' => 'On-Call'],
+            ['code' => 'PT', 'name' => 'Part Time'],
+            ['code' => 'SPSH', 'name' => 'Split Shift'],
+            ['code' => 'FLXH', 'name' => 'Flexible Hour'],
+            ['code' => 'RST', 'name' => 'Roster / Rotational'],
             ['code' => 'OT', 'name' => 'Others'],
         ];
         foreach ($workSchemes as $data) {

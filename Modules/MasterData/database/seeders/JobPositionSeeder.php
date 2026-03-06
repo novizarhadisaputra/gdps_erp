@@ -3,51 +3,48 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\MasterData\Models\FixedAllowance;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\RemunerationComponent;
+use Modules\MasterData\Models\NonFixedAllowance;
 
 class JobPositionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $components = [
-            ['name' => 'Transport Allowance', 'type' => 'fixed_allowance', 'default_amount' => 0],
-            ['name' => 'Meal Allowance', 'type' => 'fixed_allowance', 'default_amount' => 0],
-            ['name' => 'Service Allowance', 'type' => 'non_fixed_allowance', 'default_amount' => 0],
-        ];
-
-        foreach ($components as $c) {
-            RemunerationComponent::updateOrCreate(
-                ['name' => $c['name']],
-                $c
-            );
-        }
-
-        $transport = RemunerationComponent::where('name', 'Transport Allowance')->first();
-        $meal = RemunerationComponent::where('name', 'Meal Allowance')->first();
+        $fixedAllowances = FixedAllowance::whereIn('name', ['Tunjangan Jabatan', 'Tunjangan Fungsional'])->get();
+        $nonFixedAllowances = NonFixedAllowance::whereIn('name', ['Tunjangan Makan (Tidak Tetap)', 'Tunjangan Transportasi (Tidak Tetap)'])->get();
 
         $positions = [
-            ['name' => 'Security', 'salary' => 3500000, 'risk' => 'low'],
-            ['name' => 'Driver', 'salary' => 3800000, 'risk' => 'low'],
-            ['name' => 'SPG', 'salary' => 3200000, 'risk' => 'very_low'],
-            ['name' => 'Merchandizer', 'salary' => 3200000, 'risk' => 'very_low'],
-            ['name' => 'Cleaner', 'salary' => 3000000, 'risk' => 'low'],
-            ['name' => 'Engineer', 'salary' => 5500000, 'risk' => 'medium'],
-            ['name' => 'Office Boy', 'salary' => 3000000, 'risk' => 'very_low'],
-            ['name' => 'Receptionist', 'salary' => 3500000, 'risk' => 'very_low'],
+            ['name' => 'Security', 'risk_level' => 'low', 'is_labor_intensive' => true],
+            ['name' => 'Driver', 'risk_level' => 'low', 'is_labor_intensive' => true],
+            ['name' => 'SPG', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
+            ['name' => 'Merchandizer', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
+            ['name' => 'Cleaner', 'risk_level' => 'low', 'is_labor_intensive' => true],
+            ['name' => 'Engineer', 'risk_level' => 'medium', 'is_labor_intensive' => false],
+            ['name' => 'Office Boy', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
+            ['name' => 'Receptionist', 'risk_level' => 'very_low', 'is_labor_intensive' => false],
         ];
 
         foreach ($positions as $p) {
-            JobPosition::updateOrCreate(
+            $jobPosition = JobPosition::updateOrCreate(
                 ['name' => $p['name']],
-                [
-                    'risk_level' => $p['risk'],
-                    'is_labor_intensive' => true,
-                ]
+                $p
             );
+
+            // Seed some default allowances
+            if ($fixedAllowances->isNotEmpty()) {
+                $jobPosition->fixedAllowances()->updateOrCreate(
+                    ['fixed_allowance_id' => $fixedAllowances->first()->id],
+                    ['amount' => 500000]
+                );
+            }
+
+            if ($nonFixedAllowances->isNotEmpty()) {
+                $jobPosition->nonFixedAllowances()->updateOrCreate(
+                    ['non_fixed_allowance_id' => $nonFixedAllowances->first()->id],
+                    ['amount' => 20000] // e.g. per day
+                );
+            }
         }
     }
 }

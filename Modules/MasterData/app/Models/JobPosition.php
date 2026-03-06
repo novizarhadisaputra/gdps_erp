@@ -6,7 +6,6 @@ use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JobPosition extends Model
@@ -31,15 +30,13 @@ class JobPosition extends Model
         'is_active' => 'boolean',
     ];
 
-    public function remunerationComponents(): BelongsToMany
+    public function fixedAllowances(): HasMany
     {
-        return $this->belongsToMany(RemunerationComponent::class, 'job_position_remunerations')
-            ->withPivot('amount')
-            ->withTimestamps();
+        return $this->hasMany(JobPositionFixedAllowance::class);
     }
 
-    public function jobPositionRemunerations(): HasMany
+    public function nonFixedAllowances(): HasMany
     {
-        return $this->hasMany(JobPositionRemuneration::class);
+        return $this->hasMany(JobPositionNonFixedAllowance::class);
     }
 }

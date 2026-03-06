@@ -29,7 +29,6 @@ use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Enums\RiskLevel;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
@@ -86,7 +85,6 @@ class ProfitabilityAnalysisForm
                                         }
                                         $set('lead_id', $gi->lead_id);
                                         $set('customer_id', $gi->customer_id ?? $gi->lead?->customer_id);
-                                        $set('work_scheme_id', $gi->work_scheme_id ?? $gi->lead?->work_scheme_id);
                                         $set('project_area_id', $gi->project_area_id ?? $gi->lead?->project_area_id);
                                         $set('product_cluster_id', $gi->product_cluster_id ?? $gi->lead?->product_cluster_id);
                                         $set('tax_id', $gi->tax_id ?? $gi->lead?->tax_id);
@@ -148,19 +146,8 @@ class ProfitabilityAnalysisForm
                     ->description('Configure project scope, work scheme, area, and asset ownership.')
                     ->icon('heroicon-m-adjustments-horizontal')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(1)
                             ->schema([
-                                Select::make('work_scheme_id')
-                                    ->relationship('workScheme', 'name')
-                                    ->required()
-                                    ->searchable()
-                                    ->preload()
-                                    ->dehydrated()
-                                    ->placeholder('Select work scheme')
-                                    ->helperText('Procurement method (e.g., Direct Appointment, Tender).')
-                                    ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
-                                    ->createOptionForm(WorkSchemeForm::schema())
-                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('product_cluster_id')
                                     ->relationship('productCluster', 'name')
                                     ->required()
@@ -836,7 +823,7 @@ class ProfitabilityAnalysisForm
                                             ->currencyMask(
                                                 thousandSeparator: '.',
                                                 decimalSeparator: ',',
-                                                precision: fn (Get $get) => $get('calculation_type') === 'percentage' ? 2 : 0
+                                                precision: 2
                                             )
                                             ->prefix(fn (Get $get) => $get('calculation_type') === 'percentage' ? null : 'IDR ')
                                             ->suffix(fn (Get $get) => $get('calculation_type') === 'percentage' ? '%' : null)

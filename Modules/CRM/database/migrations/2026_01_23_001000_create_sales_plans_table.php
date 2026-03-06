@@ -38,7 +38,6 @@ return new class extends Migration
             $table->string('proration_method')->default('equal'); // equal, daily
 
             // Level & Confidence
-            $table->integer('priority_level')->nullable(); // 1, 2, 3
             $table->string('confidence_level')->nullable(); // optimistic, moderate, pessimistic
 
             $table->string('project_code')->nullable();

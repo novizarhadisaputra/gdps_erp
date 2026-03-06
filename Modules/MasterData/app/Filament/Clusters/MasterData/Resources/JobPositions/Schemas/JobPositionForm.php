@@ -2,14 +2,15 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas;
 
-use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Enums\RiskLevel;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\RemunerationComponents\Schemas\RemunerationComponentForm;
+use Modules\MasterData\Models\FixedAllowance;
+use Modules\MasterData\Models\NonFixedAllowance;
 
 class JobPositionForm
 {
@@ -22,42 +23,69 @@ class JobPositionForm
     public static function schema(): array
     {
         return [
-            TextInput::make('name')
-                ->required()
-                ->maxLength(255)
-                ->helperText('The descriptive name of the job position (e.g., Manager, Specialist, Operator).'),
-            Select::make('risk_level')
-                ->options(RiskLevel::class)
-                ->default(RiskLevel::VeryLow)
-                ->required()
-                ->helperText('The work-related risk level, affecting insurance (JKK) calculations.'),
-            Toggle::make('is_labor_intensive')
-                ->label('Labor Intensive')
-                ->helperText('Enable for 50% JKK reduction if applicable.')
-                ->default(false),
-            Repeater::make('jobPositionRemunerations')
-                ->relationship('jobPositionRemunerations')
+            Section::make('General Information')
                 ->schema([
-                    Select::make('remuneration_component_id')
-                        ->label('Component')
-                        ->relationship('remunerationComponent', 'name')
-                        ->createOptionForm(RemunerationComponentForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                    TextInput::make('name')
                         ->required()
-                        ->searchable()
-                        ->preload()
-                        ->placeholder('Select remuneration component')
-                        ->helperText('Select the specific remuneration component (allowance, benefit, etc.).'),
-                    TextInput::make('amount')
-                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                        ->prefix('IDR ')
-                        ->placeholder('e.g. 5.000.000')
-                        ->default(0)
-                        ->required()
-                        ->helperText('The specific monthly amount for this component.'),
-                ])
-                ->columns(2)
-                ->columnSpanFull(),
+                        ->maxLength(255),
+                    Select::make('risk_level')
+                        ->options(RiskLevel::class)
+                        ->default(RiskLevel::VeryLow)
+                        ->required(),
+                    Toggle::make('is_labor_intensive')
+                        ->label('Labor Intensive')
+                        ->default(false),
+                ])->columns(3),
+
+            Section::make('Default Allowances (Remuneration Blueprint)')
+                ->description('Tentukan komponen tunjangan default untuk jabatan ini.')
+                ->schema([
+                    Repeater::make('fixedAllowances')
+                        ->label('Tunjangan Tetap')
+                        ->relationship('fixedAllowances')
+                        ->schema([
+                            Select::make('fixed_allowance_id')
+                                ->label('Komponen')
+                                ->options(FixedAllowance::query()->where('is_active', true)->pluck('name', 'id'))
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->columnSpan(3),
+                            TextInput::make('amount')
+                                ->label('Nominal (Rp)')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR ')
+                                ->default(0)
+                                ->required()
+                                ->columnSpan(2),
+                        ])
+                        ->columns(5)
+                        ->columnSpanFull()
+                        ->itemLabel(fn (array $state): ?string => FixedAllowance::find($state['fixed_allowance_id'] ?? null)?->name ?? 'Tunjangan Tetap'),
+
+                    Repeater::make('nonFixedAllowances')
+                        ->label('Tunjangan Tidak Tetap')
+                        ->relationship('nonFixedAllowances')
+                        ->schema([
+                            Select::make('non_fixed_allowance_id')
+                                ->label('Komponen')
+                                ->options(NonFixedAllowance::query()->where('is_active', true)->pluck('name', 'id'))
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->columnSpan(3),
+                            TextInput::make('amount')
+                                ->label('Nominal (Rp)')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR ')
+                                ->default(0)
+                                ->required()
+                                ->columnSpan(2),
+                        ])
+                        ->columns(5)
+                        ->columnSpanFull()
+                        ->itemLabel(fn (array $state): ?string => NonFixedAllowance::find($state['non_fixed_allowance_id'] ?? null)?->name ?? 'Tunjangan Tidak Tetap'),
+                ]),
         ];
     }
 }

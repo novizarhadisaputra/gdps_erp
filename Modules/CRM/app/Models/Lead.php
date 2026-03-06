@@ -20,7 +20,6 @@ use Modules\CRM\Observers\LeadObserver;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\BillingOption;
-use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\Item;
@@ -31,7 +30,6 @@ use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
 use Modules\MasterData\Models\Tax;
-use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Models\Project;
 use Modules\Project\Models\ProjectInformation;
 use Spatie\Activitylog\LogOptions;
@@ -54,7 +52,6 @@ class Lead extends Model
     protected $fillable = [
         'title',
         'customer_id',
-        'work_scheme_id',
         'status',
         'confidence_level',
         'estimated_amount',
@@ -93,11 +90,6 @@ class Lead extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function workScheme(): BelongsTo
-    {
-        return $this->belongsTo(WorkScheme::class);
     }
 
     public function user(): BelongsTo
@@ -218,7 +210,6 @@ class Lead extends Model
             $pa = ProfitabilityAnalysis::create(array_merge([
                 'lead_id' => $this->id,
                 'customer_id' => $this->customer_id,
-                'work_scheme_id' => $this->work_scheme_id,
                 'project_area_id' => $this->project_area_id,
                 'product_cluster_id' => $this->product_cluster_id,
                 'payment_term_id' => $this->payment_term_id ?? $this->salesPlan?->payment_term_id,

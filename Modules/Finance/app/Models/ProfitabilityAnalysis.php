@@ -25,7 +25,6 @@ use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
-use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
@@ -51,7 +50,6 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'customer_id',
         'general_information_id',
         'proposal_id',
-        'work_scheme_id',
         'product_cluster_id',
         'project_area_id',
         'revenue_per_month',
@@ -140,11 +138,6 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function workScheme(): BelongsTo
-    {
-        return $this->belongsTo(WorkScheme::class);
     }
 
     public function productCluster(): BelongsTo

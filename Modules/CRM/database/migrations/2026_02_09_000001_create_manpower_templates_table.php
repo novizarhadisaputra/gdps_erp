@@ -15,6 +15,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->nullOnDelete();
+            $table->foreignUuid('contract_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'contract_types' : 'master_data.contract_types')->nullOnDelete();
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'master_data.work_schemes')->nullOnDelete();
             $table->string('code')->nullable()->unique();
             $table->string('name');
             $table->text('description')->nullable();

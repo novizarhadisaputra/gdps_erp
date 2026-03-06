@@ -12,7 +12,7 @@ use Modules\MasterData\Enums\BpjsType;
 use Modules\MasterData\Enums\CalculationCapType;
 use Modules\MasterData\Enums\CalculationFloorType;
 use Modules\MasterData\Enums\RiskLevel;
-use Modules\MasterData\Models\RemunerationComponent;
+use Modules\MasterData\Models\BpjsBasisType;
 
 class BpjsConfigForm
 {
@@ -47,7 +47,7 @@ class BpjsConfigForm
                         $set('employer_rate', 0.02);
                         $set('employee_rate', 0.01);
                         $set('cap_type', CalculationCapType::Nominal->value);
-                        $set('cap_nominal', 10540000);
+                        $set('cap_nominal', 10547400); // Updated to match seeder
                         $set('type', BpjsType::Employment->value);
                     } elseif ($state === BpjsCategory::JKK->value) {
                         $set('risk_level', RiskLevel::VeryLow->value);
@@ -58,14 +58,12 @@ class BpjsConfigForm
             Select::make('type')
                 ->options(BpjsType::class)
                 ->label('BPJS Type')
-                ->helperText('Select the type of BPJS configuration.')
                 ->default(BpjsType::Employment)
                 ->required(),
-            Select::make('calculation_basis')
-                ->multiple()
-                ->options(RemunerationComponent::where('is_active', true)->pluck('name', 'id'))
-                ->helperText('Select components used for calculation (e.g., Basic Salary + Fixed Allowance)')
-                ->placeholder('Search components...')
+            Select::make('bpjs_basis_type_id')
+                ->label('Basis Pengali')
+                ->options(BpjsBasisType::where('is_active', true)->pluck('name', 'id'))
+                ->helperText('Pilih basis perhitungan sesuai kebijakan (Kolom K spreadsheet).')
                 ->preload()
                 ->searchable()
                 ->required(),
