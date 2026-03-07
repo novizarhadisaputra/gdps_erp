@@ -3,7 +3,6 @@
 namespace Modules\CRM\Models;
 
 use App\Traits\HasModuleSchema;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,16 +12,15 @@ use Modules\CRM\Database\Factories\CustomerFactory;
 use Modules\MasterData\Enums\ActiveStatus;
 use Modules\MasterData\Enums\LegalEntityType;
 use Modules\MasterData\Models\Unit;
-use Modules\MasterData\Observers\MasterDataObserver;
+use Modules\MasterData\Traits\HasAutoCodeAndSlug;
 use Modules\MasterData\Traits\HasUnitScoping;
 use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-#[ObservedBy([MasterDataObserver::class])]
 class Customer extends Model implements HasMedia
 {
-    use HasFactory, HasUnitScoping, HasUuids, InteractsWithMedia;
+    use HasAutoCodeAndSlug, HasFactory, HasUnitScoping, HasUuids, InteractsWithMedia;
     use HasModuleSchema;
 
     /**

@@ -50,7 +50,7 @@ class ProfitabilityAnalysesTable
                     ->color(fn (float $state): string => $state < 10 ? 'danger' : ($state < 20 ? 'warning' : 'success')),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match (is_string($state) ? $state : $state->value) {
                         'draft' => 'gray',
                         'approved' => 'info',
                         'converted' => 'success',

@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas;
 
+use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -26,7 +27,7 @@ class ProjectInfolist
                                     ->label('Project Name'),
                                 TextEntry::make('status')
                                     ->badge()
-                                    ->color(fn (string $state): string => match ($state) {
+                                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                                         'planning' => 'gray',
                                         'active' => 'success',
                                         'completed' => 'primary',

@@ -3,21 +3,19 @@
 namespace Modules\MasterData\Models;
 
 use App\Traits\HasModuleSchema;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\MasterData\Database\Factories\TaxFactory;
-use Modules\MasterData\Observers\MasterDataObserver;
+use Modules\MasterData\Traits\HasAutoCodeAndSlug;
 use Modules\MasterData\Traits\HasUnitScoping;
 
 // use Modules\MasterData\Database\Factories\TaxFactory;
 
-#[ObservedBy(MasterDataObserver::class)]
 class Tax extends Model
 {
-    use HasFactory, HasUnitScoping, HasUuids;
+    use HasAutoCodeAndSlug, HasFactory, HasUnitScoping, HasUuids;
     use HasModuleSchema;
 
     /**

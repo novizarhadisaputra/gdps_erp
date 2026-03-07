@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -81,8 +82,10 @@ class ManageProjectInformations extends ManageRelatedRecords
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->groupedBulkActions([
-                DeleteBulkAction::make(),
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Tables;
 
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -27,7 +28,7 @@ class ProjectInformationTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                         'planning' => 'gray',
                         'active' => 'success',
                         'completed' => 'info',
@@ -48,7 +49,7 @@ class ProjectInformationTable
             ->filters([
                 //
             ])
-            ->actions([
+            ->recordActions([
                 ViewAction::make()
                     ->modalFooterActions([
                         Action::make('Sign')
@@ -117,7 +118,7 @@ class ProjectInformationTable
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

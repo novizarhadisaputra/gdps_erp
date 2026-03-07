@@ -2,8 +2,6 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Schemas;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
 class BankAccountForm
@@ -13,33 +11,39 @@ class BankAccountForm
         return $schema
             ->columns(2)
             ->components([
-                TextInput::make('bank_name')
-                    ->label('Bank Name')
-                    ->required()
-                    ->maxLength(255)
-                    ->helperText('The name of the banking institution (e.g., BCA, Mandiri).'),
-                TextInput::make('account_number')
-                    ->label('Account Number')
-                    ->required()
-                    ->maxLength(255)
-                    ->helperText('The official account number assigned by the bank.'),
-                TextInput::make('account_name')
-                    ->label('Account Name')
-                    ->required()
-                    ->maxLength(255)
-                    ->helperText('The registered name associated with the bank account.'),
-                TextInput::make('swift_code')
-                    ->label('SWIFT Code')
-                    ->maxLength(255)
-                    ->helperText('The unique identification code for the bank (required for international transactions).'),
-                TextInput::make('currency')
-                    ->default('IDR')
-                    ->required()
-                    ->maxLength(3)
-                    ->helperText('The 3-letter currency code (e.g., IDR, USD, EUR).'),
-                Toggle::make('is_active')
-                    ->default(true)
-                    ->helperText('Enable or disable this bank account for use in Transactions.'),
+                \Filament\Schemas\Components\Section::make('General Details')
+                    ->description('Fill in the necessary configuration properties below.')
+                    ->schema([
+                        \Filament\Forms\Components\TextInput::make('bank_name')
+                            ->label('Bank Name')
+                            ->placeholder('Enter Bank Name...')
+                            ->helperText('Brief and clear Bank Name for this record.')
+                            ->required(),
+                        \Filament\Forms\Components\TextInput::make('account_number')
+                            ->label('Account Number')
+                            ->placeholder('Enter Account Number...')
+                            ->helperText('Brief and clear Account Number for this record.')
+                            ->required(),
+                        \Filament\Forms\Components\TextInput::make('account_name')
+                            ->label('Account Name')
+                            ->placeholder('Enter Account Name...')
+                            ->helperText('Brief and clear Account Name for this record.')
+                            ->required(),
+                        \Filament\Forms\Components\TextInput::make('swift_code')
+                            ->label('Swift Code')
+                            ->placeholder('Enter Swift Code...')
+                            ->helperText('Brief and clear Swift Code for this record.')
+                            ->required(),
+                        \Filament\Forms\Components\TextInput::make('currency')
+                            ->label('Currency')
+                            ->placeholder('Enter Currency...')
+                            ->helperText('Brief and clear Currency for this record.')
+                            ->required(),
+                        \Filament\Forms\Components\Toggle::make('is_active')
+                            ->default(true)
+                            ->label('Status (Active / Inactive)')
+                            ->helperText('Toggle on to make this record available in standard lists within the system.'),
+                    ])->columns(2),
             ]);
     }
 }

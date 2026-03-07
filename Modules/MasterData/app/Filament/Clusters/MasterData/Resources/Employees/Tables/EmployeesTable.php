@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Tables;
 
+use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -29,7 +30,7 @@ class EmployeesTable
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                         'active' => 'success',
                         'inactive' => 'danger',
                         default => 'gray',

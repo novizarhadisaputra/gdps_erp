@@ -12,7 +12,6 @@ use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
-use Modules\MasterData\Models\ServiceLine;
 use Modules\MasterData\Models\SkillCategory;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\UnitOfMeasure;
@@ -33,16 +32,6 @@ class MasterCodeSeeder extends Seeder
         ];
         foreach ($revenueSegments as $data) {
             RevenueSegment::updateOrCreate(['code' => $data['code']], $data);
-        }
-
-        // Service Lines
-        $serviceLines = [
-            ['code' => 'FM', 'name' => 'Facility Management'],
-            ['code' => 'GS', 'name' => 'General Services'],
-            ['code' => 'IT', 'name' => 'Information Technology'],
-        ];
-        foreach ($serviceLines as $data) {
-            ServiceLine::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Industrial Sectors

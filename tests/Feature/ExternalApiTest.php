@@ -25,10 +25,12 @@ class ExternalApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'access_token',
-                'refresh_token',
-                'token_type',
-                'expires_in',
+                'data' => [
+                    'access_token',
+                    'refresh_token',
+                    'token_type',
+                    'expires_in',
+                ],
             ]);
     }
 
@@ -44,9 +46,11 @@ class ExternalApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'access_token',
-                'token_type',
-                'expires_in',
+                'data' => [
+                    'access_token',
+                    'token_type',
+                    'expires_in',
+                ],
             ]);
 
         // Ensure the new access token has correct ability

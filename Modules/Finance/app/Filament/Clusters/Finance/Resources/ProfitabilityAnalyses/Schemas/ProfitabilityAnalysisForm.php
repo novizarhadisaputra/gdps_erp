@@ -1014,6 +1014,7 @@ class ProfitabilityAnalysisForm
         $totalProjectCost = 0;
         $totalProjectRevenue = 0;
         $totalProjectDepreciation = 0;
+        $totalProjectIndirectCost = 0;
 
         if ($get('/is_manual_cost')) {
             $manualCosts = $get('/analysis_details.manual_costs') ?? [];
@@ -1042,7 +1043,9 @@ class ProfitabilityAnalysisForm
 
             // 1. Calculate Manpower and Operational Costs (Fixed/Nominal)
             foreach (array_merge($manpowerItems, $operationalItems) as $item) {
-                $itemGet = new \Filament\Schemas\Components\Utilities\Get($item);
+                $itemGet = function ($path) use ($item) {
+                    return data_get($item, $path);
+                };
                 $monthlyCost = self::calculateItemMonthlyCost($itemGet);
                 $markup = (float) ($item['markup_percentage'] ?? 0);
                 $duration = (float) ($item['duration_months'] ?? $projectDurationMonths);
@@ -1072,7 +1075,9 @@ class ProfitabilityAnalysisForm
             $indirectItems = $get('/indirectItems') ?? [];
             $totalProjectIndirectCost = 0;
             foreach ($indirectItems as $item) {
-                $itemGet = new Get($item);
+                $itemGet = function ($path) use ($item) {
+                    return data_get($item, $path);
+                };
                 $monthlyCost = self::calculateItemMonthlyCost(
                     $itemGet,
                     $totalProjectRevenue / $projectDurationMonths,
@@ -1146,13 +1151,13 @@ class ProfitabilityAnalysisForm
         self::calculateMargin($avgMonthlyRevenue, $avgMonthlyCost, $set);
     }
 
-    protected static function updateItemTotals(Get $get, Set $set): void
+    protected static function updateItemTotals($get, $set): void
     {
         $set('total_monthly_cost', self::calculateItemMonthlyCost($get));
         $set('total_monthly_sale', self::calculateItemMonthlySale($get));
     }
 
-    public static function calculateItemMonthlyCost(Get $get, ?float $totalRevenue = null, ?float $totalDirectCost = null): float
+    public static function calculateItemMonthlyCost($get, ?float $totalRevenue = null, ?float $totalDirectCost = null): float
     {
         $qty = (float) ($get('quantity') ?? 1);
         $costPrice = (float) ($get('unit_cost_price') ?? 0);
@@ -1226,7 +1231,7 @@ class ProfitabilityAnalysisForm
         return (($costPrice / $deprMonths) + $addOnTotal) * $qty;
     }
 
-    public static function calculateItemMonthlySale(Get $get): float
+    public static function calculateItemMonthlySale($get): float
     {
         $monthlyCost = self::calculateItemMonthlyCost($get);
         $markup = (float) ($get('markup_percentage') ?? 0);

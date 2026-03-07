@@ -3,15 +3,14 @@
 namespace Modules\MasterData\Models;
 
 use App\Traits\HasModuleSchema;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\MasterData\Observers\MasterDataObserver;
+use Modules\MasterData\Traits\HasAutoCodeAndSlug;
 
-#[ObservedBy(MasterDataObserver::class)]
 class SkillCategory extends Model
 {
+    use HasAutoCodeAndSlug;
     use HasFactory, HasUuids;
     use HasModuleSchema;
 

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\Tables;
 
+use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -36,7 +37,7 @@ class GeneralInformationTable
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                         'draft' => 'gray',
                         'submitted' => 'info',
                         'approved' => 'success',

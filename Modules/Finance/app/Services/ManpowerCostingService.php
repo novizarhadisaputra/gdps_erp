@@ -3,8 +3,13 @@
 namespace Modules\Finance\Services;
 
 use Modules\MasterData\Enums\RiskLevel;
-use Modules\MasterData\Models\BpjsConfig;
+use Modules\MasterData\Models\HealthConfig;
+use Modules\MasterData\Models\JhtConfig;
+use Modules\MasterData\Models\JkkConfig;
+use Modules\MasterData\Models\JkmConfig;
+use Modules\MasterData\Models\JpConfig;
 use Modules\MasterData\Models\RegencyMinimumWage;
+use Modules\MasterData\Models\WorkScheme;
 
 class ManpowerCostingService
 {
@@ -34,7 +39,7 @@ class ManpowerCostingService
         $fixedAllowances = 0.0;
         $nonFixedAllowances = 0.0;
 
-        $workScheme = $workSchemeId ? \Modules\MasterData\Models\WorkScheme::find($workSchemeId) : null;
+        $workScheme = $workSchemeId ? WorkScheme::find($workSchemeId) : null;
         $workingDays = $workScheme?->working_days ?? 21;
 
         foreach ($allowances as $allowance) {
@@ -132,96 +137,149 @@ class ManpowerCostingService
 
     protected function calculateBpjsHealth(float $upah, float $umk, string $employeeType = 'ppu'): array
     {
-        if ($employeeType === 'pbpu') {
-            return [
-                'employer_total' => 150000, // Fixed for Class 1 as example
-                'employee_total' => 0,
-                'base' => 150000,
-            ];
-        }
-
-        $cacheKey = 'Health-active';
+        $cacheKey = "Health-{$employeeType}";
         if (isset(self::$bpjsCache[$cacheKey])) {
             $config = self::$bpjsCache[$cacheKey];
         } else {
-            $config = BpjsConfig::where('category', 'Health')->where('is_active', true)->first();
+            $config = HealthConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
             self::$bpjsCache[$cacheKey] = $config;
         }
 
         if (! $config) {
-            return ['employer_total' => 0, 'employee_total' => 0];
+            return ['employer_total' => 0, 'employee_total' => 0, 'base' => 0];
         }
 
+        if (in_array($employeeType, ['pbpu', 'pbi'])) {
+            return [
+                'employer_total' => (float) $config->employer_nominal,
+                'employee_total' => (float) $config->employee_nominal,
+                'base' => (float) ($config->employer_nominal + $config->employee_nominal),
+            ];
+        }
+
+        // PPU Flow
         $base = $upah;
         if ($base < $umk && $config->floor_type === 'umk') {
             $base = $umk;
         }
 
-        if ($config->cap_type === 'nominal' && $base > $config->cap_nominal) {
-            $base = $config->cap_nominal;
+        if ($config->cap_nominal > 0 && $base > $config->cap_nominal) {
+            $base = (float) $config->cap_nominal;
         }
 
         return [
-            'employer_total' => $base * $config->employer_rate,
-            'employee_total' => $base * $config->employee_rate,
+            'employer_total' => $base * (float) $config->employer_rate,
+            'employee_total' => $base * (float) $config->employee_rate,
             'base' => $base,
         ];
     }
 
     protected function calculateBpjsEmployment(float $upah, string $riskLevel, bool $isLaborIntensive, string $employeeType = 'ppu'): array
     {
-        if ($employeeType === 'pbpu') {
-            // PBPU rates are simpler, often a flat rate or fixed % of income
-            // For now, let's just use a simple %
-            $incomeFlat = $upah;
-
-            return [
-                'details' => [
-                    'jkk' => ['employer' => $incomeFlat * 0.01, 'employee' => 0, 'base' => $incomeFlat],
-                    'jkm' => ['employer' => 6800, 'employee' => 0, 'base' => 6800],
-                ],
-                'employer_total' => ($incomeFlat * 0.01) + 6800,
-                'employee_total' => 0,
-            ];
-        }
-
-        $categories = ['JKK', 'JKM', 'JHT', 'JP'];
         $details = [];
         $employerTotal = 0;
         $employeeTotal = 0;
 
-        foreach ($categories as $category) {
-            $query = BpjsConfig::where('category', $category)->where('is_active', true);
+        // --- 1. JKK --- //
+        $jkkConfig = JkkConfig::where('employee_type', $employeeType)
+            ->when($employeeType === 'ppu', fn ($q) => $q->where('risk_level', $riskLevel))
+            ->where('is_active', true)
+            ->first();
 
-            if ($category === 'JKK') {
-                $query->where('risk_level', $riskLevel);
-            }
-
-            $config = $query->first();
-
-            if (! $config) {
-                continue;
-            }
-
+        if ($jkkConfig) {
+            $employer = 0;
+            $employee = 0;
             $base = $upah;
-            if ($config->cap_type === 'nominal' && $base > $config->cap_nominal) {
-                $base = $config->cap_nominal;
+
+            if ($employeeType === 'pbpu' && $jkkConfig->has_tier) {
+                // Tier Lookup
+                $tier = $jkkConfig->tiers()
+                    ->where('min_income', '<=', $upah)
+                    ->where(function ($q) use ($upah) {
+                        $q->whereNull('max_income')
+                            ->orWhere('max_income', '>=', $upah);
+                    })->first();
+
+                if ($tier) {
+                    $employer = (float) $tier->employer_nominal;
+                    $employee = (float) $tier->employee_nominal;
+                }
+            } else {
+                // Percentage based
+                $empRate = (float) $jkkConfig->employer_rate;
+                if ($isLaborIntensive && $employeeType === 'ppu') {
+                    $empRate = $empRate * 0.5; // Example exception
+                }
+                $employer = $base * $empRate;
+                $employee = $base * (float) $jkkConfig->employee_rate;
             }
 
-            $empRate = (float) $config->employer_rate;
-            if ($category === 'JKK' && $isLaborIntensive) {
-                $empRate = $empRate * 0.5; // 50% reduction
+            $details['jkk'] = ['employer' => $employer, 'employee' => $employee, 'base' => $base];
+            $employerTotal += $employer;
+            $employeeTotal += $employee;
+        }
+
+        // --- 2. JKM --- //
+        $jkmConfig = JkmConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        if ($jkmConfig) {
+            $employer = 0;
+            $employee = 0;
+            $base = $upah;
+
+            if ($employeeType === 'pbpu') {
+                $employer = (float) $jkmConfig->employer_nominal;
+                $employee = (float) $jkmConfig->employee_nominal;
+            } else {
+                $employer = $base * (float) $jkmConfig->employer_rate;
+                $employee = $base * (float) $jkmConfig->employee_rate;
             }
 
-            $employer = $base * $empRate;
-            $employee = $base * $config->employee_rate;
+            $details['jkm'] = ['employer' => $employer, 'employee' => $employee, 'base' => $base];
+            $employerTotal += $employer;
+            $employeeTotal += $employee;
+        }
 
-            $details[strtolower($category)] = [
-                'employer' => $employer,
-                'employee' => $employee,
-                'base' => $base,
-            ];
+        // --- 3. JHT --- //
+        $jhtConfig = JhtConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        if ($jhtConfig) {
+            $employer = 0;
+            $employee = 0;
+            $base = $upah;
 
+            if ($employeeType === 'pbpu' && $jhtConfig->has_tier) {
+                $tier = $jhtConfig->tiers()
+                    ->where('min_income', '<=', $upah)
+                    ->where(function ($q) use ($upah) {
+                        $q->whereNull('max_income')
+                            ->orWhere('max_income', '>=', $upah);
+                    })->first();
+
+                if ($tier) {
+                    $employer = (float) $tier->employer_nominal;
+                    $employee = (float) $tier->employee_nominal;
+                }
+            } else {
+                $employer = $base * (float) $jhtConfig->employer_rate;
+                $employee = $base * (float) $jhtConfig->employee_rate;
+            }
+
+            $details['jht'] = ['employer' => $employer, 'employee' => $employee, 'base' => $base];
+            $employerTotal += $employer;
+            $employeeTotal += $employee;
+        }
+
+        // --- 4. JP --- //
+        $jpConfig = JpConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        if ($jpConfig) {
+            $base = $upah;
+            if ($jpConfig->cap_nominal > 0 && $base > $jpConfig->cap_nominal) {
+                $base = (float) $jpConfig->cap_nominal;
+            }
+
+            $employer = $base * (float) $jpConfig->employer_rate;
+            $employee = $base * (float) $jpConfig->employee_rate;
+
+            $details['jp'] = ['employer' => $employer, 'employee' => $employee, 'base' => $base];
             $employerTotal += $employer;
             $employeeTotal += $employee;
         }
@@ -235,19 +293,12 @@ class ManpowerCostingService
 
     protected function calculatePph21(float $grossIncomeValue, array $bpjsHealth, array $bpjsEmployment, ?string $ptkpCode = 'TK/0'): array
     {
-        // 2024 TER Method (PMK 168/2023)
-        // Gross income for PPh 21 includes employer-paid BPJS (JKN, JKK, JKM, JP)
-        // Note: JP is included according to some interpretations, but mostly JKN, JKK, JKM are standard.
-        // Based on spreadsheet formula, they include all employer BPJS.
-
         $employerBpjs = $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'];
         $grossTaxBase = $grossIncomeValue + $employerBpjs;
 
-        // 1. Get PTKP and Category
         $ptkp = \Modules\MasterData\Models\PtkpConfig::where('code', $ptkpCode)->first();
         $category = $ptkp?->tax_category ?? 'A';
 
-        // 2. Find TER rate from database
         $terRate = \Modules\MasterData\Models\TaxRateTer::where('category', $category)
             ->where('min_gross', '<=', $grossTaxBase)
             ->where(function ($query) use ($grossTaxBase) {

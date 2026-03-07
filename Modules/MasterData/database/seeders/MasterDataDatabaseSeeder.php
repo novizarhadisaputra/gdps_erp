@@ -19,10 +19,14 @@ class MasterDataDatabaseSeeder extends Seeder
             ContactRoleSeeder::class,
             AssetGroupSeeder::class,
             JobPositionSeeder::class,
-            BpjsConfigSeeder::class,
             RegencyMinimumWageSeeder::class,
             UnitSyncSeeder::class,
             ItemSeeder::class,
+            JkkConfigSeeder::class,
+            JkmConfigSeeder::class,
+            JhtConfigSeeder::class,
+            JpConfigSeeder::class,
+            HealthConfigSeeder::class,
         ]);
     }
 }

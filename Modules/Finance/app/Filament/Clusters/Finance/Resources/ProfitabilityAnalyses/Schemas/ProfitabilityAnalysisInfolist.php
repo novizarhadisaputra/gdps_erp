@@ -3,6 +3,7 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
 use App\Filament\Infolists\Components\DigitalSignatureEntry;
+use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -85,7 +86,7 @@ class ProfitabilityAnalysisInfolist
                                     ->label('Project Area'),
                                 TextEntry::make('status')
                                     ->badge()
-                                    ->color(fn (string $state): string => match ($state) {
+                                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                                         'draft' => 'gray',
                                         'approved' => 'info',
                                         'converted' => 'success',

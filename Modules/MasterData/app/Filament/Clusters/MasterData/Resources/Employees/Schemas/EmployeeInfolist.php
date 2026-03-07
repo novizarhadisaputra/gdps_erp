@@ -35,7 +35,7 @@ class EmployeeInfolist
                                     ->label('Department'),
                                 TextEntry::make('status')
                                     ->badge()
-                                    ->color(fn (string $state): string => $state === 'active' ? 'success' : 'gray'),
+                                    ->color(fn ($state): string => $state === 'active' ? 'success' : 'gray'),
                             ]),
                     ])->columnSpanFull(),
                 Section::make('Documents')

@@ -13,7 +13,8 @@ class BufferCostTypesTable
     {
         return $table
             ->columns([
-                //
+                \Filament\Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
+                \Filament\Tables\Columns\IconColumn::make('is_active')->boolean()->label('Active'),
             ])
             ->filters([
                 //

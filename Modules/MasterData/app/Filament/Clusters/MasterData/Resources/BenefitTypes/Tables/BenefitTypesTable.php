@@ -13,7 +13,9 @@ class BenefitTypesTable
     {
         return $table
             ->columns([
-                //
+                \Filament\Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
+                \Filament\Tables\Columns\TextColumn::make('accrual_method')->searchable()->sortable(),
+                \Filament\Tables\Columns\IconColumn::make('is_active')->boolean()->label('Active'),
             ])
             ->filters([
                 //

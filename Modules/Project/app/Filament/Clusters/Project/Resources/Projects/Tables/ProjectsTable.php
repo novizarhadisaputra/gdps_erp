@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Tables;
 
+use BackedEnum;
 use EightyNine\ExcelImport\ExcelImportAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -31,7 +32,7 @@ class ProjectsTable
                     ->sortable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                         'planning' => 'gray',
                         'active' => 'success',
                         'completed' => 'primary',
@@ -104,12 +105,12 @@ class ProjectsTable
                     ->searchable()
                     ->preload(),
             ])
-            ->actions([
+            ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     ExportAction::make(),

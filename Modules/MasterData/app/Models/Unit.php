@@ -4,13 +4,19 @@ namespace Modules\MasterData\Models;
 
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\Traits\HasRoles;
 
 class Unit extends Model
 {
+    use HasFactory, HasRoles, HasUuids;
     use HasModuleSchema;
-    use HasRoles, HasUuids;
+
+    protected static function newFactory(): \Modules\MasterData\Database\Factories\UnitFactory
+    {
+        return \Modules\MasterData\Database\Factories\UnitFactory::new();
+    }
 
     /**
      * The table associated with the model.

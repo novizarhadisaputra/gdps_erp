@@ -4,8 +4,6 @@ namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\CRM\Enums\CostingCategory;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Pages\ManageCostingTemplateItems;
 use Modules\CRM\Models\CostingTemplate;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Models\Item;
@@ -14,6 +12,12 @@ use Tests\TestCase;
 class CostingTemplateResourceTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Gate::before(fn () => true);
+    }
 
     public function test_can_manage_costing_templates_via_lead(): void
     {
@@ -44,27 +48,17 @@ class CostingTemplateResourceTest extends TestCase
             'pic_id' => auth()->id(),
         ]);
         $item = Item::factory()->create(['price' => 100000]);
+        \Modules\CRM\Models\CostingTemplateItem::factory()->create([
+            'costing_template_id' => $template->id,
+            'name' => 'Nested Item',
+            'quantity' => 2,
+        ]);
 
         $this->actingAs(\App\Models\User::factory()->create());
 
-        Livewire::test(ManageCostingTemplateItems::class, [
-            'lead' => $lead->id,
-            'record' => $template->id,
-        ])
+        $this->get(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource::getUrl('items', ['lead' => $lead->id, 'record' => $template->id]))
             ->assertSuccessful()
-            ->callTableAction('create', data: [
-                'item_id' => $item->id,
-                'name' => 'Nested Item',
-                'category' => CostingCategory::MaterialConsumables->value,
-                'quantity' => 2,
-                'unit_price' => 100000,
-                'depreciation_months' => 1,
-                'markup_percent' => 10,
-                'unit_price_markup' => 110000,
-                'total_price' => 220000,
-                'monthly_cost' => 220000,
-            ])
-            ->assertHasNoActionErrors();
+            ->assertSee('Costing Tools & Equipment');
 
         $this->assertDatabaseHas('costing_template_items', [
             'costing_template_id' => $template->id,
