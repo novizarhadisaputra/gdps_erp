@@ -10,6 +10,11 @@ class ListBpjsBasisTypes extends ListRecords
 {
     protected static string $resource = BpjsBasisTypeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Define the calculation basis for BPJS contributions.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

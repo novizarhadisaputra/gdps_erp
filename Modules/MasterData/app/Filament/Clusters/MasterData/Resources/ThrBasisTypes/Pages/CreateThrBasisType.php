@@ -8,4 +8,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ThrBasisTypes\ThrB
 class CreateThrBasisType extends CreateRecord
 {
     protected static string $resource = ThrBasisTypeResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Set up a new THR calculation basis with specific formulas.';
+    }
 }

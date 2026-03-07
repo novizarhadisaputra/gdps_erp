@@ -11,6 +11,11 @@ class ListItems extends ListRecords
 {
     protected static string $resource = ItemResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Inventory and service catalog management.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

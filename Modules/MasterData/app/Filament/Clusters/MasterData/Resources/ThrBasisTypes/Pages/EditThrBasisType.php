@@ -10,6 +10,11 @@ class EditThrBasisType extends EditRecord
 {
     protected static string $resource = ThrBasisTypeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Adjust THR basis type parameters.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

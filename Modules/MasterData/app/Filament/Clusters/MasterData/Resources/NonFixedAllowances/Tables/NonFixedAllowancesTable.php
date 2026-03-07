@@ -14,7 +14,7 @@ class NonFixedAllowancesTable
         return $table
             ->columns([
                 \Filament\Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('is_taxable')->searchable()->sortable(),
+                \Filament\Tables\Columns\IconColumn::make('is_taxable')->boolean()->label('Taxable')->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('calculation_basis')->searchable()->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('default_amount')->money('IDR')->sortable(),
                 \Filament\Tables\Columns\IconColumn::make('is_active')->boolean()->label('Active'),

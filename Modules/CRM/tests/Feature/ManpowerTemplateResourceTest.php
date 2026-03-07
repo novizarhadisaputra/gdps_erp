@@ -61,7 +61,7 @@ class ManpowerTemplateResourceTest extends TestCase
 
         $component = Livewire::test(Pages\EditManpowerTemplate::class, [
             'lead' => $lead->id,
-            'record' => $record->getRouteKey(),
+            'record' => $record->id,
         ]);
 
         $uuid = array_key_first($component->get('data.items') ?? []);

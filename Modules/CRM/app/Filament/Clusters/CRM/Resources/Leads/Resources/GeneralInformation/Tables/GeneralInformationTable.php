@@ -113,14 +113,14 @@ class GeneralInformationTable
                                     ->label('Signature PIN')
                                     ->password()
                                     ->required()
-                                    ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                                    ->helperText('Enter your digital signature PIN.'),
                             ])
                             ->action(function (GeneralInformation $record, array $data) {
                                 $service = app(SignatureService::class);
 
                                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
                                     Notification::make()
-                                        ->title('PIN Salah')
+                                        ->title('Incorrect PIN')
                                         ->danger()
                                         ->send();
 
@@ -132,8 +132,8 @@ class GeneralInformationTable
 
                                 if (! $matchingRule) {
                                     Notification::make()
-                                        ->title('Akses Ditolak')
-                                        ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
+                                        ->title('Access Denied')
+                                        ->body('You do not have the authority to sign this document based on the current approval rules.')
                                         ->warning()
                                         ->send();
 
@@ -142,8 +142,8 @@ class GeneralInformationTable
 
                                 if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
                                     Notification::make()
-                                        ->title('Sudah Ditandatangani')
-                                        ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
+                                        ->title('Already Signed')
+                                        ->body('This document has already been signed by the appropriate role.')
                                         ->warning()
                                         ->send();
 
@@ -154,7 +154,7 @@ class GeneralInformationTable
                                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                                 Notification::make()
-                                    ->title('Dokumen Berhasil Ditandatangani')
+                                    ->title('Document Successfully Signed')
                                     ->success()
                                     ->send();
 
@@ -172,8 +172,25 @@ class GeneralInformationTable
                             ->visible(fn (GeneralInformation $record) => $record->status === 'draft'),
                     ]),
                 EditAction::make()
-                    ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::form($schema)),
-                DeleteAction::make(),
+                    ->schema(fn (Schema $schema) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::form($schema))
+                    ->hidden(fn (GeneralInformation $record) => $record->isLocked()),
+                DeleteAction::make()
+                    ->hidden(fn (GeneralInformation $record) => $record->isLocked()),
+                Action::make('Reject')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->requiresConfirmation()
+                    ->modalHeading('Reject General Information')
+                    ->modalDescription('Are you sure you want to reject this General Information? The status will return to Rejected and it can be edited again.')
+                    ->action(function (GeneralInformation $record) {
+                        $record->update(['status' => 'rejected']);
+
+                        Notification::make()
+                            ->title('General Information Rejected')
+                            ->warning()
+                            ->send();
+                    })
+                    ->visible(fn (GeneralInformation $record) => $record->status === 'submitted'),
                 Action::make('createPA')
                     ->label('Create PA')
                     ->icon('heroicon-o-presentation-chart-bar')
@@ -181,7 +198,7 @@ class GeneralInformationTable
                     ->visible(fn ($record) => $record->status === 'approved')
                     ->requiresConfirmation()
                     ->modalHeading('Create Profitability Analysis')
-                    ->modalDescription('Apakah Anda yakin ingin membuat data Profitability Analysis (PA) berdasarkan General Information ini?')
+                    ->modalDescription('Are you sure you want to create a Profitability Analysis (PA) based on this General Information?')
                     ->action(function ($record) {
                         $record->toProfitabilityAnalysis();
 

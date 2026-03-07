@@ -8,4 +8,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\PartnerFeeTypes\Pa
 class CreatePartnerFeeType extends CreateRecord
 {
     protected static string $resource = PartnerFeeTypeResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Register a new partner fee type with its specific billing rules.';
+    }
 }

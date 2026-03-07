@@ -10,6 +10,11 @@ class EditBpjsBasisType extends EditRecord
 {
     protected static string $resource = BpjsBasisTypeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Modify BPJS basis type configuration.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

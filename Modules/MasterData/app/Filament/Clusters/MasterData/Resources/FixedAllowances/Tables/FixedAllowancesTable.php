@@ -14,8 +14,8 @@ class FixedAllowancesTable
         return $table
             ->columns([
                 \Filament\Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('is_bpjs_base')->searchable()->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('is_taxable')->searchable()->sortable(),
+                \Filament\Tables\Columns\IconColumn::make('is_bpjs_base')->boolean()->label('BPJS Base')->sortable(),
+                \Filament\Tables\Columns\IconColumn::make('is_taxable')->boolean()->label('Taxable')->sortable(),
                 \Filament\Tables\Columns\TextColumn::make('default_amount')->money('IDR')->sortable(),
                 \Filament\Tables\Columns\IconColumn::make('is_active')->boolean()->label('Active'),
             ])

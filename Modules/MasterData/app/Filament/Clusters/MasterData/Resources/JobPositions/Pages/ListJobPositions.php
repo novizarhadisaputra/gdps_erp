@@ -11,6 +11,11 @@ class ListJobPositions extends ListRecords
 {
     protected static string $resource = JobPositionResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Configure job position titles and their associated levels.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

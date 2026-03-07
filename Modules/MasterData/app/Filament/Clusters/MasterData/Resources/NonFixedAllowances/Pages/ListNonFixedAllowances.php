@@ -10,6 +10,11 @@ class ListNonFixedAllowances extends ListRecords
 {
     protected static string $resource = NonFixedAllowanceResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Overview of non-fixed allowances and their calculation bases (e.g., per day, per hour).';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

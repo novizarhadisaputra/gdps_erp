@@ -10,6 +10,11 @@ class EditTaxScheme extends EditRecord
 {
     protected static string $resource = TaxSchemeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Update tax scheme configuration and active status.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

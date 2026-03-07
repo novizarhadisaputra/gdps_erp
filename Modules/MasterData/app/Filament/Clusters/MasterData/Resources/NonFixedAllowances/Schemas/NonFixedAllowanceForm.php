@@ -18,16 +18,22 @@ class NonFixedAllowanceForm
                             ->placeholder('Enter Name...')
                             ->helperText('Brief and clear Name for this record.')
                             ->required(),
-                        \Filament\Forms\Components\TextInput::make('is_taxable')
+                        \Filament\Forms\Components\Toggle::make('is_taxable')
                             ->label('Is Taxable')
-                            ->placeholder('Enter Is Taxable...')
-                            ->helperText('Brief and clear Is Taxable for this record.')
+                            ->helperText('Enable if this allowance is subject to income tax.')
                             ->required(),
-                        \Filament\Forms\Components\TextInput::make('calculation_basis')
+                        \Filament\Forms\Components\Select::make('calculation_basis')
                             ->label('Calculation Basis')
-                            ->placeholder('Enter Calculation Basis...')
-                            ->helperText('Brief and clear Calculation Basis for this record.')
-                            ->required(),
+                            ->options([
+                                'flat' => 'Flat / Fixed Amount',
+                                'per_day' => 'Per Day',
+                                'per_hour' => 'Per Hour',
+                                'per_output' => 'Per Output / Unit',
+                                'percentage' => 'Percentage (%)',
+                            ])
+                            ->required()
+                            ->native(false)
+                            ->helperText('Basis for calculating this allowance.'),
                         \Filament\Forms\Components\TextInput::make('default_amount')
                             ->numeric()
                             ->prefix('Rp')

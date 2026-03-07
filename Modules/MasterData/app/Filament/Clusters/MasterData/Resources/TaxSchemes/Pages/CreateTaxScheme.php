@@ -8,4 +8,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxSchemes\TaxSche
 class CreateTaxScheme extends CreateRecord
 {
     protected static string $resource = TaxSchemeResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Add a new tax scheme with detailed notes and codes.';
+    }
 }

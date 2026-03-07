@@ -33,7 +33,8 @@ class GeneralInformationForm
                         ])
                         ->required()
                         ->placeholder('Select status')
-                        ->default('draft'),
+                        ->default('draft')
+                        ->disabled(),
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
                         ->searchable()

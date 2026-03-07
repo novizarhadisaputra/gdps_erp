@@ -20,6 +20,11 @@ class ViewGeneralInformation extends ViewRecord
 
     protected static string $resource = GeneralInformationResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Detailed view of project general information.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -34,7 +39,24 @@ class ViewGeneralInformation extends ViewRecord
 
                     return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$name}.pdf");
                 }),
-            EditAction::make(),
+            EditAction::make()
+                ->hidden(fn () => $this->getRecord()->isLocked()),
+            Action::make('Reject')
+                ->color('danger')
+                ->icon('heroicon-o-x-circle')
+                ->requiresConfirmation()
+                ->modalHeading('Reject General Information')
+                ->modalDescription('Are you sure you want to reject this General Information? The status will return to Rejected and it can be edited again.')
+                ->action(function () {
+                    $this->getRecord()->update(['status' => 'rejected']);
+                    $this->refreshFormData(['status']);
+
+                    Notification::make()
+                        ->title('General Information Rejected')
+                        ->warning()
+                        ->send();
+                })
+                ->visible(fn () => $this->getRecord()->status === 'submitted'),
             Action::make('Sign')
                 ->label('Digital Signature')
                 ->color('primary')
@@ -52,7 +74,7 @@ class ViewGeneralInformation extends ViewRecord
 
                     if (! $service->verifyPin(auth()->user(), $data['pin'])) {
                         Notification::make()
-                            ->title('PIN Salah')
+                            ->title('Incorrect PIN')
                             ->danger()
                             ->send();
 
@@ -64,8 +86,8 @@ class ViewGeneralInformation extends ViewRecord
 
                     if (! $matchingRule) {
                         Notification::make()
-                            ->title('Akses Ditolak')
-                            ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
+                            ->title('Access Denied')
+                            ->body('You do not have the authority to sign this document based on the current approval rules.')
                             ->warning()
                             ->send();
 
@@ -74,8 +96,8 @@ class ViewGeneralInformation extends ViewRecord
 
                     if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
                         Notification::make()
-                            ->title('Sudah Ditandatangani')
-                            ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
+                            ->title('Already Signed')
+                            ->body('This document has already been signed by the appropriate role.')
                             ->warning()
                             ->send();
 
@@ -86,7 +108,7 @@ class ViewGeneralInformation extends ViewRecord
                     $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                     Notification::make()
-                        ->title('Dokumen Berhasil Ditandatangani')
+                        ->title('Document Successfully Signed')
                         ->success()
                         ->send();
 

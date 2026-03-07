@@ -8,4 +8,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsBasisTypes\Bpj
 class CreateBpjsBasisType extends CreateRecord
 {
     protected static string $resource = BpjsBasisTypeResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Create a new formula-based BPJS calculation basis.';
+    }
 }

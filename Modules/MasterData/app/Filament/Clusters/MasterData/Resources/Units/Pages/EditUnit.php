@@ -12,6 +12,11 @@ class EditUnit extends EditRecord
 {
     protected static string $resource = UnitResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Modify unit details and hierarchy.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

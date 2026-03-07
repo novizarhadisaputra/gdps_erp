@@ -8,4 +8,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformati
 class ListGeneralInformation extends ListRecords
 {
     protected static string $resource = GeneralInformationResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Project general information overview, including client details and work schemes.';
+    }
 }

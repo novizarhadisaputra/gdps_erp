@@ -10,6 +10,11 @@ class EditNonFixedAllowance extends EditRecord
 {
     protected static string $resource = NonFixedAllowanceResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Update non-fixed allowance parameters and taxable status.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

@@ -12,6 +12,11 @@ class CreateGeneralInformation extends CreateRecord
 
     protected static string $resource = GeneralInformationResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Initialize project general information with essential data.';
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $lead = $this->parentRecord;

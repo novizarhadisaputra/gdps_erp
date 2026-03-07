@@ -14,6 +14,11 @@ class ManageUnitPermissions extends EditRecord
 
     protected static string $resource = UnitResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Configure access permissions and visibility settings for this organizational unit.';
+    }
+
     protected static ?string $title = 'Manage Permissions';
 
     protected static ?string $navigationLabel = 'Permissions';

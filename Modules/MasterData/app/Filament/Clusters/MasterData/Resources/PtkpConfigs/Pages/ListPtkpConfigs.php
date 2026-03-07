@@ -10,6 +10,11 @@ class ListPtkpConfigs extends ListRecords
 {
     protected static string $resource = PtkpConfigResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Configuration for Non-Taxable Income (PTKP) limits according to tax categories.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

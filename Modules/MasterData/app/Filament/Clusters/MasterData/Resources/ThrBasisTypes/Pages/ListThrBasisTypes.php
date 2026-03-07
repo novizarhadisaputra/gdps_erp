@@ -10,6 +10,11 @@ class ListThrBasisTypes extends ListRecords
 {
     protected static string $resource = ThrBasisTypeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Overview of calculation bases for Religious Holiday Allowance (THR).';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

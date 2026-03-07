@@ -14,6 +14,26 @@ class EditGeneralInformation extends EditRecord
 
     protected static string $resource = GeneralInformationResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Modify project general information (only for records in Draft or Rejected status).';
+    }
+
+    public function mount(int|string $record): void
+    {
+        parent::mount($record);
+
+        if ($this->getRecord()->isLocked()) {
+            \Filament\Notifications\Notification::make()
+                ->title('Access Locked')
+                ->body('General Information that has been submitted or approved cannot be modified.')
+                ->warning()
+                ->send();
+
+            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->getRecord()]));
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         return [

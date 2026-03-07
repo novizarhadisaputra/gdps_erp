@@ -10,6 +10,11 @@ class ListFixedAllowances extends ListRecords
 {
     protected static string $resource = FixedAllowanceResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Manage and configure fixed allowance components for employee remuneration.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

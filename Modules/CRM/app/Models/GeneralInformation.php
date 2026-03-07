@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Database\Factories\GeneralInformationFactory;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
@@ -161,7 +160,7 @@ class GeneralInformation extends Model implements HasMedia
         $pa = $this->lead->createProfitabilityAnalysis([
             'general_information_id' => $this->id,
             'customer_id' => $this->customer_id ?? $this->lead->customer_id,
-            'work_scheme_id' => $this->work_scheme_id ?? $this->lead->work_scheme_id,
+            'work_scheme_id' => $this->work_scheme_id ?? null,
             'project_area_id' => $this->project_area_id ?? $this->lead->project_area_id,
             'product_cluster_id' => $this->product_cluster_id ?? $this->lead->product_cluster_id,
         ]);
@@ -175,5 +174,13 @@ class GeneralInformation extends Model implements HasMedia
         }
 
         return $pa;
+    }
+
+    /**
+     * Determine if the document is locked for editing.
+     */
+    public function isLocked(): bool
+    {
+        return in_array($this->status, ['submitted', 'approved']);
     }
 }

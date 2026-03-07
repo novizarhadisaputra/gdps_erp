@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Finance\Tests\Feature\Filament\Resources;
+namespace Modules\Finance\Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\CreateProfitabilityAnalysis;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses;
 use Modules\MasterData\Enums\AssetGroupType;
 use Modules\MasterData\Models\AssetGroup;
 use Modules\MasterData\Models\Item;
@@ -68,9 +68,8 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
 
         \Illuminate\Support\Facades\Gate::before(fn () => true);
 
-        Livewire::test(CreateProfitabilityAnalysis::class)
-            // ->assertSuccessful();
-
+        Livewire::test(ListProfitabilityAnalyses::class)
+            ->mountAction('create')
             ->fillForm([
                 'general_information_id' => $gi->id,
                 'customer_id' => $customer->id,
@@ -78,17 +77,20 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
                 'product_cluster_id' => $productCluster->id,
                 'tax_id' => $tax->id,
                 'project_area_id' => $projectArea->id,
-                'items' => [
+                'operationalItems' => [
                     $uuid => [
-                        'item_id' => null,
+                        'costable_type' => Item::class,
+                        'costable_id' => null,
                     ],
                 ],
             ])
-            ->set("data.items.{$uuid}.item_id", $item->id)
-            ->assertFormSet([
-                "items.{$uuid}.unit_cost_price" => 5000000,         // Base Price
-                "items.{$uuid}.unit_of_measure" => 'Unit',          // UOM Name
-                "items.{$uuid}.depreciation_months" => 60,          // 5 years * 12
+            ->fillForm([
+                "operationalItems.{$uuid}.costable_id" => $item->id,
+            ])
+            ->assertActionDataSet([
+                "operationalItems.{$uuid}.unit_cost_price" => 5000000,         // Base Price
+                "operationalItems.{$uuid}.unit_of_measure" => 'Unit',          // UOM Name
+                "operationalItems.{$uuid}.depreciation_months" => 60,          // 5 years * 12
             ]);
     }
 }

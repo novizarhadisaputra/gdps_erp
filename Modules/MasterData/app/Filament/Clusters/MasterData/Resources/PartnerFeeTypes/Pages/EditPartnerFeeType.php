@@ -10,6 +10,11 @@ class EditPartnerFeeType extends EditRecord
 {
     protected static string $resource = PartnerFeeTypeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Adjust partner fee type configuration and active status.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

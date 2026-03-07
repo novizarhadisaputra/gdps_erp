@@ -10,6 +10,11 @@ class EditBenefitType extends EditRecord
 {
     protected static string $resource = BenefitTypeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Update benefit type details and status.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

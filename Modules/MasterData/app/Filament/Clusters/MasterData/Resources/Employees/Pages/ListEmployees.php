@@ -11,6 +11,11 @@ class ListEmployees extends ListRecords
 {
     protected static string $resource = EmployeeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Manage employee records, personal details, and employment history.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

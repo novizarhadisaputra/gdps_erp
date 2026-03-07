@@ -13,6 +13,11 @@ class ListWorkSchemes extends ListRecords
 {
     protected static string $resource = WorkSchemeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Define work schedules and operational shift patterns.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

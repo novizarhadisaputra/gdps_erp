@@ -22,14 +22,19 @@ class ProposalResourceTest extends TestCase
 
     public function test_can_list_proposals(): void
     {
+        $lead = \Modules\CRM\Models\Lead::factory()->create();
         $user = User::factory()->create();
         $this->actingAs($user);
 
         $proposal = Proposal::factory()->create([
+            'lead_id' => $lead->id,
             'proposal_number' => 'PROP-001',
         ]);
 
-        Livewire::test(ListProposals::class)
+        Livewire::test(ListProposals::class, [
+            'lead' => $lead->id,
+            'record' => $lead->id,
+        ])
             ->assertCanSeeTableRecords([$proposal])
             ->assertSee('PROP-001');
     }

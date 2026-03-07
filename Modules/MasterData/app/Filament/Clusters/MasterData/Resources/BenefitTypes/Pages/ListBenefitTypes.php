@@ -10,6 +10,11 @@ class ListBenefitTypes extends ListRecords
 {
     protected static string $resource = BenefitTypeResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Manage types of benefits like THR, bonuses, and compensation.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

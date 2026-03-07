@@ -11,6 +11,11 @@ class ListVendors extends ListRecords
 {
     protected static string $resource = VendorResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Maintain supplier and partner organization profiles.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

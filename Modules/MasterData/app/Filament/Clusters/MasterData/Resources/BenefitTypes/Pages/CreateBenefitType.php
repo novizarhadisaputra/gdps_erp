@@ -8,4 +8,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes\Benef
 class CreateBenefitType extends CreateRecord
 {
     protected static string $resource = BenefitTypeResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Configure a new benefit type and its accrual method.';
+    }
 }

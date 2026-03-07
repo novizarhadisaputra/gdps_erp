@@ -10,6 +10,11 @@ class EditPtkpConfig extends EditRecord
 {
     protected static string $resource = PtkpConfigResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Adjust PTKP configuration values and categories.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

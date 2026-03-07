@@ -8,4 +8,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\NonFixedAllowances
 class CreateNonFixedAllowance extends CreateRecord
 {
     protected static string $resource = NonFixedAllowanceResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Add a new non-fixed allowance with specific calculation settings.';
+    }
 }

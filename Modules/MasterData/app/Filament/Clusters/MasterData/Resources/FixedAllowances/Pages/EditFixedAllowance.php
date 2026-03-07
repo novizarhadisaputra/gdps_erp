@@ -10,6 +10,11 @@ class EditFixedAllowance extends EditRecord
 {
     protected static string $resource = FixedAllowanceResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Modify existing fixed allowance details, status, or calculation rules.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

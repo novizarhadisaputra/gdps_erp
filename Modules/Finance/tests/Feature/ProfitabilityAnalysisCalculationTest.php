@@ -1,7 +1,6 @@
 <?php
 
-namespace Modules\Finance\Tests\Feature\Finance;
-
+namespace Modules\Finance\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
@@ -10,7 +9,6 @@ use Modules\Finance\Models\DirectCostCategory;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityThreshold;
 use Tests\TestCase;
-use Filament\Notifications\Notification;
 
 class ProfitabilityAnalysisCalculationTest extends TestCase
 {
@@ -19,7 +17,7 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
 
     public function test_calculate_direct_cost_with_indirect_costs()
     {
-                $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Man Power']);
+        $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Man Power']);
         $toolsCat = DirectCostCategory::firstOrCreate(['code' => 'tools_equipment'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Tools & Equipment']);
 
         $get = function ($path) use ($manpowerCat, $toolsCat) {
@@ -80,7 +78,7 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
 
     public function test_calculate_direct_cost_with_manual_entry()
     {
-                $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Man Power']);
+        $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Man Power']);
         $toolsCat = DirectCostCategory::firstOrCreate(['code' => 'tools_equipment'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Tools & Equipment']);
 
         $get = function ($path) use ($manpowerCat, $toolsCat) {
@@ -119,9 +117,9 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
         $this->assertEquals(55000000, $setResults['/revenue_per_month']);
     }
 
-            public function test_validate_profitability_thresholds()
+    public function test_validate_profitability_thresholds()
     {
-        
+
         ProfitabilityThreshold::create([
             'name' => 'Default',
             'min_gpm' => 15.00,

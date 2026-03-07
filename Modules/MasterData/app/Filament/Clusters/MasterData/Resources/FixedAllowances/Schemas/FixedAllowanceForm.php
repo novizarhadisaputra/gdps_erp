@@ -18,15 +18,13 @@ class FixedAllowanceForm
                             ->placeholder('Enter Name...')
                             ->helperText('Brief and clear Name for this record.')
                             ->required(),
-                        \Filament\Forms\Components\TextInput::make('is_bpjs_base')
-                            ->label('Is Bpjs Base')
-                            ->placeholder('Enter Is Bpjs Base...')
-                            ->helperText('Brief and clear Is Bpjs Base for this record.')
+                        \Filament\Forms\Components\Toggle::make('is_bpjs_base')
+                            ->label('Is BPJS Base')
+                            ->helperText('Enable if this allowance is part of the BPJS calculation base.')
                             ->required(),
-                        \Filament\Forms\Components\TextInput::make('is_taxable')
+                        \Filament\Forms\Components\Toggle::make('is_taxable')
                             ->label('Is Taxable')
-                            ->placeholder('Enter Is Taxable...')
-                            ->helperText('Brief and clear Is Taxable for this record.')
+                            ->helperText('Enable if this allowance is subject to income tax.')
                             ->required(),
                         \Filament\Forms\Components\TextInput::make('default_amount')
                             ->numeric()
