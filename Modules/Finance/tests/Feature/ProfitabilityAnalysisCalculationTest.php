@@ -5,9 +5,9 @@ namespace Modules\Finance\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
-use Modules\Finance\Models\DirectCostCategory;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityThreshold;
+use Modules\MasterData\Models\DirectCostCategory;
 use Tests\TestCase;
 
 class ProfitabilityAnalysisCalculationTest extends TestCase
@@ -84,7 +84,7 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
         $get = function ($path) use ($manpowerCat, $toolsCat) {
             $data = [
                 '/is_manual_cost' => true,
-                '/revenue_per_month' => 50000000,
+                '/analysis_details.manual_revenue' => 50000000,
                 '/analysis_details.manual_costs' => [
                     ['direct_cost_category_id' => $manpowerCat->id, 'amount' => 20000000],
                     ['direct_cost_category_id' => $toolsCat->id, 'amount' => 10000000],
@@ -113,8 +113,8 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
 
         // Direct Cost = 20M + 10M = 30M
         $this->assertEquals(30000000, $setResults['/direct_cost']);
-        // Revenue = 50M + 5M (MGMT Fee) = 55M
-        $this->assertEquals(55000000, $setResults['/revenue_per_month']);
+        // Revenue = 30M (Costs) + 5M (MGMT Fee) = 35M
+        $this->assertEquals(35000000, $setResults['/revenue_per_month']);
     }
 
     public function test_validate_profitability_thresholds()

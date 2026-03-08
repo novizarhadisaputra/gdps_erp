@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Pages\CreateSalesPlan;
@@ -22,6 +23,8 @@ class SalesPlanResource extends Resource
     protected static bool $isNested = true;
 
     protected static ?string $parentResource = LeadResource::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
 
     public static function form(Schema $schema): Schema
     {

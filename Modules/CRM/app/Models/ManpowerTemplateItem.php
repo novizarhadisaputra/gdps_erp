@@ -14,6 +14,11 @@ class ManpowerTemplateItem extends Model
     use HasFactory, HasUuids;
     use HasModuleSchema;
 
+    protected static function newFactory(): \Modules\CRM\Database\Factories\ManpowerTemplateItemFactory
+    {
+        return \Modules\CRM\Database\Factories\ManpowerTemplateItemFactory::new();
+    }
+
     protected $fillable = [
         'manpower_template_id',
         'job_position_id',

@@ -12,7 +12,7 @@ class FinanceDatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            DirectCostCategorySeeder::class,
+            //
         ]);
     }
 }

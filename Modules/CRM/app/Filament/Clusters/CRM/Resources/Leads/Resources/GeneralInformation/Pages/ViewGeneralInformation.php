@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Illuminate\Support\Str;
+use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource;
 use Modules\MasterData\Services\SignatureService;
@@ -48,7 +49,7 @@ class ViewGeneralInformation extends ViewRecord
                 ->modalHeading('Reject General Information')
                 ->modalDescription('Are you sure you want to reject this General Information? The status will return to Rejected and it can be edited again.')
                 ->action(function () {
-                    $this->getRecord()->update(['status' => 'rejected']);
+                    $this->getRecord()->update(['status' => GeneralInformationStatus::Rejected]);
                     $this->refreshFormData(['status']);
 
                     Notification::make()
@@ -56,7 +57,7 @@ class ViewGeneralInformation extends ViewRecord
                         ->warning()
                         ->send();
                 })
-                ->visible(fn () => $this->getRecord()->status === 'submitted'),
+                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Submitted),
             Action::make('Sign')
                 ->label('Digital Signature')
                 ->color('primary')
@@ -113,28 +114,28 @@ class ViewGeneralInformation extends ViewRecord
                         ->send();
 
                     if ($record->isFullyApproved()) {
-                        $record->update(['status' => 'approved']);
+                        $record->update(['status' => GeneralInformationStatus::Approved]);
                     }
 
                     $this->refreshFormData(['status']);
                 })
-                ->visible(fn () => in_array($this->getRecord()->status, ['submitted', 'draft'])),
+                ->visible(fn () => in_array($this->getRecord()->status, [GeneralInformationStatus::Submitted, GeneralInformationStatus::Draft])),
 
             Action::make('Submit')
                 ->color('info')
                 ->icon('heroicon-o-paper-airplane')
                 ->requiresConfirmation()
                 ->action(function () {
-                    $this->getRecord()->update(['status' => 'submitted']);
+                    $this->getRecord()->update(['status' => GeneralInformationStatus::Submitted]);
                     $this->refreshFormData(['status']);
                 })
-                ->visible(fn () => $this->getRecord()->status === 'draft'),
+                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft),
 
             Action::make('createPA')
                 ->label('Create PA')
                 ->icon('heroicon-o-presentation-chart-bar')
                 ->color('success')
-                ->visible(fn () => $this->getRecord()->status === 'approved')
+                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Approved)
                 ->action(function () {
                     $record = $this->getRecord();
                     $lead = $record->lead;

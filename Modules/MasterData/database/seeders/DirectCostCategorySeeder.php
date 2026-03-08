@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Finance\Database\Seeders;
+namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +13,7 @@ class DirectCostCategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $schema = config('database.default') === 'sqlite' ? '' : 'finance.';
+        $schema = config('database.default') === 'sqlite' ? '' : 'master_data.';
 
         $categories = [
             ['code' => 'manpower', 'name' => 'Man Power', 'type' => 'direct'],

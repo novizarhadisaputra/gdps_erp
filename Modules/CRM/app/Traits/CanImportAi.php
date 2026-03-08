@@ -11,9 +11,11 @@ use Modules\CRM\Jobs\ImportCostingAiJob;
 use Modules\CRM\Jobs\ImportManpowerAiJob;
 use Modules\CRM\Models\CostingTemplate;
 use Modules\CRM\Models\ManpowerTemplate;
+use Modules\MasterData\Models\AssetGroup;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\ItemCategory;
 use Modules\MasterData\Models\JobPosition;
+use Modules\MasterData\Models\UnitOfMeasure;
 
 trait CanImportAi
 {
@@ -23,6 +25,7 @@ trait CanImportAi
             ->label('Import via AI')
             ->icon('heroicon-o-sparkles')
             ->color('info')
+            ->visible(fn () => false)
             ->schema([
                 FileUpload::make('file')
                     ->disk('local')
@@ -101,6 +104,7 @@ trait CanImportAi
             ->label('Import via AI')
             ->icon('heroicon-o-sparkles')
             ->color('info')
+            ->visible(fn () => false)
             ->schema([
                 FileUpload::make('file')
                     ->disk('local')
@@ -128,8 +132,8 @@ trait CanImportAi
 
                     $existingItems = Item::where('is_active', true)->get(['id', 'name'])->toArray();
                     $existingCategories = ItemCategory::get(['id', 'name'])->toArray();
-                    $existingUnits = \Modules\MasterData\Models\UnitOfMeasure::get(['id', 'name', 'code'])->toArray();
-                    $existingAssetGroups = \Modules\MasterData\Models\AssetGroup::get(['id', 'name', 'useful_life_years'])->toArray();
+                    $existingUnits = UnitOfMeasure::get(['id', 'name', 'code'])->toArray();
+                    $existingAssetGroups = AssetGroup::get(['id', 'name', 'useful_life_years'])->toArray();
 
                     $context = [
                         'project_area' => $lead->projectArea?->name,

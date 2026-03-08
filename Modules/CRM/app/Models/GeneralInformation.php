@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Database\Factories\GeneralInformationFactory;
+use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Observers\GeneralInformationObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\ProductCluster;
@@ -70,6 +71,7 @@ class GeneralInformation extends Model implements HasMedia
         return [
             'estimated_start_date' => 'date',
             'estimated_end_date' => 'date',
+            'status' => GeneralInformationStatus::class,
             'risk_management' => 'array',
             'rr_payload' => 'array',
         ];
@@ -176,11 +178,11 @@ class GeneralInformation extends Model implements HasMedia
         return $pa;
     }
 
-    /**
-     * Determine if the document is locked for editing.
-     */
     public function isLocked(): bool
     {
-        return in_array($this->status, ['submitted', 'approved']);
+        return in_array($this->status, [
+            GeneralInformationStatus::Submitted,
+            GeneralInformationStatus::Approved,
+        ]);
     }
 }

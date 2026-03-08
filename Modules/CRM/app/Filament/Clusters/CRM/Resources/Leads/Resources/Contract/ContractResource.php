@@ -4,15 +4,16 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas\ContractForm;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas\ContractInfolist;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Tables\ContractsTable;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Pages\CreateContract;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Pages\EditContract;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Pages\ListContracts;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Pages\ViewContract;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas\ContractForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas\ContractInfolist;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Tables\ContractsTable;
 use Modules\CRM\Models\Contract;
 
 class ContractResource extends Resource
@@ -22,6 +23,8 @@ class ContractResource extends Resource
     protected static bool $isNested = true;
 
     protected static ?string $parentResource = LeadResource::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedPencilSquare;
 
     public static function form(Schema $schema): Schema
     {

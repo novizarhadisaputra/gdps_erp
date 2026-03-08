@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories\Schemas;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;

@@ -2,37 +2,79 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm;
-use Modules\CRM\Traits\CanImportAi;
+use Modules\CRM\Models\CostingTemplate;
 
 class ManageCostingTemplates extends ManageRelatedRecords
 {
-    use CanImportAi;
-
     protected static string $resource = LeadResource::class;
 
     protected static string $relationship = 'costingTemplates';
 
     protected static ?string $relatedResource = CostingTemplateResource::class;
 
-    protected static ?string $title = 'Costing Templates';
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    public function form(\Filament\Schemas\Schema $schema): \Filament\Schemas\Schema
+    protected static ?string $title = 'Tools & Equipment Costing';
+
+    protected static ?string $navigationLabel = 'Tools & Equipment Costing';
+
+    public function form(Schema $schema): Schema
     {
         return CostingTemplateResource::form($schema);
     }
 
-    public function table(\Filament\Tables\Table $table): \Filament\Tables\Table
+    public function table(Table $table): Table
     {
         return CostingTemplateResource::table($table)
             ->headerActions([
-                $this->getImportCostingAiAction(),
+                Action::make('manualUpload')
+                    ->label('Manual Upload (Reference)')
+                    ->icon('heroicon-o-document-plus')
+                    ->color('info')
+                    ->schema([
+                        FileUpload::make('file')
+                            ->disk('local')
+                            ->directory('temp-manual-uploads')
+                            ->acceptedFileTypes([
+                                'application/pdf',
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'application/vnd.ms-excel',
+                            ])
+                            ->required()
+                            ->helperText('Upload the original document as a valid data reference.'),
+                    ])
+                    ->action(function (array $data) {
+                        $lead = $this->getOwnerRecord();
+                        $latestGi = $lead->generalInformations()->latest()->first();
+
+                        $record = CostingTemplate::create([
+                            'lead_id' => $lead->id,
+                            'name' => 'Tools & Equipment Costing from '.now()->format('Y-m-d H:i'),
+                            'description' => $latestGi?->scope_of_work,
+                            'pic_id' => $lead->pic_costing_id ?? auth()->id(),
+                        ]);
+
+                        if (isset($data['file'])) {
+                            $filePath = Storage::disk('local')->path($data['file']);
+                            $record->addMedia($filePath)->toMediaCollection('source_file');
+                        }
+
+                        $this->redirect(CostingTemplateResource::getUrl('edit', ['lead' => $lead->id, 'record' => $record->id]));
+                    })
+                    ->successNotificationTitle('Manual Tools & Equipment Costing created'),
                 CreateAction::make()
-                    ->schema(fn (\Filament\Schemas\Schema $schema) => CostingTemplateResource::form($schema))
+                    ->schema(fn (Schema $schema) => CostingTemplateResource::form($schema))
                     ->fillForm(fn () => CostingTemplateForm::getAutoFillData($this->getOwnerRecord())),
             ]);
     }

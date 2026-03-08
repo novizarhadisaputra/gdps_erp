@@ -23,6 +23,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
@@ -43,18 +44,28 @@ class ManpowerTemplateResource extends Resource
 
     protected static ?string $parentResource = LeadResource::class;
 
+    protected static ?string $navigationLabel = 'Manpower Costing';
+
+    protected static ?string $pluralLabel = 'Manpower Costing';
+
+    protected static ?string $singularLabel = 'Manpower Costing';
+
+    protected static ?string $slug = 'manpower-costing';
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
                 Wizard::make([
-                    Step::make('Template Identification')
-                        ->description('Define basic template details and project area.')
+                    Step::make('Costing Identification')
+                        ->description('Define basic costing details and project area.')
                         ->icon('heroicon-m-identification')
                         ->schema([
-                            \Filament\Forms\Components\Placeholder::make('import_status')
+                            TextEntry::make('import_status')
                                 ->label('Source')
-                                ->content('Imported via AI')
+                                ->state('Imported')
                                 ->visible(fn ($record) => $record?->is_imported)
                                 ->columnSpanFull(),
                             TextInput::make('code')
@@ -64,7 +75,7 @@ class ManpowerTemplateResource extends Resource
                                 ->maxLength(255)
                                 ->unique(ignoreRecord: true),
                             TextInput::make('name')
-                                ->label('Template Name')
+                                ->label('Costing Name')
                                 ->placeholder('e.g., Standard Security Packet')
                                 ->required()
                                 ->maxLength(255),
@@ -91,7 +102,7 @@ class ManpowerTemplateResource extends Resource
                                 ->required()
                                 ->live(),
                             Textarea::make('description')
-                                ->label('Template Description')
+                                ->label('Costing Description')
                                 ->placeholder('Briefly describe the purpose of this manpower packet...')
                                 ->maxLength(65535)
                                 ->columnSpanFull(),

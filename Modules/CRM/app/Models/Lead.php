@@ -34,11 +34,13 @@ use Modules\Project\Models\Project;
 use Modules\Project\Models\ProjectInformation;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[ObservedBy(LeadObserver::class)]
-class Lead extends Model
+class Lead extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, LogsActivity, SoftDeletes;
+    use HasFactory, HasUuids, InteractsWithMedia, LogsActivity, SoftDeletes;
     use HasModuleSchema;
 
     public function getActivitylogOptions(): LogOptions

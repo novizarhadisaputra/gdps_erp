@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Models;
 
-use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,9 +16,13 @@ use Modules\MasterData\Models\Item;
 class CostingTemplateItem extends Model
 {
     use HasFactory, HasUuids;
-    use HasModuleSchema;
 
     protected $guarded = [];
+
+    protected static function newFactory(): \Modules\CRM\Database\Factories\CostingTemplateItemFactory
+    {
+        return \Modules\CRM\Database\Factories\CostingTemplateItemFactory::new();
+    }
 
     protected function casts(): array
     {

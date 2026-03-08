@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Observers;
 
+use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\GeneralInformation;
 
@@ -34,9 +35,8 @@ class GeneralInformationObserver
      */
     public function created(GeneralInformation $info): void
     {
-        $info->updateQuietly([
-            'status' => 'submitted',
-        ]);
+        // Status updates are now manual, starting from 'draft'
+        // Automatic update to 'submitted' removed
 
         // Update Lead Status to Approach
         if ($info->lead_id && $info->lead) {
@@ -52,7 +52,7 @@ class GeneralInformationObserver
     public function updated(GeneralInformation $info): void
     {
         // Sync CostingTemplate and ManpowerTemplate description
-        if ($info->wasChanged(['scope_of_work', 'project_area_id', 'status']) && $info->status === 'approved') {
+        if ($info->wasChanged(['scope_of_work', 'project_area_id', 'status']) && $info->status === GeneralInformationStatus::Approved) {
             $lead = $info->lead;
             if ($lead) {
                 if ($info->wasChanged(['scope_of_work', 'status'])) {

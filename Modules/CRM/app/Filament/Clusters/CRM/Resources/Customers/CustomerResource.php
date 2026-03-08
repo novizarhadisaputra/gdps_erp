@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Pages\ListCustomers;
@@ -20,7 +21,7 @@ class CustomerResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 

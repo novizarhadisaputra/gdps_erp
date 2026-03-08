@@ -38,6 +38,19 @@ class ProfitabilityAnalysisObserver
                 'status' => \Modules\CRM\Enums\LeadStatus::Approach,
             ]);
         }
+
+        // Auto-copy media from General Information if present
+        if ($analysis->generalInformation) {
+            foreach (['tor', 'rfp', 'rfi'] as $collection) {
+                // Only copy if PA doesn't have its own media yet
+                if (! $analysis->hasMedia($collection)) {
+                    $media = $analysis->generalInformation->getFirstMedia($collection);
+                    if ($media) {
+                        $media->copy($analysis, $collection);
+                    }
+                }
+            }
+        }
     }
 
     /**

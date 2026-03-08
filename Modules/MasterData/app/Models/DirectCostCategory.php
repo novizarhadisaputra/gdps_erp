@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Finance\Models;
+namespace Modules\MasterData\Models;
 
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;

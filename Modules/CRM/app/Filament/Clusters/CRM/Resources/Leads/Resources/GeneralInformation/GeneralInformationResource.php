@@ -23,7 +23,7 @@ class GeneralInformationResource extends Resource
 
     protected static ?string $model = GeneralInformation::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
     protected static ?string $parentResource = LeadResource::class;
 

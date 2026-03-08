@@ -3,7 +3,6 @@
 namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
 use Modules\CRM\Models\ManpowerTemplate;
@@ -21,24 +20,40 @@ class ManpowerTemplateResourceTest extends TestCase
         $jobPosition = JobPosition::factory()->create();
         $lead = \Modules\CRM\Models\Lead::factory()->create();
 
+        $this->actingAs(\App\Models\User::factory()->create());
+
+        // Mock the route for InteractsWithParentRecord
+        $route = new \Illuminate\Routing\Route(['GET', 'HEAD'], 'crm/leads/{lead}/manpower-costing/create', [
+            'as' => 'filament.admin.crm.resources.leads.manpower-costing.create',
+        ]);
+        $route->bind(request());
+        $route->setParameter('lead', (string) $lead->id);
+        request()->setRouteResolver(fn () => $route);
+
         $component = Livewire::test(Pages\CreateManpowerTemplate::class, [
             'lead' => $lead->id,
+            'parentRecord' => $lead,
         ]);
 
         $uuid = array_key_first($component->get('data.items') ?? []);
 
         if (! $uuid) {
-            $uuid = (string) Str::uuid();
+            $uuid = (string) \Illuminate\Support\Str::uuid();
         }
 
         $component->fillForm([
             'name' => 'New Manpower Template',
             'project_area_id' => $projectArea->id,
+            'contract_type_id' => \Modules\MasterData\Models\ContractType::factory()->create()->id,
+            'work_scheme_id' => \Modules\MasterData\Models\WorkScheme::factory()->create()->id,
+            'risk_level' => 'very_low',
+            'employee_type' => 'ppu',
             'is_active' => true,
             'items' => [
                 $uuid => [
                     'job_position_id' => $jobPosition->id,
                     'quantity' => 1,
+                    'basic_salary' => 5000000,
                 ],
             ],
         ])
@@ -59,25 +74,27 @@ class ManpowerTemplateResourceTest extends TestCase
             'lead_id' => $lead->id,
         ]);
 
+        $this->actingAs(\App\Models\User::factory()->create());
+
+        // Mock the route for InteractsWithParentRecord
+        $route = new \Illuminate\Routing\Route(['GET', 'HEAD'], 'crm/leads/{lead}/manpower-costing/{record}/edit', [
+            'as' => 'filament.admin.crm.resources.leads.manpower-costing.edit',
+        ]);
+        $route->bind(request());
+        $route->setParameter('lead', (string) $lead->id);
+        $route->setParameter('record', (string) $record->id);
+        request()->setRouteResolver(fn () => $route);
+
         $component = Livewire::test(Pages\EditManpowerTemplate::class, [
             'lead' => $lead->id,
             'record' => $record->id,
+            'parentRecord' => $lead,
         ]);
-
-        $uuid = array_key_first($component->get('data.items') ?? []);
-
-        if (! $uuid) {
-            $uuid = (string) Str::uuid();
-        }
 
         $component->fillForm([
             'name' => 'Updated Template Name',
-            'items' => [
-                $uuid => [
-                    'job_position_id' => $jobPosition->id,
-                    'quantity' => 5,
-                ],
-            ],
+            'risk_level' => 'very_low',
+            'employee_type' => 'ppu',
         ])
             ->call('save')
             ->assertHasNoErrors();

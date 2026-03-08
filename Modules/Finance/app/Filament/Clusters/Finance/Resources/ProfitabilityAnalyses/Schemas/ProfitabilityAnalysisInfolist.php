@@ -10,8 +10,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
-use Modules\Finance\Models\DirectCostCategory;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Models\DirectCostCategory;
 
 class ProfitabilityAnalysisInfolist
 {

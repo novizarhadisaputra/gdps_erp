@@ -5,6 +5,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Pages\EditCostingTemplate;
@@ -25,6 +26,16 @@ class CostingTemplateResource extends Resource
     protected static bool $isNested = true;
 
     protected static ?string $parentResource = LeadResource::class;
+
+    protected static ?string $navigationLabel = 'Tools & Equipment Costing';
+
+    protected static ?string $pluralLabel = 'Tools & Equipment Costing';
+
+    protected static ?string $singularLabel = 'Tools & Equipment Costing';
+
+    protected static ?string $slug = 'tools-equipment-costing';
+
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
     public static function form(Schema $schema): Schema
     {

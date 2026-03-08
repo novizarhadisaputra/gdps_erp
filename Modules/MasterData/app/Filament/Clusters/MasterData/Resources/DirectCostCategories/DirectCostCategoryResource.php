@@ -1,19 +1,19 @@
 <?php
 
-namespace Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories;
 
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
-use Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories\Pages\CreateDirectCostCategory;
-use Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories\Pages\EditDirectCostCategory;
-use Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories\Pages\ListDirectCostCategories;
-use Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
-use Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories\Tables\DirectCostCategoriesTable;
-use Modules\Finance\Models\DirectCostCategory;
+use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Pages\CreateDirectCostCategory;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Pages\EditDirectCostCategory;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Pages\ListDirectCostCategories;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Tables\DirectCostCategoriesTable;
+use Modules\MasterData\Models\DirectCostCategory;
 
 class DirectCostCategoryResource extends Resource
 {
@@ -21,7 +21,7 @@ class DirectCostCategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $cluster = FinanceCluster::class;
+    protected static ?string $cluster = MasterDataCluster::class;
 
     protected static ?string $recordTitleAttribute = 'name';
 

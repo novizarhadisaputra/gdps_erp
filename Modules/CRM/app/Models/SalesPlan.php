@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Enums\ConfidenceLevel;
+use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\ProrationMethod;
 use Modules\CRM\Observers\SalesPlanObserver;
 use Modules\MasterData\Models\IndustrialSector;
@@ -145,7 +146,7 @@ class SalesPlan extends Model
             'scope_of_work' => $lead->title,
             'description' => $lead->description,
             'sales_plan_id' => $this->id,
-            'status' => 'draft',
+            'status' => GeneralInformationStatus::Draft,
         ]);
 
         // Sync Customer Contacts from Master Data

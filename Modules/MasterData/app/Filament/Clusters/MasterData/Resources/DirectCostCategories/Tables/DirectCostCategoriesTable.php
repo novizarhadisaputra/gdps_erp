@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Finance\Filament\Clusters\Finance\Resources\DirectCostCategories\Tables;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;

@@ -2,15 +2,20 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 
@@ -27,9 +32,9 @@ class ProposalForm
         return [
             Section::make('Proposal Details')
                 ->schema([
-                    \Filament\Forms\Components\Placeholder::make('import_status')
+                    TextEntry::make('import_status')
                         ->label('Source')
-                        ->content('Imported via AI extraction')
+                        ->state('Imported')
                         ->visible(fn ($record) => $record?->is_imported)
                         ->columnSpanFull(),
                     Select::make('customer_id')
@@ -40,22 +45,22 @@ class ProposalForm
                         ->disabled()
                         ->dehydrated()
                         ->hidden()
-                        ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null)
+                        ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null)
                         ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->editOptionForm(CustomerForm::schema())
-                        ->editOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('lead_id')
                         ->relationship('lead', 'title')
                         ->searchable()
                         ->preload()
                         ->live()
                         ->hidden()
-                        ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                        ->afterStateUpdated(function ($state, Set $set) {
                             if (! $state) {
                                 return;
                             }
-                            $lead = \Modules\CRM\Models\Lead::find($state);
+                            $lead = Lead::find($state);
                             if (! $lead) {
                                 return;
                             }
@@ -69,11 +74,11 @@ class ProposalForm
                         ->preload()
                         ->disabled() // Inherited from Lead rarely changes at this stage
                         ->dehydrated()
-                        ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
+                        ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
                         ->createOptionForm(WorkSchemeForm::schema())
-                        ->createOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver())
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->editOptionForm(WorkSchemeForm::schema())
-                        ->editOptionAction(fn (\Filament\Actions\Action $action) => $action->slideOver()),
+                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     TextInput::make('proposal_number')
                         ->required()
                         ->hiddenOn('create') // Auto-generated
@@ -81,7 +86,7 @@ class ProposalForm
                     TextInput::make('amount')
                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                         ->prefix('IDR')
-                        ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
+                        ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
                         ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                         ->required(),
                     ToggleButtons::make('status')

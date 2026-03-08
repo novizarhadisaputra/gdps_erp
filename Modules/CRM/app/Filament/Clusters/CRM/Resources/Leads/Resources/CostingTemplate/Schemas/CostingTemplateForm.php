@@ -3,9 +3,10 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas;
 
 use App\Models\User;
-use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -13,8 +14,12 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
+use Modules\CRM\Enums\CostingCategory;
+use Modules\CRM\Enums\DepreciationMethod;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
+use Modules\MasterData\Models\Item;
 
 class CostingTemplateForm
 {
@@ -26,6 +31,8 @@ class CostingTemplateForm
             'name' => $lead->customer?->name,
             'description' => $latestGi?->scope_of_work,
             'pic_id' => $lead->pic_costing_id ?? auth()->id(),
+            'work_scheme_id' => $latestGi?->work_scheme_id ?? $lead->work_scheme_id,
+            'project_area_id' => $latestGi?->project_area_id ?? $lead->project_area_id,
             'costingTemplateItems' => [],
         ];
     }
@@ -65,18 +72,18 @@ class CostingTemplateForm
                 Step::make('Tools & Equipment Costing')
                     ->description('Manage items and calculations')
                     ->schema([
-                        Placeholder::make('items_hint')
+                        TextEntry::make('items_hint')
                             ->label('')
-                            ->content(function () {
-                                return new \Illuminate\Support\HtmlString('
-                                    <div class="p-4 bg-primary-50 rounded-lg border border-primary-200 text-primary-900">
-                                        You are currently in <strong>Edit</strong> mode. To manage costing tools & equipment in detail and securely (to avoid memory crashes), please use the <strong>"Costing Tools & Equipment"</strong> tab in the sidebar menu.
-                                    </div>
-                                ');
-                            })
-                            ->visible(fn (string $operation): bool => $operation !== 'create'),
+                            ->state(fn () => new HtmlString('
+                                <div class="p-4 bg-primary-50 rounded-lg border border-primary-200 text-primary-900">
+                                    You are currently in <strong>Edit</strong> mode. To manage costing tools & equipment in detail and securely (to avoid memory crashes), please use the <strong>"Costing Tools & Equipment"</strong> tab in the sidebar menu.
+                                </div>
+                            '))
+                            ->html()
+                            ->visible(fn (string $operation): bool => $operation !== 'create')
+                            ->columnSpanFull(),
 
-                        \Filament\Forms\Components\Repeater::make('costingTemplateItems')
+                        Repeater::make('costingTemplateItems')
                             ->relationship()
                             ->visible(fn (string $operation): bool => $operation === 'create')
                             ->schema([
@@ -87,18 +94,18 @@ class CostingTemplateForm
                                                 Grid::make(2)
                                                     ->schema([
                                                         Select::make('category')
-                                                            ->options(collect(\Modules\CRM\Enums\CostingCategory::cases())
-                                                                ->filter(fn ($case) => $case !== \Modules\CRM\Enums\CostingCategory::Manpower)
+                                                            ->options(collect(CostingCategory::cases())
+                                                                ->filter(fn ($case) => $case !== CostingCategory::Manpower)
                                                                 ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
                                                                 ->toArray())
                                                             ->required()
                                                             ->live(),
                                                         Select::make('depreciation_method')
                                                             ->label('Depreciation Method')
-                                                            ->options(collect(\Modules\CRM\Enums\DepreciationMethod::cases())
+                                                            ->options(collect(DepreciationMethod::cases())
                                                                 ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
                                                                 ->toArray())
-                                                            ->default(\Modules\CRM\Enums\DepreciationMethod::StraightLine)
+                                                            ->default(DepreciationMethod::StraightLine)
                                                             ->required()
                                                             ->live()
                                                             ->afterStateUpdated(function (Get $get, Set $set) {
@@ -118,7 +125,7 @@ class CostingTemplateForm
                                                         if (! $state) {
                                                             return;
                                                         }
-                                                        $item = \Modules\MasterData\Models\Item::find($state);
+                                                        $item = Item::find($state);
                                                         if ($item) {
                                                             $set('name', $item->name);
                                                             $set('unit_price', $item->price);
@@ -290,10 +297,10 @@ class CostingTemplateForm
             $methodValue = $method instanceof \BackedEnum ? $method->value : $method;
 
             $itemId = $get('item_id');
-            $item = $itemId ? \Modules\MasterData\Models\Item::find($itemId) : null;
+            $item = $itemId ? Item::find($itemId) : null;
             $ag = $item?->assetGroup ?? $item?->category?->assetGroup;
 
-            if ($methodValue === \Modules\CRM\Enums\DepreciationMethod::DecliningBalance->value) {
+            if ($methodValue === DepreciationMethod::DecliningBalance->value) {
                 $rate = (float) ($ag?->rate_declining_balance ?? 0);
 
                 if ($rate > 0) {

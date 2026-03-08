@@ -31,6 +31,7 @@ class CostingTemplateResourceTest extends TestCase
             ->callTableAction('create', data: [
                 'name' => 'Template for Lead',
                 'pic_id' => auth()->id(),
+                'file' => [\Illuminate\Http\UploadedFile::fake()->create('document.pdf')],
             ])
             ->assertHasNoActionErrors();
 
@@ -58,7 +59,7 @@ class CostingTemplateResourceTest extends TestCase
 
         $this->get(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource::getUrl('items', ['lead' => $lead->id, 'record' => $template->id]))
             ->assertSuccessful()
-            ->assertSee('Costing Tools & Equipment');
+            ->assertSee('Tools & Equipment Costing');
 
         $this->assertDatabaseHas('costing_template_items', [
             'costing_template_id' => $template->id,
