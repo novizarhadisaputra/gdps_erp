@@ -24,6 +24,14 @@ class ProfitabilityAnalysisResource extends Resource
 
     protected static ?string $parentResource = LeadResource::class;
 
+    protected static ?string $navigationLabel = 'Profitability Analysis';
+
+    protected static ?string $pluralLabel = 'Profitability Analysis';
+
+    protected static ?string $singularLabel = 'Profitability Analysis';
+
+    protected static ?string $slug = 'profitability-analysis';
+
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
     public static function form(Schema $schema): Schema

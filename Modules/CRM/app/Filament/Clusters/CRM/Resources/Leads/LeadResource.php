@@ -134,7 +134,7 @@ class LeadResource extends Resource
             'general-informations' => ManageGeneralInformations::route('/{record}/general-informations'),
             'proposals' => ManageProposals::route('/{record}/proposals'),
             'manpower-costing' => ManageManpowerTemplates::route('/{record}/manpower-costing'),
-            'profitability-analyses' => ManageProfitabilityAnalyses::route('/{record}/profitability-analyses'),
+            'profitability-analysis' => ManageProfitabilityAnalyses::route('/{record}/profitability-analysis'),
             'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
             'contracts' => ManageContracts::route('/{record}/contracts'),
             'tools-equipment-costing' => ManageCostingTemplates::route('/{record}/tools-equipment-costing'),

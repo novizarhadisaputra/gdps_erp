@@ -20,7 +20,7 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
 
-    protected static ?string $title = 'Profitability Analyses';
+    protected static ?string $title = 'Profitability Analysis';
 
     public function form(Schema $schema): Schema
     {

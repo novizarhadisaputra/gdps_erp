@@ -24,13 +24,13 @@ return new class extends Migration
             $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'master_data.payment_terms')->onDelete('set null');
 
             $table->string('asset_ownership')->default('gdps-owned');
-            $table->decimal('management_expense_rate', 5, 2)->default(3.00);
             $table->decimal('interest_rate', 5, 2)->default(1.50);
             $table->decimal('tax_rate', 5, 2)->default(22.00);
 
             $table->decimal('revenue_per_month', 15, 2)->default(0);
             $table->decimal('direct_cost', 15, 2)->default(0);
             $table->decimal('depreciation', 15, 2)->default(0);
+            $table->decimal('manual_depreciation', 15, 2)->default(0);
             $table->decimal('management_fee', 15, 2)->default(0);
             $table->decimal('management_fee_rate', 5, 2)->default(0);
             $table->decimal('margin_percentage', 5, 2)->default(0);
