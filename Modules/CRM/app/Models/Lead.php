@@ -104,6 +104,11 @@ class Lead extends Model implements HasMedia
         return $this->hasMany(Proposal::class);
     }
 
+    public function minutesOfAgreements(): HasMany
+    {
+        return $this->hasMany(MinutesOfAgreement::class);
+    }
+
     public function generalInformations(): HasMany
     {
         return $this->hasMany(GeneralInformation::class);

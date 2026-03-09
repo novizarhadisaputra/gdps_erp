@@ -3,16 +3,14 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
@@ -51,17 +49,11 @@ class ManageProposals extends ManageRelatedRecords
                     ->color('info')
                     ->modalWidth('xl')
                     ->schema([
-                        FileUpload::make('file')
+                        SpatieMediaLibraryFileUpload::make('file')
+                            ->collection('final_proposal')
                             ->label('Proposal Document')
-                            ->disk('local')
-                            ->directory('temp-manual-uploads')
-                            ->acceptedFileTypes([
-                                'application/pdf',
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                'application/vnd.ms-excel',
-                                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                                'application/msword',
-                            ])
+                            ->disk('s3')
+                            ->visibility('private')
                             ->required()
                             ->helperText('Upload the signed or final proposal document.'),
                         TextInput::make('amount')
@@ -92,12 +84,6 @@ class ManageProposals extends ManageRelatedRecords
                             'status' => ProposalStatus::Draft,
                             'is_manual' => true,
                         ]);
-
-                        if (isset($data['file'])) {
-                            $file = is_array($data['file']) ? reset($data['file']) : $data['file'];
-                            $filePath = Storage::disk('local')->path($file);
-                            $proposal->addMedia($filePath)->toMediaCollection('final_proposal');
-                        }
 
                         $lead->update(['status' => LeadStatus::Proposal]);
 

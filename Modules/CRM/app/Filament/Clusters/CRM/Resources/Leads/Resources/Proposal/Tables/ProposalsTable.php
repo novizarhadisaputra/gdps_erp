@@ -16,6 +16,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Maatwebsite\Excel\Facades\Excel;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Exports\ProposalExport;
@@ -24,7 +25,6 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Services\SignatureService;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ProposalsTable
 {
@@ -84,7 +84,7 @@ class ProposalsTable
                             ->success()
                             ->send();
 
-                        return redirect(ContractResource::getUrl('index', ['record' => $record->lead_id]));
+                        return redirect(ContractResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $contract->id]));
                     }),
                 Action::make('resetToApproved')
                     ->label('Reset to Approved')

@@ -11,6 +11,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\LeadStatus;
+use Modules\CRM\Enums\MoAStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\EditLead;
@@ -25,6 +26,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectInforma
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProposals;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageSalesPlans;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ViewLead;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Pages\ListMinutesOfAgreements;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Tables\LeadsTable;
@@ -64,6 +66,7 @@ class LeadResource extends Resource
                     LeadStatus::Approach,
                     LeadStatus::Proposal,
                     LeadStatus::Negotiation,
+                    LeadStatus::Contract,
                     LeadStatus::Won,
                 ])))->toArray(),
             ...collect($page->generateNavigationItems([
@@ -77,6 +80,7 @@ class LeadResource extends Resource
                     LeadStatus::Approach,
                     LeadStatus::Proposal,
                     LeadStatus::Negotiation,
+                    LeadStatus::Contract,
                     LeadStatus::Won,
                 ])))->toArray(),
             ...collect($page->generateNavigationItems([
@@ -86,8 +90,19 @@ class LeadResource extends Resource
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Proposal,
                     LeadStatus::Negotiation,
+                    LeadStatus::Contract,
                     LeadStatus::Won,
                 ]) && $record->profitabilityAnalyses()->where('status', 'approved')->exists()
+                ))->toArray(),
+            ...collect($page->generateNavigationItems([
+                ListMinutesOfAgreements::class,
+            ]))->map(fn (NavigationItem $item) => $item
+                ->group('Stage 3: Contracting (Negotiation)')
+                ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Negotiation,
+                    LeadStatus::Contract,
+                    LeadStatus::Won,
+                ]) && $record->proposals()->where('status', ProposalStatus::Approved)->exists()
                 ))->toArray(),
             ...collect($page->generateNavigationItems([
                 ManageContracts::class,
@@ -95,8 +110,9 @@ class LeadResource extends Resource
                 ->group('Stage 3: Contracting (Negotiation)')
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Negotiation,
+                    LeadStatus::Contract,
                     LeadStatus::Won,
-                ]) && $record->proposals()->where('status', ProposalStatus::Approved)->exists()
+                ]) && $record->minutesOfAgreements()->where('status', MoAStatus::Approved)->exists()
                 ))->toArray(),
         ];
     }

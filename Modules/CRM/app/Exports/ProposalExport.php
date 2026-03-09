@@ -23,6 +23,6 @@ class ProposalExport implements FromView, ShouldAutoSize, WithTitle
 
     public function title(): string
     {
-        return 'Proposal - ' . $this->record->proposal_number;
+        return 'Proposal - '.$this->record->proposal_number;
     }
 }

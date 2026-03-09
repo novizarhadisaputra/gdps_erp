@@ -12,6 +12,7 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
     case Approach = 'approach';
     case Proposal = 'proposal';
     case Negotiation = 'negotiation';
+    case Contract = 'contract';
     case Won = 'won';
     case ClosedLost = 'closed_lost';
     case Postponed = 'postponed';
@@ -24,6 +25,7 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Approach => 'Approach',
             self::Proposal => 'Proposal',
             self::Negotiation => 'Negotiation',
+            self::Contract => 'Contract',
             self::Won => 'Won',
             self::ClosedLost => 'Closed Lost',
             self::Postponed => 'Postponed',
@@ -38,6 +40,7 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Approach => 'info',
             self::Proposal => 'primary',
             self::Negotiation => 'warning',
+            self::Contract => 'success',
             self::Won => 'success',
             self::ClosedLost => 'danger',
             self::Postponed => 'warning',
@@ -52,6 +55,7 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Approach => 'heroicon-m-chat-bubble-bottom-center-text',
             self::Proposal => 'heroicon-m-document-text',
             self::Negotiation => 'heroicon-m-scale',
+            self::Contract => 'heroicon-m-document-check',
             self::Won => 'heroicon-m-trophy',
             self::ClosedLost => 'heroicon-m-x-circle',
             self::Postponed => 'heroicon-m-pause-circle',
@@ -66,7 +70,8 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
             self::Approach => 2,
             self::Proposal => 3,
             self::Negotiation => 4,
-            self::Won => 5,
+            self::Contract => 5,
+            self::Won => 6,
             default => 99,
         };
     }

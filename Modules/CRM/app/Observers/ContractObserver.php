@@ -38,7 +38,7 @@ class ContractObserver
         // Check if contract is linked to a proposal, and that proposal is linked to a lead
         if ($contract->proposal_id && $contract->proposal && $contract->proposal->lead) {
             $contract->proposal->lead->update([
-                'status' => LeadStatus::Negotiation,
+                'status' => LeadStatus::Contract,
             ]);
         }
     }

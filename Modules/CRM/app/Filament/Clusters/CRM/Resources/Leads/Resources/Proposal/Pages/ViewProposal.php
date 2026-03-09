@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 use Modules\MasterData\Services\SignatureService;
 
@@ -148,7 +149,7 @@ class ViewProposal extends ViewRecord
                         ->success()
                         ->send();
 
-                    $this->redirect(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource::getUrl('contracts', ['record' => $this->record->lead_id]));
+                    $this->redirect(ContractResource::getUrl('index', ['lead' => $this->record->lead_id]));
                 }),
 
             Action::make('Reject')

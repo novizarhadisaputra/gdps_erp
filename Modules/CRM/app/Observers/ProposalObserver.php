@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Observers;
 
+use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Proposal;
 
 class ProposalObserver
@@ -32,9 +33,7 @@ class ProposalObserver
     public function created(Proposal $proposal): void
     {
         if ($proposal->lead) {
-            $proposal->lead->update([
-                'status' => \Modules\CRM\Enums\LeadStatus::Proposal,
-            ]);
+            $proposal->lead()->update(['status' => LeadStatus::Negotiation]);
         }
     }
 
