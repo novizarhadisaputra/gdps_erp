@@ -10,6 +10,7 @@ use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Classes\ProjectGenerationService;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityThreshold;
 use Modules\MasterData\Services\SignatureService;
@@ -193,6 +194,60 @@ trait HasProfitabilityAnalysisActions
                     ->success()
                     ->send();
             });
+    }
+
+    public function getEditManpowerAction(): Action
+    {
+        return Action::make('edit_manpower')
+            ->label('Edit Manpower')
+            ->icon('heroicon-o-users')
+            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
+            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->modalHeading('Edit Manpower Costing')
+            ->visible(fn (ProfitabilityAnalysis $record) => ! $record->is_manual_cost && in_array($record->status, ['draft', 'rejected']));
+    }
+
+    public function getEditOperationalAction(): Action
+    {
+        return Action::make('edit_operational')
+            ->label('Edit Operational')
+            ->icon('heroicon-o-wrench-screwdriver')
+            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
+            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->modalHeading('Edit Operational Costing')
+            ->visible(fn (ProfitabilityAnalysis $record) => ! $record->is_manual_cost && in_array($record->status, ['draft', 'rejected']));
+    }
+
+    public function getEditManualAction(): Action
+    {
+        return Action::make('edit_manual')
+            ->label('Edit Manual Costs')
+            ->icon('heroicon-o-banknotes')
+            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
+            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->modalHeading('Edit Manual Cost Breakdown')
+            ->visible(fn (ProfitabilityAnalysis $record) => $record->is_manual_cost && in_array($record->status, ['draft', 'rejected']));
+    }
+
+    public function getEditIndirectAction(): Action
+    {
+        return Action::make('edit_indirect')
+            ->label('Edit Indirect Costs')
+            ->icon('heroicon-o-presentation-chart-line')
+            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
+            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->modalHeading('Edit Indirect Costing')
+            ->visible(fn (ProfitabilityAnalysis $record) => in_array($record->status, ['draft', 'rejected']));
+    }
+
+    public function getStepActions(): array
+    {
+        return [
+            $this->getEditManpowerAction(),
+            $this->getEditOperationalAction(),
+            $this->getEditManualAction(),
+            $this->getEditIndirectAction(),
+        ];
     }
 
     protected function getProfitabilityAnalysisActions(): array

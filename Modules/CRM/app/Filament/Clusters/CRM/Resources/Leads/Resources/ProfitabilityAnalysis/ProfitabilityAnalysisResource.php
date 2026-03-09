@@ -10,7 +10,6 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\CreateProfitabilityAnalysis;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\EditProfitabilityAnalysis;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\ListProfitabilityAnalyses;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\ViewProfitabilityAnalysis;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Tables\ProfitabilityAnalysesTable;
@@ -54,7 +53,7 @@ class ProfitabilityAnalysisResource extends Resource
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
             'create' => CreateProfitabilityAnalysis::route('/create'),
-            'view' => ViewProfitabilityAnalysis::route('/{record}'),
+            'view' => Pages\SummaryProfitabilityAnalysis::route('/{record}'),
             'edit' => EditProfitabilityAnalysis::route('/{record}/edit'),
         ];
     }

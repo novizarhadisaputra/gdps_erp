@@ -61,6 +61,7 @@ class ProfitabilityAnalysisResource extends Resource
     {
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
+            'view' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\SummaryProfitabilityAnalysis::route('/{record}'),
         ];
     }
 }
