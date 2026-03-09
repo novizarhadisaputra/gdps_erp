@@ -1370,7 +1370,7 @@ class ProfitabilityAnalysisForm
         $set('ebit', $ebit);
         $set('ebt', $ebt);
         $set('net_profit', $netProfit);
-        $set('margin_percentage', round($netProfitMargin, 2));
+        $set('net_profit_margin', round($netProfitMargin, 2));
 
         // Recalculate margin (GP Margin)
         self::calculateMargin($avgMonthlyRevenue, $avgMonthlyCost, $set);

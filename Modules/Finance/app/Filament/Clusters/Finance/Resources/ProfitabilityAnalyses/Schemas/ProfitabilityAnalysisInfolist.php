@@ -3,7 +3,6 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
 use App\Filament\Infolists\Components\DigitalSignatureEntry;
-use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -106,14 +105,7 @@ class ProfitabilityAnalysisInfolist
                                 TextEntry::make('projectArea.name')
                                     ->label('Project Area'),
                                 TextEntry::make('status')
-                                    ->badge()
-                                    ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
-                                        'draft' => 'gray',
-                                        'approved' => 'info',
-                                        'converted' => 'success',
-                                        'rejected' => 'danger',
-                                        default => 'gray',
-                                    }),
+                                    ->badge(),
                             ]),
                     ]),
                 Section::make('Financial Performance')
@@ -159,7 +151,7 @@ class ProfitabilityAnalysisInfolist
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('revenue_per_month')
-                                    ->label('1. TOTAL REVENUE')
+                                    ->label('1. TOTAL REVENUE (EXCL. PPN)')
                                     ->money('IDR')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('direct_cost')

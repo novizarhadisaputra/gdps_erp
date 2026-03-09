@@ -12,6 +12,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
 
 class ProfitabilityAnalysesTable
@@ -49,14 +50,7 @@ class ProfitabilityAnalysesTable
                     ->sortable()
                     ->color(fn (float $state): string => $state < 10 ? 'danger' : ($state < 20 ? 'warning' : 'success')),
                 TextColumn::make('status')
-                    ->badge()
-                    ->color(fn ($state): string => match (is_string($state) ? $state : $state->value) {
-                        'draft' => 'gray',
-                        'approved' => 'info',
-                        'converted' => 'success',
-                        'rejected' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->badge(),
                 IconColumn::make('tor')
                     ->label('ToR')
                     ->getStateUsing(fn ($record) => $record->hasMedia('tor'))
@@ -102,12 +96,7 @@ class ProfitabilityAnalysesTable
                     ->label('Customer')
                     ->relationship('customer', 'name'),
                 SelectFilter::make('status')
-                    ->options([
-                        'draft' => 'Draft',
-                        'approved' => 'Approved',
-                        'converted' => 'Converted',
-                        'rejected' => 'Rejected',
-                    ]),
+                    ->options(ProfitabilityAnalysisStatus::class),
             ])
             ->headerActions([
                 //

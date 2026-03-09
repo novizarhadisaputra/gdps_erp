@@ -10,6 +10,7 @@ use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Classes\ProjectGenerationService;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityThreshold;
@@ -23,18 +24,12 @@ trait HasProfitabilityAnalysisActions
             ->color('info')
             ->icon('heroicon-o-paper-airplane')
             ->requiresConfirmation()
-            ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'submitted']))
-            ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'draft');
-    }
+            ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisStatus::Submitted]))
+            ->visible(function ($record) {
+                $status = ($record?->status ?? $this->getRecord()?->status);
 
-    protected function getApproveAction(): Action
-    {
-        return Action::make('Approve')
-            ->color('success')
-            ->icon('heroicon-o-check')
-            ->requiresConfirmation()
-            ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'approved']))
-            ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'submitted');
+                return $status === ProfitabilityAnalysisStatus::Draft || $status === 'draft';
+            });
     }
 
     protected function getRejectAction(): Action
@@ -43,8 +38,12 @@ trait HasProfitabilityAnalysisActions
             ->color('danger')
             ->icon('heroicon-o-x-mark')
             ->requiresConfirmation()
-            ->action(fn (ProfitabilityAnalysis $record) => $record->update(['status' => 'rejected']))
-            ->visible(fn (ProfitabilityAnalysis $record) => $record->status === 'submitted');
+            ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisStatus::Rejected]))
+            ->visible(function ($record) {
+                $status = ($record?->status ?? $this->getRecord()?->status);
+
+                return $status === ProfitabilityAnalysisStatus::Submitted || $status === 'submitted';
+            });
     }
 
     protected function getSignAction(): Action
@@ -60,7 +59,7 @@ trait HasProfitabilityAnalysisActions
                     ->required()
                     ->helperText('Masukkan PIN tanda tangan digital Anda.'),
             ])
-            ->action(function (ProfitabilityAnalysis $record, array $data) {
+            ->action(function ($record, array $data) {
                 $service = app(SignatureService::class);
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
@@ -104,10 +103,20 @@ trait HasProfitabilityAnalysisActions
                     ->send();
 
                 if ($record->isFullyApproved()) {
-                    $record->update(['status' => 'approved']);
+                    $record->update(['status' => ProfitabilityAnalysisStatus::Approved]);
                 }
             })
-            ->visible(fn (ProfitabilityAnalysis $record) => in_array($record->status, ['submitted', 'draft']));
+            ->visible(function ($record) {
+                $status = ($record?->status ?? $this->getRecord()?->status);
+                $allowed = [
+                    ProfitabilityAnalysisStatus::Draft,
+                    ProfitabilityAnalysisStatus::Submitted,
+                    'draft',
+                    'submitted',
+                ];
+
+                return in_array($status, $allowed, true);
+            });
     }
 
     protected function getGenerateProjectAction(): Action
@@ -116,24 +125,27 @@ trait HasProfitabilityAnalysisActions
             ->label('Generate Project')
             ->icon('heroicon-o-plus-circle')
             ->color('success')
-            ->visible(fn (ProfitabilityAnalysis $record) => ! $record->project()->exists() &&
-                $record->status === 'approved' &&
+            ->visible(function () {
+                $record = $this->getRecord();
+
+                return ! $record->project()->exists() &&
+                $record->status === ProfitabilityAnalysisStatus::Approved &&
                 $record->revenue_per_month !== null &&
                 $record->margin_percentage !== null &&
-                (! empty($record->analysis_details) || $record->items()->exists())
-            )
+                (! empty($record->analysis_details) || $record->items()->exists());
+            })
             ->schema([
                 TextInput::make('summary')
                     ->label('Summary')
-                    ->default(fn (ProfitabilityAnalysis $record) => "You are about to generate a Project for '{$record->customer?->name}'. This will consume the next sequence number for this customer and work scheme.")
+                    ->default(fn () => "You are about to generate a Project for '{$this->getRecord()->customer?->name}'. This will consume the next sequence number for this customer and work scheme.")
                     ->disabled()
                     ->dehydrated(false)
                     ->columnSpanFull(),
                 TextInput::make('project_name_override')
                     ->label('Project Name (Optional)')
-                    ->placeholder(fn (ProfitabilityAnalysis $record) => $record->proposal?->proposal_number ?? 'Project for '.$record->customer?->name),
+                    ->placeholder(fn () => $this->getRecord()->proposal?->proposal_number ?? 'Project for '.$this->getRecord()->customer?->name),
             ])
-            ->action(function (ProfitabilityAnalysis $record, array $data) {
+            ->action(function ($record, array $data) {
                 if (! $this->validateProfitability($record)) {
                     return;
                 }
@@ -160,10 +172,10 @@ trait HasProfitabilityAnalysisActions
             ->label('Create Proposal')
             ->icon('heroicon-o-document-plus')
             ->color('primary')
-            ->visible(fn (ProfitabilityAnalysis $record) => ! $record->proposal_id && $record->status === 'approved')
+            ->visible(fn () => ! $this->getRecord()->proposal_id && $this->getRecord()->status === ProfitabilityAnalysisStatus::Approved)
             ->schema([
                 TextInput::make('amount')
-                    ->default(fn (ProfitabilityAnalysis $record) => $record->revenue_per_month)
+                    ->default(fn () => $this->getRecord()->revenue_per_month)
                     ->numeric()
                     ->prefix('IDR')
                     ->required(),
@@ -171,7 +183,7 @@ trait HasProfitabilityAnalysisActions
                     ->default(now())
                     ->required(),
             ])
-            ->action(function (ProfitabilityAnalysis $record, array $data) {
+            ->action(function ($record, array $data) {
                 if (! $this->validateProfitability($record)) {
                     return;
                 }
@@ -202,9 +214,13 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Manpower')
             ->icon('heroicon-o-users')
             ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
-            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Manpower Costing')
-            ->visible(fn (ProfitabilityAnalysis $record) => ! $record->is_manual_cost && in_array($record->status, ['draft', 'rejected']));
+            ->visible(function ($record) {
+                $rec = $record ?? $this->getRecord();
+
+                return ! ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
+            });
     }
 
     public function getEditOperationalAction(): Action
@@ -213,9 +229,13 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Operational')
             ->icon('heroicon-o-wrench-screwdriver')
             ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
-            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Operational Costing')
-            ->visible(fn (ProfitabilityAnalysis $record) => ! $record->is_manual_cost && in_array($record->status, ['draft', 'rejected']));
+            ->visible(function ($record) {
+                $rec = $record ?? $this->getRecord();
+
+                return ! ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
+            });
     }
 
     public function getEditManualAction(): Action
@@ -224,9 +244,13 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Manual Costs')
             ->icon('heroicon-o-banknotes')
             ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
-            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Manual Cost Breakdown')
-            ->visible(fn (ProfitabilityAnalysis $record) => $record->is_manual_cost && in_array($record->status, ['draft', 'rejected']));
+            ->visible(function ($record) {
+                $rec = $record ?? $this->getRecord();
+
+                return ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
+            });
     }
 
     public function getEditIndirectAction(): Action
@@ -235,9 +259,9 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Indirect Costs')
             ->icon('heroicon-o-presentation-chart-line')
             ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
-            ->action(fn (ProfitabilityAnalysis $record, array $data) => $record->update($data))
+            ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Indirect Costing')
-            ->visible(fn (ProfitabilityAnalysis $record) => in_array($record->status, ['draft', 'rejected']));
+            ->visible(fn ($record) => in_array($record?->status ?? $this->getRecord()?->status, ['draft', 'rejected']));
     }
 
     public function getStepActions(): array
@@ -255,7 +279,6 @@ trait HasProfitabilityAnalysisActions
         return [
             $this->getSignAction(),
             $this->getSubmitAction(),
-            $this->getApproveAction(),
             $this->getRejectAction(),
             $this->getCreateProposalAction(),
         ];

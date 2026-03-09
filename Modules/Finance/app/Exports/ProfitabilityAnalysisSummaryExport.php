@@ -16,7 +16,7 @@ class ProfitabilityAnalysisSummaryExport implements FromView, ShouldAutoSize, Wi
 
     public function view(): View
     {
-        return view('finance::filament.clusters.finance.resources.profitability-analyses.pages.summary', [
+        return view('finance::exports.profitability-analysis-excel', [
             'record' => $this->record,
             'isExport' => true,
         ]);

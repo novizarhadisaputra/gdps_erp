@@ -9,6 +9,7 @@ use Filament\Support\Contracts\HasLabel;
 enum ProfitabilityAnalysisStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Draft = 'draft';
+    case Submitted = 'submitted';
     case Approved = 'approved';
     case Rejected = 'rejected';
     case Converted = 'converted';
@@ -17,6 +18,7 @@ enum ProfitabilityAnalysisStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'Draft',
+            self::Submitted => 'Submitted',
             self::Approved => 'Approved',
             self::Rejected => 'Rejected',
             self::Converted => 'Converted',
@@ -27,6 +29,7 @@ enum ProfitabilityAnalysisStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'gray',
+            self::Submitted => 'info',
             self::Approved => 'success',
             self::Rejected => 'danger',
             self::Converted => 'primary',
@@ -37,6 +40,7 @@ enum ProfitabilityAnalysisStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'heroicon-m-document',
+            self::Submitted => 'heroicon-m-paper-airplane',
             self::Approved => 'heroicon-m-check-circle',
             self::Rejected => 'heroicon-m-x-circle',
             self::Converted => 'heroicon-m-arrow-path',

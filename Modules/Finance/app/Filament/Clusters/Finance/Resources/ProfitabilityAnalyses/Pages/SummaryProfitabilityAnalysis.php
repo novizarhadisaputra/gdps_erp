@@ -3,7 +3,6 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages;
 
 use Filament\Actions\Action;
-use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\Width;
 use Maatwebsite\Excel\Facades\Excel;
@@ -14,7 +13,6 @@ use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Tr
 class SummaryProfitabilityAnalysis extends ViewRecord
 {
     use HasProfitabilityAnalysisActions;
-    use InteractsWithParentRecord;
 
     protected static string $resource = ProfitabilityAnalysisResource::class;
 
@@ -38,42 +36,48 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                 ->icon('heroicon-m-pencil-square')
                 ->color('info')
                 ->button(),
-            Action::make('exportExcel')
-                ->label('Excel')
-                ->icon('heroicon-o-document-chart-bar')
+            \Filament\Actions\ActionGroup::make([
+                Action::make('exportExcel')
+                    ->label('Excel')
+                    ->icon('heroicon-o-document-chart-bar')
+                    ->color('success')
+                    ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
+                        $filename = 'profitability_summary_'.($record->document_number ?? $record->id).'.xlsx';
+                        $filename = str_replace(['/', '\\'], '_', $filename);
+
+                        return Excel::download(
+                            new ProfitabilityAnalysisSummaryExport($record),
+                            $filename
+                        );
+                    }),
+                Action::make('exportPdf')
+                    ->label('PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+                            'finance::pdf.profitability-analysis',
+                            [
+                                'record' => $record,
+                                'isExport' => true,
+                                'isPdf' => true,
+                            ]
+                        )->setPaper('a4', 'portrait');
+
+                        $filename = 'profitability_summary_'.($record->document_number ?? $record->id).'.pdf';
+                        $filename = str_replace(['/', '\\'], '_', $filename);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, $filename, [
+                            'Content-Type' => 'application/pdf',
+                        ]);
+                    }),
+            ])
+                ->label('Export')
+                ->icon('heroicon-m-arrow-down-tray')
                 ->color('success')
-                ->action(function () {
-                    $filename = 'profitability_summary_'.($this->record->document_number ?? $this->record->id).'.xlsx';
-                    $filename = str_replace(['/', '\\'], '_', $filename);
-
-                    return Excel::download(
-                        new ProfitabilityAnalysisSummaryExport($this->record),
-                        $filename
-                    );
-                }),
-            Action::make('exportPdf')
-                ->label('PDF')
-                ->icon('heroicon-o-document-arrow-down')
-                ->color('danger')
-                ->action(function () {
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
-                        'finance::filament.clusters.finance.resources.profitability-analyses.pages.summary',
-                        [
-                            'record' => $this->record,
-                            'isExport' => true,
-                            'isPdf' => true,
-                        ]
-                    )->setPaper('a4', 'portrait');
-
-                    $filename = 'profitability_summary_'.($this->record->document_number ?? $this->record->id).'.pdf';
-                    $filename = str_replace(['/', '\\'], '_', $filename);
-
-                    return response()->streamDownload(function () use ($pdf) {
-                        echo $pdf->output();
-                    }, $filename, [
-                        'Content-Type' => 'application/pdf',
-                    ]);
-                }),
+                ->button(),
             ...$this->getProfitabilityAnalysisActions(),
         ];
     }
