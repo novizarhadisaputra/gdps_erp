@@ -71,6 +71,7 @@ class LeadBoard extends BoardResourcePage
                 Column::make('approach')->label('Approach')->color('info'),
                 Column::make('proposal')->label('Proposal')->color('primary'),
                 Column::make('negotiation')->label('Negotiation')->color('warning'),
+                Column::make('contract')->label('Contract')->color('success'),
                 Column::make('won')->label('Won')->color('success'),
                 Column::make('closed_lost')->label('Closed Lost')->color('danger'),
                 Column::make('cancelled')->label('Cancelled')->color('danger'),
@@ -139,6 +140,7 @@ class LeadBoard extends BoardResourcePage
             'approach' => true,
             'proposal' => $record->profitabilityAnalyses()->exists() && $record->generalInformations()->exists(),
             'negotiation' => $record->proposals()->exists(),
+            'contract' => $record->minutesOfAgreements()->where('status', \Modules\CRM\Enums\MoAStatus::Approved)->exists(),
             'won' => $record->contracts()->where('status', ContractStatus::Active)->exists(),
             'closed_lost', 'cancelled', 'postponed' => true,
             default => true,
@@ -148,6 +150,7 @@ class LeadBoard extends BoardResourcePage
             $message = match ($targetColumnId) {
                 'proposal' => 'Moving to Proposal requires both General Information and Profitability Analysis (PA).',
                 'negotiation' => 'Please create a Proposal document first.',
+                'contract' => 'Please approve Minutes of Agreement (MoA) first.',
                 'won' => 'Please create and activate a Contract first.',
                 default => 'Some requirements are missing for this stage.',
             };

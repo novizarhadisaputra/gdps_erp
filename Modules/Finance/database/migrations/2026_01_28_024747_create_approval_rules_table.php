@@ -16,8 +16,9 @@ return new class extends Migration
             $table->string('resource_type');         // e.g., 'Modules\Finance\Models\ProfitabilityAnalysis'
             $table->string('criteria_field')->nullable();        // e.g., 'revenue_per_month'
             $table->string('operator')->nullable();              // e.g., '>', '=', '<'
-            $table->decimal('value', 15, 2)->nullable(); // e.g., 1000000000
-            $table->string('approver_type')->default('Role'); // Role, User, Position
+            $table->decimal('value', 20, 2)->nullable();
+            $table->decimal('max_value', 20, 2)->nullable();
+            $table->string('approver_type')->default('Role');
             $table->json('approver_role')->nullable();      // Array of Roles
             $table->json('approver_user_id')->nullable();   // Array of User IDs
             $table->json('approver_unit_id')->nullable();   // Array of Unit IDs

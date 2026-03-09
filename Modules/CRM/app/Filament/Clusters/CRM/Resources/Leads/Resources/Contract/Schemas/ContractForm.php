@@ -7,7 +7,6 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -74,8 +73,8 @@ class ContractForm
                     DatePicker::make('expiry_date')
                         ->placeholder('Select expiry date')
                         ->helperText('Contract expiration date.'),
-                    TextEntry::make('status')
-                        ->badge(),
+                    \Filament\Forms\Components\Placeholder::make('status')
+                        ->content(fn ($record) => $record?->status?->getLabel() ?? '-'),
                     Select::make('reminder_status')
                         ->options(ReminderStatus::class)
                         ->placeholder('Reminder status'),

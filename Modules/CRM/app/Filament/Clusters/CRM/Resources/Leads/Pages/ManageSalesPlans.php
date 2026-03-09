@@ -46,6 +46,7 @@ class ManageSalesPlans extends ManageRelatedRecords
             'approach',
             'proposal',
             'negotiation',
+            'contract',
             'won',
             'closed_lost',
         ]);

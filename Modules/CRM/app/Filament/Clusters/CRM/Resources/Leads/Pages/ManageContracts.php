@@ -41,6 +41,7 @@ class ManageContracts extends ManageRelatedRecords
 
         return in_array($status, [
             'negotiation',
+            'contract',
             'won',
             'closed_lost',
         ]);

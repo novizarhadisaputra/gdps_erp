@@ -41,6 +41,7 @@ class SignatureService
                     '<' => $fieldValue < $rule->value,
                     '<=' => $fieldValue <= $rule->value,
                     '=' => $fieldValue == $rule->value,
+                    'between' => $fieldValue >= $rule->value && $fieldValue <= $rule->max_value,
                     default => false,
                 };
             })

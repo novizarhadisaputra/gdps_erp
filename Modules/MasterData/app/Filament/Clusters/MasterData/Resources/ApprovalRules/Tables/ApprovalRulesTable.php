@@ -21,7 +21,27 @@ class ApprovalRulesTable
                 TextColumn::make('criteria_field'),
                 TextColumn::make('operator'),
                 TextColumn::make('value')
-                    ->numeric(),
+                    ->formatStateUsing(function ($state, $record) {
+                        $isMonetary = in_array($record->criteria_field, ['revenue_per_month', 'net_profit', 'amount']);
+                        $isPercentage = $record->criteria_field === 'margin_percentage';
+
+                        $format = function ($val) use ($isMonetary, $isPercentage) {
+                            if ($isMonetary) {
+                                return 'IDR '.number_format($val, 2, ',', '.');
+                            }
+                            if ($isPercentage) {
+                                return number_format($val, 2, ',', '.').'%';
+                            }
+
+                            return number_format($val, 2, ',', '.');
+                        };
+
+                        if ($record->operator === 'between') {
+                            return $format($state).' - '.$format($record->max_value);
+                        }
+
+                        return $format($state);
+                    }),
                 TextColumn::make('approver_role')
                     ->badge(),
                 TextColumn::make('signature_type'),

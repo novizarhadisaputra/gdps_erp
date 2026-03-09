@@ -13,6 +13,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\GeneralInformation;
+use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Enums\ApprovalSignatureType;
@@ -35,6 +36,7 @@ class ApprovalRuleForm
                                 Project::class => 'Project',
                                 Contract::class => 'Contract',
                                 Proposal::class => 'Proposal',
+                                MinutesOfAgreement::class => 'Minutes of Agreement',
                                 GeneralInformation::class => 'General Information',
                             ])
                             ->required()
@@ -57,6 +59,9 @@ class ApprovalRuleForm
                                 Contract::class, 'Modules\CRM\Models\Project', Project::class, Proposal::class => [
                                     'amount' => 'Amount / Value',
                                 ],
+                                MinutesOfAgreement::class => [
+                                    'amount' => 'Amount / Value',
+                                ],
                                 GeneralInformation::class => [
                                     'sequence_number' => 'Sequence Number',
                                 ],
@@ -71,15 +76,26 @@ class ApprovalRuleForm
                                 '<' => 'Less Than (<)',
                                 '<=' => 'Less Than or Equal (<=)',
                                 '=' => 'Equal (=)',
+                                'between' => 'Between',
                             ])
+                            ->live()
                             ->required(fn (Get $get) => $get('resource_type') !== GeneralInformation::class)
                             ->visible(fn (Get $get) => $get('resource_type') !== GeneralInformation::class),
                         TextInput::make('value')
                             ->numeric()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix(fn (Get $get) => in_array($get('criteria_field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
                             ->suffix(fn (Get $get) => $get('criteria_field') === 'margin_percentage' ? '%' : null)
                             ->required(fn (Get $get) => $get('resource_type') !== GeneralInformation::class)
                             ->visible(fn (Get $get) => $get('resource_type') !== GeneralInformation::class),
+                        TextInput::make('max_value')
+                            ->label('To (Max Value)')
+                            ->numeric()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                            ->prefix(fn (Get $get) => in_array($get('criteria_field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
+                            ->suffix(fn (Get $get) => $get('criteria_field') === 'margin_percentage' ? '%' : null)
+                            ->required(fn (Get $get) => $get('operator') === 'between')
+                            ->visible(fn (Get $get) => $get('operator') === 'between'),
                     ])->columns(2)->columnSpanFull(),
 
                 Section::make('Approval Config')

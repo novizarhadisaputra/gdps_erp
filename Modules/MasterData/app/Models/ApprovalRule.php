@@ -17,6 +17,7 @@ class ApprovalRule extends Model
         'criteria_field',
         'operator',
         'value',
+        'max_value',
         'approver_type',
         'approver_role',
         'approver_user_id',
@@ -29,6 +30,7 @@ class ApprovalRule extends Model
 
     protected $casts = [
         'value' => 'decimal:2',
+        'max_value' => 'decimal:2',
         'order' => 'integer',
         'is_active' => 'boolean',
         'approver_role' => 'array',
