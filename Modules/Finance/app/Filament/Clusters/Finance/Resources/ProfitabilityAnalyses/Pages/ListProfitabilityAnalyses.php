@@ -9,6 +9,11 @@ class ListProfitabilityAnalyses extends ListRecords
 {
     protected static string $resource = ProfitabilityAnalysisResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Conduct financial analysis on project profitability and margins.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

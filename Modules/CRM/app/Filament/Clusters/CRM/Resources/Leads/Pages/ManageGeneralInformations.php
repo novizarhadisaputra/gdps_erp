@@ -14,6 +14,11 @@ class ManageGeneralInformations extends ManageRelatedRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Overview and management of general lead information.';
+    }
+
     protected static string $relationship = 'generalInformations';
 
     protected static ?string $relatedResource = GeneralInformationResource::class;

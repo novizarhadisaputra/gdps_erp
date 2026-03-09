@@ -8,4 +8,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAna
 class ListProfitabilityAnalyses extends ListRecords
 {
     protected static string $resource = ProfitabilityAnalysisResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Financial feasibility studies and margin analysis for leads.';
+    }
 }

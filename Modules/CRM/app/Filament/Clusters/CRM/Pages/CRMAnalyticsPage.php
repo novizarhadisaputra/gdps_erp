@@ -14,6 +14,11 @@ use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesTeamPerformanceWidget;
 
 class CRMAnalyticsPage extends AnalyticsBasePage
 {
+    public function getSubheading(): ?string
+    {
+        return 'Visual insights and analytics for CRM data.';
+    }
+
     protected static ?string $navigationLabel = 'Analytics';
 
     protected static ?string $title = 'CRM Analytics Dashboard';

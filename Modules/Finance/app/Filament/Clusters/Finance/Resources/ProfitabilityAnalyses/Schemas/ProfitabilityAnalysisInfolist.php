@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 
 use App\Filament\Infolists\Components\DigitalSignatureEntry;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -20,6 +21,16 @@ class ProfitabilityAnalysisInfolist
         return $schema
             ->components([
                 Section::make('General Information')
+                    ->headerActions([
+                        Action::make('Edit Step')
+                            ->label('Edit')
+                            ->icon(Heroicon::OutlinedPencil)
+                            ->color('gray')
+                            ->size('sm')
+                            ->schema(ProfitabilityAnalysisForm::schema(startStep: 1))
+                            ->action(fn ($record, array $data) => $record->update($data))
+                            ->modalHeading('Edit General Information'),
+                    ])
                     ->schema([
                         Grid::make(3)
                             ->schema([
@@ -75,6 +86,16 @@ class ProfitabilityAnalysisInfolist
                             ]),
                     ]),
                 Section::make('Project Parameters')
+                    ->headerActions([
+                        Action::make('Edit Step')
+                            ->label('Edit')
+                            ->icon(Heroicon::OutlinedPencil)
+                            ->color('gray')
+                            ->size('sm')
+                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 2))
+                            ->action(fn ($record, array $data) => $record->update($data))
+                            ->modalHeading('Edit Project Parameters'),
+                    ])
                     ->schema([
                         Grid::make(4)
                             ->schema([
@@ -96,6 +117,44 @@ class ProfitabilityAnalysisInfolist
                             ]),
                     ]),
                 Section::make('Financial Performance')
+                    ->headerActions([
+                        Action::make('Edit Manpower')
+                            ->label('Manpower')
+                            ->icon(Heroicon::OutlinedUsers)
+                            ->color('gray')
+                            ->size('sm')
+                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
+                            ->action(fn ($record, array $data) => $record->update($data))
+                            ->modalHeading('Edit Manpower Costing')
+                            ->visible(fn ($record) => ! $record->is_manual_cost),
+                        Action::make('Edit Operational')
+                            ->label('Operational')
+                            ->icon(Heroicon::OutlinedWrenchScrewdriver)
+                            ->color('gray')
+                            ->size('sm')
+                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
+                            ->action(fn ($record, array $data) => $record->update($data))
+                            ->modalHeading('Edit Operational Costing')
+                            ->visible(fn ($record) => ! $record->is_manual_cost),
+                        Action::make('Edit Manual')
+                            ->label('Manual Costs')
+                            ->icon(Heroicon::OutlinedBanknotes)
+                            ->color('gray')
+                            ->size('sm')
+                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
+                            ->action(fn ($record, array $data) => $record->update($data))
+                            ->modalHeading('Edit Manual Cost Breakdown')
+                            ->visible(fn ($record) => $record->is_manual_cost),
+                        Action::make('Edit Indirect')
+                            ->label('Indirect')
+                            ->icon(Heroicon::OutlinedPresentationChartLine)
+                            ->color('gray')
+                            ->size('sm')
+                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
+                            ->action(fn ($record, array $data) => $record->update($data))
+                            ->modalHeading('Edit Indirect Costing'),
+                    ])
+                    ->columnSpanFull()
                     ->schema([
                         Grid::make(2)
                             ->schema([

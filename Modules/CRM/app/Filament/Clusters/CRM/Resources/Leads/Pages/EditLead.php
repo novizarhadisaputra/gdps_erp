@@ -12,6 +12,11 @@ class EditLead extends EditRecord
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Modify lead details and track progress through the sales pipeline.';
+    }
+
     protected static ?string $navigationLabel = 'Overview';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;

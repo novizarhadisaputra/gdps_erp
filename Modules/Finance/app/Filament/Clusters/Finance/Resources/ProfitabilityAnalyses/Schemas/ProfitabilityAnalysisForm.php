@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
+use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -68,12 +69,12 @@ class ProfitabilityAnalysisForm
         return 0.0;
     }
 
-    public static function configure(Schema $schema): Schema
+    public static function configure(Schema $schema, int|Closure $startStep = 1): Schema
     {
-        return $schema->components(self::schema());
+        return $schema->components(self::schema($startStep));
     }
 
-    public static function schema(): array
+    public static function schema(int|Closure $startStep = 1): array
     {
         return [
             Hidden::make('depreciation'),
@@ -857,28 +858,61 @@ class ProfitabilityAnalysisForm
                                 Repeater::make('analysis_details.manual_costs')
                                     ->label('Manual Cost Breakdown')
                                     ->schema([
-                                        Select::make('direct_cost_category_id')
-                                            ->label('Category')
-                                            ->options(DirectCostCategory::whereNull('parent_id')->pluck('name', 'id'))
-                                            ->required()
-                                            ->distinct()
-                                            ->live(onBlur: true)
-                                            ->columnSpan(1)
-                                            ->createOptionForm(fn (Schema $schema) => DirectCostCategoryForm::configure($schema))
-                                            ->editOptionForm(fn (Schema $schema) => DirectCostCategoryForm::configure($schema)),
-                                        TextInput::make('amount')
-                                            ->label('Amount')
-                                            ->numeric()
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->required()
-                                            ->live(onBlur: true)
-                                            ->columnSpan(1),
+                                        Grid::make(2)
+                                            ->schema([
+                                                Select::make('direct_cost_category_id')
+                                                    ->label('Category')
+                                                    ->options(fn () => DirectCostCategory::where('type', 'direct')->whereNull('parent_id')->pluck('name', 'id'))
+                                                    ->required()
+                                                    ->distinct()
+                                                    ->live()
+                                                    ->createOptionForm(DirectCostCategoryForm::schema(type: 'direct'))
+                                                    ->createOptionUsing(fn (array $data) => DirectCostCategory::create($data)->id)
+                                                    ->editOptionForm(DirectCostCategoryForm::schema(type: 'direct'))
+                                                    ->fillEditOptionActionFormUsing(fn (Select $component): ?array => DirectCostCategory::find($component->getState())?->toArray())
+                                                    ->updateOptionUsing(fn (Select $component, array $data) => DirectCostCategory::find($component->getState())?->update($data)),
+                                                TextInput::make('amount')
+                                                    ->label('Category Total')
+                                                    ->numeric()
+                                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                    ->prefix('IDR ')
+                                                    ->required()
+                                                    ->placeholder('Enter total or add breakdown below')
+                                                    ->live(onBlur: true)
+                                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                                    ->extraAttributes(['class' => 'font-bold bg-gray-50']),
+                                            ]),
                                         TextInput::make('description')
-                                            ->label('Description/Notes')
-                                            ->columnSpanFull(),
+                                            ->label('Description/Notes'),
+                                        Repeater::make('sub_items')
+                                            ->label('Sub-component Breakdown')
+                                            ->schema([
+                                                Grid::make(2)
+                                                    ->schema([
+                                                        TextInput::make('name')
+                                                            ->label('Sub-item Name')
+                                                            ->required()
+                                                            ->placeholder('e.g. Security Guard Salary'),
+                                                        TextInput::make('amount')
+                                                            ->label('Amount')
+                                                            ->numeric()
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->prefix('IDR ')
+                                                            ->required()
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                                // Calculate category total from sub-items
+                                                                $subItems = $get('../../sub_items') ?? [];
+                                                                $total = collect($subItems)->sum(fn ($i) => self::parseNumericValue($i['amount'] ?? 0));
+                                                                $set('../../amount', $total);
+                                                            }),
+                                                    ]),
+                                            ])
+                                            ->collapsible()
+                                            ->defaultItems(0)
+                                            ->reorderableWithButtons()
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
                                     ])
-                                    ->columns(2)
                                     ->columnSpanFull()
                                     ->itemLabel(fn (array $state): ?string => filled($state['direct_cost_category_id'] ?? null) ? DirectCostCategory::find($state['direct_cost_category_id'])?->name : 'New Manual Cost')
                                     ->live(onBlur: true)
@@ -907,13 +941,16 @@ class ProfitabilityAnalysisForm
                                     ->schema([
                                         Select::make('direct_cost_category_id')
                                             ->label('Category')
-                                            ->options(fn () => DirectCostCategory::where('type', 'indirect')->pluck('name', 'id'))
+                                            ->options(fn () => DirectCostCategory::where('type', 'indirect')->whereNull('parent_id')->pluck('name', 'id'))
                                             ->required()
                                             ->searchable()
                                             ->preload()
                                             ->live()
-                                            ->createOptionForm(fn (Schema $schema) => DirectCostCategoryForm::configure($schema))
-                                            ->editOptionForm(fn (Schema $schema) => DirectCostCategoryForm::configure($schema)),
+                                            ->createOptionForm(DirectCostCategoryForm::schema(type: 'indirect'))
+                                            ->createOptionUsing(fn (array $data) => DirectCostCategory::create($data)->id)
+                                            ->editOptionForm(DirectCostCategoryForm::schema(type: 'indirect'))
+                                            ->fillEditOptionActionFormUsing(fn (Select $component): ?array => DirectCostCategory::find($component->getState())?->toArray())
+                                            ->updateOptionUsing(fn (Select $component, array $data) => DirectCostCategory::find($component->getState())?->update($data)),
                                         Select::make('calculation_type')
                                             ->label('Calculation Type')
                                             ->options([
@@ -1116,7 +1153,10 @@ class ProfitabilityAnalysisForm
                                     ]),
                             ]),
                     ]),
-            ])->columnSpanFull()->persistStepInQueryString(),
+            ])
+                ->columnSpanFull()
+                ->startOnStep($startStep)
+                ->persistStepInQueryString(),
         ];
     }
 

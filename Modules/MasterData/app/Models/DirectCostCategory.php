@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\MasterData\Traits\HasAutoCodeAndSlug;
 
 class DirectCostCategory extends Model
 {
-    use HasFactory, HasUuids;
+    use HasAutoCodeAndSlug, HasFactory, HasUuids;
     use HasModuleSchema;
 
     /**

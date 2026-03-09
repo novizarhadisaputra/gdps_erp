@@ -11,6 +11,11 @@ class ListSalesPlans extends ListRecords
 {
     protected static string $resource = SalesPlanResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Strategic planning and sales forecasting for potential projects.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

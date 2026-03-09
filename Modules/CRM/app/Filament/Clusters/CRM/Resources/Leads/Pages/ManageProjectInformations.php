@@ -20,6 +20,11 @@ class ManageProjectInformations extends ManageRelatedRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Manage project-specific information linked to this lead.';
+    }
+
     protected static string $relationship = 'projectInformations';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInformationCircle;

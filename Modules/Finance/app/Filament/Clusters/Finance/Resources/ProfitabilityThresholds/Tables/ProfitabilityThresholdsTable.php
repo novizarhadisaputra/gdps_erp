@@ -3,7 +3,6 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Tables;
 
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -45,7 +44,7 @@ class ProfitabilityThresholdsTable
                 ]),
             ])
             ->headerActions([
-                CreateAction::make(),
+                //
             ]);
     }
 }

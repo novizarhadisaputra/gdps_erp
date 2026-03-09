@@ -10,6 +10,11 @@ class ListProfitabilityThresholds extends ListRecords
 {
     protected static string $resource = ProfitabilityThresholdResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Configure minimum acceptable profit margins for varied project types.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

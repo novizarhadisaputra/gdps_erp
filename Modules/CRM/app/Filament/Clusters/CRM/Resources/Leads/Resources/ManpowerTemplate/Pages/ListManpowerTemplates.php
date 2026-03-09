@@ -11,6 +11,11 @@ class ListManpowerTemplates extends ListRecords
 {
     protected static string $resource = ManpowerTemplateResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Define personnel requirements and resource allocation templates.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

@@ -12,6 +12,11 @@ class ManageProposals extends ManageRelatedRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Create and track project proposals for this lead.';
+    }
+
     protected static string $relationship = 'proposals';
 
     protected static ?string $relatedResource = ProposalResource::class;

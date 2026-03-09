@@ -18,6 +18,11 @@ class ManageManpowerTemplates extends ManageRelatedRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Define manpower requirements for this lead.';
+    }
+
     protected static string $relationship = 'manpowerTemplates';
 
     protected static ?string $relatedResource = ManpowerTemplateResource::class;

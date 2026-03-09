@@ -11,4 +11,9 @@ class ListProposals extends ListRecords
     use InteractsWithParentRecord;
 
     protected static string $resource = ProposalResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Manage project proposals and client offerings.';
+    }
 }

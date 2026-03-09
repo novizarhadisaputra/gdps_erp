@@ -20,6 +20,11 @@ class ManageSalesPlans extends ManageRelatedRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Strategic sales planning and forecasting for this lead.';
+    }
+
     protected static string $relationship = 'salesPlan';
 
     protected static ?string $relatedResource = SalesPlanResource::class;

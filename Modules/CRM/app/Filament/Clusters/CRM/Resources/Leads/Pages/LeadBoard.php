@@ -26,6 +26,11 @@ class LeadBoard extends BoardResourcePage
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Overview of all leads across different stages of the sales pipeline.';
+    }
+
     protected static ?string $title = 'Sales Pipeline Board';
 
     protected function getHeaderActions(): array

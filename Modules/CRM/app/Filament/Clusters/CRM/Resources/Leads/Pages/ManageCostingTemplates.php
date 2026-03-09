@@ -19,6 +19,11 @@ class ManageCostingTemplates extends ManageRelatedRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Configure and manage costing templates for this lead.';
+    }
+
     protected static string $relationship = 'costingTemplates';
 
     protected static ?string $relatedResource = CostingTemplateResource::class;

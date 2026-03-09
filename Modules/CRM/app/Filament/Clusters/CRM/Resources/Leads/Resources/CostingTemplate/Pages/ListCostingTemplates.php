@@ -19,4 +19,9 @@ class ListCostingTemplates extends ListRecords
     }
 
     protected static string $resource = CostingTemplateResource::class;
+
+    public function getSubheading(): ?string
+    {
+        return 'Standardized costing structures for project estimations.';
+    }
 }

@@ -13,6 +13,11 @@ class ListCustomers extends ListRecords
 {
     protected static string $resource = CustomerResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Manage client profiles and contact information.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

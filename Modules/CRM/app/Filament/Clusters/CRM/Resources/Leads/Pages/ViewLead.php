@@ -12,6 +12,11 @@ class ViewLead extends ViewRecord
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Detailed view of the lead information, including status and associated records.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

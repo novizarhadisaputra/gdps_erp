@@ -2,8 +2,9 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Tables;
 
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -12,6 +13,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
 
 class ProfitabilityAnalysesTable
@@ -110,12 +112,45 @@ class ProfitabilityAnalysesTable
                     ]),
             ])
             ->headerActions([
-                CreateAction::make(),
+                //
             ])
             ->recordActions([
                 ViewAction::make()
                     ->modalFooterActions($instance->getProfitabilityAnalysisActions()),
                 EditAction::make(),
+                ActionGroup::make([
+                    Action::make('edit_manpower')
+                        ->label('Edit Manpower')
+                        ->icon('heroicon-o-users')
+                        ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
+                        ->action(fn ($record, array $data) => $record->update($data))
+                        ->modalHeading('Edit Manpower Costing')
+                        ->visible(fn ($record) => ! $record->is_manual_cost),
+                    Action::make('edit_operational')
+                        ->label('Edit Operational')
+                        ->icon('heroicon-o-wrench-screwdriver')
+                        ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
+                        ->action(fn ($record, array $data) => $record->update($data))
+                        ->modalHeading('Edit Operational Costing')
+                        ->visible(fn ($record) => ! $record->is_manual_cost),
+                    Action::make('edit_manual')
+                        ->label('Edit Manual Costs')
+                        ->icon('heroicon-o-banknotes')
+                        ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
+                        ->action(fn ($record, array $data) => $record->update($data))
+                        ->modalHeading('Edit Manual Cost Breakdown')
+                        ->visible(fn ($record) => $record->is_manual_cost),
+                    Action::make('edit_indirect')
+                        ->label('Edit Indirect Costs')
+                        ->icon('heroicon-o-presentation-chart-line')
+                        ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
+                        ->action(fn ($record, array $data) => $record->update($data))
+                        ->modalHeading('Edit Indirect Costing'),
+                ])
+                    ->label('Steps')
+                    ->icon('heroicon-m-list-bullet')
+                    ->color('info')
+                    ->button(),
                 // $instance->getGenerateProjectAction(),
                 $instance->getCreateProposalAction(),
                 DeleteAction::make(),

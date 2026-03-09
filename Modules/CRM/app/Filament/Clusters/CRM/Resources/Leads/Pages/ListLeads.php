@@ -12,6 +12,11 @@ class ListLeads extends ListRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Manage potential business opportunities and customer inquiries.';
+    }
+
     protected function getHeaderActions(): array
     {
         return [

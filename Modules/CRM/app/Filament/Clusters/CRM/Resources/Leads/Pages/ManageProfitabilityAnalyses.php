@@ -14,6 +14,11 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
 {
     protected static string $resource = LeadResource::class;
 
+    public function getSubheading(): ?string
+    {
+        return 'Financial feasibility and profitability analysis for this lead.';
+    }
+
     protected static string $relationship = 'profitabilityAnalyses';
 
     protected static ?string $relatedResource = ProfitabilityAnalysisResource::class;
