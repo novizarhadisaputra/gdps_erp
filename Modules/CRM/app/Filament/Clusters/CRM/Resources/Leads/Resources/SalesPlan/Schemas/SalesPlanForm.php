@@ -218,7 +218,7 @@ class SalesPlanForm
                                     ->default(0)
                                     ->required()
                                     ->helperText('Management fee % charged internally.'),
-                                TextInput::make('margin_percentage')
+                                TextInput::make('npm_percentage')
                                     ->numeric()
                                     ->suffix('%')
                                     ->default(0)

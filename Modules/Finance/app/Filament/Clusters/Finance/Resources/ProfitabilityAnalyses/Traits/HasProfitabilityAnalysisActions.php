@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
@@ -26,7 +27,7 @@ trait HasProfitabilityAnalysisActions
             ->requiresConfirmation()
             ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisStatus::Submitted]))
             ->visible(function ($record) {
-                $status = ($record?->status ?? $this->getRecord()?->status);
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
 
                 return $status === ProfitabilityAnalysisStatus::Draft || $status === 'draft';
             });
@@ -40,7 +41,7 @@ trait HasProfitabilityAnalysisActions
             ->requiresConfirmation()
             ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisStatus::Rejected]))
             ->visible(function ($record) {
-                $status = ($record?->status ?? $this->getRecord()?->status);
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
 
                 return $status === ProfitabilityAnalysisStatus::Submitted || $status === 'submitted';
             });
@@ -52,7 +53,7 @@ trait HasProfitabilityAnalysisActions
             ->label('Digital Signature')
             ->color('primary')
             ->icon('heroicon-o-pencil-square')
-            ->form([
+            ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
                     ->password()
@@ -107,7 +108,7 @@ trait HasProfitabilityAnalysisActions
                 }
             })
             ->visible(function ($record) {
-                $status = ($record?->status ?? $this->getRecord()?->status);
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
                 $allowed = [
                     ProfitabilityAnalysisStatus::Draft,
                     ProfitabilityAnalysisStatus::Submitted,
@@ -125,25 +126,28 @@ trait HasProfitabilityAnalysisActions
             ->label('Generate Project')
             ->icon('heroicon-o-plus-circle')
             ->color('success')
-            ->visible(function () {
-                $record = $this->getRecord();
+            ->visible(function ($record) {
+                if (! $record && method_exists($this, 'getRecord')) {
+                    $record = $this->getRecord();
+                }
 
-                return ! $record->project()->exists() &&
-                $record->status === ProfitabilityAnalysisStatus::Approved &&
-                $record->revenue_per_month !== null &&
-                $record->margin_percentage !== null &&
-                (! empty($record->analysis_details) || $record->items()->exists());
+                return $record
+                    && ! $record->project()->exists()
+                    && $record->status === ProfitabilityAnalysisStatus::Approved
+                    && $record->revenue_per_month !== null
+                    && $record->margin_percentage !== null
+                    && (! empty($record->analysis_details) || $record->items()->exists());
             })
             ->schema([
                 TextInput::make('summary')
                     ->label('Summary')
-                    ->default(fn () => "You are about to generate a Project for '{$this->getRecord()->customer?->name}'. This will consume the next sequence number for this customer and work scheme.")
+                    ->default(fn ($record) => "You are about to generate a Project for '".($record?->customer?->name ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->customer?->name : ''))."'. This will consume the next sequence number for this customer and work scheme.")
                     ->disabled()
                     ->dehydrated(false)
                     ->columnSpanFull(),
                 TextInput::make('project_name_override')
                     ->label('Project Name (Optional)')
-                    ->placeholder(fn () => $this->getRecord()->proposal?->proposal_number ?? 'Project for '.$this->getRecord()->customer?->name),
+                    ->placeholder(fn ($record) => ($record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null))?->proposal?->proposal_number ?? 'Project for '.($record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null))?->customer?->name),
             ])
             ->action(function ($record, array $data) {
                 if (! $this->validateProfitability($record)) {
@@ -172,12 +176,16 @@ trait HasProfitabilityAnalysisActions
             ->label('Create Proposal')
             ->icon('heroicon-o-document-plus')
             ->color('primary')
-            ->visible(fn () => ! $this->getRecord()->proposal_id && $this->getRecord()->status === ProfitabilityAnalysisStatus::Approved)
+            ->visible(function ($record) {
+                $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
+
+                return $rec && ! $rec->proposal && $rec->status === ProfitabilityAnalysisStatus::Approved;
+            })
             ->schema([
                 TextInput::make('amount')
-                    ->default(fn () => $this->getRecord()->revenue_per_month)
-                    ->numeric()
-                    ->prefix('IDR')
+                    ->default(fn ($record) => ($record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null))?->revenue_per_month)
+                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                    ->prefix('IDR ')
                     ->required(),
                 DatePicker::make('submission_date')
                     ->default(now())
@@ -192,8 +200,8 @@ trait HasProfitabilityAnalysisActions
                     'customer_id' => $record->customer_id,
                     'lead_id' => $record->lead_id,
                     'profitability_analysis_id' => $record->id,
-                    'work_scheme_id' => $record->work_scheme_id,
-                    'amount' => $data['amount'],
+                    'work_scheme_id' => $record->lead?->work_scheme_id ?? $record->generalInformation?->work_scheme_id,
+                    'amount' => is_numeric($data['amount']) ? (float) $data['amount'] : (float) str_replace(['.', ','], ['', '.'], $data['amount']),
                     'submission_date' => $data['submission_date'],
                     'status' => ProposalStatus::Draft,
                 ]);
@@ -205,6 +213,73 @@ trait HasProfitabilityAnalysisActions
                     ->title('Proposal Created')
                     ->success()
                     ->send();
+
+                return redirect(request()->header('Referer'));
+            });
+    }
+
+    protected function getDuplicateAction(): Action
+    {
+        return Action::make('duplicate')
+            ->label('Duplicate')
+            ->icon('heroicon-o-document-duplicate')
+            ->color('gray')
+            ->requiresConfirmation()
+            ->action(function (ProfitabilityAnalysis $record) {
+                try {
+                    DB::transaction(function () use ($record, &$newRecord) {
+                        $newRecord = $record->replicate([
+                            'document_number',
+                            'year',
+                            'sequence_number',
+                            'status',
+                            'proposal_id',
+                            'project_number',
+                        ]);
+
+                        $newRecord->status = ProfitabilityAnalysisStatus::Draft;
+                        $newRecord->save();
+
+                        // Duplicate items
+                        foreach ($record->items as $item) {
+                            $newItem = $item->replicate(['profitability_analysis_id']);
+                            $newItem->profitability_analysis_id = $newRecord->id;
+                            $newItem->save();
+                        }
+
+                        // Copy media (TOR, RFP, RFI)
+                        foreach (['tor', 'rfp', 'rfi'] as $collection) {
+                            $media = $record->getFirstMedia($collection);
+                            if ($media) {
+                                $media->copy($newRecord, $collection);
+                            }
+                        }
+                    });
+
+                    Notification::make()
+                        ->title('Profitability Analysis Duplicated')
+                        ->success()
+                        ->send();
+
+                    $resource = method_exists($this, 'getResource')
+                        ? $this->getResource()
+                        : \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::class;
+
+                    $parameters = ['record' => $newRecord];
+                    if (str_contains($resource, 'Modules\CRM')) {
+                        $parameters['lead'] = $newRecord->lead_id;
+                    }
+
+                    return redirect()->to(
+                        $resource::getUrl('view', $parameters)
+                    );
+                } catch (\Exception $e) {
+                    Notification::make()
+                        ->title('Duplication Failed')
+                        ->body($e->getMessage())
+                        ->danger()
+                        ->send();
+                }
             });
     }
 
@@ -213,11 +288,11 @@ trait HasProfitabilityAnalysisActions
         return Action::make('edit_manpower')
             ->label('Edit Manpower')
             ->icon('heroicon-o-users')
-            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
+            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
             ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Manpower Costing')
             ->visible(function ($record) {
-                $rec = $record ?? $this->getRecord();
+                $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
 
                 return ! ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
             });
@@ -228,11 +303,11 @@ trait HasProfitabilityAnalysisActions
         return Action::make('edit_operational')
             ->label('Edit Operational')
             ->icon('heroicon-o-wrench-screwdriver')
-            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
+            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
             ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Operational Costing')
             ->visible(function ($record) {
-                $rec = $record ?? $this->getRecord();
+                $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
 
                 return ! ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
             });
@@ -243,11 +318,11 @@ trait HasProfitabilityAnalysisActions
         return Action::make('edit_manual')
             ->label('Edit Manual Costs')
             ->icon('heroicon-o-banknotes')
-            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
+            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
             ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Manual Cost Breakdown')
             ->visible(function ($record) {
-                $rec = $record ?? $this->getRecord();
+                $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
 
                 return ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
             });
@@ -258,10 +333,14 @@ trait HasProfitabilityAnalysisActions
         return Action::make('edit_indirect')
             ->label('Edit Indirect Costs')
             ->icon('heroicon-o-presentation-chart-line')
-            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
+            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
             ->action(fn ($record, array $data) => $record->update($data))
             ->modalHeading('Edit Indirect Costing')
-            ->visible(fn ($record) => in_array($record?->status ?? $this->getRecord()?->status, ['draft', 'rejected']));
+            ->visible(function ($record) {
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+
+                return in_array($status, ['draft', 'rejected']);
+            });
     }
 
     public function getStepActions(): array
@@ -277,6 +356,7 @@ trait HasProfitabilityAnalysisActions
     protected function getProfitabilityAnalysisActions(): array
     {
         return [
+            $this->getDuplicateAction(),
             $this->getSignAction(),
             $this->getSubmitAction(),
             $this->getRejectAction(),

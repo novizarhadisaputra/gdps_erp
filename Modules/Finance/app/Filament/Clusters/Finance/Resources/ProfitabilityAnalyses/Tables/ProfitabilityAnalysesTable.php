@@ -110,6 +110,7 @@ class ProfitabilityAnalysesTable
                     ->icon('heroicon-m-list-bullet')
                     ->color('info')
                     ->button(),
+                $instance->getDuplicateAction(),
                 $instance->getCreateProposalAction(),
                 DeleteAction::make(),
             ])

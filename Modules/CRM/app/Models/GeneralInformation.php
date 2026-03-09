@@ -64,6 +64,7 @@ class GeneralInformation extends Model implements HasMedia
         'rr_status',
         'rr_payload',
         'sales_plan_id',
+        'work_scheme_id',
     ];
 
     protected function casts(): array

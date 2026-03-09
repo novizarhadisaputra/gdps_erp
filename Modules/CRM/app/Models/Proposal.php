@@ -13,7 +13,6 @@ use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Observers\ProposalObserver;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
@@ -33,6 +32,7 @@ class Proposal extends Model implements HasMedia
         'proposal_number',
         'amount',
         'status',
+        'is_manual',
         'submission_date',
         'sequence_number',
         'year',
@@ -40,10 +40,14 @@ class Proposal extends Model implements HasMedia
         'import_source_id',
     ];
 
-    protected $casts = [
-        'status' => ProposalStatus::class,
-        'submission_date' => 'date',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'status' => ProposalStatus::class,
+            'submission_date' => 'date',
+            'is_manual' => 'boolean',
+        ];
+    }
 
     public function registerMediaCollections(): void
     {

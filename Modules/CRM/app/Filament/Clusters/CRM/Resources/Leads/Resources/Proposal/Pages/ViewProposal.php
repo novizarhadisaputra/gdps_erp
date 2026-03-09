@@ -3,11 +3,13 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
+use Modules\MasterData\Services\SignatureService;
 
 class ViewProposal extends ViewRecord
 {
@@ -16,15 +18,39 @@ class ViewProposal extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('pdf')
-                ->label('Export PDF')
-                ->color('gray')
-                ->icon('heroicon-o-arrow-down-tray')
-                ->action(function () {
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
+            ActionGroup::make([
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function () {
+                        if ($this->record->is_manual && $media = $this->record->getFirstMedia('final_proposal')) {
+                            return $media;
+                        }
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$this->record->proposal_number}.pdf");
-                }),
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
+                        $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
+                    }),
+
+                Action::make('excel')
+                    ->label('Export Excel')
+                    ->color('success')
+                    ->icon('heroicon-o-table-cells')
+                    ->action(function () {
+                        $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
+
+                        return \Maatwebsite\Excel\Facades\Excel::download(
+                            new \Modules\CRM\Exports\ProposalExport($this->record),
+                            "proposal-{$filename}.xlsx"
+                        );
+                    }),
+            ])
+                ->label('Export')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('gray')
+                ->button(),
 
             Action::make('Submit')
                 ->color('info')
@@ -33,10 +59,11 @@ class ViewProposal extends ViewRecord
                 ->action(fn () => $this->record->update(['status' => ProposalStatus::Submitted]))
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft),
 
-            Action::make('Approve')
-                ->color('success')
-                ->icon('heroicon-o-check')
-                ->requiresConfirmation()
+            Action::make('sign')
+                ->label('Digital Signature')
+                ->color('primary')
+                ->icon('heroicon-o-pencil-square')
+                ->modalWidth('md')
                 ->schema([
                     \Filament\Forms\Components\TextInput::make('pin')
                         ->label('Signature PIN')
@@ -46,40 +73,7 @@ class ViewProposal extends ViewRecord
                 ])
                 ->action(function (array $data) {
                     $user = auth()->user();
-
-                    if (! $user->signature_pin) {
-                        Notification::make()
-                            ->title('PIN Belum Diatur')
-                            ->body('Anda belum mengatur PIN tanda tangan. Mohon atur di profil Anda.')
-                            ->danger()
-                            ->actions([
-                                Action::make('profile')
-                                    ->label('Ke Profil')
-                                    ->button()
-                                    ->url(\App\Filament\Pages\EditProfile::getUrl()),
-                            ])
-                            ->send();
-
-                        return;
-                    }
-
-                    if (! $user->hasMedia('signature')) {
-                        Notification::make()
-                            ->title('Tanda Tangan Belum Diupload')
-                            ->body('Anda belum mengupload gambar tanda tangan. Mohon upload di profil Anda.')
-                            ->danger()
-                            ->actions([
-                                Action::make('profile')
-                                    ->label('Ke Profil')
-                                    ->button()
-                                    ->url(\App\Filament\Pages\EditProfile::getUrl()),
-                            ])
-                            ->send();
-
-                        return;
-                    }
-
-                    $service = app(\Modules\MasterData\Services\SignatureService::class);
+                    $service = app(SignatureService::class);
 
                     if (! $service->verifyPin($user, $data['pin'])) {
                         Notification::make()
@@ -90,20 +84,47 @@ class ViewProposal extends ViewRecord
                         return;
                     }
 
+                    $required = $service->getRequiredApprovers($this->record);
+                    $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, $user));
+
+                    if (! $matchingRule) {
+                        Notification::make()
+                            ->title('Akses Ditolak')
+                            ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    if ($this->record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
+                        Notification::make()
+                            ->title('Sudah Ditandatangani')
+                            ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
                     // Add signature
-                    $qrData = $service->createSignatureData($user, $this->record, 'approved');
-                    $qrCode = $service->generateQRCode($qrData);
-
-                    $this->record->addSignature(auth()->user(), 'approved', $qrCode);
-
-                    $this->record->update(['status' => ProposalStatus::Approved]);
+                    $this->record->addSignature($user, $matchingRule->signature_type);
 
                     Notification::make()
-                        ->title('Proposal Disetujui')
+                        ->title('Dokumen Berhasil Ditandatangani')
                         ->success()
                         ->send();
+
+                    if ($this->record->isFullyApproved()) {
+                        $this->record->update(['status' => ProposalStatus::Approved]);
+
+                        Notification::make()
+                            ->title('Proposal Disetujui Sepenuhnya')
+                            ->success()
+                            ->send();
+                    }
                 })
-                ->visible(fn () => $this->record->status === ProposalStatus::Submitted),
+                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Draft])),
 
             Action::make('convertToContract')
                 ->label('Convert to Contract')

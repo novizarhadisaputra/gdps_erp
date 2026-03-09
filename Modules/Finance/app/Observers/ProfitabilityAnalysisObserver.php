@@ -32,8 +32,8 @@ class ProfitabilityAnalysisObserver
      */
     public function created(ProfitabilityAnalysis $analysis): void
     {
-        // When PA is created, Lead moves to Negotiation stage
-        if ($analysis->lead) {
+        // When PA is created, Lead moves to Approach stage if not already further
+        if ($analysis->lead && $analysis->lead->status->weight() < \Modules\CRM\Enums\LeadStatus::Approach->weight()) {
             $analysis->lead->update([
                 'status' => \Modules\CRM\Enums\LeadStatus::Approach,
             ]);

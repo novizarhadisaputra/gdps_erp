@@ -18,11 +18,13 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Exports\ProposalExport;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalForm;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Services\SignatureService;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProposalsTable
 {
@@ -91,6 +93,62 @@ class ProposalsTable
                     ->requiresConfirmation()
                     ->visible(fn (Proposal $record): bool => in_array($record->status, [ProposalStatus::Converted, ProposalStatus::Rejected]))
                     ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Approved])),
+                ActionGroup::make([
+                    Action::make('export_pdf')
+                        ->label('Export PDF')
+                        ->icon('heroicon-o-document-text')
+                        ->action(function (Proposal $record) {
+                            if ($record->is_manual && $media = $record->getFirstMedia('final_proposal')) {
+                                return $media;
+                            }
+
+                            $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+                            $filename = str_replace(['/', '\\'], '-', $record->proposal_number);
+
+                            return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
+                        }),
+
+                    Action::make('export_excel')
+                        ->label('Export Excel')
+                        ->icon('heroicon-o-table-cells')
+                        ->action(function (Proposal $record) {
+                            $filename = str_replace(['/', '\\'], '-', $record->proposal_number);
+
+                            return Excel::download(
+                                new ProposalExport($record),
+                                "proposal-{$filename}.xlsx"
+                            );
+                        }),
+
+                    Action::make('export_contract')
+                        ->label('Export Contract')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->visible(fn (Proposal $record) => $record->contracts()->exists())
+                        ->action(function (Proposal $record) {
+                            $contract = $record->contracts()->latest()->first();
+                            $pdf = Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
+
+                            $filename = str_replace(['/', '\\'], '-', $contract->contract_number);
+
+                            return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$filename}.pdf");
+                        }),
+
+                    Action::make('export_general_information')
+                        ->label('Export General Info')
+                        ->icon('heroicon-o-information-circle')
+                        ->visible(fn (Proposal $record) => $record->lead?->generalInformations()->exists())
+                        ->action(function (Proposal $record) {
+                            $gi = $record->lead->generalInformations()->latest()->first();
+                            $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
+
+                            return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$gi->customer->name}.pdf");
+                        }),
+                ])
+                    ->label('Export')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->button(),
+
                 ViewAction::make()
                     ->modalFooterActions([
                         Action::make('Sign')
@@ -130,18 +188,15 @@ class ProposalsTable
                                     return;
                                 }
 
-                                if ($record->hasSignatureFrom(auth()->user()->roles->first()?->name)) {
+                                if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
                                     Notification::make()
                                         ->title('Sudah Ditandatangani')
-                                        ->body('Anda sudah menandatangani dokumen ini.')
+                                        ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
                                         ->warning()
                                         ->send();
 
                                     return;
                                 }
-
-                                $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
-                                $qrCode = $service->generateQRCode($qrData);
 
                                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
@@ -163,56 +218,12 @@ class ProposalsTable
                             ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Submitted]))
                             ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Draft),
 
-                        Action::make('Approve')
-                            ->color('success')
-                            ->icon('heroicon-o-check')
-                            ->requiresConfirmation()
-                            ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Approved]))
-                            ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
-
                         Action::make('Reject')
                             ->color('danger')
                             ->icon('heroicon-o-x-mark')
                             ->requiresConfirmation()
                             ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Rejected]))
                             ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
-
-                        ActionGroup::make([
-                            Action::make('export_proposal')
-                                ->label('Export Proposal')
-                                ->icon('heroicon-o-document-text')
-                                ->action(function (Proposal $record) {
-                                    $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
-
-                                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$record->proposal_number}.pdf");
-                                }),
-
-                            Action::make('export_contract')
-                                ->label('Export Contract')
-                                ->icon('heroicon-o-document-duplicate')
-                                ->visible(fn (Proposal $record) => $record->contracts()->exists())
-                                ->action(function (Proposal $record) {
-                                    $contract = $record->contracts()->latest()->first();
-                                    $pdf = Pdf::loadView('crm::pdf.contract', ['record' => $contract]);
-
-                                    return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$contract->contract_number}.pdf");
-                                }),
-
-                            Action::make('export_general_information')
-                                ->label('Export General Info')
-                                ->icon('heroicon-o-information-circle')
-                                ->visible(fn (Proposal $record) => $record->lead?->generalInformations()->exists())
-                                ->action(function (Proposal $record) {
-                                    $gi = $record->lead->generalInformations()->latest()->first();
-                                    $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $gi]);
-
-                                    return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$gi->customer->name}.pdf");
-                                }),
-                        ])
-                            ->label('Export')
-                            ->icon('heroicon-o-arrow-down-tray')
-                            ->color('gray')
-                            ->button(),
                     ]),
                 EditAction::make()
                     ->schema(fn (Schema $schema) => ProposalForm::configure($schema)),

@@ -11,7 +11,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Modules\CRM\Models\GeneralInformation;
 use Modules\MasterData\Models\ContactRole;
 
 class GeneralInformationForm
@@ -77,6 +76,14 @@ class GeneralInformationForm
                                 ->required()
                                 ->placeholder('Select project area')
                                 ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null),
+                            Select::make('work_scheme_id')
+                                ->relationship('workScheme', 'name')
+                                ->label('Work Scheme')
+                                ->searchable()
+                                ->preload()
+                                ->required()
+                                ->helperText('Working pattern for this project.')
+                                ->placeholder('Select work scheme'),
                             TextInput::make('location')
                                 ->placeholder('Example: Terminal 3 Bandara Soekarno-Hatta'),
                             Select::make('sales_plan_id')

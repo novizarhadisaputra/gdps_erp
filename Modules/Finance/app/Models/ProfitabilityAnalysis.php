@@ -74,6 +74,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'import_source_id',
         'payment_term_id',
         'is_manual_cost',
+        'work_scheme_id',
     ];
 
     protected function casts(): array
@@ -158,6 +159,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function paymentTerm(): BelongsTo
     {
         return $this->belongsTo(PaymentTerm::class);
+    }
+
+    public function workScheme(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\WorkScheme::class);
     }
 
     public function project(): HasOne

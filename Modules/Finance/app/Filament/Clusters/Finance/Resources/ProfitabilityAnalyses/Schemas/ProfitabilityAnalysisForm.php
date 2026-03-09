@@ -110,6 +110,7 @@ class ProfitabilityAnalysisForm
                                         $set('project_area_id', $gi->project_area_id ?? $gi->lead?->project_area_id);
                                         $set('product_cluster_id', $gi->product_cluster_id ?? $gi->lead?->product_cluster_id);
                                         $set('tax_id', $gi->tax_id ?? $gi->lead?->tax_id);
+                                        $set('work_scheme_id', $gi->work_scheme_id);
 
                                         if ($gi->estimated_start_date) {
                                             $set('year', $gi->estimated_start_date->year);
@@ -160,6 +161,15 @@ class ProfitabilityAnalysisForm
                                     ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->product_cluster_id : null)
                                     ->createOptionForm(ProductClusterForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                Select::make('work_scheme_id')
+                                    ->relationship('workScheme', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->placeholder('Select work scheme')
+                                    ->helperText('Working pattern (affects manpower costing).')
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
                                 Select::make('project_area_id')
                                     ->relationship('projectArea', 'name')
                                     ->required()
