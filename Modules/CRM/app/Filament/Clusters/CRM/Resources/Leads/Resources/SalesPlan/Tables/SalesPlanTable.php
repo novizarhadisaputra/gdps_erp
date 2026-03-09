@@ -91,38 +91,6 @@ class SalesPlanTable
                                 return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
                             }),
                     ]),
-                EditAction::make()
-                    ->schema(fn ($schema) => SalesPlanForm::configure($schema)),
-                DeleteAction::make(),
-                Action::make('convertToGI')
-                    ->label('Convert to GI')
-                    ->icon('heroicon-o-document-plus')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (SalesPlan $record) => $record->lead?->generalInformations()->doesntExist())
-                    ->action(function (SalesPlan $record) {
-                        $lead = $record->lead;
-
-                        if (! $lead) {
-                            Notification::make()
-                                ->title('Error')
-                                ->body('Lead not found for this Sales Plan.')
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-
-                        $record->toGeneralInformation();
-
-                        Notification::make()
-                            ->title('General Information Created')
-                            ->body('Data has been synced from Sales Plan.')
-                            ->success()
-                            ->send();
-
-                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
-                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

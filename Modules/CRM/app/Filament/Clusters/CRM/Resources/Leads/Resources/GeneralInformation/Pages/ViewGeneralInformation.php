@@ -67,7 +67,7 @@ class ViewGeneralInformation extends ViewRecord
                         ->label('Signature PIN')
                         ->password()
                         ->required()
-                        ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                        ->helperText('Enter your digital signature PIN.'),
                 ])
                 ->action(function (array $data) {
                     $record = $this->getRecord();

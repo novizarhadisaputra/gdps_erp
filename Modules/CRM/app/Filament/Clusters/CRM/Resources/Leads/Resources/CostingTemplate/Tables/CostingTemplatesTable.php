@@ -52,8 +52,6 @@ class CostingTemplatesTable
                         return response()->streamDownload(fn () => print ($pdf->output()), "costing-template-{$name}.pdf");
                     }),
                 ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

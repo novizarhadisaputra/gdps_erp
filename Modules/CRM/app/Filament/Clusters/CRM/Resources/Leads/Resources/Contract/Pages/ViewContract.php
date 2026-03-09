@@ -23,6 +23,16 @@ class ViewContract extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pdf')
+                ->label('Export PDF')
+                ->color('gray')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->action(function () {
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $this->record]);
+                    $filename = str_replace(['/', '\\'], '-', $this->record->contract_number);
+
+                    return response()->streamDownload(fn () => print ($pdf->output()), "contract-{$filename}.pdf");
+                }),
             Action::make('Sign')
                 ->label('Digital Signature')
                 ->color('primary')
@@ -32,19 +42,19 @@ class ViewContract extends ViewRecord
                         ->label('Signature PIN')
                         ->password()
                         ->required()
-                        ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                        ->helperText('Enter your digital signature PIN.'),
                 ])
                 ->action(function (array $data) {
                     $user = auth()->user();
 
                     if (! $user->signature_pin) {
                         Notification::make()
-                            ->title('PIN Belum Diatur')
-                            ->body('Anda belum mengatur PIN tanda tangan. Mohon atur di profil Anda.')
+                            ->title('PIN Not Set')
+                            ->body('You have not set your signature PIN. Please set it in your profile.')
                             ->danger()
                             ->actions([
                                 Action::make('profile')
-                                    ->label('Ke Profil')
+                                    ->label('To Profile')
                                     ->button()
                                     ->url(EditProfile::getUrl()),
                             ])
@@ -55,12 +65,12 @@ class ViewContract extends ViewRecord
 
                     if (! $user->hasMedia('signature')) {
                         Notification::make()
-                            ->title('Tanda Tangan Belum Diupload')
-                            ->body('Anda belum mengupload gambar tanda tangan. Mohon upload di profil Anda.')
+                            ->title('Signature Not Uploaded')
+                            ->body('You have not uploaded a signature image. Please upload it in your profile.')
                             ->danger()
                             ->actions([
                                 Action::make('profile')
-                                    ->label('Ke Profil')
+                                    ->label('To Profile')
                                     ->button()
                                     ->url(EditProfile::getUrl()),
                             ])
@@ -73,7 +83,7 @@ class ViewContract extends ViewRecord
 
                     if (! $service->verifyPin($user, $data['pin'])) {
                         Notification::make()
-                            ->title('PIN Salah')
+                            ->title('Incorrect PIN')
                             ->danger()
                             ->send();
 
@@ -85,8 +95,8 @@ class ViewContract extends ViewRecord
 
                     if (! $matchingRule) {
                         Notification::make()
-                            ->title('Akses Ditolak')
-                            ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
+                            ->title('Access Denied')
+                            ->body('You do not have the authority to sign this document based on the current approval rules.')
                             ->warning()
                             ->send();
 
@@ -95,8 +105,8 @@ class ViewContract extends ViewRecord
 
                     if ($this->record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
                         Notification::make()
-                            ->title('Sudah Ditandatangani')
-                            ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
+                            ->title('Already Signed')
+                            ->body('This document has already been signed by the appropriate role.')
                             ->warning()
                             ->send();
 
@@ -106,7 +116,7 @@ class ViewContract extends ViewRecord
                     $this->record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                     Notification::make()
-                        ->title('Dokumen Berhasil Ditandatangani')
+                        ->title('Document Successfully Signed')
                         ->success()
                         ->send();
 
@@ -168,8 +178,8 @@ class ViewContract extends ViewRecord
 
                     if (! $pa) {
                         Notification::make()
-                            ->title('Gagal')
-                            ->body('Analisis Profitabilitas (PA) tidak ditemukan untuk kontrak ini.')
+                            ->title('Failed')
+                            ->body('Profitability Analysis (PA) not found for this contract.')
                             ->danger()
                             ->send();
 

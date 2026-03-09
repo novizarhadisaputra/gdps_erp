@@ -432,8 +432,6 @@ class ManpowerTemplateResource extends Resource
                         return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
                     }),
                 ViewAction::make(),
-                EditAction::make(),
-                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

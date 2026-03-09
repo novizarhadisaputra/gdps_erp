@@ -5,10 +5,12 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfA
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Enums\MoAStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
 use Modules\CRM\Models\MinutesOfAgreement;
+use Modules\MasterData\Services\SignatureService;
 
 class ViewMinutesOfAgreement extends ViewRecord
 {
@@ -19,16 +21,82 @@ class ViewMinutesOfAgreement extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('pdf')
+                ->label('Export PDF')
+                ->color('gray')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->action(function () {
+                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.minutes_of_agreement', ['record' => $this->record]);
+                    $filename = str_replace(['/', '\\'], '-', $this->record->document_number);
+
+                    return response()->streamDownload(fn () => print ($pdf->output()), "moa-{$filename}.pdf");
+                }),
             Action::make('sign')
-                ->label('Sign MoA')
+                ->label('Digital Signature')
+                ->color('primary')
                 ->icon('heroicon-o-pencil-square')
-                ->color('success')
-                ->visible(fn (MinutesOfAgreement $record) => $record->status !== MoAStatus::Approved)
-                ->requireSignature(
-                    documentName: fn (MinutesOfAgreement $record) => "Minutes of Agreement {$record->moa_number}",
-                    propertyName: 'status',
-                    targetValue: MoAStatus::Approved
-                ),
+                ->modalWidth('md')
+                ->schema([
+                    \Filament\Forms\Components\TextInput::make('pin')
+                        ->label('Signature PIN')
+                        ->password()
+                        ->required()
+                        ->helperText('Enter your digital signature PIN to approve this MoA.'),
+                ])
+                ->action(function (array $data) {
+                    $user = auth()->user();
+                    $service = app(SignatureService::class);
+
+                    if (! $service->verifyPin($user, $data['pin'])) {
+                        Notification::make()
+                            ->title('Incorrect PIN')
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
+                    $required = $service->getRequiredApprovers($this->record);
+                    $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, $user));
+
+                    if (! $matchingRule) {
+                        Notification::make()
+                            ->title('Access Denied')
+                            ->body('You do not have the authority to sign this document based on the current approval rules.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    if ($this->record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
+                        Notification::make()
+                            ->title('Already Signed')
+                            ->body('This document has already been signed by the appropriate role.')
+                            ->warning()
+                            ->send();
+
+                        return;
+                    }
+
+                    // Add signature
+                    $this->record->addSignature($user, $matchingRule->signature_type);
+
+                    Notification::make()
+                        ->title('Document Successfully Signed')
+                        ->success()
+                        ->send();
+
+                    if ($this->record->isFullyApproved()) {
+                        $this->record->update(['status' => MoAStatus::Approved]);
+
+                        Notification::make()
+                            ->title('MoA Fully Approved')
+                            ->success()
+                            ->send();
+                    }
+                })
+                ->visible(fn (MinutesOfAgreement $record) => $record->status !== MoAStatus::Approved),
             Action::make('convertToContract')
                 ->label('Convert to Contract')
                 ->icon('heroicon-o-document-duplicate')
@@ -43,7 +111,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                         'status' => \Modules\CRM\Enums\ContractStatus::Draft,
                     ]);
 
-                    \Filament\Notifications\Notification::make()
+                    Notification::make()
                         ->title('MoA Converted to Contract')
                         ->success()
                         ->send();

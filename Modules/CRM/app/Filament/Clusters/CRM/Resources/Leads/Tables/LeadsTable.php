@@ -31,15 +31,10 @@ class LeadsTable
                     ->counts('proposals')
                     ->label('Proposals'),
             ])
-            ->filters([
-                //
-            ])
             ->recordActions([
                 MoveToApproachAction::make(),
                 ViewAction::make()
                     ->schema(fn ($schema) => LeadInfolist::configure($schema)),
-                EditAction::make(),
-                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

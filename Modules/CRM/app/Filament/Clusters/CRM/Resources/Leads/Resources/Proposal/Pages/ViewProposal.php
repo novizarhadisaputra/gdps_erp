@@ -70,7 +70,7 @@ class ViewProposal extends ViewRecord
                         ->label('Signature PIN')
                         ->password()
                         ->required()
-                        ->helperText('Masukkan PIN tanda tangan digital Anda untuk menyetujui proposal ini.'),
+                        ->helperText('Enter your digital signature PIN to approve this proposal.'),
                 ])
                 ->action(function (array $data) {
                     $user = auth()->user();
@@ -78,7 +78,7 @@ class ViewProposal extends ViewRecord
 
                     if (! $service->verifyPin($user, $data['pin'])) {
                         Notification::make()
-                            ->title('PIN Salah')
+                            ->title('Incorrect PIN')
                             ->danger()
                             ->send();
 
@@ -90,8 +90,8 @@ class ViewProposal extends ViewRecord
 
                     if (! $matchingRule) {
                         Notification::make()
-                            ->title('Akses Ditolak')
-                            ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
+                            ->title('Access Denied')
+                            ->body('You do not have the authority to sign this document based on the current approval rules.')
                             ->warning()
                             ->send();
 
@@ -100,8 +100,8 @@ class ViewProposal extends ViewRecord
 
                     if ($this->record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
                         Notification::make()
-                            ->title('Sudah Ditandatangani')
-                            ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
+                            ->title('Already Signed')
+                            ->body('This document has already been signed by the appropriate role.')
                             ->warning()
                             ->send();
 
@@ -112,7 +112,7 @@ class ViewProposal extends ViewRecord
                     $this->record->addSignature($user, $matchingRule->signature_type);
 
                     Notification::make()
-                        ->title('Dokumen Berhasil Ditandatangani')
+                        ->title('Document Successfully Signed')
                         ->success()
                         ->send();
 
@@ -120,7 +120,7 @@ class ViewProposal extends ViewRecord
                         $this->record->update(['status' => ProposalStatus::Approved]);
 
                         Notification::make()
-                            ->title('Proposal Disetujui Sepenuhnya')
+                            ->title('Proposal Fully Approved')
                             ->success()
                             ->send();
                     }
@@ -142,7 +142,7 @@ class ViewProposal extends ViewRecord
 
                     $timeline = '';
                     if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {
-                        $timeline = $gi->estimated_start_date->format('d/m/Y') . ' - ' . $gi->estimated_end_date->format('d/m/Y');
+                        $timeline = $gi->estimated_start_date->format('d/m/Y').' - '.$gi->estimated_end_date->format('d/m/Y');
                     }
 
                     $moa = \Modules\CRM\Models\MinutesOfAgreement::create([
