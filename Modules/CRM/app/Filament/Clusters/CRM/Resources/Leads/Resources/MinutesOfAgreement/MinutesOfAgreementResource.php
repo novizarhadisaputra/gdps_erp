@@ -6,12 +6,11 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Schemas\MinutesOfAgreementForm;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Tables\MinutesOfAgreementsTable;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Pages\ListMinutesOfAgreements;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Pages\CreateMinutesOfAgreement;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Pages\EditMinutesOfAgreement;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Pages\ViewMinutesOfAgreement;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Schemas\MinutesOfAgreementForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Tables\MinutesOfAgreementsTable;
 use Modules\CRM\Models\MinutesOfAgreement;
 
 class MinutesOfAgreementResource extends Resource
@@ -35,10 +34,10 @@ class MinutesOfAgreementResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListMinutesOfAgreements::route('/'),
+            // List is handled via ManageMinutesOfAgreements (Relation Manager)
             'create' => CreateMinutesOfAgreement::route('/create'),
-            'edit' => EditMinutesOfAgreement::route('/{record}/edit'),
             'view' => ViewMinutesOfAgreement::route('/{record}'),
+            'edit' => EditMinutesOfAgreement::route('/{record}/edit'),
         ];
     }
 }

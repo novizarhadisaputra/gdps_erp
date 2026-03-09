@@ -2,10 +2,12 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Tables;
 
-use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Modules\CRM\Enums\MoAStatus;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
 use Modules\CRM\Models\MinutesOfAgreement;
 
 class MinutesOfAgreementsTable
@@ -34,16 +36,11 @@ class MinutesOfAgreementsTable
                     ->badge(),
             ])
             ->recordActions([
-                Action::make('sign')
-                    ->label('Sign MoA')
-                    ->icon('heroicon-o-pencil-square')
-                    ->color('success')
-                    ->visible(fn (MinutesOfAgreement $record) => $record->status !== MoAStatus::Approved)
-                    ->requireSignature(
-                        documentName: fn (MinutesOfAgreement $record) => "Minutes of Agreement {$record->moa_number}",
-                        propertyName: 'status',
-                        targetValue: MoAStatus::Approved
-                    ),
+                ViewAction::make()
+                    ->url(fn (MinutesOfAgreement $record) => MinutesOfAgreementResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id])),
+                EditAction::make()
+                    ->url(fn (MinutesOfAgreement $record) => MinutesOfAgreementResource::getUrl('edit', ['lead' => $record->lead_id, 'record' => $record->id])),
+                DeleteAction::make(),
             ]);
     }
 }

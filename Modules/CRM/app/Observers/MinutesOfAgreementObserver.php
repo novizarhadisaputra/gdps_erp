@@ -6,23 +6,48 @@ use Modules\CRM\Models\MinutesOfAgreement;
 
 class MinutesOfAgreementObserver
 {
-    /**
-     * Handle the MinutesOfAgreement "creating" event.
-     */
     public function creating(MinutesOfAgreement $minutesOfAgreement): void
     {
-        $year = date('Y');
-        $shortYear = date('y');
+        if (empty($minutesOfAgreement->moa_number)) {
+            $year = date('Y');
+            $shortYear = date('y');
 
-        $latest = MinutesOfAgreement::query()
-            ->whereYear('created_at', $year)
-            ->orderBy('id', 'desc') // Simple sequence for now or use specific sequence column if added later
-            ->first();
+            $latest = MinutesOfAgreement::query()
+                ->whereYear('created_at', $year)
+                ->where('moa_number', 'LIKE', 'GDPS/UB/BAK-%')
+                ->orderBy('id', 'desc')
+                ->first();
 
-        // For simplicity using a random-like sequence or we can add sequence_number to migration if needed.
-        // I'll stick to a simple count for now or just the number.
-        $count = MinutesOfAgreement::whereYear('created_at', $year)->count() + 1;
+            $sequence = 1;
+            if ($latest && preg_match('/BAK-(\d+)\//', $latest->moa_number, $matches)) {
+                $sequence = ((int) $matches[1]) + 1;
+            }
 
-        $minutesOfAgreement->moa_number = sprintf('GDPS/UB/BAK-%03d/%s', $count, $shortYear);
+            $minutesOfAgreement->moa_number = sprintf('GDPS/UB/BAK-%03d/%s', $sequence, $shortYear);
+        }
+    }
+
+    /**
+     * Handle the MinutesOfAgreement "created" event.
+     */
+    public function created(MinutesOfAgreement $minutesOfAgreement): void
+    {
+        if ($minutesOfAgreement->lead) {
+            $minutesOfAgreement->lead->update([
+                'status' => \Modules\CRM\Enums\LeadStatus::Negotiation,
+            ]);
+        }
+    }
+
+    /**
+     * Handle the MinutesOfAgreement "updated" event.
+     */
+    public function updated(MinutesOfAgreement $minutesOfAgreement): void
+    {
+        if ($minutesOfAgreement->wasChanged('status') && $minutesOfAgreement->status === \Modules\CRM\Enums\MoAStatus::Approved) {
+            if ($minutesOfAgreement->lead) {
+                // Potential logic for next stage if needed
+            }
+        }
     }
 }

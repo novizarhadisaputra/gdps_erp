@@ -21,12 +21,12 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageContracts;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageCostingTemplates;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageGeneralInformations;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageManpowerTemplates;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageMinutesOfAgreements;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProfitabilityAnalyses;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectInformations;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProposals;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageSalesPlans;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ViewLead;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Pages\ListMinutesOfAgreements;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Tables\LeadsTable;
@@ -95,7 +95,7 @@ class LeadResource extends Resource
                 ]) && $record->profitabilityAnalyses()->where('status', 'approved')->exists()
                 ))->toArray(),
             ...collect($page->generateNavigationItems([
-                ListMinutesOfAgreements::class,
+                ManageMinutesOfAgreements::class,
             ]))->map(fn (NavigationItem $item) => $item
                 ->group('Stage 3: Contracting (Negotiation)')
                 ->visible(fn () => in_array($record->status, [
@@ -154,6 +154,7 @@ class LeadResource extends Resource
             'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
             'contracts' => ManageContracts::route('/{record}/contracts'),
             'tools-equipment-costing' => ManageCostingTemplates::route('/{record}/tools-equipment-costing'),
+            'minutes-of-agreements' => ManageMinutesOfAgreements::route('/{record}/minutes-of-agreements'),
         ];
     }
 }

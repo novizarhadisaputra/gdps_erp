@@ -64,8 +64,8 @@ class ContractForm
                         ->required()
                         ->hiddenOn('create')
                         ->unique(Contract::class, 'contract_number', ignoreRecord: true)
-                        ->placeholder('e.g. CNT-2024-001')
-                        ->helperText('Official signed contract number.'),
+                        ->placeholder('GDPS/UB/CON-001/26')
+                        ->helperText('Format: GDPS/UB/CON-001/26'),
                     Select::make('type')
                         ->options(ContractType::class)
                         ->default(ContractType::Agreement)

@@ -4,12 +4,11 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 use Modules\CRM\Models\ManpowerTemplate;
@@ -47,14 +46,10 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                     ->icon('heroicon-o-document-plus')
                     ->color('info')
                     ->schema([
-                        FileUpload::make('file')
-                            ->disk('local')
-                            ->directory('temp-manual-uploads')
-                            ->acceptedFileTypes([
-                                'application/pdf',
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                'application/vnd.ms-excel',
-                            ])
+                        SpatieMediaLibraryFileUpload::make('file')
+                            ->collection('source_file')
+                            ->disk('s3')
+                            ->visibility('private')
                             ->required()
                             ->helperText('Upload the original document as a valid data reference.'),
                     ])
@@ -73,8 +68,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                         ]);
 
                         if (isset($data['file'])) {
-                            $filePath = Storage::disk('local')->path($data['file']);
-                            $record->addMedia($filePath)->toMediaCollection('source_file');
+                            $record->addMediaFromDisk($data['file'], 's3')->toMediaCollection('source_file');
                         }
 
                         $this->redirect(ManpowerTemplateResource::getUrl('edit', ['lead' => $lead->id, 'record' => $record->id]));

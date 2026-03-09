@@ -81,6 +81,11 @@ class Proposal extends Model implements HasMedia
         return $this->hasMany(Contract::class);
     }
 
+    public function minutesOfAgreements(): HasMany
+    {
+        return $this->hasMany(MinutesOfAgreement::class);
+    }
+
     public function profitabilityAnalysis(): BelongsTo
     {
         return $this->belongsTo(ProfitabilityAnalysis::class);

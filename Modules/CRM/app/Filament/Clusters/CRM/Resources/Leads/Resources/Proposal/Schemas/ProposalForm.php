@@ -2,22 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas;
 
-use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\CRM\Enums\ProposalStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
-use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
 
 class ProposalForm
 {
@@ -30,81 +24,102 @@ class ProposalForm
     public static function schema(): array
     {
         return [
-            Section::make('Proposal Details')
+            Grid::make(columns: 2)->schema([
+                Section::make('Proposal Context')
+                    ->description('Core commercial information for this proposal.')
+                    ->schema([
+                        Select::make('customer_id')
+                            ->relationship('customer', 'name')
+                            ->label('Client / Customer')
+                            ->placeholder('Select customer')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->disabled()
+                            ->dehydrated()
+                            ->hidden()
+                            ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null),
+
+                        Select::make('work_scheme_id')
+                            ->relationship('workScheme', 'name')
+                            ->label('Project Work Scheme')
+                            ->placeholder('Select work scheme')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->disabled()
+                            ->dehydrated()
+                            ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
+                            ->helperText('The operational model inherited from the Lead.'),
+
+                        TextInput::make('amount')
+                            ->label('Proposed Amount')
+                            ->placeholder('0')
+                            ->prefixIcon('heroicon-o-banknotes')
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                            ->prefix('IDR')
+                            ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
+                            ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
+                            ->required()
+                            ->helperText('Total value including all service costs.'),
+
+                        Select::make('lead_id')
+                            ->relationship('lead', 'title')
+                            ->hidden()
+                            ->dehydrated(),
+                    ]),
+
+                \Filament\Schemas\Components\Group::make()
+                    ->schema([
+                        Section::make('Identification')
+                            ->schema([
+                                TextInput::make('proposal_number')
+                                    ->label('Proposal #')
+                                    ->prefixIcon('heroicon-o-hashtag')
+                                    ->placeholder('Auto-generated')
+                                    ->required()
+                                    ->hiddenOn('create')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->unique(Proposal::class, 'proposal_number', ignoreRecord: true),
+
+                                DatePicker::make('submission_date')
+                                    ->label('Submission Date')
+                                    ->prefixIcon('heroicon-o-calendar')
+                                    ->native(false)
+                                    ->placeholder('Select date')
+                                    ->helperText('When this proposal was sent to the client.'),
+                            ]),
+
+                        Section::make('Status')
+                            ->schema([
+                                TextEntry::make('status')
+                                    ->label('Proposal Status')
+                                    ->badge(),
+
+                                TextEntry::make('is_imported')
+                                    ->label('Source Reference')
+                                    ->state(fn ($record) => $record?->is_imported ? 'Imported from External System' : 'Created in ERP')
+                                    ->visible(fn ($record) => $record?->is_imported)
+                                    ->color('gray'),
+                            ]),
+                    ])
+                    ->columnSpan(1),
+            ])->columnSpanFull(),
+
+            Section::make('Final Documentation')
+                ->description('Upload the finalized, signed, or ready-to-send proposal document.')
                 ->schema([
-                    TextEntry::make('import_status')
-                        ->label('Source')
-                        ->state('Imported')
-                        ->visible(fn ($record) => $record?->is_imported)
-                        ->columnSpanFull(),
-                    Select::make('customer_id')
-                        ->relationship('customer', 'name')
-                        ->searchable()
-                        ->preload()
-                        ->required()
-                        ->disabled()
-                        ->dehydrated()
-                        ->hidden()
-                        ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null)
-                        ->createOptionForm(CustomerForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->editOptionForm(CustomerForm::schema())
-                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                    Select::make('lead_id')
-                        ->relationship('lead', 'title')
-                        ->searchable()
-                        ->preload()
-                        ->live()
-                        ->hidden()
-                        ->afterStateUpdated(function ($state, Set $set) {
-                            if (! $state) {
-                                return;
-                            }
-                            $lead = Lead::find($state);
-                            if (! $lead) {
-                                return;
-                            }
-                            $set('customer_id', $lead->customer_id);
-                            $set('work_scheme_id', $lead->work_scheme_id);
-                            $set('amount', $lead->estimated_amount);
-                        }),
-                    Select::make('work_scheme_id')
-                        ->relationship('workScheme', 'name')
-                        ->searchable()
-                        ->preload()
-                        ->disabled() // Inherited from Lead rarely changes at this stage
-                        ->dehydrated()
-                        ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
-                        ->createOptionForm(WorkSchemeForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->editOptionForm(WorkSchemeForm::schema())
-                        ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                    TextInput::make('proposal_number')
-                        ->required()
-                        ->hiddenOn('create') // Auto-generated
-                        ->unique(Proposal::class, 'proposal_number', ignoreRecord: true),
-                    TextInput::make('amount')
-                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                        ->prefix('IDR')
-                        ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
-                        ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
-                        ->required(),
-                    ToggleButtons::make('status')
-                        ->options(ProposalStatus::class)
-                        ->default(ProposalStatus::Draft)
-                        ->hiddenOn('create')
-                        ->disabled()
-                        ->inline()
-                        ->required(),
-                    DatePicker::make('submission_date'),
                     SpatieMediaLibraryFileUpload::make('final_proposal')
                         ->collection('final_proposal')
                         ->label('Final Proposal Document')
                         ->disk('s3')
                         ->visibility('private')
+                        ->downloadable()
+                        ->openable()
+                        ->helperText('Format: PDF preferred. Size limit 10MB.')
                         ->columnSpanFull(),
                 ])
-                ->columns(2)
                 ->columnSpanFull(),
         ];
     }

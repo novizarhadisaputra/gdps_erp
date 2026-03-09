@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\P
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
@@ -127,6 +128,30 @@ class ViewProposal extends ViewRecord
                 })
                 ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Draft])),
 
+            Action::make('convertToMoA')
+                ->label('Convert to MoA (BA)')
+                ->icon('heroicon-o-document-duplicate')
+                ->color('info')
+                ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->minutesOfAgreements()->exists())
+                ->requiresConfirmation()
+                ->action(function () {
+                    $moa = \Modules\CRM\Models\MinutesOfAgreement::create([
+                        'customer_id' => $this->record->customer_id,
+                        'lead_id' => $this->record->lead_id,
+                        'proposal_id' => $this->record->id,
+                        'amount' => $this->record->amount,
+                        'negotiation_date' => now(),
+                        'status' => \Modules\CRM\Enums\MoAStatus::Draft,
+                    ]);
+
+                    Notification::make()
+                        ->title('Converted to Minutes of Agreement')
+                        ->success()
+                        ->send();
+
+                    $this->redirect(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource::getUrl('edit', ['record' => $moa->id, 'lead' => $this->record->lead_id]));
+                }),
+
             Action::make('convertToContract')
                 ->label('Convert to Contract')
                 ->icon('heroicon-o-document-duplicate')
@@ -161,6 +186,7 @@ class ViewProposal extends ViewRecord
 
             EditAction::make()
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft),
+            DeleteAction::make(),
         ];
     }
 }

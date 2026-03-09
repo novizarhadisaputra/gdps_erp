@@ -26,6 +26,7 @@ class MinutesOfAgreementForm
                                     ->label('MOA Number')
                                     ->placeholder('Auto-generated')
                                     ->disabled()
+                                    ->hiddenOn(operations: ['create'])
                                     ->dehydrated(false),
                                 DatePicker::make('negotiation_date')
                                     ->label('Negotiation Date')

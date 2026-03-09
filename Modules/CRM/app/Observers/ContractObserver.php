@@ -17,6 +17,25 @@ class ContractObserver
         if (! $contract->lead_id && $contract->proposal_id && $contract->proposal) {
             $contract->lead_id = $contract->proposal->lead_id;
         }
+
+        if (empty($contract->contract_number)) {
+            $year = date('Y');
+            $shortYear = date('y');
+
+            $latest = Contract::query()
+                ->whereYear('created_at', $year)
+                ->where('contract_number', 'LIKE', 'GDPS/UB/CON-%')
+                ->orderBy('id', 'desc') // Using ID as proxy for sequence if sequence_number isn't present
+                ->first();
+
+            // Extract sequence number from last contract number if possible
+            $sequence = 1;
+            if ($latest && preg_match('/CON-(\d+)\//', $latest->contract_number, $matches)) {
+                $sequence = ((int) $matches[1]) + 1;
+            }
+
+            $contract->contract_number = sprintf('GDPS/UB/CON-%03d/%s', $sequence, $shortYear);
+        }
     }
 
     /**

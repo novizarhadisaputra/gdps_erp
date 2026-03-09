@@ -85,6 +85,10 @@ class ManageProposals extends ManageRelatedRecords
                             'is_manual' => true,
                         ]);
 
+                        if (isset($data['file'])) {
+                            $proposal->addMediaFromDisk($data['file'], 's3')->toMediaCollection('final_proposal');
+                        }
+
                         $lead->update(['status' => LeadStatus::Proposal]);
 
                         Notification::make()
