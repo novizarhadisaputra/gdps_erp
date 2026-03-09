@@ -7,7 +7,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ToggleButtons;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -74,13 +74,8 @@ class ContractForm
                     DatePicker::make('expiry_date')
                         ->placeholder('Select expiry date')
                         ->helperText('Contract expiration date.'),
-                    ToggleButtons::make('status')
-                        ->options(ContractStatus::class)
-                        ->default(ContractStatus::Draft)
-                        ->hiddenOn('create')
-                        ->disabled()
-                        ->inline()
-                        ->required(),
+                    TextEntry::make('status')
+                        ->badge(),
                     Select::make('reminder_status')
                         ->options(ReminderStatus::class)
                         ->placeholder('Reminder status'),

@@ -7,10 +7,10 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Modules\CRM\Enums\MoAStatus;
 
 class MinutesOfAgreementForm
 {
@@ -33,11 +33,9 @@ class MinutesOfAgreementForm
                                     ->default(now())
                                     ->required()
                                     ->native(false),
-                                Select::make('status')
-                                    ->options(MoAStatus::class)
-                                    ->default(MoAStatus::Draft)
-                                    ->required()
-                                    ->native(false),
+                                TextEntry::make('status')
+                                    ->badge()
+                                    ->columnStart(3),
                             ]),
                         Grid::make(2)
                             ->schema([

@@ -11,6 +11,7 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 
 class ProposalForm

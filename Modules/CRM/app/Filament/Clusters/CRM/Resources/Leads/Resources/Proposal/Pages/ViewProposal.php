@@ -9,7 +9,6 @@ use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Enums\ProposalStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 use Modules\MasterData\Services\SignatureService;
 
@@ -135,46 +134,36 @@ class ViewProposal extends ViewRecord
                 ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->minutesOfAgreements()->exists())
                 ->requiresConfirmation()
                 ->action(function () {
+                    // Fetch General Information from the Lead to transfer data
+                    $gi = $this->record->lead?->generalInformations()
+                        ->where('status', \Modules\CRM\Enums\GeneralInformationStatus::Approved)
+                        ->latest()
+                        ->first() ?? $this->record->lead?->generalInformations()->latest()->first();
+
+                    $timeline = '';
+                    if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {
+                        $timeline = $gi->estimated_start_date->format('d/m/Y') . ' - ' . $gi->estimated_end_date->format('d/m/Y');
+                    }
+
                     $moa = \Modules\CRM\Models\MinutesOfAgreement::create([
                         'customer_id' => $this->record->customer_id,
                         'lead_id' => $this->record->lead_id,
                         'proposal_id' => $this->record->id,
                         'amount' => $this->record->amount,
+                        'scope_of_work' => $gi?->scope_of_work ?? '',
+                        'timeline' => $timeline,
+                        'terms' => $gi?->billing_requirements ?? '', // Billing requirements often contain payment terms
                         'negotiation_date' => now(),
                         'status' => \Modules\CRM\Enums\MoAStatus::Draft,
                     ]);
 
                     Notification::make()
                         ->title('Converted to Minutes of Agreement')
+                        ->body('Scope of work, timeline, and terms have been transferred from General Information.')
                         ->success()
                         ->send();
 
                     $this->redirect(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource::getUrl('edit', ['record' => $moa->id, 'lead' => $this->record->lead_id]));
-                }),
-
-            Action::make('convertToContract')
-                ->label('Convert to Contract')
-                ->icon('heroicon-o-document-duplicate')
-                ->color('success')
-                ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->contracts()->exists())
-                ->requiresConfirmation()
-                ->action(function () {
-                    $contract = \Modules\CRM\Models\Contract::create([
-                        'customer_id' => $this->record->customer_id,
-                        'lead_id' => $this->record->lead_id,
-                        'proposal_id' => $this->record->id,
-                        'contract_number' => 'CONTRACT-'.$this->record->proposal_number,
-                        'status' => \Modules\CRM\Enums\ContractStatus::Draft,
-                    ]);
-
-                    $this->record->update(['status' => ProposalStatus::Converted]);
-
-                    Notification::make()
-                        ->title('Converted to Contract')
-                        ->success()
-                        ->send();
-
-                    $this->redirect(ContractResource::getUrl('index', ['lead' => $this->record->lead_id]));
                 }),
 
             Action::make('Reject')
