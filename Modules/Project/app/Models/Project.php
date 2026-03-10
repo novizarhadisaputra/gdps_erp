@@ -64,14 +64,15 @@ class Project extends Model implements HasMedia
 
     public static function generateProjectCode(self $project): string
     {
-        $customerCode = $project->customer?->code ?? 'XXX';
-        $workSchemeCode = $project->workScheme?->code ?? 'XX';
-        $projectAreaCode = $project->projectArea?->code ?? 'XXX';
-        $projectNumber = str_pad((string) ($project->project_number ?? '1'), 4, '0', STR_PAD_LEFT);
-        $productClusterCode = $project->productCluster?->code ?? 'XXX';
-        $taxCode = $project->tax?->code ?? 'XX';
+        // Formula: [Customer(3)][ProjectSeq(2)][Area(3)][BranchSeq(2)][Cluster(3)][TaxCode(2)]
+        $customerShortCode = str_pad(substr($project->customer?->code ?? 'XXX', 0, 3), 3, 'X', STR_PAD_RIGHT);
+        $projectSeq = str_pad((string) ($project->project_number ?? '01'), 2, '0', STR_PAD_LEFT);
+        $areaCode = str_pad(substr($project->projectArea?->code ?? 'XXX', 0, 3), 3, 'X', STR_PAD_RIGHT);
+        $branchSeq = '01'; // Default to 01 as per spreadsheet example but not yet explicitly in DB
+        $clusterCode = str_pad(substr($project->productCluster?->code ?? 'XXX', 0, 3), 3, 'X', STR_PAD_RIGHT);
+        $taxCode = str_pad(substr($project->tax?->code ?? 'XX', 0, 2), 2, 'X', STR_PAD_RIGHT);
 
-        return strtoupper("{$workSchemeCode}{$productClusterCode}{$taxCode}{$customerCode}{$projectAreaCode}{$projectNumber}");
+        return strtoupper("{$customerShortCode}{$projectSeq}{$areaCode}{$branchSeq}{$clusterCode}{$taxCode}");
     }
 
     public function proposal(): BelongsTo

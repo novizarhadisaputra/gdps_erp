@@ -10,8 +10,12 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource;
+use Modules\CRM\Models\Contract;
+use Modules\Finance\Classes\ProjectGenerationService;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\MasterData\Services\SignatureService;
 
 class ViewContract extends ViewRecord
@@ -51,22 +55,6 @@ class ViewContract extends ViewRecord
                         Notification::make()
                             ->title('PIN Not Set')
                             ->body('You have not set your signature PIN. Please set it in your profile.')
-                            ->danger()
-                            ->actions([
-                                Action::make('profile')
-                                    ->label('To Profile')
-                                    ->button()
-                                    ->url(EditProfile::getUrl()),
-                            ])
-                            ->send();
-
-                        return;
-                    }
-
-                    if (! $user->hasMedia('signature')) {
-                        Notification::make()
-                            ->title('Signature Not Uploaded')
-                            ->body('You have not uploaded a signature image. Please upload it in your profile.')
                             ->danger()
                             ->actions([
                                 Action::make('profile')
@@ -126,18 +114,11 @@ class ViewContract extends ViewRecord
                 })
                 ->visible(fn () => in_array($this->record->status, [ContractStatus::Draft])),
 
-            Action::make('Activate')
-                ->color('success')
-                ->icon('heroicon-o-check-circle')
-                ->requiresConfirmation()
-                ->action(fn () => $this->record->update(['status' => ContractStatus::Active]))
-                ->visible(fn () => $this->record->status === ContractStatus::Draft),
-
             Action::make('Terminate')
                 ->color('danger')
                 ->icon('heroicon-o-x-circle')
                 ->requiresConfirmation()
-                ->form([
+                ->schema([
                     Textarea::make('termination_reason')
                         ->label('Reason for Termination')
                         ->required(),
@@ -151,55 +132,45 @@ class ViewContract extends ViewRecord
                 ->requiresConfirmation()
                 ->action(fn () => $this->record->update(['status' => ContractStatus::Expired]))
                 ->visible(fn () => $this->record->status === ContractStatus::Active),
-
-            Action::make('generateProject')
-                ->label('Generate Project')
-                ->icon('heroicon-o-plus-circle')
-                ->color('success')
+            Action::make('Renew')
+                ->label('Renew Contract')
+                ->color('warning')
+                ->icon(Heroicon::OutlinedArrowPath)
                 ->requiresConfirmation()
-                ->visible(fn () => $this->record->lead && ! $this->record->lead->projects()->exists() &&
-                    $this->record->status === ContractStatus::Active &&
-                    ($pa = $this->record->proposal?->profitabilityAnalysis) &&
-                    $pa->status === 'approved'
-                )
-                ->schema([
-                    \Filament\Forms\Components\TextInput::make('summary')
-                        ->label('Summary')
-                        ->default(fn () => "You are about to generate a Project for '{$this->record->customer?->name}'. This will consume the next sequence number for this customer and work scheme.")
-                        ->disabled()
-                        ->dehydrated(false)
-                        ->columnSpanFull(),
-                    \Filament\Forms\Components\TextInput::make('project_name_override')
-                        ->label('Project Name (Optional)')
-                        ->placeholder(fn () => $this->record->proposal?->proposal_number ?? 'Project for '.$this->record->customer?->name),
-                ])
-                ->action(function (array $data) {
-                    $pa = $this->record->proposal?->profitabilityAnalysis;
-
-                    if (! $pa) {
-                        Notification::make()
-                            ->title('Failed')
-                            ->body('Profitability Analysis (PA) not found for this contract.')
-                            ->danger()
-                            ->send();
-
-                        return;
-                    }
-
-                    $service = app(\Modules\Finance\Classes\ProjectGenerationService::class);
-                    $project = $service->generateFromPA($pa);
-
-                    if (! empty($data['project_name_override'])) {
-                        $project->update(['name' => $data['project_name_override']]);
-                    }
+                ->action(function (Contract $record) {
+                    $renewal = $record->replicate();
+                    $renewal->status = ContractStatus::Draft;
+                    $renewal->contract_number = $renewal->contract_number.'-RENEW';
+                    $renewal->save();
 
                     Notification::make()
-                        ->title('Project Generated')
-                        ->body("Project Code: {$project->code}")
+                        ->title('Contract Renewed')
+                        ->body('A project sequence increment will apply when you generate a project for this new contract.')
                         ->success()
                         ->send();
 
-                    $this->redirect(\Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource::getUrl('edit', ['record' => $project]));
+                    $this->redirect(ContractResource::getUrl('edit', ['record' => $renewal]));
+                })
+                ->visible(fn (Contract $record) => $record->status === ContractStatus::Active || $record->status === ContractStatus::Expired),
+
+            Action::make('generateProject')
+                ->label(fn (Contract $record): string => $record->project()->exists() ? 'Regenerate Project' : 'Generate Project')
+                ->icon(Heroicon::OutlinedRocketLaunch)
+                ->color(fn (Contract $record): string => $record->project()->exists() ? 'warning' : 'primary')
+                ->requiresConfirmation()
+                ->hidden(fn (Contract $record): bool => ! ($record->status->value === 'active' &&
+                    ($record->proposal?->profitabilityAnalysis?->status === ProfitabilityAnalysisStatus::Approved ||
+                    $record->proposal?->profitabilityAnalysis?->status->value === 'converted')
+                ))
+                ->action(function (Contract $record, ProjectGenerationService $service) {
+                    $pa = $record->proposal->profitabilityAnalysis;
+                    $project = $service->generateFromPA($pa);
+
+                    Notification::make()
+                        ->title($record->project()->exists() ? 'Project updated successfully' : 'Project generated successfully')
+                        ->body("Project code: {$project->code}")
+                        ->success()
+                        ->send();
                 }),
 
             EditAction::make()

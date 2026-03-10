@@ -2,17 +2,15 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Tables;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Schemas\Schema;
+use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Schemas\ContractForm;
+use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Models\Contract;
 
 class ContractsTable
@@ -44,6 +42,24 @@ class ContractsTable
             ])
             ->recordActions([
                 ViewAction::make(),
+                Action::make('renew')
+                    ->label('Renew')
+                    ->icon(Heroicon::OutlinedArrowPath)
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(function (Contract $record) {
+                        $renewal = $record->replicate();
+                        $renewal->status = ContractStatus::Draft;
+                        $renewal->contract_number = $renewal->contract_number.'-RENEW';
+                        $renewal->save();
+
+                        Notification::make()
+                            ->title('Contract Renewed')
+                            ->body('A project sequence increment will apply when you generate a project for this new contract.')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(fn (Contract $record) => $record->status === ContractStatus::Active || $record->status === ContractStatus::Expired),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

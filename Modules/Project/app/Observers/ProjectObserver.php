@@ -2,8 +2,8 @@
 
 namespace Modules\Project\Observers;
 
-use Modules\Project\Models\Project;
 use Modules\Project\Enums\ProjectInformationStatus;
+use Modules\Project\Models\Project;
 
 class ProjectObserver
 {
@@ -25,6 +25,26 @@ class ProjectObserver
         $project->information()->create([
             'status' => ProjectInformationStatus::Planning,
         ]);
+    }
+
+    /**
+     * Handle the Project "updating" event.
+     */
+    public function updating(Project $project): void
+    {
+        // Regenerate code if any segment parameters changed
+        $segments = [
+            'customer_id',
+            'project_area_id',
+            'product_cluster_id',
+            'tax_id',
+            'project_number',
+            'work_scheme_id',
+        ];
+
+        if ($project->isDirty($segments)) {
+            $project->code = Project::generateProjectCode($project);
+        }
     }
 
     /**

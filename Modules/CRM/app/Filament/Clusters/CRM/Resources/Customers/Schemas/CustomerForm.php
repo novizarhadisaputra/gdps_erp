@@ -32,10 +32,9 @@ class CustomerForm
                         ->label('Customer Code')
                         ->required()
                         ->unique(Customer::class, 'code', ignoreRecord: true)
-                        ->maxLength(255)
-                        ->placeholder('e.g. CUST-001')
-                        ->helperText('Unique customer code.')
-                        ->hidden($isCreateOption)
+                        ->maxLength(3)
+                        ->placeholder('3 characters (e.g. ACS)')
+                        ->helperText('Unique 3-character customer abbreviation used in project codes.')
                         ->disabled(fn ($record) => $record !== null)
                         ->dehydrated(),
                     Select::make('legal_entity_type')

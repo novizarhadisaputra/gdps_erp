@@ -3,24 +3,26 @@
 namespace Modules\CRM\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Database\Factories\CustomerFactory;
+use Modules\CRM\Observers\CustomerObserver;
 use Modules\MasterData\Enums\ActiveStatus;
 use Modules\MasterData\Enums\LegalEntityType;
 use Modules\MasterData\Models\Unit;
-use Modules\MasterData\Traits\HasAutoCodeAndSlug;
 use Modules\MasterData\Traits\HasUnitScoping;
 use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+#[ObservedBy(CustomerObserver::class)]
 class Customer extends Model implements HasMedia
 {
-    use HasAutoCodeAndSlug, HasFactory, HasUnitScoping, HasUuids, InteractsWithMedia;
+    use HasFactory, HasUnitScoping, HasUuids, InteractsWithMedia;
     use HasModuleSchema;
 
     /**

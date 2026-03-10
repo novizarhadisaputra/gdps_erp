@@ -12,7 +12,6 @@ use Modules\CRM\Database\Factories\ContractFactory;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Observers\ContractObserver;
-use Modules\CRM\Models\Customer;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -70,6 +69,11 @@ class Contract extends Model implements HasMedia
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
+    }
+
+    public function project(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\Modules\Project\Models\Project::class);
     }
 
     public function getAmountAttribute(): float

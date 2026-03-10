@@ -3,6 +3,8 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Modules\CRM\Models\Customer;
+use Modules\MasterData\Enums\LegalEntityType;
 use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\Item;
@@ -287,13 +289,11 @@ class MasterCodeSeeder extends Seeder
 
         // Project Types
         $projectTypes = [
-            ['code' => 'HC', 'name' => 'Headcount'],
-            ['code' => 'BRG', 'name' => 'Borongan'],
-            ['code' => 'FMCG', 'name' => 'FMCG'],
-            ['code' => 'RETL', 'name' => 'Retail'],
-            ['code' => 'HSK', 'name' => 'High Skill'],
-            ['code' => 'HH', 'name' => 'Head Hunter'],
-            ['code' => 'OTH', 'name' => 'Others'],
+            ['code' => '01', 'name' => 'TAD/Headcount'],
+            ['code' => '02', 'name' => 'Borongan'],
+            ['code' => '03', 'name' => 'Mitra'],
+            ['code' => '04', 'name' => 'Head Hunter'],
+            ['code' => 'OT', 'name' => 'Others'],
         ];
         foreach ($projectTypes as $data) {
             ProjectType::updateOrCreate(['code' => $data['code']], $data);
@@ -315,7 +315,7 @@ class MasterCodeSeeder extends Seeder
 
         // Item Categories
         $categories = [
-            ['code' => 'MT', 'name' => 'Material'],
+            ['code' => 'MATERIAL', 'name' => 'Material'],
             ['code' => 'EQ', 'name' => 'Equipment'],
         ];
         foreach ($categories as $data) {
@@ -359,6 +359,125 @@ class MasterCodeSeeder extends Seeder
         ];
         foreach ($billingOptions as $data) {
             BillingOption::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Customers (Kode Perusahaan)
+        $customers = [
+            ['code' => 'ABB', 'name' => 'Anugerah Bangun Bersama', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'ACE', 'name' => 'Anugrah Cita Era Food', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'ACS', 'name' => 'Aerofood Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AGI', 'name' => 'Aero Globe Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AIC', 'name' => 'Aice Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'ASA', 'name' => 'Adhitama Sejahtera Alami', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'ASY', 'name' => 'Aero System Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AWS', 'name' => 'Aerowisata', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BAT', 'name' => 'British American Tobacco', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BHI', 'name' => 'Baker Hughes Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BMC', 'name' => 'Braja Mukti Cakra', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BPR', 'name' => 'Bentoel Prima', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BTO', 'name' => 'Bintang Toedjoe', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'CKT', 'name' => 'Ciptaloka Karsa Teknologi', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'CSF', 'name' => 'Caturnusa Sejahtera Finance', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'DLA', 'name' => 'Deltomed Laboratories', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'DPP', 'name' => 'Dutagaruda Piranti Prima', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'DSJ', 'name' => 'Distribusi Sentra Jaya', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GFO', 'name' => 'Gagafood', 'legal_entity_type' => null],
+            ['code' => 'GGC', 'name' => 'GDPS Goldcare', 'legal_entity_type' => null],
+            ['code' => 'GIA', 'name' => 'Garuda Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GMF', 'name' => 'GMF Aeroasia, Tbk.', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GOT', 'name' => 'GDPS Other', 'legal_entity_type' => null],
+            ['code' => 'GPS', 'name' => 'Gita Prima Selaras', 'legal_entity_type' => null],
+            ['code' => 'GRP', 'name' => 'Gunung Raja Paksi', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GTI', 'name' => 'Grab Teknologi Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GDP', 'name' => 'GDPS', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'IKN', 'name' => 'Inklusi Keuangan Nusantara', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'JAE', 'name' => 'Jas Aero Engineering Services', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'JAS', 'name' => 'Jasa Angkasa Semesta', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'JCI', 'name' => 'Japfa Comfeed Indonesia, Tbk.', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'JTA', 'name' => 'Jakarana Tama', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KOP', 'name' => 'Kopnuspos', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KPH', 'name' => 'Kreanova Pharmaret', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KTI', 'name' => 'Kudo Teknologi Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'LLI', 'name' => 'Linfox Logistics Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'MNN', 'name' => 'Maha Nagari Nusantara', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'MNP', 'name' => 'Madusari Nusaperdana', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'MSA', 'name' => 'Mitra Semen Asia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'PFI', 'name' => 'Pet Food Indoprima', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'PNT', 'name' => 'Panca Nusa Travelindo', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'QGA', 'name' => 'Citilink Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'RIN', 'name' => 'Rhipe International', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SAN', 'name' => 'Sanad A Mubadala Company', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SGF', 'name' => 'So Good Food Manufacturing', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SMU', 'name' => 'Sayap Mas Utama', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'STE', 'name' => 'Smartfren Telecom Tbk', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SUI', 'name' => 'Sepeda Untuk Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'TIN', 'name' => 'Traveloka Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'TTR', 'name' => 'Trinusa Travelindo', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'UID', 'name' => 'Universitas Indonesia', 'legal_entity_type' => null],
+            ['code' => 'VKA', 'name' => 'Virama Karya', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'YMA', 'name' => 'Yayasan Marala', 'legal_entity_type' => LegalEntityType::Yayasan],
+            ['code' => 'ZIL', 'name' => 'Zespri International Limited', 'legal_entity_type' => null],
+            ['code' => 'MDI', 'name' => 'Mengniu Dairy Indonesia (Yoyic)', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'FJA', 'name' => 'Fiji Airways', 'legal_entity_type' => null],
+            ['code' => 'SSI', 'name' => 'SGMW Sales Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SMI', 'name' => 'SGMW Motor Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KCC', 'name' => 'Kereta Cepat Indonesia China (KCIC)', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'CKI', 'name' => 'Krayon Konsultan Indo', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'RSH', 'name' => 'RS Haji', 'legal_entity_type' => null],
+            ['code' => 'SZI', 'name' => 'Shenglu Zhangmei International', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'JJN', 'name' => 'Jalan-Jalan Nusantara', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SIM', 'name' => 'Sentosa Indo Mulya', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AUF', 'name' => 'Andalan Utama Foodindo', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'PRS', 'name' => 'Perumnas', 'legal_entity_type' => null],
+            ['code' => 'STN', 'name' => 'Sabre Travel Network Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'ZIN', 'name' => 'Zalora Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BDU', 'name' => 'Bentoel Distributor Utama', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SII', 'name' => 'SAIC Internasional Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AJI', 'name' => 'AICE Ice Cream Jatim Industry', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KBN', 'name' => 'Kementerian BUMN', 'legal_entity_type' => null],
+            ['code' => 'RXI', 'name' => 'RUI XUE INTERNATIONAL', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'FMP', 'name' => 'Fashion Marketplace', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GPA', 'name' => 'Gapura Angkasa', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AFI', 'name' => 'Alpen Food Industry', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'JPC', 'name' => 'Jakarta Praise Community Church', 'legal_entity_type' => null],
+            ['code' => 'KII', 'name' => 'Kerajaan Ice Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GEM', 'name' => 'GERBANG EDUKASI MAKMUR', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'PLI', 'name' => 'Pos Logistik Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'MTE', 'name' => 'MENTARI TIMUR EKSPEDISI', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'PAJ', 'name' => 'Pratama Artha Jaya', 'legal_entity_type' => LegalEntityType::CV],
+            ['code' => 'AJC', 'name' => 'Aerojasa Cargo', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AIM', 'name' => 'Andalas Indah Makmur', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KNA', 'name' => 'Kalista Nusa Armada', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KSH', 'name' => 'Kalista Soter Hastia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BEC', 'name' => 'Bumilangit Entertainment Corpora', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'PIP', 'name' => 'PLN Indonesia Power', 'legal_entity_type' => null],
+            ['code' => 'MBS', 'name' => 'Mega Boga Sagara', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SUB', 'name' => 'Senang Untuk Berbagi', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KBI', 'name' => 'Kalista Biru Nusantara', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'YIC', 'name' => 'Yammi Ice Cream', 'legal_entity_type' => LegalEntityType::CV],
+            ['code' => 'PFT', 'name' => 'Profit Foods Tranding', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SEI', 'name' => 'Sicepat Ekspres Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'HBI', 'name' => 'Hiboo Baby Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'PAL', 'name' => 'PNG Air Limited', 'legal_entity_type' => null],
+            ['code' => 'AEC', 'name' => 'ACMIC ELECTRONIC', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'BFI', 'name' => 'Belfood Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GFP', 'name' => 'GRIFF PRIMA ABADI', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KLI', 'name' => 'KOHLER INDONESIA', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KMI', 'name' => 'KOHLER MANUFACTURING INDONESIA', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'APR', 'name' => 'Aneka Petroindo Raya', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'GMI', 'name' => 'Gading Murni', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'CBI', 'name' => 'CEMERLANG BERJAYA INDONESIA', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'AJN', 'name' => 'Agrinas Jaladri Nusantara', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'SSM', 'name' => 'Strada Satya Makmur', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'TAP', 'name' => 'TALENT ANGELS PTE LTD', 'legal_entity_type' => null],
+            ['code' => 'ETA', 'name' => 'Ekspres Transportasi Antarbenua', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'WAD', 'name' => 'Wira Adirajasa Dirgantara', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'ATF', 'name' => 'ARTHA UTAMA FOODINDO', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'KMG', 'name' => 'Keumseong LLC', 'legal_entity_type' => null],
+        ];
+
+        foreach ($customers as $data) {
+            Customer::updateOrCreate(['code' => $data['code']], $data);
         }
     }
 }
