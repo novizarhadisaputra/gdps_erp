@@ -29,19 +29,11 @@ class GeneralInformationPolicy
 
     public function update(AuthUser $authUser, GeneralInformation $generalInformation): bool
     {
-        if ($generalInformation->isLocked()) {
-            return false;
-        }
-
         return $authUser->can('Update:GeneralInformation');
     }
 
     public function delete(AuthUser $authUser, GeneralInformation $generalInformation): bool
     {
-        if ($generalInformation->isLocked()) {
-            return false;
-        }
-
         return $authUser->can('Delete:GeneralInformation');
     }
 
@@ -53,5 +45,25 @@ class GeneralInformationPolicy
     public function forceDelete(AuthUser $authUser, GeneralInformation $generalInformation): bool
     {
         return $authUser->can('ForceDelete:GeneralInformation');
+    }
+
+    public function forceDeleteAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('ForceDeleteAny:GeneralInformation');
+    }
+
+    public function restoreAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('RestoreAny:GeneralInformation');
+    }
+
+    public function replicate(AuthUser $authUser, GeneralInformation $generalInformation): bool
+    {
+        return $authUser->can('Replicate:GeneralInformation');
+    }
+
+    public function reorder(AuthUser $authUser): bool
+    {
+        return $authUser->can('Reorder:GeneralInformation');
     }
 }
