@@ -10,6 +10,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
 use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Pages\ListProjectInformations;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Pages\ViewProjectInformation;
 use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Schemas\ProjectInformationForm;
 use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Tables\ProjectInformationTable;
 use Modules\Project\Models\ProjectInformation;
@@ -73,6 +74,7 @@ class ProjectInformationResource extends Resource
     {
         return [
             'index' => ListProjectInformations::route('/'),
+            'view' => ViewProjectInformation::route('/{record}'),
         ];
     }
 }

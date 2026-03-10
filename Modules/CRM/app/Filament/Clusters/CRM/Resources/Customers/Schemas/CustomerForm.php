@@ -30,12 +30,12 @@ class CustomerForm
                 ->schema([
                     TextInput::make('code')
                         ->label('Customer Code')
-                        ->required()
                         ->unique(Customer::class, 'code', ignoreRecord: true)
                         ->maxLength(3)
-                        ->placeholder('3 characters (e.g. ACS)')
+                        ->placeholder('Auto-generated')
                         ->helperText('Unique 3-character customer abbreviation used in project codes.')
                         ->disabled(fn ($record) => $record !== null)
+                        ->hidden(fn ($record) => $record === null && $isCreateOption)
                         ->dehydrated(),
                     Select::make('legal_entity_type')
                         ->label('Legal Entity Type')
@@ -52,13 +52,11 @@ class CustomerForm
                     TextInput::make('email')
                         ->label('Email')
                         ->email()
-                        ->required()
                         ->maxLength(255)
                         ->placeholder('example@email.com'),
                     TextInput::make('phone')
                         ->label('Phone')
                         ->tel()
-                        ->required()
                         ->maxLength(255)
                         ->placeholder('081234567890'),
                     TextInput::make('address')

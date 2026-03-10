@@ -3,6 +3,7 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Tables;
 
 use BackedEnum;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -114,7 +115,53 @@ class ProjectInformationTable
                                     $record->update(['status' => 'active']);
                                 }
                             }),
+                        Action::make('exportPdf')
+                            ->label('Export PDF')
+                            ->icon('heroicon-o-document-arrow-down')
+                            ->color('danger')
+                            ->action(function (ProjectInformation $record) {
+                                $pdf = Pdf::loadView(
+                                    'project::pdf.project-information',
+                                    [
+                                        'record' => $record,
+                                        'isExport' => true,
+                                        'isPdf' => true,
+                                    ]
+                                )->setPaper('a4', 'portrait');
+
+                                $filename = 'project_info_'.($record->project?->project_code ?? $record->id).'.pdf';
+                                $filename = str_replace(['/', '\\'], '_', $filename);
+
+                                return response()->streamDownload(function () use ($pdf) {
+                                    echo $pdf->output();
+                                }, $filename, [
+                                    'Content-Type' => 'application/pdf',
+                                ]);
+                            }),
                     ]),
+                Action::make('exportPdf')
+                    ->label('Export PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (ProjectInformation $record) {
+                        $pdf = Pdf::loadView(
+                            'project::pdf.project-information',
+                            [
+                                'record' => $record,
+                                'isExport' => true,
+                                'isPdf' => true,
+                            ]
+                        )->setPaper('a4', 'portrait');
+
+                        $filename = 'project_info_'.($record->project?->project_code ?? $record->id).'.pdf';
+                        $filename = str_replace(['/', '\\'], '_', $filename);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->output();
+                        }, $filename, [
+                            'Content-Type' => 'application/pdf',
+                        ]);
+                    }),
                 EditAction::make(),
                 DeleteAction::make(),
             ])
