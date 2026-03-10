@@ -90,17 +90,9 @@ class LeadObserver
                 break;
 
             case LeadStatus::Proposal:
-                // 3. Proposal: Otomatis buat draft "Proposal" jika belum ada
-                if ($lead->proposals()->count() === 0) {
-                    $lead->proposals()->create([
-                        'customer_id' => $lead->customer_id,
-                        'issued_date' => now(),
-                        'valid_until' => now()->addDays(30),
-                        'status' => 'draft', // Assuming 'draft' is a valid status key
-                        'amount' => $lead->estimated_amount,
-                        // Add other required fields if necessary
-                    ]);
-                }
+                // We no longer automatically create a draft proposal here.
+                // Proposals are created either via "Create Proposal" (from PA)
+                // or via "Manual Upload" in the Lead Proposals page.
                 break;
 
             case LeadStatus::Negotiation:

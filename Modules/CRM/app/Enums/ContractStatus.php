@@ -8,6 +8,7 @@ use Filament\Support\Contracts\HasLabel;
 enum ContractStatus: string implements HasColor, HasLabel
 {
     case Draft = 'draft';
+    case Submitted = 'submitted';
     case Active = 'active';
     case Expired = 'expired';
     case Terminated = 'terminated';
@@ -16,6 +17,7 @@ enum ContractStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Draft => 'Draft',
+            self::Submitted => 'Submitted',
             self::Active => 'Active',
             self::Expired => 'Expired',
             self::Terminated => 'Terminated',
@@ -26,6 +28,7 @@ enum ContractStatus: string implements HasColor, HasLabel
     {
         return match ($this) {
             self::Draft => 'gray',
+            self::Submitted => 'info',
             self::Active => 'success',
             self::Expired => 'warning',
             self::Terminated => 'danger',

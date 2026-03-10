@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Observers;
 
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 
 class ProfitabilityAnalysisObserver
@@ -50,6 +51,24 @@ class ProfitabilityAnalysisObserver
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Handle the ProfitabilityAnalysis "updated" event.
+     */
+    public function updated(ProfitabilityAnalysis $analysis): void
+    {
+        // 1. When PA is approved, Lead moves to Proposal stage
+        if (
+            $analysis->isDirty('status') &&
+            in_array($analysis->status, [ProfitabilityAnalysisStatus::Approved, ProfitabilityAnalysisStatus::Converted], true) &&
+            $analysis->lead &&
+            $analysis->lead->status->weight() < \Modules\CRM\Enums\LeadStatus::Proposal->weight()
+        ) {
+            $analysis->lead->update([
+                'status' => \Modules\CRM\Enums\LeadStatus::Proposal,
+            ]);
         }
     }
 

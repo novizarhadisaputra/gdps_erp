@@ -32,6 +32,7 @@ class RiskRegisterWebhookRequest extends FormRequest
             'general_information_id' => 'required|uuid|exists:general_informations,id',
             'rr_submission_id' => 'required|string',
             'rr_document_number' => 'required|string',
+            'rr_document_path' => 'nullable|string',
             'status' => 'required|string|in:APPROVED,REJECTED,IN_PROGRESS,SUBMITTED',
         ];
     }

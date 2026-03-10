@@ -134,6 +134,13 @@ class GeneralInformationInfolist
                                 TextEntry::make('rr_submission_id')
                                     ->label('RR Submission ID')
                                     ->placeholder('-'),
+                                TextEntry::make('rr_document_path')
+                                    ->label('RR Document')
+                                    ->icon('heroicon-o-arrow-down-tray')
+                                    ->color('primary')
+                                    ->formatStateUsing(fn () => 'Download Document')
+                                    ->url(fn ($record) => $record->rr_document_path, true)
+                                    ->visible(fn ($record) => filled($record->rr_document_path)),
                             ]),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => filled($record?->rr_status)),

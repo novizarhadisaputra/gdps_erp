@@ -32,6 +32,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->text('remarks')->nullable();
             $table->string('rr_document_number')->nullable(); // Risk Register Document Number
+            $table->string('rr_document_path')->nullable();
             $table->string('rr_submission_id')->nullable();
             $table->string('rr_status')->nullable();
             $table->json('rr_payload')->nullable();

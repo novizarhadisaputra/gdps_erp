@@ -31,6 +31,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Tables\LeadsTable;
 use Modules\CRM\Models\Lead;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 
 class LeadResource extends Resource
 {
@@ -88,11 +89,12 @@ class LeadResource extends Resource
             ]))->map(fn (NavigationItem $item) => $item
                 ->group('Stage 2: Commercials (Proposal)')
                 ->visible(fn () => in_array($record->status, [
+                    LeadStatus::Approach,
                     LeadStatus::Proposal,
                     LeadStatus::Negotiation,
                     LeadStatus::Contract,
                     LeadStatus::Won,
-                ]) && $record->profitabilityAnalyses()->where('status', 'approved')->exists()
+                ]) && $record->profitabilityAnalyses()->whereIn('status', [ProfitabilityAnalysisStatus::Approved, ProfitabilityAnalysisStatus::Converted])->exists()
                 ))->toArray(),
             ...collect($page->generateNavigationItems([
                 ManageMinutesOfAgreements::class,

@@ -58,6 +58,7 @@ class GeneralInformation extends Model implements HasMedia
         'description',
         'remarks',
         'rr_document_number',
+        'rr_document_path',
         'sequence_number',
         'year',
         'rr_submission_id',

@@ -96,7 +96,17 @@ class ViewMinutesOfAgreement extends ViewRecord
                             ->send();
                     }
                 })
-                ->visible(fn (MinutesOfAgreement $record) => $record->status !== MoAStatus::Approved),
+                ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Submitted),
+
+            Action::make('Submit')
+                ->color('info')
+                ->icon('heroicon-o-paper-airplane')
+                ->requiresConfirmation()
+                ->action(function () {
+                    $this->record->update(['status' => MoAStatus::Submitted]);
+                    $this->refreshFormData(['status']);
+                })
+                ->visible(fn () => $this->record->status === MoAStatus::Draft),
             Action::make('convertToContract')
                 ->label('Convert to Contract')
                 ->icon('heroicon-o-document-duplicate')

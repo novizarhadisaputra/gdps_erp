@@ -119,7 +119,7 @@ class ViewGeneralInformation extends ViewRecord
 
                     $this->refreshFormData(['status']);
                 })
-                ->visible(fn () => in_array($this->getRecord()->status, [GeneralInformationStatus::Submitted, GeneralInformationStatus::Draft])),
+                ->visible(fn () => in_array($this->getRecord()->status, [GeneralInformationStatus::Submitted])),
 
             Action::make('Submit')
                 ->color('info')

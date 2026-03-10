@@ -32,7 +32,7 @@ class ProposalObserver
      */
     public function created(Proposal $proposal): void
     {
-        if ($proposal->lead) {
+        if ($proposal->lead && $proposal->lead->status->weight() < LeadStatus::Negotiation->weight()) {
             $proposal->lead()->update(['status' => LeadStatus::Negotiation]);
         }
     }

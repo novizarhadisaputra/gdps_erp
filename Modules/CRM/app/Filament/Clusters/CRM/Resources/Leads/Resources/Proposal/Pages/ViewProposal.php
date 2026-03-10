@@ -125,7 +125,7 @@ class ViewProposal extends ViewRecord
                             ->send();
                     }
                 })
-                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Draft])),
+                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted])),
 
             Action::make('convertToMoA')
                 ->label('Convert to MoA (BA)')

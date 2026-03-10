@@ -41,6 +41,7 @@ class RiskRegisterWebhookController extends Controller
         $gi->update([
             'rr_submission_id' => $validated['rr_submission_id'],
             'rr_document_number' => $validated['rr_document_number'],
+            'rr_document_path' => $validated['rr_document_path'] ?? null,
             'rr_status' => $statusMap[$validated['status']] ?? 'draft',
             'rr_payload' => $request->all(),
         ]);

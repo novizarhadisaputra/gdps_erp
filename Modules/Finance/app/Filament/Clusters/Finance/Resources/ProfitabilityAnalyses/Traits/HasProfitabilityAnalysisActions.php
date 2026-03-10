@@ -110,9 +110,7 @@ trait HasProfitabilityAnalysisActions
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
                 $allowed = [
-                    ProfitabilityAnalysisStatus::Draft,
                     ProfitabilityAnalysisStatus::Submitted,
-                    'draft',
                     'submitted',
                 ];
 

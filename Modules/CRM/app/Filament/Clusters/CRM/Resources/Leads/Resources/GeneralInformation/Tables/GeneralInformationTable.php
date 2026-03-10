@@ -71,6 +71,12 @@ class GeneralInformationTable
 
                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                     }, true),
+                IconColumn::make('rr_document_path')
+                    ->label('RR Doc')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success')
+                    ->url(fn ($record) => $record->rr_document_path, true)
+                    ->visible(fn ($record) => filled($record->rr_document_path)),
             ])
             ->filters([
                 //

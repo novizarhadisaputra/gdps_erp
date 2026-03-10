@@ -112,7 +112,17 @@ class ViewContract extends ViewRecord
                         $this->record->update(['status' => ContractStatus::Active]);
                     }
                 })
-                ->visible(fn () => in_array($this->record->status, [ContractStatus::Draft])),
+                ->visible(fn () => in_array($this->record->status, [ContractStatus::Submitted])),
+
+            Action::make('Submit')
+                ->color('info')
+                ->icon('heroicon-o-paper-airplane')
+                ->requiresConfirmation()
+                ->action(function () {
+                    $this->record->update(['status' => ContractStatus::Submitted]);
+                    $this->refreshFormData(['status']);
+                })
+                ->visible(fn () => $this->record->status === ContractStatus::Draft),
 
             Action::make('Terminate')
                 ->color('danger')
