@@ -45,6 +45,9 @@ return new class extends Migration
 
             $table->integer('project_number')->nullable();
             $table->string('status')->default('draft'); // draft, approved, rejected, converted
+            $table->boolean('is_margin_approved')->default(false);
+            $table->integer('revision_number')->default(0);
+            $table->string('previous_code')->nullable();
             $table->boolean('is_imported')->default(false);
             $table->boolean('is_manual_cost')->default(false);
             $table->uuid('import_source_id')->nullable();

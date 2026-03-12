@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Observers;
 
+use Modules\CRM\Enums\LeadStatus;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 
@@ -34,9 +35,9 @@ class ProfitabilityAnalysisObserver
     public function created(ProfitabilityAnalysis $analysis): void
     {
         // When PA is created, Lead moves to Approach stage if not already further
-        if ($analysis->lead && $analysis->lead->status->weight() < \Modules\CRM\Enums\LeadStatus::Approach->weight()) {
+        if ($analysis->lead && $analysis->lead->status->weight() < LeadStatus::Approach->weight()) {
             $analysis->lead->update([
-                'status' => \Modules\CRM\Enums\LeadStatus::Approach,
+                'status' => LeadStatus::Approach,
             ]);
         }
 
@@ -59,15 +60,35 @@ class ProfitabilityAnalysisObserver
      */
     public function updated(ProfitabilityAnalysis $analysis): void
     {
-        // 1. When PA is approved, Lead moves to Proposal stage
+        // 1. When Margin is approved, Lead moves to Proposal stage
         if (
-            $analysis->isDirty('status') &&
-            in_array($analysis->status, [ProfitabilityAnalysisStatus::Approved, ProfitabilityAnalysisStatus::Converted], true) &&
+            $analysis->isDirty('is_margin_approved') &&
+            $analysis->is_margin_approved &&
             $analysis->lead &&
-            $analysis->lead->status->weight() < \Modules\CRM\Enums\LeadStatus::Proposal->weight()
+            $analysis->lead->status->weight() < LeadStatus::Proposal->weight()
         ) {
             $analysis->lead->update([
-                'status' => \Modules\CRM\Enums\LeadStatus::Proposal,
+                'status' => LeadStatus::Proposal,
+            ]);
+        }
+
+        // 2. When PA is reset to Draft (due to revision), track revision info and clear signatures
+        if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Draft) {
+            $analysis->updateQuietly([
+                'revision_number' => $analysis->revision_number + 1,
+                'previous_code' => $analysis->document_number,
+                'is_margin_approved' => false,
+            ]);
+
+            // Clear signatures from PA
+            $analysis->signatures()->delete();
+        }
+
+        // 3. Sync calculations to Sales Plan
+        if ($analysis->lead && $analysis->lead->salesPlan) {
+            $analysis->lead->salesPlan->updateQuietly([
+                'npm_percentage' => $analysis->net_profit_margin,
+                'management_fee_percentage' => $analysis->management_fee_rate,
             ]);
         }
     }

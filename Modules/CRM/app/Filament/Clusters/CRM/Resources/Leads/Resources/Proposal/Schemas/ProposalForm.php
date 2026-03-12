@@ -11,7 +11,6 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 
 class ProposalForm
@@ -113,13 +112,20 @@ class ProposalForm
                 ->schema([
                     SpatieMediaLibraryFileUpload::make('final_proposal')
                         ->collection('final_proposal')
-                        ->label('Final Proposal Document')
+                        ->label('Final Draft Proposal')
                         ->disk('s3')
                         ->visibility('private')
                         ->downloadable()
                         ->openable()
-                        ->helperText('Format: PDF preferred. Size limit 10MB.')
-                        ->columnSpanFull(),
+                        ->helperText('Format: PDF preferred. Size limit 10MB.'),
+                    SpatieMediaLibraryFileUpload::make('signed_proposal')
+                        ->collection('signed_proposal')
+                        ->label('Signed Proposal (Client Copy)')
+                        ->disk('s3')
+                        ->visibility('private')
+                        ->downloadable()
+                        ->openable()
+                        ->helperText('The officially signed and stamped proposal.'),
                 ])
                 ->columnSpanFull(),
         ];

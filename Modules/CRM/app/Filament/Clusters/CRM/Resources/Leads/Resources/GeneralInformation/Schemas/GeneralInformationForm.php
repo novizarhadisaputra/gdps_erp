@@ -135,7 +135,16 @@ class GeneralInformationForm
                         ->label('RFQ Document')
                         ->disk('s3')
                         ->visibility('private'),
-                ])->columns(3),
+                    SpatieMediaLibraryFileUpload::make('other_documents')
+                        ->collection('other_documents')
+                        ->label('Other Documents')
+                        ->disk('s3')
+                        ->visibility('private')
+                        ->multiple()
+                        ->downloadable()
+                        ->openable()
+                        ->helperText('Additional supporting documents (e.g., permits, certifications).'),
+                ])->columns(2),
 
             Section::make('PICs & Remarks')
                 ->schema([

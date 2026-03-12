@@ -3,7 +3,9 @@
 namespace Modules\CRM\Observers;
 
 use Modules\CRM\Enums\LeadStatus;
+use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 
 class ProposalObserver
 {
@@ -42,10 +44,30 @@ class ProposalObserver
      */
     public function updated(Proposal $proposal): void
     {
-        if ($proposal->wasChanged('status') && $proposal->status === \Modules\CRM\Enums\ProposalStatus::Approved) {
+        if ($proposal->wasChanged('status') && $proposal->status === ProposalStatus::Approved) {
             if ($proposal->lead) {
                 $proposal->lead->update([
-                    'status' => \Modules\CRM\Enums\LeadStatus::Negotiation,
+                    'status' => LeadStatus::Negotiation,
+                ]);
+            }
+        }
+
+        // 2. If Proposal is moved to Draft (Revised), reset linked PA status and track revision
+        if ($proposal->wasChanged('status') && $proposal->status === ProposalStatus::Draft) {
+            // Track revision info on Proposal
+            $proposal->updateQuietly([
+                'revision_number' => $proposal->revision_number + 1,
+                'previous_code' => $proposal->proposal_number,
+            ]);
+
+            // Clear signatures from Proposal
+            $proposal->signatures()->delete();
+
+            // Cascade to Profitability Analysis
+            if ($proposal->profitabilityAnalysis) {
+                $proposal->profitabilityAnalysis->update([
+                    'status' => ProfitabilityAnalysisStatus::Draft,
+                    'is_margin_approved' => false,
                 ]);
             }
         }

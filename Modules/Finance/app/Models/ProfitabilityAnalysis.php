@@ -76,6 +76,9 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'is_manual_cost',
         'work_scheme_id',
         'tax_id',
+        'is_margin_approved',
+        'revision_number',
+        'previous_code',
     ];
 
     protected function casts(): array
@@ -100,6 +103,8 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'analysis_details' => 'array',
             'project_number' => 'integer',
             'is_manual_cost' => 'boolean',
+            'is_margin_approved' => 'boolean',
+            'revision_number' => 'integer',
         ];
     }
 

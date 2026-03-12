@@ -28,15 +28,42 @@ class ProposalInfolist
                                     ->money('IDR'),
                                 TextEntry::make('submission_date')
                                     ->date(),
+                                TextEntry::make('revision_number')
+                                    ->label('Revision #')
+                                    ->badge()
+                                    ->color('info'),
+                                TextEntry::make('previous_code')
+                                    ->label('Previous Code')
+                                    ->visible(fn ($record) => filled($record->previous_code)),
                             ]),
-                        Grid::make(1)
+                        Grid::make(2)
                             ->schema([
                                 TextEntry::make('final_proposal_document')
                                     ->label('Proposal Document')
                                     ->state(fn ($record) => $record->getFirstMedia('final_proposal')?->file_name ?? 'No Document')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('final_proposal'), true)
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('final_proposal');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
                                     ->icon(Heroicon::OutlinedDocumentText)
                                     ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'primary'),
+                                TextEntry::make('signed_proposal_document')
+                                    ->label('Signed Proposal')
+                                    ->state(fn ($record) => $record->getFirstMedia('signed_proposal')?->file_name ?? 'No Document')
+                                    ->url(function ($record) {
+                                        $media = $record->getFirstMedia('signed_proposal');
+                                        if (! $media) {
+                                            return null;
+                                        }
+
+                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+                                    }, true)
+                                    ->icon(Heroicon::OutlinedCheckBadge)
+                                    ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'success'),
                             ]),
                     ])->columnSpanFull(),
                 Section::make('Approval & Signatures')

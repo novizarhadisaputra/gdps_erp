@@ -24,6 +24,7 @@ return new class extends Migration
 
             $table->foreignUuid('industrial_sector_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'industrial_sectors' : 'master_data.industrial_sectors')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->nullOnDelete();
+            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->nullOnDelete();
 
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();

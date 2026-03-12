@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('scope_of_work')->nullable();
             $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas');
             $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'master_data.work_schemes')->nullOnDelete();
+            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->nullOnDelete();
             $table->string('location')->nullable(); // Keep for legacy or specific detail if needed, or deprecate
             $table->date('estimated_start_date')->nullable();
             $table->date('estimated_end_date')->nullable();

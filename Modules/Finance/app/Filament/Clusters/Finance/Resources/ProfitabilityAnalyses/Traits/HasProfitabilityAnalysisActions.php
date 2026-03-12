@@ -33,6 +33,29 @@ trait HasProfitabilityAnalysisActions
             });
     }
 
+    protected function getApproveMarginAction(): Action
+    {
+        return Action::make('Approve Margin')
+            ->color('success')
+            ->icon('heroicon-o-check-badge')
+            ->requiresConfirmation()
+            ->action(function ($record) {
+                $record->update(['is_margin_approved' => true]);
+
+                Notification::make()
+                    ->title('Margin Approved')
+                    ->body('Net Profit Margin has been approved. The process can now proceed to Proposal.')
+                    ->success()
+                    ->send();
+            })
+            ->visible(function ($record) {
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                $isMarginApproved = $record?->is_margin_approved ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->is_margin_approved : false);
+
+                return ($status === ProfitabilityAnalysisStatus::Draft || $status === 'draft') && ! $isMarginApproved;
+            });
+    }
+
     protected function getRejectAction(): Action
     {
         return Action::make('Reject')
@@ -355,6 +378,7 @@ trait HasProfitabilityAnalysisActions
     {
         return [
             $this->getDuplicateAction(),
+            $this->getApproveMarginAction(),
             $this->getSignAction(),
             $this->getSubmitAction(),
             $this->getRejectAction(),

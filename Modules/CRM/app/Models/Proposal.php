@@ -34,6 +34,8 @@ class Proposal extends Model implements HasMedia
         'status',
         'is_manual',
         'submission_date',
+        'revision_number',
+        'previous_code',
         'sequence_number',
         'year',
         'is_imported',
@@ -45,6 +47,7 @@ class Proposal extends Model implements HasMedia
         return [
             'status' => ProposalStatus::class,
             'submission_date' => 'date',
+            'revision_number' => 'integer',
             'is_manual' => 'boolean',
         ];
     }
@@ -52,6 +55,9 @@ class Proposal extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('final_proposal')
+            ->useDisk('s3')
+            ->singleFile();
+        $this->addMediaCollection('signed_proposal')
             ->useDisk('s3')
             ->singleFile();
     }

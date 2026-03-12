@@ -140,6 +140,18 @@ class ProfitabilityAnalysisForm
                                     ->placeholder('Auto-generated')
                                     ->columnSpan(1),
                                 Hidden::make('lead_id'),
+                                TextInput::make('revision_number')
+                                    ->label('Revision #')
+                                    ->disabled()
+                                    ->default(0)
+                                    ->dehydrated()
+                                    ->columnSpan(1),
+                                TextInput::make('previous_code')
+                                    ->label('Previous Code')
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->columnSpan(1)
+                                    ->visible(fn ($record) => filled($record?->previous_code)),
                             ]),
 
                     ]),

@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('proposal_number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected, converted
+            $table->integer('revision_number')->default(0);
+            $table->string('previous_code')->nullable();
             $table->boolean('is_manual')->default(false);
             $table->boolean('is_imported')->default(false);
             $table->uuid('import_source_id')->nullable();

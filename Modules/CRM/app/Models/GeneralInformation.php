@@ -94,6 +94,8 @@ class GeneralInformation extends Model implements HasMedia
         $this->addMediaCollection('rfi')
             ->useDisk('s3')
             ->singleFile();
+
+        $this->addMediaCollection('other_documents');
     }
 
     public function customer(): BelongsTo

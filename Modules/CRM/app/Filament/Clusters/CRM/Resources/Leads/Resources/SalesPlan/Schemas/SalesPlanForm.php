@@ -27,6 +27,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Sc
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\SkillCategories\Schemas\SkillCategoryForm;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\JobPosition;
+use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
@@ -223,7 +224,8 @@ class SalesPlanForm
                                     ->suffix('%')
                                     ->default(0)
                                     ->required()
-                                    ->helperText('Target profit margin percentage.'),
+                                    ->hidden()
+                                    ->helperText('Target profit margin percentage. Automatically populated from Profitability Analysis.'),
                             ]),
                         Grid::make(2)
                             ->schema([
@@ -237,7 +239,7 @@ class SalesPlanForm
                                         if (! $state) {
                                             return;
                                         }
-                                        $term = \Modules\MasterData\Models\PaymentTerm::find($state);
+                                        $term = PaymentTerm::find($state);
                                         if ($term) {
                                             $set('top_days', $term->days);
                                         }

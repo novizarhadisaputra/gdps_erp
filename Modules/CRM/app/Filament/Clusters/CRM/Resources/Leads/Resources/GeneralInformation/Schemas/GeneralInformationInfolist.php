@@ -89,6 +89,17 @@ class GeneralInformationInfolist
                                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                                     }, true)
                                     ->visible(fn ($record) => $record?->hasMedia('rfi')),
+                                TextEntry::make('other_documents')
+                                    ->label('Other Documents')
+                                    ->html()
+                                    ->formatStateUsing(function ($record) {
+                                        return $record->getMedia('other_documents')->map(function ($media) {
+                                            $url = $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
+
+                                            return "<a href='{$url}' target='_blank' class='text-primary-600 hover:underline'>{$media->file_name}</a>";
+                                        })->join('<br>');
+                                    })
+                                    ->visible(fn ($record) => $record?->hasMedia('other_documents')),
                             ]),
                     ])->columnSpanFull(),
 
