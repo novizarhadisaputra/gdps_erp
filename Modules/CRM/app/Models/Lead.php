@@ -71,6 +71,7 @@ class Lead extends Model implements HasMedia
         'end_date',
         'job_positions',
         'pic_costing_id',
+        'tax_id',
     ];
 
     protected $casts = [

@@ -44,20 +44,31 @@ class ProjectGenerationService
                 'end_date' => $pa->lead?->end_date,
             ];
 
-            // PIVOT SHIFT: Lookup by contract_id if available, otherwise fallback to lead_id or PA
-            $lookup = [];
-            if ($contract?->id) {
-                $lookup = ['contract_id' => $contract->id];
-            } elseif ($pa->lead_id) {
-                $lookup = ['lead_id' => $pa->lead_id];
-            } else {
-                $lookup = ['profitability_analysis_id' => $pa->id];
-            }
+            // PIVOT SHIFT: Lookup by contract_id primary, fallback to lead_id or PA
+            // We want to avoid creating duplicate projects if one already exists for the lead
+            /** @var Project|null $project */
+            $project = Project::query()
+                ->when($contract?->id, fn ($q) => $q->where('contract_id', $contract->id))
+                ->when(! $contract?->id && $pa->lead_id, fn ($q) => $q->where('lead_id', $pa->lead_id))
+                ->when(! $contract?->id && ! $pa->lead_id, fn ($q) => $q->where('profitability_analysis_id', $pa->id))
+                ->first();
 
-            $project = Project::updateOrCreate(
-                $lookup,
-                $projectData
-            );
+            if ($project) {
+                $project->update($projectData);
+            } else {
+                // Double check if there's any project with lead_id if we are currently looking by contract but found none
+                if ($contract?->id && $pa->lead_id) {
+                    /** @var Project|null $project */
+                    $project = Project::where('lead_id', $pa->lead_id)->first();
+                    if ($project) {
+                        $project->update($projectData);
+                    }
+                }
+
+                if (! $project) {
+                    $project = Project::create($projectData);
+                }
+            }
 
             // 4. Populate Project Information from PA
             $details = $pa->analysis_details;
@@ -70,7 +81,7 @@ class ProjectGenerationService
                 ])->toArray();
             }
 
-            $project->information->update([
+            $project->information()->updateOrCreate([], [
                 'revenue_per_month' => $pa->revenue_per_month,
                 'direct_cost' => $pa->direct_cost,
                 'management_fee_per_month' => $pa->management_fee,
@@ -94,9 +105,14 @@ class ProjectGenerationService
     protected function getNextSequenceNumber(ProfitabilityAnalysis $pa, ?Contract $contract = null): int
     {
         // 1. Reuse project number from existing Project tied to this contract/lead
+        /** @var Project|null $existingProject */
         $existingProject = null;
         if ($contract?->id) {
             $existingProject = Project::where('contract_id', $contract->id)->first();
+            // Fallback to lead if contract has no project yet but lead does
+            if (! $existingProject && $pa->lead_id) {
+                $existingProject = Project::where('lead_id', $pa->lead_id)->first();
+            }
         } elseif ($pa->lead_id) {
             $existingProject = Project::where('lead_id', $pa->lead_id)->first();
         }

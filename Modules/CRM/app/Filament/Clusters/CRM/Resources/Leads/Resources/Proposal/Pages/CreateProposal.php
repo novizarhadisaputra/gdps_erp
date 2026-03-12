@@ -19,7 +19,23 @@ class CreateProposal extends CreateRecord
         if ($lead) {
             $data['lead_id'] = $lead->id;
             $data['customer_id'] = $lead->customer_id;
-            $data['work_scheme_id'] = $lead->work_scheme_id;
+
+            // Find latest approved or submitted PA
+            $latestPA = $lead->profitabilityAnalyses()
+                ->whereIn('status', [
+                    \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Approved,
+                    \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Submitted,
+                ])
+                ->latest()
+                ->first();
+
+            if ($latestPA) {
+                $data['profitability_analysis_id'] = $latestPA->id;
+                $data['work_scheme_id'] = $latestPA->work_scheme_id;
+            } else {
+                $data['work_scheme_id'] = $lead->work_scheme_id;
+            }
+
             $data['amount'] = $data['amount'] ?? $lead->estimated_amount;
         }
 

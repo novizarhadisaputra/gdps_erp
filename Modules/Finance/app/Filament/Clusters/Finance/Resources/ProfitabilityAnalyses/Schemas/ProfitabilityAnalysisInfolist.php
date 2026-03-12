@@ -70,7 +70,7 @@ class ProfitabilityAnalysisInfolist
                                     ->icon(Heroicon::OutlinedDocumentChartBar)
                                     ->color(fn ($state) => $state === 'No RFP' ? 'gray' : 'primary'),
                                 TextEntry::make('rfi_document')
-                                    ->label('RFI Document')
+                                    ->label('RFQ Document')
                                     ->state(fn ($record) => $record->getFirstMedia('rfi')?->file_name ?? 'No RFI')
                                     ->url(function ($record) {
                                         $media = $record->getFirstMedia('rfi');
@@ -264,6 +264,12 @@ class ProfitabilityAnalysisInfolist
                                     ->money('IDR')
                                     ->weight(FontWeight::Bold)
                                     ->color('success'),
+                                TextEntry::make('net_profit_margin')
+                                    ->label('9. NPM (%)')
+                                    ->numeric()
+                                    ->suffix('%')
+                                    ->weight(FontWeight::Bold)
+                                    ->color('primary'),
                             ]),
                     ]),
                 Section::make('Signatures')

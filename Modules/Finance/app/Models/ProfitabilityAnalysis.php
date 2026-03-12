@@ -75,6 +75,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'payment_term_id',
         'is_manual_cost',
         'work_scheme_id',
+        'tax_id',
     ];
 
     protected function casts(): array

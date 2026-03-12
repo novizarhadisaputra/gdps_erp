@@ -10,7 +10,19 @@ class ApprovalRuleSeeder extends Seeder
     public function run(): void
     {
         $rules = [
-            // Profitability Analysis Rules
+            // General Information Rules - Always applies
+            [
+                'resource_type' => 'Modules\CRM\Models\GeneralInformation',
+                'criteria_field' => 'sequence_number',
+                'operator' => '>=',
+                'value' => 0,
+                'approver_type' => 'Role',
+                'approver_role' => ['super_admin'],
+                'signature_type' => 'approval',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            // Profitability Analysis Rules - Always applies
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
                 'criteria_field' => 'revenue_per_month',
@@ -22,7 +34,7 @@ class ApprovalRuleSeeder extends Seeder
                 'order' => 1,
                 'is_active' => true,
             ],
-            // Proposal Rules
+            // Proposal Rules - Always applies
             [
                 'resource_type' => 'Modules\CRM\Models\Proposal',
                 'criteria_field' => 'amount',
@@ -34,12 +46,24 @@ class ApprovalRuleSeeder extends Seeder
                 'order' => 1,
                 'is_active' => true,
             ],
-            // Contract Rules
+            // Minutes of Agreement Rules - Always applies
+            [
+                'resource_type' => 'Modules\CRM\Models\MinutesOfAgreement',
+                'criteria_field' => null,
+                'operator' => null,
+                'value' => null,
+                'approver_type' => 'Role',
+                'approver_role' => ['super_admin'],
+                'signature_type' => 'approval',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            // Contract Rules - Always applies
             [
                 'resource_type' => 'Modules\CRM\Models\Contract',
-                'criteria_field' => 'contract_number',
-                'operator' => '!=',
-                'value' => 0,
+                'criteria_field' => null,
+                'operator' => null,
+                'value' => null,
                 'approver_type' => 'Role',
                 'approver_role' => ['super_admin'],
                 'signature_type' => 'approval',
@@ -52,7 +76,6 @@ class ApprovalRuleSeeder extends Seeder
             ApprovalRule::updateOrCreate(
                 [
                     'resource_type' => $rule['resource_type'],
-                    'criteria_field' => $rule['criteria_field'],
                     'order' => $rule['order'],
                 ],
                 $rule

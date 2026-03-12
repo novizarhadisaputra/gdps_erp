@@ -198,14 +198,14 @@ trait HasProfitabilityAnalysisActions
                     'customer_id' => $record->customer_id,
                     'lead_id' => $record->lead_id,
                     'profitability_analysis_id' => $record->id,
-                    'work_scheme_id' => $record->lead?->work_scheme_id ?? $record->generalInformation?->work_scheme_id,
+                    'work_scheme_id' => $record->work_scheme_id,
                     'amount' => is_numeric($data['amount']) ? (float) $data['amount'] : (float) str_replace(['.', ','], ['', '.'], $data['amount']),
                     'submission_date' => $data['submission_date'],
                     'status' => ProposalStatus::Draft,
                 ]);
 
-                $record->update(['proposal_id' => $proposal->id]);
-                $record->lead->update(['status' => LeadStatus::Proposal]);
+                $record->updateQuietly(['proposal_id' => $proposal->id]);
+                $record->lead?->update(['status' => LeadStatus::Proposal]);
 
                 Notification::make()
                     ->title('Proposal Created')

@@ -68,10 +68,10 @@ class ContractObserver
     public function updated(Contract $contract): void
     {
         if ($contract->wasChanged('status') && $contract->status === ContractStatus::Active) {
-            if ($contract->proposal_id && $contract->proposal && $contract->proposal->lead) {
-                $contract->proposal->lead->update([
-                    'status' => LeadStatus::Won,
-                ]);
+            $lead = $contract->lead ?? $contract->proposal?->lead;
+
+            if ($lead) {
+                $lead->update(['status' => LeadStatus::Won]);
             }
         }
     }

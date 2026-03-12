@@ -55,7 +55,7 @@ class GeneralInformationInfolist
                             ->schema([
                                 TextEntry::make('tor')
                                     ->label('ToR Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('tor')?->file_name)
+                                    ->state(fn ($record) => $record?->getFirstMedia('tor')?->file_name)
                                     ->url(function ($record) {
                                         $media = $record->getFirstMedia('tor');
                                         if (! $media) {
@@ -64,10 +64,10 @@ class GeneralInformationInfolist
 
                                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                                     }, true)
-                                    ->visible(fn ($record) => $record->hasMedia('tor')),
+                                    ->visible(fn ($record) => $record?->hasMedia('tor')),
                                 TextEntry::make('rfp')
                                     ->label('RFP Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('rfp')?->file_name)
+                                    ->state(fn ($record) => $record?->getFirstMedia('rfp')?->file_name)
                                     ->url(function ($record) {
                                         $media = $record->getFirstMedia('rfp');
                                         if (! $media) {
@@ -76,10 +76,10 @@ class GeneralInformationInfolist
 
                                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                                     }, true)
-                                    ->visible(fn ($record) => $record->hasMedia('rfp')),
+                                    ->visible(fn ($record) => $record?->hasMedia('rfp')),
                                 TextEntry::make('rfi')
-                                    ->label('RFI Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('rfi')?->file_name)
+                                    ->label('RFQ Document')
+                                    ->state(fn ($record) => $record?->getFirstMedia('rfi')?->file_name)
                                     ->url(function ($record) {
                                         $media = $record->getFirstMedia('rfi');
                                         if (! $media) {
@@ -88,7 +88,7 @@ class GeneralInformationInfolist
 
                                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                                     }, true)
-                                    ->visible(fn ($record) => $record->hasMedia('rfi')),
+                                    ->visible(fn ($record) => $record?->hasMedia('rfi')),
                             ]),
                     ])->columnSpanFull(),
 
@@ -139,8 +139,8 @@ class GeneralInformationInfolist
                                     ->icon('heroicon-o-arrow-down-tray')
                                     ->color('primary')
                                     ->formatStateUsing(fn () => 'Download Document')
-                                    ->url(fn ($record) => $record->rr_document_path, true)
-                                    ->visible(fn ($record) => filled($record->rr_document_path)),
+                                    ->url(fn ($record) => $record?->rr_document_path, true)
+                                    ->visible(fn ($record) => filled($record?->rr_document_path)),
                             ]),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => filled($record?->rr_status)),

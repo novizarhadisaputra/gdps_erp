@@ -147,6 +147,12 @@ class LeadForm
                                 ->createOptionUsing(fn (array $data) => ProjectArea::create($data)->id)
                                 ->editOptionForm(ProjectAreaForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                            Select::make('tax_id')
+                                ->label('Tax')
+                                ->relationship('tax', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->placeholder('Select tax configuration'),
                         ]),
                 ])
                 ->columnSpanFull(),

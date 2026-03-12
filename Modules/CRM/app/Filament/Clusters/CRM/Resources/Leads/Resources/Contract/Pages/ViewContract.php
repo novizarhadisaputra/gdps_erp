@@ -41,7 +41,7 @@ class ViewContract extends ViewRecord
                 ->label('Digital Signature')
                 ->color('primary')
                 ->icon('heroicon-o-pencil-square')
-                ->form([
+                ->schema([
                     TextInput::make('pin')
                         ->label('Signature PIN')
                         ->password()
@@ -159,7 +159,7 @@ class ViewContract extends ViewRecord
                         ->success()
                         ->send();
 
-                    $this->redirect(ContractResource::getUrl('edit', ['record' => $renewal]));
+                    $this->redirect(ContractResource::getUrl('edit', ['record' => $renewal, 'lead' => $record->lead_id]));
                 })
                 ->visible(fn (Contract $record) => $record->status === ContractStatus::Active || $record->status === ContractStatus::Expired),
 
@@ -168,12 +168,27 @@ class ViewContract extends ViewRecord
                 ->icon(Heroicon::OutlinedRocketLaunch)
                 ->color(fn (Contract $record): string => $record->project()->exists() ? 'warning' : 'primary')
                 ->requiresConfirmation()
-                ->hidden(fn (Contract $record): bool => ! ($record->status->value === 'active' &&
-                    ($record->proposal?->profitabilityAnalysis?->status === ProfitabilityAnalysisStatus::Approved ||
-                    $record->proposal?->profitabilityAnalysis?->status->value === 'converted')
+                ->hidden(fn (Contract $record): bool => ! (
+                    in_array($record->status?->value, ['submitted', 'active']) &&
+                    $record->proposal?->profitabilityAnalysis &&
+                    in_array($record->proposal->profitabilityAnalysis->status, [
+                        ProfitabilityAnalysisStatus::Approved,
+                        ProfitabilityAnalysisStatus::Converted,
+                    ])
                 ))
                 ->action(function (Contract $record, ProjectGenerationService $service) {
-                    $pa = $record->proposal->profitabilityAnalysis;
+                    $pa = $record->proposal?->profitabilityAnalysis;
+
+                    if (! $pa) {
+                        Notification::make()
+                            ->title('Operation failed')
+                            ->body('No Profitability Analysis found.')
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
                     $project = $service->generateFromPA($pa);
 
                     Notification::make()

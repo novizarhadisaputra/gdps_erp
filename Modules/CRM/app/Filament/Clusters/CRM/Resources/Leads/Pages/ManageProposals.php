@@ -16,6 +16,7 @@ use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 use Modules\CRM\Models\Proposal;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 
 class ManageProposals extends ManageRelatedRecords
 {
@@ -75,10 +76,20 @@ class ManageProposals extends ManageRelatedRecords
                             ? (float) $data['amount']
                             : (float) str_replace(['.', ','], ['', '.'], $data['amount']);
 
+                        // Find latest approved or submitted PA
+                        $latestPA = $lead->profitabilityAnalyses()
+                            ->whereIn('status', [
+                                ProfitabilityAnalysisStatus::Approved,
+                                ProfitabilityAnalysisStatus::Submitted,
+                            ])
+                            ->latest()
+                            ->first();
+
                         $proposal = Proposal::create([
                             'lead_id' => $lead->id,
                             'customer_id' => $lead->customer_id,
-                            'work_scheme_id' => $lead->work_scheme_id,
+                            'profitability_analysis_id' => $latestPA?->id,
+                            'work_scheme_id' => $latestPA?->work_scheme_id ?? $lead->work_scheme_id,
                             'amount' => $amount,
                             'submission_date' => $data['submission_date'],
                             'status' => ProposalStatus::Draft,

@@ -88,7 +88,7 @@ class GeneralInformationForm
                                 ->placeholder('Example: Terminal 3 Bandara Soekarno-Hatta'),
                             Select::make('sales_plan_id')
                                 ->relationship('salesPlan', 'project_code')
-                                ->getOptionLabelFromRecordUsing(fn ($record) => $record->project_code ?? 'No Project Code')
+                                ->getOptionLabelFromRecordUsing(fn ($record) => $record?->project_code ?? 'No Project Code')
                                 ->label('Source Sales Plan')
                                 ->disabled()
                                 ->placeholder('Select from Sales Plan list')
@@ -118,7 +118,7 @@ class GeneralInformationForm
                 ])->columns(2),
 
             Section::make('Documentation')
-                ->description('Upload Term of Reference, RFP, and RFI documents.')
+                ->description('Upload Term of Reference, RFP, and RFQ Documents.')
                 ->schema([
                     SpatieMediaLibraryFileUpload::make('tor')
                         ->collection('tor')
@@ -132,7 +132,7 @@ class GeneralInformationForm
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfi')
                         ->collection('rfi')
-                        ->label('RFI Document')
+                        ->label('RFQ Document')
                         ->disk('s3')
                         ->visibility('private'),
                 ])->columns(3),

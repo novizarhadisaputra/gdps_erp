@@ -37,7 +37,7 @@ class GeneralInformationTable
                     ->sortable(),
                 IconColumn::make('tor')
                     ->label('ToR')
-                    ->getStateUsing(fn ($record) => $record->hasMedia('tor'))
+                    ->getStateUsing(fn ($record) => $record?->hasMedia('tor'))
                     ->boolean()
                     ->url(function ($record) {
                         $media = $record->getFirstMedia('tor');
@@ -49,7 +49,7 @@ class GeneralInformationTable
                     }, true),
                 IconColumn::make('rfp')
                     ->label('RFP')
-                    ->getStateUsing(fn ($record) => $record->hasMedia('rfp'))
+                    ->getStateUsing(fn ($record) => $record?->hasMedia('rfp'))
                     ->boolean()
                     ->url(function ($record) {
                         $media = $record->getFirstMedia('rfp');
@@ -61,7 +61,7 @@ class GeneralInformationTable
                     }, true),
                 IconColumn::make('rfi')
                     ->label('RFI')
-                    ->getStateUsing(fn ($record) => $record->hasMedia('rfi'))
+                    ->getStateUsing(fn ($record) => $record?->hasMedia('rfi'))
                     ->boolean()
                     ->url(function ($record) {
                         $media = $record->getFirstMedia('rfi');
@@ -75,8 +75,8 @@ class GeneralInformationTable
                     ->label('RR Doc')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
-                    ->url(fn ($record) => $record->rr_document_path, true)
-                    ->visible(fn ($record) => filled($record->rr_document_path)),
+                    ->url(fn ($record) => $record?->rr_document_path, true)
+                    ->visible(fn ($record) => filled($record?->rr_document_path)),
             ])
             ->filters([
                 //

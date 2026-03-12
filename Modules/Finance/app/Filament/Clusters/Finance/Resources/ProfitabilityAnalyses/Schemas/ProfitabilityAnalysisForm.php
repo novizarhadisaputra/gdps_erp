@@ -28,6 +28,7 @@ use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Enums\RiskLevel;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Models\DirectCostCategory;
@@ -189,6 +190,14 @@ class ProfitabilityAnalysisForm
                                     ->placeholder(now()->year)
                                     ->helperText('Budget year for minimum wage references.')
                                     ->live(onBlur: true),
+                                Select::make('tax_id')
+                                    ->label('Tax')
+                                    ->relationship('tax', 'name')
+                                    ->required()
+                                    ->searchable()
+                                    ->preload()
+                                    ->placeholder('Select tax configuration')
+                                    ->helperText('Tax configuration for the project code (e.g. PPN 11%).'),
                             ]),
                         Grid::make(2)
                             ->schema([
@@ -266,7 +275,9 @@ class ProfitabilityAnalysisForm
                                     ->default(fn (Get $get, $livewire) => $get('/payment_term_id') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->payment_term_id : null))
                                     ->live(onBlur: true)
                                     ->placeholder('Select payment term')
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->createOptionForm(PaymentTermForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
                             ]),
                     ]),
 
@@ -881,6 +892,11 @@ class ProfitabilityAnalysisForm
                                                     ->editOptionForm(DirectCostCategoryForm::schema(type: 'direct'))
                                                     ->fillEditOptionActionFormUsing(fn (Select $component): ?array => DirectCostCategory::find($component->getState())?->toArray())
                                                     ->updateOptionUsing(fn (Select $component, array $data) => DirectCostCategory::find($component->getState())?->update($data)),
+                                                TextInput::make('net_profit')
+                                                    ->label('Net Profit')
+                                                    ->prefix('IDR ')
+                                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                    ->readOnly(),
                                                 TextInput::make('amount')
                                                     ->label('Category Total')
                                                     ->numeric()
@@ -1106,6 +1122,13 @@ class ProfitabilityAnalysisForm
                                             ->readOnly()
                                             ->dehydrated()
                                             ->extraAttributes(['class' => 'font-bold text-success-700']),
+                                        TextInput::make('net_profit_margin')
+                                            ->label('NPM (%)')
+                                            ->numeric()
+                                            ->suffix('%')
+                                            ->readOnly()
+                                            ->dehydrated()
+                                            ->extraAttributes(['class' => 'font-bold text-primary-700']),
                                     ])->extraAttributes(['class' => 'border-t border-gray-100 pt-4 mt-4']),
                             ]),
 
