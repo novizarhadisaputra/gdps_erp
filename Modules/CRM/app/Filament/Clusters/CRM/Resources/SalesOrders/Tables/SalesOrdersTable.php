@@ -2,15 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Tables;
 
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Table;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Modules\CRM\Enums\SalesOrderStatus;
+use Modules\CRM\Models\SalesOrder;
 
 class SalesOrdersTable
 {
@@ -48,6 +49,16 @@ class SalesOrdersTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function (SalesOrder $record) {
+                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
+                        $filename = str_replace(['/', '\\'], '-', $record->so_number);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "so-{$filename}.pdf");
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

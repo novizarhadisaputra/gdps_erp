@@ -101,20 +101,20 @@ class GeneralInformationForm
                 ->schema([
                     Textarea::make('manpower_qualifications')
                         ->rows(3)
+                        ->required()
                         ->placeholder('Example: Min. height 170cm, Gada Pratama certificate, min. high school education, max age 35 years'),
                     Textarea::make('work_activities')
                         ->rows(3)
+                        ->required()
                         ->placeholder('Example: Airport area patrol, personnel ID check, CCTV monitoring, baggage screening'),
                     Textarea::make('service_level')
                         ->rows(3)
+                        ->required()
                         ->placeholder('Example: Incident response time < 5 minutes, 100% personnel availability per shift'),
                     Textarea::make('billing_requirements')
                         ->rows(3)
+                        ->required()
                         ->placeholder('Example: Invoice sent no later than the 5th of each month, complete BAPP attachments'),
-                    Repeater::make('risk_management')
-                        ->label('Risk Management')
-                        ->simple(TextInput::make('risk')->required())
-                        ->columnSpanFull(),
                 ])->columns(2),
 
             Section::make('Documentation')
@@ -124,16 +124,19 @@ class GeneralInformationForm
                         ->collection('tor')
                         ->label('ToR Document')
                         ->disk('s3')
+                        ->required()
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfp')
                         ->collection('rfp')
                         ->label('RFP Document')
                         ->disk('s3')
+                        ->required()
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfi')
                         ->collection('rfi')
                         ->label('RFQ Document')
                         ->disk('s3')
+                        ->required()
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('other_documents')
                         ->collection('other_documents')

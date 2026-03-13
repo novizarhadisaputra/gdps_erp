@@ -7,6 +7,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
@@ -14,6 +15,8 @@ use Modules\MasterData\Services\SignatureService;
 
 class ViewProposal extends ViewRecord
 {
+    use InteractsWithParentRecord;
+
     protected static string $resource = ProposalResource::class;
 
     protected function getHeaderActions(): array
@@ -174,15 +177,25 @@ class ViewProposal extends ViewRecord
                 ->visible(fn () => $this->record->status === ProposalStatus::Submitted),
 
             Action::make('sendEmail')
-                ->label('Send Email')
+                ->label(fn () => $this->record->status === ProposalStatus::Sent ? 'Resend Email' : 'Send Email')
                 ->color('info')
                 ->icon('heroicon-o-envelope')
-                ->url(fn () => $this->getResource()::getUrl('send', ['record' => $this->record]))
-                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Approved])),
+                ->url(fn () => route('filament.admin.crm.resources.leads.proposals.send', [
+                    'lead' => $this->record->lead_id,
+                    'record' => $this->record->id,
+                ]))
+                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Approved, ProposalStatus::Sent])),
 
             EditAction::make()
-                ->visible(fn () => $this->record->status === ProposalStatus::Draft),
-            DeleteAction::make(),
+                ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [
+                    'lead' => $this->record->lead_id,
+                    'record' => $this->record->id,
+                ]))
+                ->visible(fn () => $this->getRecord()->status === ProposalStatus::Draft),
+            DeleteAction::make()
+                ->successRedirectUrl(fn () => route('filament.admin.crm.resources.leads.proposals.index', [
+                    'lead' => $this->record->lead_id,
+                ])),
         ];
     }
 }

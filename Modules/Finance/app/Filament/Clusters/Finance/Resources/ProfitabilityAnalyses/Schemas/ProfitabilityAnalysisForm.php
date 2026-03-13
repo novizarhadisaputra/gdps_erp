@@ -263,7 +263,7 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(1.50)
                                     ->placeholder('1.50')
-                                    ->helperText('Estimasi biaya bunga atau biaya modal (Cost of Money).')
+                                    ->helperText('Estimated interest expense or cost of capital (Cost of Money).')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
                                 TextInput::make('tax_rate')
@@ -271,7 +271,7 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(22.00)
                                     ->placeholder('22.00')
-                                    ->helperText('Tarif Pajak Penghasilan Badan (Corporate Income Tax).')
+                                    ->helperText('Corporate Income Tax Rate.')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
                                 TextInput::make('management_fee_rate')
@@ -279,7 +279,7 @@ class ProfitabilityAnalysisForm
                                     ->numeric()
                                     ->default(fn (Get $get, $livewire) => $get('/management_fee_rate') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->management_fee_percentage : 0) ?? 15.00)
                                     ->placeholder('15.00')
-                                    ->helperText('Target persentase margin laba kotor (Fee Proyek).')
+                                    ->helperText('Target Gross Profit Margin percentage (Project Fee).')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
                                 Select::make('payment_term_id')
@@ -318,8 +318,8 @@ class ProfitabilityAnalysisForm
                                     ])
                                     ->required()
                                     ->live(onBlur: true)
-                                    ->placeholder('Pilih tipe sumber daya')
-                                    ->helperText('Pilih antara Jabatan tunggal atau Paket Template.')
+                                    ->placeholder('Select resource type')
+                                    ->helperText('Select between single Job Position or Manpower Template packet.')
                                     ->afterStateUpdated(fn (Set $set) => $set('costable_id', null))
                                     ->columnSpan(1),
                                 Select::make('direct_cost_category_id')
@@ -338,8 +338,8 @@ class ProfitabilityAnalysisForm
                                     ->searchable()
                                     ->preload()
                                     ->live(onBlur: true)
-                                    ->placeholder('Pilih data Resource')
-                                    ->helperText('Pilih Jabatan atau Template yang akan digunakan.')
+                                    ->placeholder('Select Resource data')
+                                    ->helperText('Select the Job Position or Template to use.')
                                     ->afterStateUpdated(function ($state, $get, Set $set) {
                                         if (! $state || ! $get('costable_type')) {
                                             return;
@@ -441,8 +441,8 @@ class ProfitabilityAnalysisForm
                                     ->default(RiskLevel::VeryLow)
                                     ->visible(fn (Get $get) => $get('costable_type') === JobPosition::class)
                                     ->live(onBlur: true)
-                                    ->placeholder('Pilih tingkat risiko')
-                                    ->helperText('Menentukan tarif BPJS Ketenagakerjaan (JKK).')
+                                    ->placeholder('Select risk level')
+                                    ->helperText('Determines the BPJS Ketenagakerjaan (JKK) rate.')
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         self::updateItemTotals($get, $set);
                                     })
@@ -450,7 +450,7 @@ class ProfitabilityAnalysisForm
                                 Toggle::make('is_labor_intensive')
                                     ->label('Labor')
                                     ->visible(fn (Get $get) => $get('costable_type') === JobPosition::class)
-                                    ->helperText('Aktifkan jika pekerjaan padat karya (diskon 50% JKK).')
+                                    ->helperText('Activate if labor-intensive work (50% JKK discount).')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         self::updateItemTotals($get, $set);
@@ -465,8 +465,8 @@ class ProfitabilityAnalysisForm
                                     ->searchable()
                                     ->preload()
                                     ->live(onBlur: true)
-                                    ->placeholder('Pilih status PTKP')
-                                    ->helperText('Status Pajak untuk perhitungan metode TER.')
+                                    ->placeholder('Select PTKP status')
+                                    ->helperText('Tax Status for TER method calculation.')
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         self::updateItemTotals($get, $set);
                                     })
@@ -474,8 +474,8 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('quantity')
                                     ->numeric()
                                     ->default(1)
-                                    ->placeholder('Jumlah personil')
-                                    ->helperText('Jumlah tenaga kerja yang dibutuhkan.')
+                                    ->placeholder('Number of personnel')
+                                    ->helperText('Number of manpower required.')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(function (Get $get, Set $set) {
                                         self::updateItemTotals($get, $set);
@@ -834,7 +834,7 @@ class ProfitabilityAnalysisForm
                                     ->state(function ($get, $record) {
                                         $leadId = $get('lead_id') ?? $record?->lead_id;
                                         if (! $leadId) {
-                                            return 'Pilih Lead terlebih dahulu.';
+                                            return 'Please select a Lead first.';
                                         }
 
                                         $lead = Lead::find($leadId);

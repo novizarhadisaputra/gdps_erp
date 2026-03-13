@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders;
 
-use Modules\CRM\Models\SalesOrder;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -14,6 +13,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\EditSalesOrder
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ListSalesOrders;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas\SalesOrderForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Tables\SalesOrdersTable;
+use Modules\CRM\Models\SalesOrder;
 
 class SalesOrderResource extends Resource
 {
@@ -22,6 +22,8 @@ class SalesOrderResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = CRMCluster::class;
+
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

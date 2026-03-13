@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas;
 
 use App\Filament\Infolists\Components\DigitalSignatureEntry;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -77,6 +78,57 @@ class ProposalInfolist
                             ->columnSpanFull(),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => $record->signatures()->exists()),
+
+                Section::make('Discussions')
+                    ->description('Internal team notes and revision context.')
+                    ->schema([
+                        RepeatableEntry::make('comments')
+                            ->label('Internal Notes')
+                            ->schema([
+                                Grid::make(4)->schema([
+                                    TextEntry::make('user.name')
+                                        ->label('User')
+                                        ->icon('heroicon-m-user'),
+                                    TextEntry::make('body')
+                                        ->label('Comment')
+                                        ->columnSpan(2),
+                                    TextEntry::make('created_at')
+                                        ->label('Date')
+                                        ->dateTime()
+                                        ->color('gray'),
+                                ]),
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->visible(fn ($record) => $record->comments()->exists()),
+
+                Section::make('Communication History')
+                    ->description('Traceability of emails sent to the customer.')
+                    ->schema([
+                        RepeatableEntry::make('communicationLogs')
+                            ->label('Sent Emails')
+                            ->schema([
+                                Grid::make(4)->schema([
+                                    TextEntry::make('recipient_email')
+                                        ->label('Recipient')
+                                        ->icon('heroicon-m-envelope'),
+                                    TextEntry::make('subject')
+                                        ->label('Subject'),
+                                    TextEntry::make('sender.name')
+                                        ->label('Sent By'),
+                                    TextEntry::make('sent_at')
+                                        ->label('Sent Date')
+                                        ->dateTime()
+                                        ->color('gray'),
+                                ]),
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull()
+                    ->collapsible()
+                    ->visible(fn ($record) => $record->communicationLogs()->exists()),
             ]);
     }
 }

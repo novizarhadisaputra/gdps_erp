@@ -11,4 +11,9 @@ class EditProposal extends EditRecord
     use InteractsWithParentRecord;
 
     protected static string $resource = ProposalResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('view', ['record' => $this->record, 'lead' => $this->record->lead_id]);
+    }
 }

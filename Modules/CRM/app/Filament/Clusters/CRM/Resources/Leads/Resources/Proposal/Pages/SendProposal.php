@@ -2,23 +2,28 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
-use Filament\Resources\Pages\ViewRecord;
+use Filament\Resources\Pages\Concerns\InteractsWithRecord;
+use Filament\Resources\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
-use Modules\CRM\app\Emails\ProposalMail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
+use Modules\CRM\Emails\ProposalMail;
+use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 
-class SendProposal extends ViewRecord
+class SendProposal extends Page
 {
-    use InteractsWithParentRecord;
+    use InteractsWithRecord;
 
     protected static string $resource = ProposalResource::class;
 
@@ -30,11 +35,13 @@ class SendProposal extends ViewRecord
 
     public function mount($record): void
     {
-        parent::mount($record);
+        $this->record = $this->resolveRecord($record);
 
         $this->form->fill([
             'subject' => 'Proposal - '.$this->record->proposal_number,
             'recipient_email' => $this->record->customer?->email,
+            'recipient_name' => $this->record->customer?->name,
+            'message' => '<p>Please find the attached proposal for our services.</p><p>If you have any questions or require further information, please do not hesitate to contact us.</p>',
         ]);
     }
 
@@ -48,39 +55,103 @@ class SendProposal extends ViewRecord
         return Width::Full;
     }
 
-    public function form(Schema $schema): Schema
+    public function getContactOptions(): array
     {
         $contacts = $this->record->customer?->contacts ?? [];
-        $contactOptions = collect($contacts)->mapWithKeys(function ($contact) {
+
+        return collect($contacts)->mapWithKeys(function ($contact) {
+            $value = ($contact['email'] ?? $contact['name']).'|'.($contact['name'] ?? '');
             $label = $contact['name'].($contact['email'] ? " ({$contact['email']})" : '');
 
-            return [$contact['email'] ?? $contact['name'] => $label];
+            return [$value => $label];
         })->toArray();
+    }
 
+    public function form(Schema $schema): Schema
+    {
         return $schema
             ->schema([
                 Select::make('recipient_contact')
                     ->label('Select Contact')
-                    ->options($contactOptions)
+                    ->options(fn () => $this->getContactOptions())
                     ->live()
+                    ->createOptionForm([
+                        TextInput::make('name')->required(),
+                        TextInput::make('email')->email()->required(),
+                    ])
+                    ->createOptionUsing(function (array $data) {
+                        $customer = $this->record->customer;
+                        $contacts = $customer->contacts ?? [];
+                        $contacts[] = $data;
+                        $customer->update(['contacts' => $contacts]);
+
+                        return ($data['email'] ?? $data['name']).'|'.($data['name'] ?? '');
+                    })
+                    ->editOptionForm([
+                        TextInput::make('name')->required(),
+                        TextInput::make('email')->email()->required(),
+                    ])
+                    ->editOptionAction(function (Action $action) {
+                        return $action
+                            ->fillForm(function (string $state) {
+                                $customer = $this->record->customer;
+                                $contacts = $customer->contacts ?? [];
+                                [$emailPart, $namePart] = explode('|', $state);
+                                foreach ($contacts as $contact) {
+                                    if (($contact['email'] ?? $contact['name']) === $emailPart) {
+                                        return $contact;
+                                    }
+                                }
+
+                                return [];
+                            })
+                            ->action(function (array $data, string $state) {
+                                $customer = $this->record->customer;
+                                $contacts = $customer->contacts ?? [];
+                                [$emailPart, $namePart] = explode('|', $state);
+                                foreach ($contacts as &$contact) {
+                                    if (($contact['email'] ?? $contact['name']) === $emailPart) {
+                                        $contact = $data;
+                                        break;
+                                    }
+                                }
+                                $customer->update(['contacts' => $contacts]);
+
+                                return ($data['email'] ?? $data['name']).'|'.($data['name'] ?? '');
+                            });
+                    })
                     ->afterStateUpdated(function ($state, callable $set) {
                         if ($state) {
-                            $set('recipient_email', $state);
+                            [$email, $name] = explode('|', $state);
+                            $set('recipient_email', $email);
+                            $set('recipient_name', $name);
                         }
                     }),
                 TextInput::make('recipient_email')
                     ->label('Recipient Email')
                     ->email()
                     ->required()
-                    ->live(),
+                    ->live(onBlur: false),
                 TextInput::make('subject')
                     ->required()
-                    ->live(),
-                Textarea::make('message')
-                    ->rows(5)
-                    ->live(),
+                    ->live(onBlur: false),
+                RichEditor::make('message')
+                    ->fileAttachmentsDisk('s3')
+                    ->fileAttachmentsDirectory('proposals/attachments')
+                    ->fileAttachmentsVisibility('private')
+                    ->live(onBlur: false)
+                    ->debounce(500),
             ])
             ->statePath('data');
+    }
+
+    public function sendEmailAction(): Action
+    {
+        return Action::make('sendEmail')
+            ->label('Send Email')
+            ->icon('heroicon-o-paper-airplane')
+            ->requiresConfirmation()
+            ->action(fn () => $this->sendEmail());
     }
 
     public function sendEmail(): void
@@ -88,16 +159,87 @@ class SendProposal extends ViewRecord
         $formData = $this->form->getState();
 
         try {
-            Mail::to($formData['recipient_email'])
-                ->send(new ProposalMail($this->record, $formData['message'] ?? ''));
+            // 1. Prepare Attachment
+            $attachmentUrl = null;
+            $attachmentName = null;
+
+            if ($this->record->is_manual && $media = $this->record->getFirstMedia('final_proposal')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(30));
+                $attachmentName = $media->file_name;
+            } else {
+                // Generate PDF on the fly
+                $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
+                $filename = 'proposal-'.str_replace(['/', '\\'], '-', $this->record->proposal_number).'.pdf';
+                
+                // Store temporarily on S3 to get a URL
+                $tempPath = "temp/proposals/{$filename}";
+                Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
+                
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                $disk = Storage::disk('s3');
+                $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
+                $attachmentName = $filename;
+            }
+
+            // 2. Generate Signature Portal URL
+            $signatureUrl = URL::temporarySignedRoute(
+                'proposals.public.sign',
+                now()->addDays(7),
+                ['proposal' => $this->record->id]
+            );
+
+            // 3. Prepare Message with Signature Link
+            $messageBody = $formData['message'] ?? '';
+            $messageBody .= "<br><br><div style='margin-top: 20px; padding: 15px; background: #f0f7ff; border: 1px solid #cce3ff; border-radius: 8px;'>
+                <strong>Digital Signature Required:</strong><br>
+                Please review and sign this proposal by clicking the link below:<br>
+                <a href='{$signatureUrl}' style='display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;'>Sign Proposal Online</a>
+            </div>";
+
+            // 4. Send via External API
+            $response = Http::withHeaders([
+                'content-type' => 'application/json',
+                'x-requester-app' => 'GDPS-ERP', // Custom identifier
+            ])->post('https://machine.garudapratama.com/api/v1/email/send', [
+                'to' => [
+                    $formData['recipient_email']
+                ],
+                'subject' => $formData['subject'],
+                'body' => $messageBody,
+                'attachments' => [
+                    [
+                        'name' => $attachmentName,
+                        'url' => $attachmentUrl,
+                    ]
+                ]
+            ]);
+
+            if (!$response->successful()) {
+                throw new \Exception("External API Error: " . ($response->json('message') ?? $response->status()));
+            }
+
+            // 5. Update Proposal status to Sent
+            $this->record->update([
+                'status' => ProposalStatus::Sent,
+            ]);
+
+            // 6. Log the email
+            $this->record->communicationLogs()->create([
+                'recipient_email' => $formData['recipient_email'],
+                'subject' => $formData['subject'],
+                'message' => $messageBody,
+                'sender_id' => auth()->id(),
+                'sent_at' => now(),
+            ]);
 
             Notification::make()
                 ->title('Email Sent Successfully')
+                ->body('Proposal sent via External API and status updated.')
                 ->success()
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('view', [
-                'record' => $this->record,
+            $this->redirect(route('filament.admin.crm.resources.leads.proposals.view', [
+                'record' => $this->record->id,
                 'lead' => $this->record->lead_id,
             ]));
         } catch (\Exception $e) {
@@ -115,8 +257,8 @@ class SendProposal extends ViewRecord
             Action::make('back')
                 ->label('Back to Proposal')
                 ->color('gray')
-                ->url(fn () => $this->getResource()::getUrl('view', [
-                    'record' => $this->record,
+                ->url(fn () => route('filament.admin.crm.resources.leads.proposals.view', [
+                    'record' => $this->record->id,
                     'lead' => $this->record->lead_id,
                 ])),
         ];

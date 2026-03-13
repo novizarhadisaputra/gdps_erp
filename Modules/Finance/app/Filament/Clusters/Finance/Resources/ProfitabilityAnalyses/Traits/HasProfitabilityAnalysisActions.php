@@ -12,6 +12,7 @@ use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Classes\ProjectGenerationService;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityThreshold;
@@ -38,13 +39,31 @@ trait HasProfitabilityAnalysisActions
         return Action::make('Approve Margin')
             ->color('success')
             ->icon('heroicon-o-check-badge')
-            ->requiresConfirmation()
-            ->action(function ($record) {
+            ->schema([
+                TextInput::make('pin')
+                    ->label('Signature PIN')
+                    ->password()
+                    ->required()
+                    ->helperText('Enter your digital signature PIN to approve the margin.'),
+            ])
+            ->action(function ($record, array $data) {
+                $service = app(SignatureService::class);
+
+                if (! $service->verifyPin(auth()->user(), $data['pin'])) {
+                    Notification::make()
+                        ->title('Invalid PIN')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                $record->addSignature(auth()->user(), 'margin_approval');
                 $record->update(['is_margin_approved' => true]);
 
                 Notification::make()
                     ->title('Margin Approved')
-                    ->body('Net Profit Margin has been approved. The process can now proceed to Proposal.')
+                    ->body('Net Profit Margin has been approved and signed. The process can now proceed to Proposal.')
                     ->success()
                     ->send();
             })
@@ -52,7 +71,7 @@ trait HasProfitabilityAnalysisActions
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
                 $isMarginApproved = $record?->is_margin_approved ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->is_margin_approved : false);
 
-                return ($status === ProfitabilityAnalysisStatus::Draft || $status === 'draft') && ! $isMarginApproved;
+                return ($status === ProfitabilityAnalysisStatus::Submitted || $status === 'submitted') && ! $isMarginApproved;
             });
     }
 
@@ -81,14 +100,14 @@ trait HasProfitabilityAnalysisActions
                     ->label('Signature PIN')
                     ->password()
                     ->required()
-                    ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                    ->helperText('Enter your digital signature PIN.'),
             ])
             ->action(function ($record, array $data) {
                 $service = app(SignatureService::class);
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
                     Notification::make()
-                        ->title('PIN Salah')
+                        ->title('Invalid PIN')
                         ->danger()
                         ->send();
 
@@ -101,8 +120,8 @@ trait HasProfitabilityAnalysisActions
 
                 if (! $matchingRule) {
                     Notification::make()
-                        ->title('Akses Ditolak')
-                        ->body('Anda tidak memiliki otoritas untuk menandatangani dokumen ini berdasarkan aturan approval saat ini.')
+                        ->title('Access Denied')
+                        ->body('You do not have the authority to sign this document based on the current approval rules.')
                         ->warning()
                         ->send();
 
@@ -111,8 +130,8 @@ trait HasProfitabilityAnalysisActions
 
                 if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
                     Notification::make()
-                        ->title('Sudah Ditandatangani')
-                        ->body('Dokumen ini sudah ditandatangani oleh peran yang sesuai.')
+                        ->title('Already Signed')
+                        ->body('This document has already been signed by the appropriate role.')
                         ->warning()
                         ->send();
 
@@ -122,7 +141,7 @@ trait HasProfitabilityAnalysisActions
                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
 
                 Notification::make()
-                    ->title('Dokumen Berhasil Ditandatangani')
+                    ->title('Document Successfully Signed')
                     ->success()
                     ->send();
 
@@ -132,12 +151,13 @@ trait HasProfitabilityAnalysisActions
             })
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                $isMarginApproved = $record?->is_margin_approved ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->is_margin_approved : false);
                 $allowed = [
                     ProfitabilityAnalysisStatus::Submitted,
                     'submitted',
                 ];
 
-                return in_array($status, $allowed, true);
+                return in_array($status, $allowed, true) && $isMarginApproved;
             });
     }
 
@@ -168,7 +188,8 @@ trait HasProfitabilityAnalysisActions
                     ->columnSpanFull(),
                 TextInput::make('project_name_override')
                     ->label('Project Name (Optional)')
-                    ->placeholder(fn ($record) => ($record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null))?->proposal?->proposal_number ?? 'Project for '.($record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null))?->customer?->name),
+                    ->placeholder('Example: Proposal '.($record?->proposal?->proposal_number ?? '...'))
+                    ->default(fn ($record) => $record?->proposal?->proposal_number ?? 'Project for '.$record?->customer?->name),
             ])
             ->action(function ($record, array $data) {
                 if (! $this->validateProfitability($record)) {
@@ -200,7 +221,7 @@ trait HasProfitabilityAnalysisActions
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
 
-                return $rec && ! $rec->proposal && $rec->status === ProfitabilityAnalysisStatus::Approved;
+                return $rec && ! $rec->proposal && $rec->is_margin_approved;
             })
             ->schema([
                 TextInput::make('amount')
@@ -284,7 +305,7 @@ trait HasProfitabilityAnalysisActions
 
                     $resource = method_exists($this, 'getResource')
                         ? $this->getResource()
-                        : \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::class;
+                        : ProfitabilityAnalysisResource::class;
 
                     $parameters = ['record' => $newRecord];
                     if (str_contains($resource, 'Modules\CRM')) {

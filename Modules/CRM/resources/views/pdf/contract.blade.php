@@ -217,7 +217,7 @@
                                         $qrUrl = $service->createSignatureData(
                                             $user,
                                             $record,
-                                            $signature->signature_type ?? 'approved',
+                                            $signature->signature_type ?? \Modules\MasterData\Enums\ApprovalSignatureType::Approver->value,
                                         );
                                         $qrCodeDataUri = $service->generateQRCode($qrUrl);
                                     @endphp

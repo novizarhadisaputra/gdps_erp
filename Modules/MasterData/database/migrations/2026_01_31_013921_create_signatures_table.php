@@ -13,12 +13,16 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'signatures' : 'master_data.signatures', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->uuidMorphs('signable'); // signable_type & signable_id
             $table->string('role'); // e.g. 'Director', 'Manager'
             $table->string('signature_type'); // e.g. 'approved', 'acknowledged'
+            
+            $table->string('signer_name')->nullable();
+            $table->string('signer_title')->nullable();
 
             $table->string('ip_address')->nullable();
+            $table->string('user_agent')->nullable();
             $table->timestamp('signed_at');
             $table->softDeletes();
             $table->timestamps();

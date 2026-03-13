@@ -22,6 +22,8 @@ class ProposalResource extends Resource
     protected static ?string $model = Proposal::class;
 
     protected static bool $isNested = true;
+    
+    protected static ?string $slug = 'proposals';
 
     protected static ?string $parentResource = LeadResource::class;
 

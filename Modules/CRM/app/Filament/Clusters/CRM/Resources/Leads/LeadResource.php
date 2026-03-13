@@ -94,7 +94,7 @@ class LeadResource extends Resource
                     LeadStatus::Negotiation,
                     LeadStatus::Contract,
                     LeadStatus::Won,
-                ]) && $record->profitabilityAnalyses()->whereIn('status', [ProfitabilityAnalysisStatus::Approved, ProfitabilityAnalysisStatus::Converted])->exists()
+                ]) && ($record->profitabilityAnalyses()->whereIn('status', [ProfitabilityAnalysisStatus::Approved, ProfitabilityAnalysisStatus::Converted])->exists() || $record->profitabilityAnalyses()->where('is_margin_approved', true)->exists())
                 ))->toArray(),
             ...collect($page->generateNavigationItems([
                 ManageMinutesOfAgreements::class,

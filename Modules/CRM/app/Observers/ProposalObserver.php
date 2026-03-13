@@ -14,6 +14,11 @@ class ProposalObserver
      */
     public function creating(Proposal $proposal): void
     {
+        // For manual uploads or reference proposals, skip automatic numbering
+        if (filled($proposal->proposal_number)) {
+            return;
+        }
+
         $year = date('Y');
         $shortYear = date('y');
 

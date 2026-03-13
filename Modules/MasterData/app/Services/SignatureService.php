@@ -10,6 +10,7 @@ use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\ApprovalRule;
 
 class SignatureService
@@ -109,17 +110,17 @@ class SignatureService
     /**
      * Create a secure data string for the signature QR Code.
      */
-    public function createSignatureData(User $user, Model $model, string $type): string
+    public function createSignatureData(?User $user, Model $model, string $type, ?string $guestName = null): string
     {
         $timestamp = now()->toIso8601String();
         $recordId = $model->getKey();
-        $recordClass = get_class($model); // Use FQCN for better resolution later
+        $recordClass = get_class($model);
 
-        // Simple data format, encoded symmetrically for brevity in QR
         $data = [
             'class' => $recordClass,
             'id' => $recordId,
-            'user' => $user->id,
+            'user' => $user?->id,
+            'guest_name' => $guestName,
             'type' => $type,
             'time' => $timestamp,
         ];
@@ -137,17 +138,19 @@ class SignatureService
         try {
             $data = json_decode(base64_decode($token), true);
 
-            if (! isset($data['class'], $data['id'], $data['user'])) {
+            if (! isset($data['class'], $data['id'])) {
                 return null;
             }
 
             $model = $data['class']::findOrFail($data['id']);
-            $user = User::findOrFail($data['user']);
+            $user = isset($data['user']) ? User::find($data['user']) : null;
+            $guestName = $data['guest_name'] ?? null;
 
             return [
                 'model' => $model,
                 'user' => $user,
-                'type' => $data['type'] ?? 'approved',
+                'guest_name' => $guestName,
+                'type' => $data['type'] ?? ApprovalSignatureType::Approver->value,
                 'time' => $data['time'] ?? null,
                 'data' => $data,
             ];

@@ -12,16 +12,12 @@
         
         @if($customMessage)
             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                {{ $customMessage }}
+                {{ \Filament\Forms\Components\RichEditor\RichContentRenderer::make($customMessage) }}
             </div>
-        @else
-            <p>Please find the attached proposal for our services.</p>
         @endif
         
-        <p>If you have any questions or require further information, please do not hesitate to contact us.</p>
-        
         <p>Best regards,<br>
-        <strong>GDPS ERP System</strong></p>
+        <strong>{{ auth()->user()?->name ?? 'GDPS ERP System' }}</strong></p>
     </div>
 </body>
 </html>

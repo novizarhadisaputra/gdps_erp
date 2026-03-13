@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\app\Emails;
+namespace Modules\CRM\Emails;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;

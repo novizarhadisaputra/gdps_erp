@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Observers\ProposalObserver;
@@ -52,12 +53,26 @@ class Proposal extends Model implements HasMedia
         ];
     }
 
+    public function communicationLogs(): MorphMany
+    {
+        return $this->morphMany(CommunicationLog::class, 'emailable');
+    }
+
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable')->oldest();
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('final_proposal')
             ->useDisk('s3')
             ->singleFile();
         $this->addMediaCollection('signed_proposal')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('digital_signature')
             ->useDisk('s3')
             ->singleFile();
     }

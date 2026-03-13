@@ -5,9 +5,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTe
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -129,8 +127,8 @@ class ManpowerTemplateResource extends Resource
                                         ->preload()
                                         ->required()
                                         ->live()
-                                        ->placeholder('Pilih jabatan')
-                                        ->helperText('Pilih jabatan untuk mendaftarkan personil.')
+                                        ->placeholder('Select job position')
+                                        ->helperText('Select job position to register personnel.')
                                         ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                             if (! $state) {
                                                 return;
@@ -159,8 +157,8 @@ class ManpowerTemplateResource extends Resource
                                         ->default(1)
                                         ->required()
                                         ->live(onBlur: true)
-                                        ->placeholder('Jumlah personil')
-                                        ->helperText('Jumlah personil untuk jabatan ini.')
+                                        ->placeholder('Personnel quantity')
+                                        ->helperText('Number of personnel for this position.')
                                         ->columnSpan(1),
                                     TextInput::make('basic_salary')
                                         ->label('Basic Salary')

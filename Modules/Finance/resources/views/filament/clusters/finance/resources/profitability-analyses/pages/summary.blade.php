@@ -308,19 +308,54 @@
                 $signatureService = app(\Modules\MasterData\Services\SignatureService::class);
                 $rules = $signatureService->getRequiredApprovers($record);
                 $signatures = $record->signatures;
+                $marginSignature = $signatures->firstWhere('signature_type', 'margin_approval');
+                $otherSignatures = $signatures->where('signature_type', '!=', 'margin_approval');
+                
+                $totalCols = ($marginSignature ? 1 : 0) + $rules->count();
             @endphp
 
-            @if ($rules->isNotEmpty())
-                <div class="mt-24 grid grid-cols-{{ min(4, $rules->count()) }} gap-12">
+            @if ($totalCols > 0)
+                <div class="mt-24 grid grid-cols-{{ min(4, $totalCols) }} gap-12">
+                    {{-- Margin Approval Signature --}}
+                    @if ($marginSignature)
+                        <div class="flex flex-col items-center">
+                            <p class="text-[9px] font-black text-primary-600 uppercase tracking-widest mb-4">
+                                Margin Approval</p>
+
+                            @php
+                                $qrUrl = $signatureService->createSignatureData(
+                                    $marginSignature->user,
+                                    $record,
+                                    'margin_approval',
+                                );
+                                $qrCode = $signatureService->generateQRCode($qrUrl);
+                            @endphp
+                            <div class="mb-4">
+                                <img src="{{ $qrCode }}"
+                                    class="w-20 h-20 opacity-80 mix-blend-multiply dark:invert"
+                                    alt="Signature QR">
+                            </div>
+                            <div class="w-full border-t border-blue-600 dark:border-blue-400 pt-2 text-center">
+                                <p
+                                    class="text-[10px] font-black text-gray-900 dark:text-white uppercase leading-tight">
+                                    {{ $marginSignature->user->name }}
+                                </p>
+                                <p class="text-[8px] font-medium text-gray-400 uppercase tracking-tighter">
+                                    {{ $marginSignature->role }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Approval Rules Signatures --}}
                     @foreach ($rules as $rule)
                         @php
-                            $matchingSignature = $signatures->first(function ($sig) use ($rule, $signatureService) {
+                            $matchingSignature = $otherSignatures->first(function ($sig) use ($rule, $signatureService) {
                                 return $signatureService->isEligibleApprover($rule, $sig->user);
                             });
                         @endphp
                         <div class="flex flex-col items-center">
                             <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">
-                                {{ $rule->signature_type ?: 'Approval' }}</p>
+                                {{ $rule->signature_type ?: 'Final Approval' }}</p>
 
                             @if ($matchingSignature)
                                 @php

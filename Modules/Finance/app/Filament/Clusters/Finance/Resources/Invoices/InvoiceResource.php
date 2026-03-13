@@ -23,6 +23,8 @@ class InvoiceResource extends Resource
 
     protected static ?string $cluster = FinanceCluster::class;
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Schema $schema): Schema
     {
         return InvoiceForm::configure($schema);

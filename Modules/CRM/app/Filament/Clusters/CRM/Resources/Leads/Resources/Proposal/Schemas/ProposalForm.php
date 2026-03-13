@@ -9,6 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Proposal;
@@ -46,7 +47,6 @@ class ProposalForm
                             ->placeholder('Select work scheme')
                             ->searchable()
                             ->preload()
-                            ->required()
                             ->disabled()
                             ->dehydrated()
                             ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
@@ -60,7 +60,6 @@ class ProposalForm
                             ->prefix('IDR')
                             ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
                             ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
-                            ->required()
                             ->helperText('Total value including all service costs.'),
 
                         Select::make('lead_id')
@@ -69,7 +68,7 @@ class ProposalForm
                             ->dehydrated(),
                     ]),
 
-                \Filament\Schemas\Components\Group::make()
+                Group::make()
                     ->schema([
                         Section::make('Identification')
                             ->schema([

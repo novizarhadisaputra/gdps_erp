@@ -11,14 +11,17 @@
                 @foreach ($signatures as $signature)
                     @php
                         $user = $signature->user;
-                        $userName = $user ? $user->name : 'Unknown User';
+                        $isGuest = is_null($signature->user_id);
+                        $userName = $isGuest ? ($signature->signer_name ?? 'Guest') : ($user->name ?? 'Unknown User');
+                        $role = $isGuest ? ($signature->signer_title ?? 'Client') : ($signature->role ?? 'Signer');
 
                         $qrCodeSvg = null;
                         try {
                             $qrData = $service->createSignatureData(
                                 $user,
                                 $getRecord(),
-                                $signature->signature_type ?? 'approved',
+                                $signature->signature_type ?? \Modules\MasterData\Enums\ApprovalSignatureType::Approver->value,
+                                $isGuest ? $userName : null
                             );
                             $qrCodeSvg = $service->generateQRCode($qrData);
                         } catch (\Exception $e) {
@@ -50,7 +53,7 @@
                                     <div class="flex items-center space-x-2 mb-1">
                                         <span
                                             class="text-[9px] font-bold uppercase tracking-wider text-primary-600 px-1.5 py-0.5 rounded">
-                                            {{ $signature->role }}
+                                            {{ $role }}
                                         </span>
                                     </div>
                                     <h4 class="text-xs font-bold text-gray-900 dark:text-white">

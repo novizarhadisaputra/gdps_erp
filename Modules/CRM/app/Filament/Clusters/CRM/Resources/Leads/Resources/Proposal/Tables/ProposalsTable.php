@@ -47,13 +47,17 @@ class ProposalsTable
                     ->options(ProposalStatus::class),
             ])
             ->recordActions([
-                ViewAction::make(),
+                ViewAction::make()
+                    ->url(fn ($record) => route('filament.admin.crm.resources.leads.proposals.view', [
+                        'record' => $record,
+                        'lead' => $record->lead_id,
+                    ])),
                 Action::make('Revise')
                     ->label('Revise')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->placeholder('Are you sure you want to revise this proposal? This will reset the status to Draft and allow you to modify the Profitability Analysis costing.')
+                    ->modalDescription('Are you sure you want to revise this proposal? This will reset the status to Draft and allow you to modify the Profitability Analysis costing.')
                     ->action(fn ($record) => $record->update(['status' => \Modules\CRM\Enums\ProposalStatus::Draft]))
                     ->visible(fn ($record) => $record->status === \Modules\CRM\Enums\ProposalStatus::Submitted || $record->status === 'submitted'),
             ])

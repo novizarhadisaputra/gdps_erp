@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Modules\CRM\Models\Comment;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
@@ -165,6 +167,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function paymentTerm(): BelongsTo
     {
         return $this->belongsTo(PaymentTerm::class);
+    }
+
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable')->oldest();
     }
 
     public function workScheme(): BelongsTo

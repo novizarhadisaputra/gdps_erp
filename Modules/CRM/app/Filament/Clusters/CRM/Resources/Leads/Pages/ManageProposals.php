@@ -57,12 +57,10 @@ class ManageProposals extends ManageRelatedRecords
                             ->visibility('private')
                             ->required()
                             ->helperText('Upload the signed or final proposal document.'),
-                        TextInput::make('amount')
-                            ->label('Proposal Amount')
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                            ->prefix('IDR')
-                            ->required()
-                            ->default(fn () => $this->getOwnerRecord()->estimated_amount),
+                        TextInput::make('proposal_number')
+                            ->label('Proposal Number')
+                            ->placeholder('e.g. GDPS/UB/PROP-001/26')
+                            ->required(),
                         DatePicker::make('submission_date')
                             ->label('Submission Date')
                             ->default(now())
@@ -71,10 +69,6 @@ class ManageProposals extends ManageRelatedRecords
                     ])
                     ->action(function (array $data) {
                         $lead = $this->getOwnerRecord();
-
-                        $amount = is_numeric($data['amount'])
-                            ? (float) $data['amount']
-                            : (float) str_replace(['.', ','], ['', '.'], $data['amount']);
 
                         // Find latest approved or submitted PA
                         $latestPA = $lead->profitabilityAnalyses()
@@ -90,7 +84,8 @@ class ManageProposals extends ManageRelatedRecords
                             'customer_id' => $lead->customer_id,
                             'profitability_analysis_id' => $latestPA?->id,
                             'work_scheme_id' => $latestPA?->work_scheme_id ?? $lead->work_scheme_id,
-                            'amount' => $amount,
+                            'proposal_number' => $data['proposal_number'],
+                            'amount' => $lead->estimated_amount ?? 0,
                             'submission_date' => $data['submission_date'],
                             'status' => ProposalStatus::Draft,
                             'is_manual' => true,

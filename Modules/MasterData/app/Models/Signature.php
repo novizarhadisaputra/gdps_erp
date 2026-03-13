@@ -29,8 +29,11 @@ class Signature extends Model
         'signable_id',
         'role',
         'signature_type',
+        'signer_name',
+        'signer_title',
 
         'ip_address',
+        'user_agent',
         'signed_at',
     ];
 

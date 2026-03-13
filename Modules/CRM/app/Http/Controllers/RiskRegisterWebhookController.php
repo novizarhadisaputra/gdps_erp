@@ -5,6 +5,7 @@ namespace Modules\CRM\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use Illuminate\Support\Facades\Log;
+use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Http\Requests\RiskRegisterWebhookRequest;
 use Modules\CRM\Models\GeneralInformation;
 
@@ -32,10 +33,10 @@ class RiskRegisterWebhookController extends Controller
 
         // 2. Update Risk Register details
         $statusMap = [
-            'APPROVED' => 'approved',
-            'REJECTED' => 'rejected',
-            'IN_PROGRESS' => 'in_progress',
-            'SUBMITTED' => 'submitted',
+            'APPROVED' => GeneralInformationStatus::Approved->value,
+            'REJECTED' => GeneralInformationStatus::Rejected->value,
+            'IN_PROGRESS' => 'in_progress', // Maintain specific custom RR statuses if needed, or use Enum if exists
+            'SUBMITTED' => GeneralInformationStatus::Submitted->value,
         ];
 
         $gi->update([
@@ -50,8 +51,8 @@ class RiskRegisterWebhookController extends Controller
 
         // 3. Trigger Strict Approval Check
         // If RR is approved, check if we can fully approve the GI (signatures must also be ready)
-        if ($gi->rr_status === 'approved' && $gi->isFullyApproved()) {
-            $gi->update(['status' => 'approved']);
+        if ($gi->rr_status === GeneralInformationStatus::Approved->value && $gi->isFullyApproved()) {
+            $gi->update(['status' => GeneralInformationStatus::Approved]);
             Log::info("General Information {$gi->document_number} fully APPROVED via Webhook.");
         }
 
