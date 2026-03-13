@@ -82,6 +82,13 @@ class ProfitabilityAnalysisObserver
 
             // Clear signatures from PA
             $analysis->signatures()->delete();
+
+            // Downgrade Lead status to Approach (Revision stage)
+            if ($analysis->lead) {
+                $analysis->lead->update([
+                    'status' => LeadStatus::Approach,
+                ]);
+            }
         }
 
         // 3. Sync calculations to Sales Plan
@@ -90,6 +97,16 @@ class ProfitabilityAnalysisObserver
                 'npm_percentage' => $analysis->net_profit_margin,
                 'management_fee_percentage' => $analysis->management_fee_rate,
             ]);
+        }
+
+        // 4. Sync calculation results to associated Proposal if exists
+        if ($analysis->lead) {
+            foreach ($analysis->lead->proposals as $proposal) {
+                // Synchronize revenue basis. In practice, this represents the commercial value.
+                $proposal->updateQuietly([
+                    'amount' => $analysis->revenue_per_month,
+                ]);
+            }
         }
     }
 

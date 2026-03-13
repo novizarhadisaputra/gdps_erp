@@ -60,6 +60,13 @@ class ProposalObserver
                 'previous_code' => $proposal->proposal_number,
             ]);
 
+            // Downgrade Lead status to Approach (Revision stage)
+            if ($proposal->lead) {
+                $proposal->lead->update([
+                    'status' => LeadStatus::Approach,
+                ]);
+            }
+
             // Clear signatures from Proposal
             $proposal->signatures()->delete();
 
@@ -71,6 +78,9 @@ class ProposalObserver
                 ]);
             }
         }
+
+        // 3. Check for Project creation trigger
+        app(\Modules\Project\Services\ProjectService::class)->attemptProjectCreation($proposal);
     }
 
     /**

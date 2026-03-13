@@ -25,6 +25,7 @@ use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\Finance\Enums\AssetOwnership;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Enums\RiskLevel;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
@@ -86,6 +87,7 @@ class ProfitabilityAnalysisForm
                     ->label('Project Identification')
                     ->description('Identify RR submission and associated customer.')
                     ->icon('heroicon-m-identification')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->schema([
                         Grid::make(3)
                             ->schema([
@@ -160,6 +162,7 @@ class ProfitabilityAnalysisForm
                     ->label('Operational Parameters')
                     ->description('Configure project scope, work scheme, area, and asset ownership.')
                     ->icon('heroicon-m-adjustments-horizontal')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->schema([
                         Grid::make(1)
                             ->schema([
@@ -251,6 +254,7 @@ class ProfitabilityAnalysisForm
                     ->label('Financial Assumptions')
                     ->description('Set expectations for overhead costs, interest, and company tax.')
                     ->icon('heroicon-m-banknotes')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->schema([
                         Grid::make(3)
                             ->schema([
@@ -297,6 +301,7 @@ class ProfitabilityAnalysisForm
                     ->label('Manpower Planning')
                     ->description('Determine personnel needs based on job positions or manpower packets.')
                     ->icon('heroicon-m-user-group')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->visible(fn (Get $get) => ! $get('is_manual_cost'))
                     ->schema([
                         Repeater::make('manpowerItems')
@@ -586,6 +591,7 @@ class ProfitabilityAnalysisForm
                     ->label('Operational & Equipment Costs')
                     ->description('Determine material, equipment, services, and other cost requirements.')
                     ->icon('heroicon-m-shopping-cart')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->visible(fn (Get $get) => ! $get('is_manual_cost'))
                     ->schema([
                         Repeater::make('operationalItems')
@@ -798,6 +804,7 @@ class ProfitabilityAnalysisForm
                     ->label('Manual Cost Entry')
                     ->description('Enter high-level monthly direct costs and revenue.')
                     ->icon('heroicon-m-calculator')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->visible(fn (Get $get) => (bool) $get('is_manual_cost'))
                     ->schema([
                         Section::make('Monthly Budgeting')
@@ -962,6 +969,7 @@ class ProfitabilityAnalysisForm
                     ->label('Indirect Costs')
                     ->description('Set management expenses, entertainment, and other indirect fees.')
                     ->icon('heroicon-m-receipt-percent')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->schema([
                         TextInput::make('analysis_details.manual_indirect_total')
                             ->label('Total Indirect Cost (Subtotal)')
@@ -1039,6 +1047,7 @@ class ProfitabilityAnalysisForm
                     ->label('Financial Performance')
                     ->description('Key monthly and project-wide financial metrics.')
                     ->icon('heroicon-m-presentation-chart-line')
+                    ->disabled(fn ($record) => $record && $record->status !== ProfitabilityAnalysisStatus::Draft)
                     ->schema([
                         Section::make('Automated Cost Review')
                             ->description('Aggregated monthly costs calculated from personnel, tools, and indirect inputs.')

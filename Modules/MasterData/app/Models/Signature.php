@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\MasterData\Observers\SignatureObserver;
+
+#[ObservedBy(SignatureObserver::class)]
 class Signature extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;

@@ -25,6 +25,12 @@ class ProjectObserver
         $project->information()->create([
             'status' => ProjectInformationStatus::Planning,
         ]);
+
+        if ($project->lead) {
+            $project->lead->update([
+                'status' => \Modules\CRM\Enums\LeadStatus::Won,
+            ]);
+        }
     }
 
     /**

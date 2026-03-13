@@ -16,8 +16,35 @@ class ProjectInformationObserver
             return;
         }
 
-        // Sync from Contract if available
-        if ($project->contract_id) {
+        // Sync from Profitability Analysis if available
+        if ($project->profitability_analysis_id) {
+            $analysis = $project->profitabilityAnalysis;
+            $info->revenue_per_month = $analysis->revenue_per_month ?? $info->revenue_per_month;
+            $info->management_fee_per_month = $analysis->management_fee_amount ?? $info->management_fee_per_month;
+            $info->ppn_percentage = $analysis->tax?->percentage ?? $info->ppn_percentage;
+            
+            // Sync dates if not set
+            $info->start_date = $info->start_date ?? $analysis->start_date;
+            $info->end_date = $info->end_date ?? $analysis->end_date;
+
+            // Inherit cost details
+            $info->direct_cost = $analysis->total_monthly_cost ?? 0;
+            $info->analysis_details = $analysis->financial_assumptions;
+            $info->remuneration_details = $analysis->manpower_requirements;
+        }
+
+        // Sync from Lead if available
+        if ($project->lead_id) {
+            $lead = $project->lead;
+            $info->lead_id = $lead->id;
+            
+            // Sync employees (AMS/Oprep) if they were assigned in Lead
+            $info->ams_id = $info->ams_id ?? $lead->ams_id;
+            $info->oprep_id = $info->oprep_id ?? $lead->oprep_id;
+        }
+
+        // Sync from Contract if available (fallback)
+        if ($project->contract_id && !$info->revenue_per_month) {
             $contract = $project->contract;
             $info->revenue_per_month = $contract->proposal?->amount;
             $info->start_date = $info->start_date ?? now();
@@ -27,7 +54,7 @@ class ProjectInformationObserver
         // Sync PIC from Customer
         if ($project->customer_id) {
             $customer = $project->customer;
-            $info->pic_customer_name = $info->pic_customer_name ?? $customer->name;
+            // $info->pic_customer_name = $info->pic_customer_name ?? $customer->name;
         }
 
         $year = date('Y');

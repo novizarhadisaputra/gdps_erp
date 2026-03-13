@@ -221,6 +221,7 @@ class Lead extends Model implements HasMedia
                 'project_area_id' => $this->project_area_id,
                 'product_cluster_id' => $this->product_cluster_id,
                 'payment_term_id' => $this->payment_term_id ?? $this->salesPlan?->payment_term_id,
+                'tax_id' => $this->tax_id,
                 'management_fee_rate' => $this->salesPlan?->management_fee_percentage ?? 0,
                 'status' => ProfitabilityAnalysisStatus::Draft,
             ], $additionalData));
