@@ -16,7 +16,7 @@ class ProjectService
     public function attemptProjectCreation(ProfitabilityAnalysis|Proposal $source): ?Project
     {
         $lead = $source->lead;
-        if (!$lead) {
+        if (! $lead) {
             return null;
         }
 
@@ -33,7 +33,7 @@ class ProjectService
             })
             ->first();
 
-        if (!$signedProposal) {
+        if (! $signedProposal) {
             return null;
         }
 
@@ -41,11 +41,11 @@ class ProjectService
         $analysis = $signedProposal->profitabilityAnalysis;
 
         // If no PA linked to proposal, maybe it's the one that triggered this (if $source is PA)
-        if (!$analysis && $source instanceof ProfitabilityAnalysis) {
+        if (! $analysis && $source instanceof ProfitabilityAnalysis) {
             $analysis = $source;
         }
 
-        if (!$analysis || !$analysis->isFullyApproved()) {
+        if (! $analysis || ! $analysis->isFullyApproved()) {
             return null;
         }
 
@@ -55,7 +55,7 @@ class ProjectService
             'proposal_id' => $signedProposal->id,
             'profitability_analysis_id' => $analysis->id,
             'customer_id' => $lead->customer_id,
-            'name' => $lead->name,
+            'name' => $lead->title ?? $lead->name ?? $signedProposal->proposal_number,
             'start_date' => $analysis->start_date ?? now(),
             'end_date' => $analysis->end_date ?? now()->addYear(),
             'status' => ProjectStatus::Planning,

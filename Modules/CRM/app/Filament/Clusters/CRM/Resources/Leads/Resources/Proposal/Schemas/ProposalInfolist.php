@@ -116,8 +116,9 @@ class ProposalInfolist
                                         ->icon('heroicon-m-envelope'),
                                     TextEntry::make('subject')
                                         ->label('Subject'),
-                                    TextEntry::make('sender.name')
-                                        ->label('Sent By'),
+                                    TextEntry::make('sent_by')
+                                        ->label('Sent By')
+                                        ->state(fn ($record) => $record->sender?->name ?? $record->sender_email ?? '-'),
                                     TextEntry::make('sent_at')
                                         ->label('Sent Date')
                                         ->dateTime()

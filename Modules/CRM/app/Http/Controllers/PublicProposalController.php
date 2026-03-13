@@ -3,8 +3,9 @@
 namespace Modules\CRM\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Http\Requests\SignProposalRequest;
 use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Enums\ApprovalSignatureType;
 
@@ -13,22 +14,20 @@ class PublicProposalController extends Controller
     public function show(Proposal $proposal)
     {
         $latestLog = $proposal->communicationLogs()->latest()->first();
-        
-        return view('crm::public.proposal.sign', compact('proposal', 'latestLog'));
+        $positions = User::distinct()->whereNotNull('position')->orderBy('position')->pluck('position');
+
+        return view('crm::public.proposal.sign', compact('proposal', 'latestLog', 'positions'));
     }
 
-    public function sign(Request $request, Proposal $proposal)
+    public function sign(SignProposalRequest $request, Proposal $proposal)
     {
-        $validated = $request->validate([
-            'signer_name' => 'required|string|max:255',
-            'signer_title' => 'required|string|max:255',
-            'signature_data' => 'required|string', // Base64 signature
-            'signed_proposal' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // Max 10MB
-        ]);
+        $validated = $request->validated();
 
-        $proposal->addMediaFromBase64($validated['signature_data'])
-            ->usingFileName("signature-{$proposal->id}-" . time() . ".png")
-            ->toMediaCollection('digital_signature', 's3');
+        if (! empty($validated['signature_data'])) {
+            $proposal->addMediaFromBase64($validated['signature_data'])
+                ->usingFileName("signature-{$proposal->id}-".time().'.png')
+                ->toMediaCollection('digital_signature', 's3');
+        }
 
         // 2. Check current signatures count for Client (Public)
         $clientSignRole = 'Client (Public)';
@@ -39,7 +38,7 @@ class PublicProposalController extends Controller
             ->where('signer_title', $validated['signer_title'])
             ->exists();
 
-        if (!$isExistingSigner && $existingSignatureCount >= 3) {
+        if (! $isExistingSigner && $existingSignatureCount >= 3) {
             return back()->withErrors(['message' => 'The maximum number of signatures for this proposal (3) has been reached.']);
         }
 
@@ -64,14 +63,16 @@ class PublicProposalController extends Controller
             ]
         );
 
-        // 5. Update proposal status
+        // 5. Update proposal status to Submitted (awaiting internal review)
         $proposal->update([
-            'status' => ProposalStatus::Approved,
+            'status' => ProposalStatus::Submitted,
         ]);
 
         // 6. Log the activity
         $proposal->communicationLogs()->create([
-            'recipient_email' => $proposal->customer?->email,
+            'recipient_email' => $proposal->lead?->salesPlan?->user?->email,
+            'sender_email' => $validated['sender_email'],
+            'sender_id' => null,
             'subject' => 'Proposal Signed Publicly',
             'message' => "Proposal signed/updated by {$validated['signer_name']} ({$validated['signer_title']}) from IP {$request->ip()}.",
             'sent_at' => now(),

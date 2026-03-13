@@ -5,6 +5,7 @@ namespace Modules\Finance\Observers;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Project\Services\ProjectService;
 
 class ProfitabilityAnalysisObserver
 {
@@ -107,6 +108,11 @@ class ProfitabilityAnalysisObserver
                     'amount' => $analysis->revenue_per_month,
                 ]);
             }
+        }
+
+        // 5. When PA is Approved, attempt to create a Project
+        if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Approved) {
+            app(ProjectService::class)->attemptProjectCreation($analysis);
         }
     }
 

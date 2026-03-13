@@ -11,6 +11,8 @@ use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\MasterData\Services\SignatureService;
 
 class ViewProposal extends ViewRecord
@@ -129,6 +131,19 @@ class ViewProposal extends ViewRecord
                     }
                 })
                 ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted])),
+
+            Action::make('approvePa')
+                ->label('Approve Profitability Analysis')
+                ->color('warning')
+                ->icon('heroicon-o-currency-dollar')
+                ->url(fn () => $this->record->profitabilityAnalysis
+                    ? ProfitabilityAnalysisResource::getUrl('view', ['record' => $this->record->profitabilityAnalysis->id])
+                    : null
+                )
+                ->visible(fn () => $this->record->status === ProposalStatus::Approved &&
+                    $this->record->profitabilityAnalysis !== null &&
+                    $this->record->profitabilityAnalysis->status !== ProfitabilityAnalysisStatus::Approved
+                ),
 
             Action::make('convertToMoA')
                 ->label('Convert to MoA (BA)')

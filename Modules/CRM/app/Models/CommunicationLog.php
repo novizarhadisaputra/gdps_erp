@@ -16,9 +16,10 @@ class CommunicationLog extends Model
         'emailable_id',
         'emailable_type',
         'recipient_email',
+        'sender_id',
+        'sender_email',
         'subject',
         'message',
-        'sender_id',
         'sent_at',
     ];
 

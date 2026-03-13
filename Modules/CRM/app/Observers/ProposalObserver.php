@@ -84,8 +84,6 @@ class ProposalObserver
             }
         }
 
-        // 3. Check for Project creation trigger
-        app(\Modules\Project\Services\ProjectService::class)->attemptProjectCreation($proposal);
     }
 
     /**
