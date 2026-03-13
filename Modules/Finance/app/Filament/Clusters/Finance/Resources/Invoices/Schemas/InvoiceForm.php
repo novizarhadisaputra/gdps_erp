@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\Invoices\Schemas;
+namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Schemas;
 
 use Filament\Schemas\Schema;
 

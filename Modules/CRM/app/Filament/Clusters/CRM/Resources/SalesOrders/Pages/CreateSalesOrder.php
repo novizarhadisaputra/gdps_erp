@@ -8,4 +8,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 class CreateSalesOrder extends CreateRecord
 {
     protected static string $resource = SalesOrderResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\CRM\Models;
+namespace Modules\Finance\Models;
 
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\CRM\Enums\InvoiceStatus;
+use Modules\CRM\Models\Customer;
+use Modules\CRM\Models\SalesOrder;
+use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Project\Models\WorkCompletionReport;
 
 class Invoice extends Model

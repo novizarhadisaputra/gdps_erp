@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\CRM\Enums;
+namespace Modules\Finance\Enums;
 
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
 
-enum InvoiceStatus: string implements HasLabel, HasColor, HasIcon
+enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Draft = 'draft';
     case Sent = 'sent';

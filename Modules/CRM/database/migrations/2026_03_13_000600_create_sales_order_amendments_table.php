@@ -11,19 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sales_order_amendments', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'sales_order_amendments' : 'crm.sales_order_amendments', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignId('sales_order_id')->constrained('sales_orders')->onDelete('cascade');
+            $table->foreignUuid('sales_order_id')->constrained(config('database.default') === 'sqlite' ? 'sales_orders' : 'crm.sales_orders')->onDelete('cascade');
             $table->string('amendment_number')->unique();
             $table->date('amendment_date');
             $table->text('reason')->nullable();
-            
+
             // Snapshots for comparison
             $table->json('before_snapshot')->nullable();
             $table->json('after_snapshot')->nullable();
-            
+
             $table->string('status'); // draft, approved, cancelled
-            
+
             $table->timestamps();
             $table->softDeletes();
         });
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sales_order_amendments');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'sales_order_amendments' : 'crm.sales_order_amendments');
     }
 };

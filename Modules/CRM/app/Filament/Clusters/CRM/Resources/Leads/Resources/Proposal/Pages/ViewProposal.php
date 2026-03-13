@@ -173,6 +173,13 @@ class ViewProposal extends ViewRecord
                 ->action(fn () => $this->record->update(['status' => ProposalStatus::Rejected]))
                 ->visible(fn () => $this->record->status === ProposalStatus::Submitted),
 
+            Action::make('sendEmail')
+                ->label('Send Email')
+                ->color('info')
+                ->icon('heroicon-o-envelope')
+                ->url(fn () => $this->getResource()::getUrl('send', ['record' => $this->record]))
+                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Approved])),
+
             EditAction::make()
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft),
             DeleteAction::make(),

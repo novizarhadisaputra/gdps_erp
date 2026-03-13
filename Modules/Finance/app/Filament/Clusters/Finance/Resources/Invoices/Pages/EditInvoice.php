@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\CRM\Filament\Clusters\CRM\Resources\Invoices\Pages;
+namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages;
 
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Invoices\InvoiceResource;
+use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
 
 class EditInvoice extends EditRecord
 {

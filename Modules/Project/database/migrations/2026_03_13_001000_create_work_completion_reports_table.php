@@ -11,29 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('work_completion_reports', function (Blueprint $blueprint) {
+        Schema::create(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports', function (Blueprint $blueprint) {
             $blueprint->uuid('id')->primary();
-            $blueprint->uuid('project_id')->index();
-            $blueprint->uuid('sales_order_id')->nullable()->index();
-            $blueprint->uuid('customer_id')->index();
+            $blueprint->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->onDelete('cascade');
+            $blueprint->foreignUuid('sales_order_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'sales_orders' : 'crm.sales_orders')->onDelete('set null');
+            $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
 
             $blueprint->string('report_number')->unique();
             $blueprint->date('document_date');
-            
+
             $blueprint->date('service_period_start');
             $blueprint->date('service_period_end');
-            
+
             $blueprint->decimal('work_progress_percentage', 5, 2)->default(100.00);
             $blueprint->text('description')->nullable();
 
             $blueprint->string('status')->default('draft');
-            
+
             $blueprint->timestamps();
             $blueprint->softDeletes();
-            
-            $blueprint->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
-            $blueprint->foreign('sales_order_id')->references('id')->on('sales_orders')->onDelete('set null');
-            $blueprint->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
         });
     }
 
@@ -42,6 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('work_completion_reports');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports');
     }
 };

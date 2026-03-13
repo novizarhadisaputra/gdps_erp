@@ -10,6 +10,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\CreateProposal;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\EditProposal;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ListProposals;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\SendProposal;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ViewProposal;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalInfolist;
@@ -48,6 +49,7 @@ class ProposalResource extends Resource
             'create' => CreateProposal::route('/create'),
             'view' => ViewProposal::route('/{record}'),
             'edit' => EditProposal::route('/{record}/edit'),
+            'send' => SendProposal::route('/{record}/send'),
         ];
     }
 }

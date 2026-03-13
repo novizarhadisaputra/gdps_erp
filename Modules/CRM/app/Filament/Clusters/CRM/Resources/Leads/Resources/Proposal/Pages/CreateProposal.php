@@ -41,4 +41,9 @@ class CreateProposal extends CreateRecord
 
         return $data;
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index', ['lead' => $this->parentRecord]);
+    }
 }

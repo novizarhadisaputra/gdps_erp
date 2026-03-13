@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
+use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
@@ -93,5 +94,10 @@ class SalesOrder extends Model implements HasMedia
     public function amendments(): HasMany
     {
         return $this->hasMany(SalesOrderAmendment::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

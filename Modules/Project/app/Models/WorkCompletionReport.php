@@ -2,7 +2,7 @@
 
 namespace Modules\Project\Models;
 
-use Modules\MasterData\Traits\HasDigitalSignatures;
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,17 +10,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
+use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class WorkCompletionReport extends Model implements HasMedia
 {
-    use HasDigitalSignatures;
-    use HasFactory;
-    use HasUuids;
-    use InteractsWithMedia;
-    use SoftDeletes;
+    use HasDigitalSignatures, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'project_id',
@@ -66,5 +64,10 @@ class WorkCompletionReport extends Model implements HasMedia
         $this->addMediaCollection('completion_documents')
             ->useDisk('s3')
             ->singleFile();
+    }
+
+    public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

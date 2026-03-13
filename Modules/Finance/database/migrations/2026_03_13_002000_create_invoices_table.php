@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $blueprint) {
+        Schema::create(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices', function (Blueprint $blueprint) {
             $blueprint->uuid('id')->primary();
-            $blueprint->uuid('sales_order_id')->index();
-            $blueprint->uuid('work_completion_report_id')->nullable()->index();
-            $blueprint->uuid('customer_id')->index();
+            $blueprint->foreignUuid('sales_order_id')->constrained(config('database.default') === 'sqlite' ? 'sales_orders' : 'crm.sales_orders')->onDelete('cascade');
+            $blueprint->foreignUuid('work_completion_report_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports')->onDelete('set null');
+            $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
 
             $blueprint->string('invoice_number')->unique();
             $blueprint->date('invoice_date');
@@ -29,10 +29,6 @@ return new class extends Migration
 
             $blueprint->timestamps();
             $blueprint->softDeletes();
-
-            $blueprint->foreign('sales_order_id')->references('id')->on('sales_orders')->onDelete('cascade');
-            $blueprint->foreign('work_completion_report_id')->references('id')->on('work_completion_reports')->onDelete('set null');
-            $blueprint->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
         });
     }
 
@@ -41,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('invoices');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices');
     }
 };
