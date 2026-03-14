@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 
 use Closure;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -100,14 +101,17 @@ class ProfitabilityAnalysisForm
                                     ->live()
                                     ->placeholder('Select GI Form / RR Submission')
                                     ->helperText('Select the General Information (RR) submission as the PA data basis.')
-                                    ->afterStateUpdated(function ($state, Set $set) {
+                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                         if (! $state) {
                                             return;
                                         }
-                                        $gi = GeneralInformation::with('lead')->find($state);
+                                        $gi = GeneralInformation::with(['lead.salesPlan', 'salesPlan'])->find($state);
                                         if (! $gi) {
                                             return;
                                         }
+
+                                        $salesPlan = $gi->salesPlan ?? $gi->lead?->salesPlan;
+
                                         $set('lead_id', $gi->lead_id);
                                         $set('customer_id', $gi->customer_id ?? $gi->lead?->customer_id);
                                         $set('project_area_id', $gi->project_area_id ?? $gi->lead?->project_area_id);
@@ -116,7 +120,38 @@ class ProfitabilityAnalysisForm
                                         $set('work_scheme_id', $gi->work_scheme_id);
 
                                         if ($gi->estimated_start_date) {
+                                            $set('start_date', $gi->estimated_start_date->format('Y-m-d'));
                                             $set('year', $gi->estimated_start_date->year);
+                                        }
+
+                                        if ($gi->estimated_end_date) {
+                                            $set('end_date', $gi->estimated_end_date->format('Y-m-d'));
+                                        }
+
+                                        if ($salesPlan) {
+                                            $set('management_fee_rate', $salesPlan->management_fee_percentage);
+                                            $set('payment_term_id', $salesPlan->payment_term_id);
+
+                                            if (! empty($salesPlan->job_positions)) {
+                                                $manpowerCategoryId = DirectCostCategory::where('code', 'manpower')->first()?->id;
+                                                $duration = self::getProjectDurationMonths($get);
+
+                                                $manpowerItems = collect($salesPlan->job_positions)->map(fn ($jobPositionId) => [
+                                                    'costable_type' => JobPosition::class,
+                                                    'costable_id' => $jobPositionId,
+                                                    'direct_cost_category_id' => $manpowerCategoryId,
+                                                    'unit_of_measure' => 'Person',
+                                                    'quantity' => 1,
+                                                    'duration_months' => $duration,
+                                                    'markup_percentage' => 0,
+                                                    'is_manpower' => true,
+                                                ])->toArray();
+
+                                                $set('manpowerItems', $manpowerItems);
+                                            }
+
+                                            // Recalculate if we have significant financial data
+                                            self::calculateDirectCost($get, $set);
                                         }
                                     })
                                     ->dehydrated()
@@ -205,6 +240,21 @@ class ProfitabilityAnalysisForm
                                     ->placeholder(now()->year)
                                     ->helperText('Budget year for minimum wage references.')
                                     ->live(onBlur: true),
+                                Grid::make(2)
+                                    ->schema([
+                                        DatePicker::make('start_date')
+                                            ->label('Start Date')
+                                            ->required()
+                                            ->native(false)
+                                            ->live()
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
+                                        DatePicker::make('end_date')
+                                            ->label('End Date')
+                                            ->required()
+                                            ->native(false)
+                                            ->live()
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
+                                    ]),
                                 Select::make('tax_id')
                                     ->label('Tax')
                                     ->relationship('tax', 'name')

@@ -2,15 +2,23 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
+use Maatwebsite\Excel\Facades\Excel;
+use Modules\CRM\Enums\GeneralInformationStatus;
+use Modules\CRM\Enums\MoAStatus;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Exports\ProposalExport;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
+use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\MasterData\Services\SignatureService;
@@ -34,7 +42,7 @@ class ViewProposal extends ViewRecord
                             return $media;
                         }
 
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
+                        $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
                         $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
@@ -47,8 +55,8 @@ class ViewProposal extends ViewRecord
                     ->action(function () {
                         $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
 
-                        return \Maatwebsite\Excel\Facades\Excel::download(
-                            new \Modules\CRM\Exports\ProposalExport($this->record),
+                        return Excel::download(
+                            new ProposalExport($this->record),
                             "proposal-{$filename}.xlsx"
                         );
                     }),
@@ -71,7 +79,7 @@ class ViewProposal extends ViewRecord
                 ->icon('heroicon-o-pencil-square')
                 ->modalWidth('md')
                 ->schema([
-                    \Filament\Forms\Components\TextInput::make('pin')
+                    TextInput::make('pin')
                         ->label('Signature PIN')
                         ->password()
                         ->required()
@@ -177,7 +185,7 @@ class ViewProposal extends ViewRecord
                 ->action(function () {
                     // Fetch General Information from the Lead to transfer data
                     $gi = $this->record->lead?->generalInformations()
-                        ->where('status', \Modules\CRM\Enums\GeneralInformationStatus::Approved)
+                        ->where('status', GeneralInformationStatus::Approved)
                         ->latest()
                         ->first() ?? $this->record->lead?->generalInformations()->latest()->first();
 
@@ -186,7 +194,7 @@ class ViewProposal extends ViewRecord
                         $timeline = $gi->estimated_start_date->format('d/m/Y').' - '.$gi->estimated_end_date->format('d/m/Y');
                     }
 
-                    $moa = \Modules\CRM\Models\MinutesOfAgreement::create([
+                    $moa = MinutesOfAgreement::create([
                         'customer_id' => $this->record->customer_id,
                         'lead_id' => $this->record->lead_id,
                         'proposal_id' => $this->record->id,
@@ -195,7 +203,7 @@ class ViewProposal extends ViewRecord
                         'timeline' => $timeline,
                         'terms' => $gi?->billing_requirements ?? '', // Billing requirements often contain payment terms
                         'negotiation_date' => now(),
-                        'status' => \Modules\CRM\Enums\MoAStatus::Draft,
+                        'status' => MoAStatus::Draft,
                     ]);
 
                     Notification::make()
@@ -204,7 +212,7 @@ class ViewProposal extends ViewRecord
                         ->success()
                         ->send();
 
-                    $this->redirect(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource::getUrl('edit', ['record' => $moa->id, 'lead' => $this->record->lead_id]));
+                    $this->redirect(MinutesOfAgreementResource::getUrl('edit', ['record' => $moa->id, 'lead' => $this->record->lead_id]));
                 }),
 
             Action::make('Reject')

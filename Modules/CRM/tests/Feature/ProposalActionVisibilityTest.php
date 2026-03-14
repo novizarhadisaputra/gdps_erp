@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ViewProposal;
+use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Tests\TestCase;
 
@@ -23,7 +24,7 @@ class ProposalActionVisibilityTest extends TestCase
 
     public function test_send_email_button_visibility(): void
     {
-        $lead = \Modules\CRM\Models\Lead::factory()->create();
+        $lead = Lead::factory()->create();
         $user = User::factory()->create();
         $this->actingAs($user);
 
@@ -88,7 +89,7 @@ class ProposalActionVisibilityTest extends TestCase
 
     public function test_manual_approval_action(): void
     {
-        $lead = \Modules\CRM\Models\Lead::factory()->create();
+        $lead = Lead::factory()->create();
         $user = User::factory()->create();
         $this->actingAs($user);
 
