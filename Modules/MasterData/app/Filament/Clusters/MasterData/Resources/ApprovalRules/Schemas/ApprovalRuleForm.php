@@ -13,10 +13,15 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\GeneralInformation;
+use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Enums\ApprovalSignatureType;
+use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\Tax;
+use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Services\UnitService;
 use Modules\Project\Models\Project;
 use Spatie\Permission\Models\Role;
@@ -91,7 +96,40 @@ class ApprovalRuleForm
                                     ->prefix(fn (Get $get) => in_array($get('field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
                                     ->suffix(fn (Get $get) => $get('field') === 'margin_percentage' ? '%' : null)
                                     ->required()
+                                    ->visible(function (Get $get) {
+                                        $field = $get('field');
+                                        if (! $field) {
+                                            return true;
+                                        }
+
+                                        return ! array_key_exists($field, static::getRelationshipFields());
+                                    })
                                     ->columnSpan(2),
+
+                                Select::make('value')
+                                    ->label('Value')
+                                    ->options(function (Get $get) {
+                                        $field = $get('field');
+                                        $mapping = static::getRelationshipFields()[$field] ?? null;
+
+                                        if (! $mapping) {
+                                            return [];
+                                        }
+
+                                        $model = $mapping['model'];
+                                        $label = $mapping['label'];
+
+                                        return $model::query()->pluck($label, 'id');
+                                    })
+                                    ->searchable()
+                                    ->required()
+                                    ->visible(function (Get $get) {
+                                        $field = $get('field');
+
+                                        return $field && array_key_exists($field, static::getRelationshipFields());
+                                    })
+                                    ->columnSpan(2),
+
                                 TextInput::make('max_value')
                                     ->label('To (Max Value)')
                                     ->numeric()
@@ -182,5 +220,35 @@ class ApprovalRuleForm
                             ->default(true),
                     ])->columns(2)->columnSpanFull(),
             ]);
+    }
+
+    protected static function getRelationshipFields(): array
+    {
+        return [
+            'product_cluster_id' => [
+                'model' => ProductCluster::class,
+                'label' => 'name',
+            ],
+            'project_area_id' => [
+                'model' => ProjectArea::class,
+                'label' => 'name',
+            ],
+            'work_scheme_id' => [
+                'model' => WorkScheme::class,
+                'label' => 'name',
+            ],
+            'tax_id' => [
+                'model' => Tax::class,
+                'label' => 'name',
+            ],
+            'customer_id' => [
+                'model' => \Modules\CRM\Models\Customer::class,
+                'label' => 'name',
+            ],
+            'lead_id' => [
+                'model' => Lead::class,
+                'label' => 'document_number',
+            ],
+        ];
     }
 }

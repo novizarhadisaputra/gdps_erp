@@ -132,15 +132,28 @@ class ViewProposal extends ViewRecord
                         ->send();
 
                     if ($this->record->isFullyApproved()) {
-                        $this->record->update(['status' => ProposalStatus::Approved]);
-
                         Notification::make()
-                            ->title('Proposal Fully Approved')
+                            ->title('Proposal Fully Signed')
+                            ->body('The document has been fully signed and is now ready for formal approval.')
                             ->success()
                             ->send();
                     }
                 })
                 ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted])),
+
+            Action::make('Approve')
+                ->color('success')
+                ->icon('heroicon-o-check-badge')
+                ->requiresConfirmation()
+                ->action(function () {
+                    $this->record->update(['status' => ProposalStatus::Approved]);
+
+                    Notification::make()
+                        ->title('Proposal Formally Approved')
+                        ->success()
+                        ->send();
+                })
+                ->visible(fn () => $this->record->status === ProposalStatus::Submitted && $this->record->isFullyApproved()),
 
             Action::make('approvePa')
                 ->label('Approve Profitability Analysis')
@@ -209,7 +222,7 @@ class ViewProposal extends ViewRecord
                     'lead' => $this->record->lead_id,
                     'record' => $this->record->id,
                 ]))
-                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Approved, ProposalStatus::Sent])),
+                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Approved, ProposalStatus::Sent])),
 
             EditAction::make()
                 ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [

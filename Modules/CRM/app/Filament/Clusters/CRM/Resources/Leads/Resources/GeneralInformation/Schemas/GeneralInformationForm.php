@@ -124,19 +124,16 @@ class GeneralInformationForm
                         ->collection('tor')
                         ->label('ToR Document')
                         ->disk('s3')
-                        ->required()
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfp')
                         ->collection('rfp')
                         ->label('RFP Document')
                         ->disk('s3')
-                        ->required()
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('rfi')
                         ->collection('rfi')
                         ->label('RFQ Document')
                         ->disk('s3')
-                        ->required()
                         ->visibility('private'),
                     SpatieMediaLibraryFileUpload::make('other_documents')
                         ->collection('other_documents')
