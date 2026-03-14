@@ -35,8 +35,7 @@ class GeneralInformationObserver
      */
     public function created(GeneralInformation $info): void
     {
-        // Status updates are now manual, starting from 'draft'
-        // Automatic update to 'submitted' removed
+        $info->syncContactsToCustomer();
 
         // Update Lead Status to Approach
         if ($info->lead_id && $info->lead) {
@@ -51,6 +50,8 @@ class GeneralInformationObserver
      */
     public function updated(GeneralInformation $info): void
     {
+        $info->syncContactsToCustomer();
+
         // Sync CostingTemplate and ManpowerTemplate description
         if ($info->wasChanged(['scope_of_work', 'project_area_id', 'status']) && $info->status === GeneralInformationStatus::Approved) {
             $lead = $info->lead;

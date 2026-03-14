@@ -19,59 +19,79 @@ class MinutesOfAgreementForm
         return $schema
             ->components([
                 Section::make('General Information')
+                    ->description('Basic identification and source of the agreement.')
+                    ->icon('heroicon-m-information-circle')
                     ->schema([
-                        Grid::make(3)
-                            ->schema([
-                                TextInput::make('moa_number')
-                                    ->label('MOA Number')
-                                    ->placeholder('Auto-generated')
-                                    ->disabled()
-                                    ->hiddenOn(operations: ['create'])
-                                    ->dehydrated(false),
-                                DatePicker::make('negotiation_date')
-                                    ->label('Negotiation Date')
-                                    ->default(now())
-                                    ->required()
-                                    ->native(false),
-                                TextEntry::make('status')
-                                    ->badge()
-                                    ->columnStart(3),
-                            ]),
-                        Grid::make(2)
-                            ->schema([
-                                Select::make('proposal_id')
-                                    ->label('Source Proposal')
-                                    ->relationship('proposal', 'proposal_number', fn ($query, $record) => $query->where('lead_id', $record?->lead_id))
-                                    ->searchable()
-                                    ->preload()
-                                    ->live(),
-                                TextInput::make('amount')
-                                    ->label('Agreed Amount')
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                    ->prefix('IDR')
-                                    ->required(),
-                            ]),
-                    ]),
+
+                        TextInput::make('moa_number')
+                            ->label('MOA Number')
+                            ->placeholder('Auto-generated')
+                            ->disabled()
+                            ->helperText('The unique reference number for this MOA.')
+                            ->hiddenOn(operations: ['create'])
+                            ->dehydrated(false),
+                        Select::make('proposal_id')
+                            ->label('Source Proposal')
+                            ->relationship('proposal', 'proposal_number', fn ($query, $record) => $query->where('lead_id', $record?->lead_id))
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->required()
+                            ->helperText('Select the proposal that this agreement is based on.'),
+                        DatePicker::make('negotiation_date')
+                            ->label('Negotiation Date')
+                            ->default(now())
+                            ->required()
+                            ->native(false)
+                            ->helperText('The date when the terms were agreed upon.'),
+
+                        TextInput::make('amount')
+                            ->label('Agreed Amount')
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                            ->prefix('IDR')
+                            ->required()
+                            ->helperText('The total value agreed in this MOA.'),
+                        TextEntry::make('status')
+                            ->label('Current Status')
+                            ->badge()
+                            ->visibleOn('view'),
+
+                    ])->columns(columns: 2),
                 Section::make('Agreement Details')
+                    ->description('Detailed terms, scope, and supporting documentation.')
+                    ->icon('heroicon-m-document-text')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('attachment')
                             ->label('MoA Document')
                             ->collection('moa_attachment')
                             ->disk('s3')
                             ->visibility('private')
-                            ->required(),
-                        Textarea::make('scope_of_work')
-                            ->label('Scope of Work')
-                            ->rows(3),
-                        Textarea::make('timeline')
-                            ->label('Timeline')
-                            ->rows(3),
-                        Textarea::make('terms')
-                            ->label('Terms & Conditions')
-                            ->rows(3),
-                        Textarea::make('notes')
-                            ->label('Additional Notes')
-                            ->rows(3),
+                            ->required()
+                            ->columnSpanFull()
+                            ->helperText('Upload the signed or final agreement document.'),
+                        Grid::make(2)
+                            ->schema([
+                                Textarea::make('scope_of_work')
+                                    ->label('Scope of Work')
+                                    ->rows(3)
+                                    ->placeholder('Define the project boundaries and deliverables...')
+                                    ->columnSpanFull(),
+                                Textarea::make('timeline')
+                                    ->label('Timeline')
+                                    ->rows(3)
+                                    ->placeholder('Specify key dates or duration...')
+                                    ->columnSpan(1),
+                                Textarea::make('terms')
+                                    ->label('Terms & Conditions')
+                                    ->rows(3)
+                                    ->placeholder('Specific payment terms, duties, etc...')
+                                    ->columnSpan(1),
+                                Textarea::make('notes')
+                                    ->label('Additional Notes')
+                                    ->rows(3)
+                                    ->placeholder('Any other relevant details...')
+                                    ->columnSpanFull(),
+                            ]),
                     ]),
             ]);
     }

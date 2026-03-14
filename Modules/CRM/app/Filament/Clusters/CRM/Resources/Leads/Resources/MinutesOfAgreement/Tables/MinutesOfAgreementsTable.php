@@ -17,15 +17,23 @@ class MinutesOfAgreementsTable
                 TextColumn::make('moa_number')
                     ->label('Number')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->copyable(),
+                TextColumn::make('customer.name')
+                    ->label('Customer')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
                 TextColumn::make('proposal.proposal_number')
                     ->label('Proposal')
                     ->placeholder('-')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('amount')
                     ->label('Amount')
                     ->money('IDR')
-                    ->sortable(),
+                    ->sortable()
+                    ->alignRight(),
                 TextColumn::make('negotiation_date')
                     ->label('Date')
                     ->date()

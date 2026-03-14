@@ -82,8 +82,8 @@ class SalesPlanInfolist
                                 TextEntry::make('management_fee_percentage')
                                     ->label('Management Fee')
                                     ->suffix('%'),
-                                TextEntry::make('margin_percentage')
-                                    ->label('Target Margin')
+                                TextEntry::make('npm_percentage')
+                                    ->label('Net Profit Margin (NPM)')
                                     ->suffix('%'),
                             ]),
                         Grid::make(2)

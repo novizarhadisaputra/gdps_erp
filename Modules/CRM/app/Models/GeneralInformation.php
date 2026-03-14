@@ -162,6 +162,44 @@ class GeneralInformation extends Model implements HasMedia
         return $this->pics()->first()?->phone;
     }
 
+    public function syncContactsToCustomer(): void
+    {
+        $customer = $this->customer;
+        if (! $customer) {
+            return;
+        }
+
+        $existingContacts = $customer->contacts ?? [];
+        $newContacts = $this->pics->map(fn ($pic) => [
+            'name' => $pic->name,
+            'email' => $pic->email,
+            'phone' => $pic->phone,
+            'type' => (string) $pic->contact_role_id,
+            'job_position' => null, // Not present in GI PICs
+        ])->toArray();
+
+        foreach ($newContacts as $newContact) {
+            // Check if contact already exists by email or name
+            $exists = false;
+            foreach ($existingContacts as $existingContact) {
+                if (! empty($newContact['email']) && ! empty($existingContact['email']) && strtolower($newContact['email']) === strtolower($existingContact['email'])) {
+                    $exists = true;
+                    break;
+                }
+                if (strtolower($newContact['name']) === strtolower($existingContact['name'])) {
+                    $exists = true;
+                    break;
+                }
+            }
+
+            if (! $exists) {
+                $existingContacts[] = $newContact;
+            }
+        }
+
+        $customer->update(['contacts' => $existingContacts]);
+    }
+
     public function toProfitabilityAnalysis(): ProfitabilityAnalysis
     {
         $pa = $this->lead->createProfitabilityAnalysis([

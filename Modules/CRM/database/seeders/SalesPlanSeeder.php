@@ -45,7 +45,7 @@ class SalesPlanSeeder extends Seeder
                     'job_positions' => array_slice($jobPositions, 0, 2),
                     'estimated_value' => rand(100000000, 1000000000),
                     'management_fee_percentage' => rand(5, 15),
-                    'margin_percentage' => rand(10, 30),
+                    'npm_percentage' => rand(10, 30),
                     'priority_level' => rand(1, 3),
                     'confidence_level' => 'moderate',
                     'start_date' => now()->addMonths(1),

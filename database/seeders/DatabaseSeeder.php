@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             ShieldSeeder::class,
             MasterDataDatabaseSeeder::class,
             \Modules\CRM\Database\Seeders\AdministrativeUserSeeder::class,
+            \Modules\CRM\Database\Seeders\RolePermissionSeeder::class,
         ]);
 
         $admin = User::query()->where('email', '=', 'rajabannisa.wahyuni@garudapratama.com')->first();
