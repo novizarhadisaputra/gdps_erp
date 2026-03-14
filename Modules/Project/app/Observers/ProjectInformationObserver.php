@@ -21,7 +21,10 @@ class ProjectInformationObserver
             $analysis = $project->profitabilityAnalysis;
             $info->revenue_per_month = $analysis->revenue_per_month ?? $info->revenue_per_month;
             $info->management_fee_per_month = $analysis->management_fee_amount ?? $info->management_fee_per_month;
-            $info->ppn_percentage = $analysis->tax?->percentage ?? $info->ppn_percentage;
+            
+            if ($analysis->tax?->percentage !== null) {
+                $info->ppn_percentage = $analysis->tax->percentage;
+            }
             
             // Sync dates if not set
             $info->start_date = $info->start_date ?? $analysis->start_date;

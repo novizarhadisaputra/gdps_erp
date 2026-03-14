@@ -20,7 +20,7 @@ class SalesTeamPerformanceWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberHourly('team_performance', function () {
+        $data = $cache->rememberHourly('crm.team_performance', function () {
             $users = Lead::with('user:id,name')
                 ->whereNotNull('user_id')
                 ->get()

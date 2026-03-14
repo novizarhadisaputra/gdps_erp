@@ -60,9 +60,15 @@ class ProposalObserver
         // 2. If Proposal is moved to Draft (Revised), reset linked PA status and track revision
         if ($proposal->wasChanged('status') && $proposal->status === ProposalStatus::Draft) {
             // Track revision info on Proposal
+            $newRevisionNumber = $proposal->revision_number + 1;
+            $shortYear = date('y', strtotime($proposal->created_at));
+            $baseNumber = sprintf('GDPS/UB/PROP-%03d', $proposal->sequence_number);
+            $newNumber = sprintf('%s/REV/%02d/%s', $baseNumber, $newRevisionNumber, $shortYear);
+
             $proposal->updateQuietly([
-                'revision_number' => $proposal->revision_number + 1,
+                'revision_number' => $newRevisionNumber,
                 'previous_code' => $proposal->proposal_number,
+                'proposal_number' => $newNumber,
             ]);
 
             // Downgrade Lead status to Approach (Revision stage)

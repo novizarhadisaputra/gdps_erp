@@ -101,12 +101,18 @@ class ProfitabilityAnalysisObserver
         }
 
         // 4. Sync calculation results to associated Proposal if exists
-        if ($analysis->lead) {
+        // Refinement: Only sync when PA is Approved and Proposal amount is 0
+        if (
+            $analysis->wasChanged('status') &&
+            $analysis->status === ProfitabilityAnalysisStatus::Approved &&
+            $analysis->lead
+        ) {
             foreach ($analysis->lead->proposals as $proposal) {
-                // Synchronize revenue basis. In practice, this represents the commercial value.
-                $proposal->updateQuietly([
-                    'amount' => $analysis->revenue_per_month,
-                ]);
+                if ((float) $proposal->amount === 0.0) {
+                    $proposal->updateQuietly([
+                        'amount' => $analysis->revenue_per_month,
+                    ]);
+                }
             }
         }
 

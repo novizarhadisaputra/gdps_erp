@@ -42,6 +42,8 @@ class ManpowerTemplate extends Model implements HasMedia
         'is_active',
         'is_imported',
         'import_source_id',
+        'sequence_number',
+        'year',
     ];
 
     protected $casts = [

@@ -4,9 +4,11 @@ namespace Modules\Project\Observers;
 
 use Modules\Project\Enums\ProjectInformationStatus;
 use Modules\Project\Models\Project;
+use App\Services\AnalyticsCacheService;
 
 class ProjectObserver
 {
+    public function __construct(protected AnalyticsCacheService $cache) {}
     /**
      * Handle the Project "creating" event.
      */
@@ -22,6 +24,8 @@ class ProjectObserver
      */
     public function created(Project $project): void
     {
+        $this->cache->flushProject();
+
         $project->information()->create([
             'status' => ProjectInformationStatus::Planning,
         ]);
@@ -58,6 +62,8 @@ class ProjectObserver
      */
     public function saved(Project $project): void
     {
+        $this->cache->flushProject();
+
         if ($project->lead && $project->lead->salesPlan) {
             $project->lead->salesPlan->update([
                 'project_code' => $project->code,
@@ -68,5 +74,13 @@ class ProjectObserver
                 'project_code' => $project->code,
             ]);
         }
+    }
+
+    /**
+     * Handle the Project "deleted" event.
+     */
+    public function deleted(Project $project): void
+    {
+        $this->cache->flushProject();
     }
 }

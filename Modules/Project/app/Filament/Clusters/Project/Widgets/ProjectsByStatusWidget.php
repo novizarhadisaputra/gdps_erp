@@ -20,7 +20,7 @@ class ProjectsByStatusWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberRealtime('by_status', function () {
+        $data = $cache->rememberRealtime('project.by_status', function () {
             $statuses = ['planning', 'active', 'completed', 'on_hold', 'cancelled'];
             $counts = [];
             $values = [];

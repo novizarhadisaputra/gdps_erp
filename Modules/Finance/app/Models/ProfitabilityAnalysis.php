@@ -129,9 +129,9 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             ->singleFile();
     }
 
-    public function proposal(): BelongsTo
+    public function proposal(): HasOne
     {
-        return $this->belongsTo(Proposal::class);
+        return $this->hasOne(Proposal::class);
     }
 
     public function lead(): BelongsTo

@@ -28,7 +28,11 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('is_imported')->default(false);
             $table->uuid('import_source_id')->nullable();
+            $table->integer('sequence_number')->default(0);
+            $table->integer('year')->nullable();
             $table->timestamps();
+
+            $table->index(['year', 'sequence_number']);
         });
 
         Schema::create(config('database.default') === 'sqlite' ? 'manpower_template_items' : 'crm.manpower_template_items', function (Blueprint $table) {

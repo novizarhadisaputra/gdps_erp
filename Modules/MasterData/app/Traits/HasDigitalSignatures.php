@@ -27,11 +27,11 @@ trait HasDigitalSignatures
     /**
      * Add a signature to the model.
      */
-    public function addSignature(User $user, string $type): void
+    public function addSignature(User $user, string $type, ?string $role = null): void
     {
         $this->signatures()->create([
             'user_id' => $user->id,
-            'role' => $user->roles->first()?->name ?? 'User',
+            'role' => $role ?? $user->roles->first()?->name ?? 'User',
             'signature_type' => $type,
             'ip_address' => request()->ip(),
             'signed_at' => now(),
@@ -55,6 +55,29 @@ trait HasDigitalSignatures
     }
 
     /**
+     * Check if a specific approval rule has been satisfied by existing signatures.
+     */
+    public function isRuleSatisfied(\Modules\MasterData\Models\ApprovalRule $rule): bool
+    {
+        $signatures = $this->signatures()
+            ->where('signature_type', $rule->signature_type)
+            ->get();
+
+        return $signatures->contains(function ($signature) use ($rule) {
+            if ($rule->approver_type === 'Role') {
+                return in_array($signature->role, $rule->approver_role ?? []);
+            }
+
+            if ($rule->approver_type === 'User') {
+                return in_array($signature->user_id, $rule->approver_user_id ?? []);
+            }
+
+            // For simplicity, we assume signature capture at time of signing satisfies rule requirements.
+            return false;
+        });
+    }
+
+    /**
      * Determine if all required signatures have been obtained.
      */
     public function isFullyApproved(): bool
@@ -67,36 +90,7 @@ trait HasDigitalSignatures
         }
 
         foreach ($required as $rule) {
-            // Updated logic to use isEligibleApprover-like check on existing signatures
-            // We need to check if ANY existing signature satisfies this rule.
-
-            // Get all signatures
-            $signatures = $this->signatures()->get();
-
-            $ruleSatisfied = $signatures->contains(function ($signature) use ($rule) {
-                // We need to check if the signer of this signature WAS eligible for this rule.
-                // But we store 'role' in signature.
-                // If rule is Role-based, check matching role.
-                if ($rule->approver_type === 'Role') {
-                    return in_array($signature->role, $rule->approver_role ?? []);
-                }
-
-                // If rule is User-based, check user_id
-                if ($rule->approver_type === 'User') {
-                    return in_array($signature->user_id, $rule->approver_user_id ?? []);
-                }
-
-                // If rule is Position/Unit, we assume role/user check covers valid signer identity at time of signing.
-                // Or we need to re-verify user current attributes? Usually signature captures authority at moment.
-                // But signature table only stores 'role'.
-                // Ideally signature should store 'approver_type' or link to rule?
-                // For simplicity, let's assume Role match is sufficient for Role type.
-                // For User type, check user_id.
-
-                return false;
-            });
-
-            if (! $ruleSatisfied) {
+            if (! $this->isRuleSatisfied($rule)) {
                 return false;
             }
         }

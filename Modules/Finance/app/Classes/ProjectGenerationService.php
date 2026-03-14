@@ -85,7 +85,12 @@ class ProjectGenerationService
                 'revenue_per_month' => $pa->revenue_per_month,
                 'direct_cost' => $pa->direct_cost,
                 'management_fee_per_month' => $pa->management_fee,
+                'ppn_percentage' => $pa->tax?->percentage ?? 11.00,
+                'start_date' => $pa->start_date ?? $pa->lead?->start_date,
+                'end_date' => $pa->end_date ?? $pa->lead?->end_date,
                 'analysis_details' => $details,
+                'remuneration_details' => $pa->manpower_requirements,
+                'lead_id' => $pa->lead_id,
             ]);
 
             // 5. Update PA status

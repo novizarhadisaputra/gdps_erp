@@ -19,7 +19,7 @@ class CRMStatsOverviewWidget extends BaseWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        return $cache->rememberRealtime('stats_overview', function () {
+        return $cache->rememberRealtime('crm.stats_overview', function () {
             // Total Active Leads (not Won or Closed Lost)
             $activeLeads = Lead::whereNotIn('status', [
                 LeadStatus::Won,

@@ -91,17 +91,27 @@ class ViewContract extends ViewRecord
                         return;
                     }
 
-                    if ($this->record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
+                    // Check if signature already exists for this rule
+                    if ($this->record->isRuleSatisfied($matchingRule)) {
                         Notification::make()
                             ->title('Already Signed')
-                            ->body('This document has already been signed by the appropriate role.')
+                            ->body('This document has already been signed by the appropriate role(s) you represent.')
                             ->warning()
                             ->send();
 
                         return;
                     }
 
-                    $this->record->addSignature(auth()->user(), $matchingRule->signature_type);
+                    // Determine the role to record for this signature
+                    $recordedRole = null;
+                    if ($matchingRule->approver_type === 'Role') {
+                        $userRoles = $user->roles->pluck('name')->toArray();
+                        $ruleRoles = $matchingRule->approver_role ?? [];
+                        $commonRoles = array_intersect($userRoles, $ruleRoles);
+                        $recordedRole = reset($commonRoles);
+                    }
+
+                    $this->record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
 
                     Notification::make()
                         ->title('Document Successfully Signed')

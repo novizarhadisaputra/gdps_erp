@@ -5,9 +5,24 @@ namespace Modules\CRM\Observers;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
+use Modules\CRM\Models\Proposal;
+use Modules\CRM\Models\GeneralInformation;
+use Modules\CRM\Models\Contract;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Project\Models\ProjectInformation;
+use App\Services\AnalyticsCacheService;
 
 class LeadObserver
 {
+    public function __construct(protected AnalyticsCacheService $cache) {}
+
+    /**
+     * Handle the Lead "created" event.
+     */
+    public function created(Lead $lead): void
+    {
+        $this->cache->flushCRM();
+    }
     /**
      * Handle the Lead "creating" event.
      */
@@ -27,6 +42,8 @@ class LeadObserver
      */
     public function updated(Lead $lead): void
     {
+        $this->cache->flushCRM();
+
         // Bi-directional categorization sync to SalesPlan
         /** @var \Modules\CRM\Models\SalesPlan|null $salesPlan */
         $salesPlan = $lead->salesPlan()->first();
@@ -126,6 +143,8 @@ class LeadObserver
      */
     public function deleted(Lead $lead): void
     {
+        $this->cache->flushCRM();
+
         // Activity logs are preserved (Spatie LogsActivity trait handles this)
         // We only delete related records as requested.
     }
@@ -137,10 +156,10 @@ class LeadObserver
     {
         // Cascade delete related records
         $lead->salesPlan()?->delete();
-        $lead->proposals()->each(fn ($p) => $p->delete());
-        $lead->generalInformations()->each(fn ($gi) => $gi->delete());
-        $lead->profitabilityAnalyses()->each(fn ($pa) => $pa->delete());
-        $lead->contracts()->each(fn ($c) => $c->delete());
-        $lead->projectInformations()->each(fn ($pi) => $pi->delete());
+        $lead->proposals()->each(fn (Proposal $p) => $p->delete());
+        $lead->generalInformations()->each(fn (GeneralInformation $gi) => $gi->delete());
+        $lead->profitabilityAnalyses()->each(fn (ProfitabilityAnalysis $pa) => $pa->delete());
+        $lead->contracts()->each(fn (Contract $c) => $c->delete());
+        $lead->projectInformations()->each(fn (ProjectInformation $pi) => $pi->delete());
     }
 }

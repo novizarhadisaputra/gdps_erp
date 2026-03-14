@@ -116,9 +116,9 @@ trait HasProfitabilityAnalysisActions
 
                 $required = $service->getRequiredApprovers($record);
 
-                $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
-                if (! $matchingRule) {
+                if ($eligibleRules->isEmpty()) {
                     Notification::make()
                         ->title('Access Denied')
                         ->body('You do not have the authority to sign this document based on the current approval rules.')
@@ -128,17 +128,30 @@ trait HasProfitabilityAnalysisActions
                     return;
                 }
 
-                if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
+                // Find the first rule that is not yet satisfied
+                $matchingRule = $eligibleRules->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
+
+                if (! $matchingRule) {
                     Notification::make()
                         ->title('Already Signed')
-                        ->body('This document has already been signed by the appropriate role.')
+                        ->body('This document has already been signed by the appropriate role(s) you represent.')
                         ->warning()
                         ->send();
 
                     return;
                 }
 
-                $record->addSignature(auth()->user(), $matchingRule->signature_type);
+                // Determine the role to record for this signature
+                $recordedRole = null;
+                if ($matchingRule->approver_type === 'Role') {
+                    // Match user role against rule roles
+                    $userRoles = auth()->user()->roles->pluck('name')->toArray();
+                    $ruleRoles = $matchingRule->approver_role ?? [];
+                    $commonRoles = array_intersect($userRoles, $ruleRoles);
+                    $recordedRole = reset($commonRoles);
+                }
+
+                $record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
 
                 Notification::make()
                     ->title('Document Successfully Signed')
@@ -151,13 +164,27 @@ trait HasProfitabilityAnalysisActions
             })
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                if ($status instanceof \BackedEnum) {
+                    $status = $status->value;
+                }
+
                 $isMarginApproved = $record?->is_margin_approved ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->is_margin_approved : false);
-                $allowed = [
-                    ProfitabilityAnalysisStatus::Submitted,
+
+                // Check for approved proposal. Using relationship check which is now HasOne
+                $proposal = $record?->proposal;
+                $proposalStatus = $proposal?->status;
+                if ($proposalStatus instanceof \BackedEnum) {
+                    $proposalStatus = $proposalStatus->value;
+                }
+
+                $allowedPAStatuses = [
+                    ProfitabilityAnalysisStatus::Submitted->value,
                     'submitted',
                 ];
 
-                return in_array($status, $allowed, true) && $isMarginApproved;
+                return in_array($status, $allowedPAStatuses, true)
+                    && $isMarginApproved
+                    && ($proposalStatus === ProposalStatus::Approved->value || $proposalStatus === 'approved');
             });
     }
 

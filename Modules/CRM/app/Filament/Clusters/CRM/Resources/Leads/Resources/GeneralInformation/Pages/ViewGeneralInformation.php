@@ -95,18 +95,28 @@ class ViewGeneralInformation extends ViewRecord
                         return;
                     }
 
-                    if ($record->hasSignatureFrom($matchingRule->approver_role ?? $matchingRule->approver_type)) {
+                    // Check if signature already exists for this rule
+                    if ($record->isRuleSatisfied($matchingRule)) {
                         Notification::make()
                             ->title('Already Signed')
-                            ->body('This document has already been signed by the appropriate role.')
+                            ->body('This document has already been signed by the appropriate role(s) you represent.')
                             ->warning()
                             ->send();
 
                         return;
                     }
 
+                    // Determine the role to record for this signature
+                    $recordedRole = null;
+                    if ($matchingRule->approver_type === 'Role') {
+                        $userRoles = auth()->user()->roles->pluck('name')->toArray();
+                        $ruleRoles = $matchingRule->approver_role ?? [];
+                        $commonRoles = array_intersect($userRoles, $ruleRoles);
+                        $recordedRole = reset($commonRoles);
+                    }
+
                     $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
-                    $record->addSignature(auth()->user(), $matchingRule->signature_type);
+                    $record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
 
                     Notification::make()
                         ->title('Document Successfully Signed')

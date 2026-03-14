@@ -11,8 +11,18 @@ class CostingTemplateObserver
      */
     public function creating(CostingTemplate $costingTemplate): void
     {
-        if (empty($costingTemplate->code)) {
-            $costingTemplate->code = 'CST-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -5));
-        }
+        $year = date('Y');
+        $shortYear = date('y');
+
+        $latest = CostingTemplate::query()
+            ->where('year', $year)
+            ->orderBy('sequence_number', 'desc')
+            ->first();
+
+        $sequence = $latest ? $latest->sequence_number + 1 : 1;
+
+        $costingTemplate->year = $year;
+        $costingTemplate->sequence_number = $sequence;
+        $costingTemplate->code = sprintf('GDPS/UB/TE-%03d/%s', $sequence, $shortYear);
     }
 }

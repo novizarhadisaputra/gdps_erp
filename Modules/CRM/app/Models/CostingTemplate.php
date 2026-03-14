@@ -19,7 +19,7 @@ class CostingTemplate extends Model implements HasMedia
     use HasModuleSchema;
     use InteractsWithMedia;
 
-    protected static function newFactory()
+    protected static function newFactory(): \Modules\CRM\Database\Factories\CostingTemplateFactory
     {
         return \Modules\CRM\Database\Factories\CostingTemplateFactory::new();
     }

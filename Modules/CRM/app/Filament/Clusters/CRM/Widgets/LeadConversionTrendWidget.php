@@ -22,7 +22,7 @@ class LeadConversionTrendWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberHourly('conversion_trend', function () {
+        $data = $cache->rememberHourly('crm.conversion_trend', function () {
             $months = [];
             $wonData = [];
             $lostData = [];

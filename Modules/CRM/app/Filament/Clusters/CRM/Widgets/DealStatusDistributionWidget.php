@@ -23,7 +23,7 @@ class DealStatusDistributionWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberRealtime('deal_status_distribution', function () {
+        $data = $cache->rememberRealtime('crm.deal_status_distribution', function () {
             return [
                 'lead' => Lead::where('status', LeadStatus::Lead)->count(),
                 'approach' => Lead::where('status', LeadStatus::Approach)->count(),

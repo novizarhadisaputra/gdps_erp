@@ -23,9 +23,13 @@ return new class extends Migration
             $table->json('after_snapshot')->nullable();
 
             $table->string('status'); // draft, approved, cancelled
+            $table->integer('sequence_number')->default(0);
+            $table->integer('year')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['year', 'sequence_number']);
         });
     }
 

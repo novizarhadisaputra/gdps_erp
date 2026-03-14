@@ -18,7 +18,7 @@ class ProjectStatsWidget extends BaseWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        return $cache->rememberRealtime('stats_overview', function () {
+        return $cache->rememberRealtime('project.stats_overview', function () {
             $totalProjects = Project::count();
             $activeProjects = Project::where('status', 'active')->count();
             $planningProjects = Project::where('status', 'planning')->count();

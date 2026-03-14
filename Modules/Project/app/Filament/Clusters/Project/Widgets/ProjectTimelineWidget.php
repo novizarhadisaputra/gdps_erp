@@ -21,7 +21,7 @@ class ProjectTimelineWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberHourly('timeline', function () {
+        $data = $cache->rememberHourly('project.timeline', function () {
             $projects = Project::whereNotNull('start_date')
                 ->whereNotNull('end_date')
                 ->where('status', '!=', 'cancelled')

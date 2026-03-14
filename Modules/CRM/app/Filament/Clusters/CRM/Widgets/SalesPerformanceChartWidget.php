@@ -21,7 +21,7 @@ class SalesPerformanceChartWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberHourly('sales_performance_cumulative', function () {
+        $data = $cache->rememberHourly('crm.sales_performance_cumulative', function () {
             $year = now()->year;
             $months = [];
             $budgetData = [];

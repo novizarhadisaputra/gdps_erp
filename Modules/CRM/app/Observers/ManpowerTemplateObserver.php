@@ -11,8 +11,18 @@ class ManpowerTemplateObserver
      */
     public function creating(ManpowerTemplate $manpowerTemplate): void
     {
-        if (empty($manpowerTemplate->code)) {
-            $manpowerTemplate->code = 'MPW-'.date('Ymd').'-'.strtoupper(substr(uniqid(), -5));
-        }
+        $year = date('Y');
+        $shortYear = date('y');
+
+        $latest = ManpowerTemplate::query()
+            ->where('year', $year)
+            ->orderBy('sequence_number', 'desc')
+            ->first();
+
+        $sequence = $latest ? $latest->sequence_number + 1 : 1;
+
+        $manpowerTemplate->year = $year;
+        $manpowerTemplate->sequence_number = $sequence;
+        $manpowerTemplate->code = sprintf('GDPS/UB/MP-%03d/%s', $sequence, $shortYear);
     }
 }

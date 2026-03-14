@@ -3,14 +3,17 @@
 namespace Modules\CRM\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\CRM\Database\Factories\SalesOrderFactory;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
+use Modules\CRM\Observers\SalesOrderObserver;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Traits\HasDigitalSignatures;
@@ -18,6 +21,7 @@ use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+#[ObservedBy(SalesOrderObserver::class)]
 class SalesOrder extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia, SoftDeletes;
@@ -43,6 +47,8 @@ class SalesOrder extends Model implements HasMedia
         'probation_period',
         'replacement_sla',
         'reporting_schedule',
+        'sequence_number',
+        'year',
     ];
 
     protected function casts(): array
@@ -64,6 +70,11 @@ class SalesOrder extends Model implements HasMedia
         $this->addMediaCollection('signed_so')
             ->useDisk('s3')
             ->singleFile();
+    }
+
+    protected static function newFactory(): SalesOrderFactory
+    {
+        return SalesOrderFactory::new();
     }
 
     public function project(): BelongsTo

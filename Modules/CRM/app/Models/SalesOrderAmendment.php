@@ -3,13 +3,17 @@
 namespace Modules\CRM\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\CRM\Database\Factories\SalesOrderAmendmentFactory;
 use Modules\CRM\Enums\SalesOrderAmendmentStatus;
+use Modules\CRM\Observers\SalesOrderAmendmentObserver;
 
+#[ObservedBy(SalesOrderAmendmentObserver::class)]
 class SalesOrderAmendment extends Model
 {
     use HasFactory, HasModuleSchema, HasUuids, SoftDeletes;
@@ -22,6 +26,8 @@ class SalesOrderAmendment extends Model
         'before_snapshot',
         'after_snapshot',
         'status',
+        'sequence_number',
+        'year',
     ];
 
     protected function casts(): array
@@ -32,6 +38,11 @@ class SalesOrderAmendment extends Model
             'after_snapshot' => 'array',
             'status' => SalesOrderAmendmentStatus::class,
         ];
+    }
+
+    protected static function newFactory(): SalesOrderAmendmentFactory
+    {
+        return SalesOrderAmendmentFactory::new();
     }
 
     public function salesOrder(): BelongsTo

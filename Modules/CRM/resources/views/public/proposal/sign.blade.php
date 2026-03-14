@@ -1,20 +1,28 @@
 <x-layouts.guest>
     <div class="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-4xl w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl">
-            <div class="text-center">
-                <h2 class="text-3xl font-extrabold text-blue-600">
-                    Proposal Signature Portal
-                </h2>
-                <p class="mt-2 text-sm text-gray-600">
-                    Proposal Number: <span class="font-bold text-gray-900">{{ $proposal->proposal_number }}</span>
-                </p>
 
-                @if($errors->has('message'))
-                    <div class="mt-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-                        <p class="text-sm font-bold">{{ $errors->first('message') }}</p>
+            {{-- Branded Header --}}
+            <div class="flex items-center justify-between border-b border-gray-100 pb-6">
+                <div class="flex items-center gap-4">
+                    <img src="{{ asset('images/logo.png') }}" alt="GDPS Logo" class="h-14 w-auto object-contain">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">PT GARUDA DAYA PRATAMA SEJAHTERA</p>
+                        <p class="text-lg font-extrabold text-gray-800">Proposal Signature Portal</p>
                     </div>
-                @endif
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-400">Proposal Number</p>
+                    <p class="text-sm font-bold text-blue-600">{{ $proposal->proposal_number }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ now()->format('d M Y') }}</p>
+                </div>
             </div>
+
+            @if($errors->has('message'))
+                <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+                    <p class="text-sm font-bold">{{ $errors->first('message') }}</p>
+                </div>
+            @endif
 
             <div class="border-t border-b border-gray-100 py-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Proposal Preview</h3>

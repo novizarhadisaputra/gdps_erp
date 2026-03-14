@@ -20,7 +20,11 @@ return new class extends Migration
             $table->decimal('total_amount', 15, 2)->default(0); // Total One-Time Cost/Investment
             $table->decimal('total_monthly_cost', 15, 2)->default(0); // Total Monthly Depr/Expense
             $table->text('description')->nullable();
+            $table->integer('sequence_number')->default(0);
+            $table->integer('year')->nullable();
             $table->timestamps();
+
+            $table->index(['year', 'sequence_number']);
         });
     }
 

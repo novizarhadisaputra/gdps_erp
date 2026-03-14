@@ -20,7 +20,7 @@ class ProjectsByTypeWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberHourly('by_type', function () {
+        $data = $cache->rememberHourly('project.by_type', function () {
             $byType = Project::with('projectType:id,name')
                 ->get()
                 ->groupBy('project_type_id')
