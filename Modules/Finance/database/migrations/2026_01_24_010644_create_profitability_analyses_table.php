@@ -45,6 +45,8 @@ return new class extends Migration
 
             $table->integer('project_number')->nullable();
             $table->string('status')->default('draft'); // draft, approved, rejected, converted
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->boolean('is_margin_approved')->default(false);
             $table->integer('revision_number')->default(0);
             $table->string('previous_code')->nullable();

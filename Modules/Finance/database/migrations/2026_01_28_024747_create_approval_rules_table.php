@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('criteria_field')->nullable();        // e.g., 'revenue_per_month'
             $table->string('operator')->nullable();              // e.g., '>', '=', '<'
             $table->decimal('value', 20, 2)->nullable();
+            $table->json('conditions')->nullable();
             $table->decimal('max_value', 20, 2)->nullable();
             $table->string('approver_type')->default('Role');
             $table->json('approver_role')->nullable();      // Array of Roles

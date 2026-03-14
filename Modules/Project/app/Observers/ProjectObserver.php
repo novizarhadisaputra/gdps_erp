@@ -27,7 +27,18 @@ class ProjectObserver
         $this->cache->flushProject();
 
         $project->information()->create([
+            'lead_id' => $project->lead_id,
             'status' => ProjectInformationStatus::Planning,
+            'start_date' => $project->start_date,
+            'end_date' => $project->end_date,
+            'payment_term_id' => $project->payment_term_id,
+            'project_type_id' => $project->project_type_id,
+            'oprep_id' => $project->oprep_id,
+            'ams_id' => $project->ams_id,
+            'revenue_per_month' => $project->profitabilityAnalysis?->revenue_per_month ?? 0,
+            'direct_cost' => $project->profitabilityAnalysis?->direct_cost ?? 0,
+            'management_fee_per_month' => $project->profitabilityAnalysis?->management_fee ?? 0,
+            'analysis_details' => $project->profitabilityAnalysis?->analysis_details,
         ]);
 
         if ($project->lead) {

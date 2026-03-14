@@ -27,6 +27,11 @@ class SalesPlan extends Model
     use HasFactory, HasUuids;
     use HasModuleSchema;
 
+    protected static function newFactory(): \Modules\CRM\Database\Factories\SalesPlanFactory
+    {
+        return \Modules\CRM\Database\Factories\SalesPlanFactory::new();
+    }
+
     protected $fillable = [
         'lead_id',
         'project_type_id',

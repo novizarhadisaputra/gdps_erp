@@ -40,62 +40,71 @@ class ApprovalRuleForm
                                 GeneralInformation::class => 'General Information',
                             ])
                             ->required()
-                            ->live()
-                            ->afterStateUpdated(function ($state, Set $set) {
-                                if ($state === GeneralInformation::class) {
-                                    $set('criteria_field', 'sequence_number');
-                                    $set('operator', '>');
-                                    $set('value', -1);
-                                }
-                            }),
-                        Select::make('criteria_field')
-                            ->label('Criteria Field')
-                            ->options(fn (Get $get): array => match ($get('resource_type')) {
-                                ProfitabilityAnalysis::class => [
-                                    'revenue_per_month' => 'Revenue',
-                                    'margin_percentage' => 'Margin (%)',
-                                    'net_profit' => 'Net Profit',
-                                ],
-                                Contract::class, 'Modules\CRM\Models\Project', Project::class, Proposal::class => [
-                                    'amount' => 'Amount / Value',
-                                ],
-                                MinutesOfAgreement::class => [
-                                    'amount' => 'Amount / Value',
-                                ],
-                                GeneralInformation::class => [
-                                    'sequence_number' => 'Sequence Number',
-                                ],
-                                default => [],
-                            })
-                            ->required(fn (Get $get) => $get('resource_type') !== GeneralInformation::class)
-                            ->visible(fn (Get $get) => $get('resource_type') !== GeneralInformation::class),
-                        Select::make('operator')
-                            ->options([
-                                '>' => 'Greater Than (>)',
-                                '>=' => 'Greater Than or Equal (>=)',
-                                '<' => 'Less Than (<)',
-                                '<=' => 'Less Than or Equal (<=)',
-                                '=' => 'Equal (=)',
-                                'between' => 'Between',
+                            ->live(),
+
+                        \Filament\Forms\Components\Repeater::make('conditions')
+                            ->label('Conditions (ALL must be met - AND logic)')
+                            ->schema([
+                                Select::make('field')
+                                    ->label('Criteria Field')
+                                    ->options(function (Get $get) {
+                                        $resourceType = $get('../../resource_type');
+
+                                        return match ($resourceType) {
+                                            ProfitabilityAnalysis::class => [
+                                                'revenue_per_month' => 'Revenue',
+                                                'margin_percentage' => 'Margin (%)',
+                                                'net_profit' => 'Net Profit',
+                                                'product_cluster_id' => 'Product Cluster',
+                                            ],
+                                            Contract::class, 'Modules\CRM\Models\Project', Project::class, Proposal::class => [
+                                                'amount' => 'Amount / Value',
+                                            ],
+                                            MinutesOfAgreement::class => [
+                                                'amount' => 'Amount / Value',
+                                            ],
+                                            GeneralInformation::class => [
+                                                'sequence_number' => 'Sequence Number',
+                                            ],
+                                            default => [],
+                                        };
+                                    })
+                                    ->required()
+                                    ->live()
+                                    ->columnSpan(2),
+                                Select::make('operator')
+                                    ->options([
+                                        '>' => 'Greater Than (>)',
+                                        '>=' => 'Greater Than or Equal (>=)',
+                                        '<' => 'Less Than (<)',
+                                        '<=' => 'Less Than or Equal (<=)',
+                                        '=' => 'Equal (=)',
+                                        'in' => 'In (Comma Separated)',
+                                        'between' => 'Between',
+                                    ])
+                                    ->live()
+                                    ->required()
+                                    ->columnSpan(2),
+                                TextInput::make('value')
+                                    ->numeric()
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                    ->prefix(fn (Get $get) => in_array($get('field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
+                                    ->suffix(fn (Get $get) => $get('field') === 'margin_percentage' ? '%' : null)
+                                    ->required()
+                                    ->columnSpan(2),
+                                TextInput::make('max_value')
+                                    ->label('To (Max Value)')
+                                    ->numeric()
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                    ->prefix(fn (Get $get) => in_array($get('field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
+                                    ->suffix(fn (Get $get) => $get('field') === 'margin_percentage' ? '%' : null)
+                                    ->required(fn (Get $get) => $get('operator') === 'between')
+                                    ->visible(fn (Get $get) => $get('operator') === 'between')
+                                    ->columnSpan(2),
                             ])
-                            ->live()
-                            ->required(fn (Get $get) => $get('resource_type') !== GeneralInformation::class)
-                            ->visible(fn (Get $get) => $get('resource_type') !== GeneralInformation::class),
-                        TextInput::make('value')
-                            ->numeric()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                            ->prefix(fn (Get $get) => in_array($get('criteria_field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
-                            ->suffix(fn (Get $get) => $get('criteria_field') === 'margin_percentage' ? '%' : null)
-                            ->required(fn (Get $get) => $get('resource_type') !== GeneralInformation::class)
-                            ->visible(fn (Get $get) => $get('resource_type') !== GeneralInformation::class),
-                        TextInput::make('max_value')
-                            ->label('To (Max Value)')
-                            ->numeric()
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                            ->prefix(fn (Get $get) => in_array($get('criteria_field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
-                            ->suffix(fn (Get $get) => $get('criteria_field') === 'margin_percentage' ? '%' : null)
-                            ->required(fn (Get $get) => $get('operator') === 'between')
-                            ->visible(fn (Get $get) => $get('operator') === 'between'),
+                            ->columns(8)
+                            ->columnSpanFull()
+                            ->defaultItems(1),
                     ])->columns(2)->columnSpanFull(),
 
                 Section::make('Approval Config')

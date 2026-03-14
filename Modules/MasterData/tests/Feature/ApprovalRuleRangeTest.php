@@ -61,4 +61,52 @@ class ApprovalRuleRangeTest extends TestCase
         $approversTooHigh = $this->service->getRequiredApprovers($moaTooHigh);
         $this->assertCount(0, $approversTooHigh);
     }
+
+    public function test_it_can_evaluate_multiple_conditions_correctly(): void
+    {
+        // Create a rule with multiple conditions (AND logic)
+        // Revenue > 1000 AND Margin > 10%
+        $rule = ApprovalRule::create([
+            'resource_type' => \Modules\Finance\Models\ProfitabilityAnalysis::class,
+            'conditions' => [
+                [
+                    'field' => 'revenue_per_month',
+                    'operator' => '>',
+                    'value' => 1000,
+                ],
+                [
+                    'field' => 'margin_percentage',
+                    'operator' => '>',
+                    'value' => 10,
+                ],
+            ],
+            'approver_type' => 'Role',
+            'approver_role' => ['admin'],
+            'signature_type' => 'approval',
+            'order' => 1,
+            'is_active' => true,
+        ]);
+
+        $pa = new \Modules\Finance\Models\ProfitabilityAnalysis();
+
+        // 1. Both met
+        $pa->revenue_per_month = 2000;
+        $pa->margin_percentage = 15;
+        $this->assertCount(1, $this->service->getRequiredApprovers($pa));
+
+        // 2. Only one met (Revenue)
+        $pa->revenue_per_month = 2000;
+        $pa->margin_percentage = 5;
+        $this->assertCount(0, $this->service->getRequiredApprovers($pa));
+
+        // 3. Only one met (Margin)
+        $pa->revenue_per_month = 500;
+        $pa->margin_percentage = 15;
+        $this->assertCount(0, $this->service->getRequiredApprovers($pa));
+
+        // 4. None met
+        $pa->revenue_per_month = 500;
+        $pa->margin_percentage = 5;
+        $this->assertCount(0, $this->service->getRequiredApprovers($pa));
+    }
 }

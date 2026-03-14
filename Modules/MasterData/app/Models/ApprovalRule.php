@@ -24,6 +24,7 @@ class ApprovalRule extends Model
         'approver_unit_id',
         'approver_position',
         'signature_type',
+        'conditions',
         'order',
         'is_active',
     ];
@@ -37,5 +38,6 @@ class ApprovalRule extends Model
         'approver_user_id' => 'array',
         'approver_unit_id' => 'array',
         'approver_position' => 'array',
+        'conditions' => 'array',
     ];
 }

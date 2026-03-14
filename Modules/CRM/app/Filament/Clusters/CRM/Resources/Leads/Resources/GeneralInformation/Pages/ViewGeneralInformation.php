@@ -148,16 +148,8 @@ class ViewGeneralInformation extends ViewRecord
                 ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Approved)
                 ->action(function () {
                     $record = $this->getRecord();
+                    $pa = $record->toProfitabilityAnalysis();
                     $lead = $record->lead;
-
-                    $lead->profitabilityAnalyses()->create([
-                        'customer_id' => $lead->customer_id,
-                        'general_information_id' => $record->id,
-                        'work_scheme_id' => $lead->work_scheme_id,
-                        'project_area_id' => $record->project_area_id,
-                        'product_cluster_id' => $lead->product_cluster_id,
-                        'status' => 'draft',
-                    ]);
 
                     Notification::make()
                         ->title('Profitability Analysis Created')

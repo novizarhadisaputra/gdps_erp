@@ -27,24 +27,56 @@ class SignatureService
             ->where('is_active', true)
             ->get()
             ->filter(function ($rule) use ($model) {
-                // If no criteria, it applies
-                if (empty($rule->criteria_field) || empty($rule->operator)) {
-                    return true;
+                // 1. Evaluate legacy single condition (if present)
+                if (! empty($rule->criteria_field) && ! empty($rule->operator)) {
+                    $fieldValue = $model->{$rule->criteria_field};
+                    $satisfied = match ($rule->operator) {
+                        '>' => $fieldValue > $rule->value,
+                        '>=' => $fieldValue >= $rule->value,
+                        '<' => $fieldValue < $rule->value,
+                        '<=' => $fieldValue <= $rule->value,
+                        '=' => $fieldValue == $rule->value,
+                        'in' => in_array($fieldValue, array_map('trim', explode(',', $rule->value))),
+                        'between' => $fieldValue >= $rule->value && $fieldValue <= $rule->max_value,
+                        default => false,
+                    };
+
+                    if (! $satisfied) {
+                        return false;
+                    }
                 }
 
-                $fieldValue = $model->{$rule->criteria_field};
+                // 2. Evaluate new multi-conditions (if present)
+                if (! empty($rule->conditions) && is_array($rule->conditions)) {
+                    foreach ($rule->conditions as $condition) {
+                        $field = $condition['field'] ?? null;
+                        $operator = $condition['operator'] ?? null;
+                        $value = $condition['value'] ?? null;
+                        $max = $condition['max_value'] ?? null;
 
-                // Handle GeneralInformation special case (if criteria is sequence_number but logic implies existence)
-                // But for now, standard comparison:
-                return match ($rule->operator) {
-                    '>' => $fieldValue > $rule->value,
-                    '>=' => $fieldValue >= $rule->value,
-                    '<' => $fieldValue < $rule->value,
-                    '<=' => $fieldValue <= $rule->value,
-                    '=' => $fieldValue == $rule->value,
-                    'between' => $fieldValue >= $rule->value && $fieldValue <= $rule->max_value,
-                    default => false,
-                };
+                        if (! $field || ! $operator) {
+                            continue;
+                        }
+
+                        $fieldValue = $model->{$field};
+                        $conditionSatisfied = match ($operator) {
+                            '>' => $fieldValue > $value,
+                            '>=' => $fieldValue >= $value,
+                            '<' => $fieldValue < $value,
+                            '<=' => $fieldValue <= $value,
+                            '=' => $fieldValue == $value,
+                            'in' => in_array($fieldValue, array_map('trim', explode(',', $value))),
+                            'between' => $fieldValue >= $value && $fieldValue <= $max,
+                            default => false,
+                        };
+
+                        if (! $conditionSatisfied) {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
             })
             ->sortBy('order');
     }

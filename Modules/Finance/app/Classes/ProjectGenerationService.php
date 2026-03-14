@@ -18,7 +18,10 @@ class ProjectGenerationService
             // 1. Calculate next sequence number for this Customer + Work Scheme
             $nextNumber = $this->getNextSequenceNumber($pa, $contract);
 
-            // 2. Get Project Type from Lead
+            // 2. Validate required fields for Project Code generation to avoid 'XXX' or 'XX'
+            $this->validateProjectCodeSegments($pa);
+
+            // 3. Get Project Type from Lead
             $projectTypeId = $pa->lead?->project_type_id;
 
             // 3. Create or Update the Project
@@ -105,6 +108,60 @@ class ProjectGenerationService
 
             return $project;
         });
+    }
+
+    protected function validateProjectCodeSegments(ProfitabilityAnalysis $pa): void
+    {
+        $missing = [];
+
+        if (! $pa->customer_id && ! $pa->lead?->customer_id) {
+            $missing[] = 'Customer';
+        }
+
+        if (! $pa->project_area_id && ! $pa->lead?->project_area_id) {
+            $missing[] = 'Project Area';
+        }
+
+        if (! $pa->product_cluster_id && ! $pa->lead?->product_cluster_id) {
+            $missing[] = 'Product Cluster';
+        }
+
+        if (! $pa->tax_id && ! $pa->lead?->tax_id) {
+            $missing[] = 'Tax Rate';
+        }
+
+        if (count($missing) > 0) {
+            $fields = implode(', ', $missing);
+            throw new \RuntimeException("Cannot generate Project: Missing required data for Project Code: {$fields}. Please ensure these are selected in the Profitability Analysis or Lead.");
+        }
+        
+        // Also check if the codes are actually set on these models
+        $pa->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'lead.customer']);
+        
+        $customerCode = $pa->customer?->code ?? $pa->lead?->customer?->code;
+        if (empty($customerCode)) {
+            $missing[] = 'Customer Code';
+        }
+        
+        $areaCode = $pa->projectArea?->code ?? $pa->lead?->projectArea?->code;
+        if (empty($areaCode)) {
+            $missing[] = 'Project Area Code';
+        }
+        
+        $clusterCode = $pa->productCluster?->code ?? $pa->lead?->productCluster?->code;
+        if (empty($clusterCode)) {
+            $missing[] = 'Product Cluster Code';
+        }
+        
+        $taxCode = $pa->tax?->code;
+        if (empty($taxCode)) {
+            $missing[] = 'Tax Code';
+        }
+
+        if (count($missing) > 0) {
+            $fields = implode(', ', $missing);
+            throw new \RuntimeException("Cannot generate Project: Missing codes in Master Data: {$fields}. Please check your Master Data configuration.");
+        }
     }
 
     protected function getNextSequenceNumber(ProfitabilityAnalysis $pa, ?Contract $contract = null): int

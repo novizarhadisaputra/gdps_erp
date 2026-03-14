@@ -218,13 +218,15 @@ class Lead extends Model implements HasMedia
             $pa = ProfitabilityAnalysis::create(array_merge([
                 'lead_id' => $this->id,
                 'customer_id' => $this->customer_id,
-                'project_area_id' => $this->project_area_id,
-                'product_cluster_id' => $this->product_cluster_id,
-                'payment_term_id' => $this->payment_term_id ?? $this->salesPlan?->payment_term_id,
+                'project_area_id' => $this->salesPlan?->project_area_id ?? $this->project_area_id,
+                'product_cluster_id' => $this->salesPlan?->product_cluster_id ?? $this->product_cluster_id,
+                'payment_term_id' => $this->salesPlan?->payment_term_id ?? $this->payment_term_id,
                 'tax_id' => $this->tax_id,
+                'start_date' => $this->salesPlan?->start_date ?? $this->start_date,
+                'end_date' => $this->salesPlan?->end_date ?? $this->end_date,
                 'management_fee_rate' => $this->salesPlan?->management_fee_percentage ?? 0,
                 'status' => ProfitabilityAnalysisStatus::Draft,
-            ], $additionalData));
+            ], array_filter($additionalData, fn ($v) => ! is_null($v))));
 
             // 1. Manpower Items from Lead's templates
             foreach ($this->manpowerTemplates as $template) {

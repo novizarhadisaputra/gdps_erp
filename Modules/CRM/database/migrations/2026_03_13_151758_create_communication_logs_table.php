@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('subject');
             $table->text('message');
             $table->foreignUuid('sender_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->string('sender_email')->nullable();
             $table->timestamp('sent_at');
             $table->timestamps();
         });

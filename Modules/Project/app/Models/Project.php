@@ -66,6 +66,9 @@ class Project extends Model implements HasMedia
     {
         // Formula: [Customer(3)][ProjectSeq(2)][Area(3)][BranchSeq(2)][Cluster(3)][TaxCode(2)]
         
+        // Ensure relations are loaded for code segments
+        $project->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'lead.customer']);
+
         $customerCode = $project->customer?->code ?? $project->lead?->customer?->code ?? 'XXX';
         $customerShortCode = str_pad(substr($customerCode, 0, 3), 3, 'X', STR_PAD_RIGHT);
         
@@ -82,7 +85,12 @@ class Project extends Model implements HasMedia
         $taxCode = $project->tax?->code ?? 'XX';
         $taxShortCode = str_pad(substr($taxCode, 0, 2), 2, 'X', STR_PAD_RIGHT);
 
-        return strtoupper("{$customerShortCode}{$projectSeq}{$areaShortCode}{$branchSeq}{$clusterShortCode}{$taxShortCode}");
+        $code = strtoupper("{$customerShortCode}{$projectSeq}{$areaShortCode}{$branchSeq}{$clusterShortCode}{$taxShortCode}");
+
+        // If we still have 'XXX' or 'XX' in crucial segments, try to signal it or log it
+        // The user specifically wants to avoid this, so ensuring data is synchronized from Lead/PA is key.
+        
+        return $code;
     }
 
     public function proposal(): BelongsTo

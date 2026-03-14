@@ -100,7 +100,10 @@ class ProfitabilityAnalysisObserver
             ]);
         }
 
-        // 4. Sync calculation results to associated Proposal if exists
+        // 4. Bi-directional sync for key fields from PA to Lead
+        $this->syncLeadAndSalesPlan($analysis);
+
+        // 5. Sync calculation results to associated Proposal if exists
         // Refinement: Only sync when PA is Approved and Proposal amount is 0
         if (
             $analysis->wasChanged('status') &&
@@ -129,5 +132,59 @@ class ProfitabilityAnalysisObserver
     {
         // Cascade delete items
         $analysis->items()->delete();
+    }
+
+    /**
+     * Sync key fields from PA back to Lead and Sales Plan.
+     */
+    protected function syncLeadAndSalesPlan(ProfitabilityAnalysis $analysis): void
+    {
+        $lead = $analysis->lead;
+        if (! $lead) {
+            return;
+        }
+
+        $fields = [
+            'product_cluster_id',
+            'project_area_id',
+            'tax_id',
+            'start_date',
+            'end_date',
+        ];
+
+        // 1. Sync to Lead
+        $leadData = [];
+        foreach ($fields as $field) {
+            if ($analysis->isDirty($field)) {
+                $leadData[$field] = $analysis->{$field};
+            }
+        }
+
+        if ($analysis->isDirty('revenue_per_month')) {
+            $leadData['estimated_amount'] = $analysis->revenue_per_month;
+        }
+
+        if (! empty($leadData)) {
+            $lead->updateQuietly($leadData);
+        }
+
+        // 2. Sync to Sales Plan
+        $salesPlan = $lead->salesPlan;
+        if ($salesPlan) {
+            $salesPlanData = [];
+            foreach ($fields as $field) {
+                if ($analysis->isDirty($field)) {
+                    $salesPlanData[$field] = $analysis->{$field};
+                }
+            }
+
+            if ($analysis->isDirty('revenue_per_month')) {
+                $salesPlanData['estimated_value'] = $analysis->revenue_per_month;
+            }
+
+            if (! empty($salesPlanData)) {
+                $salesPlan->updateQuietly($salesPlanData);
+            }
+        }
     }
 }

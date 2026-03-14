@@ -70,6 +70,38 @@ class ApprovalRuleSeeder extends Seeder
                 'order' => 1,
                 'is_active' => true,
             ],
+            // Beyond Care -> VP HC
+            [
+                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'conditions' => [
+                    [
+                        'field' => 'product_cluster_id',
+                        'operator' => '=',
+                        'value' => '019ceb55-38ab-7290-b098-e098ca7eff68',
+                    ],
+                ],
+                'approver_type' => 'Role',
+                'approver_role' => ['VP Human Capital'],
+                'signature_type' => 'approval',
+                'order' => 10,
+                'is_active' => true,
+            ],
+            // Beyond Facility, Beyond Clean, Beyond Secure, Beyond Sky -> VP Ops
+            [
+                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'conditions' => [
+                    [
+                        'field' => 'product_cluster_id',
+                        'operator' => 'in',
+                        'value' => '019ceb55-38ad-7203-b423-1fa7d0d1a698,019ceb55-38ab-7290-b098-e098cb3789d8,019ceb55-38ac-734d-8bdb-274638170a7c,019ceb55-38ad-7203-b423-1fa7cfd8e67a',
+                    ],
+                ],
+                'approver_type' => 'Role',
+                'approver_role' => ['VP Ops'],
+                'signature_type' => 'approval',
+                'order' => 10,
+                'is_active' => true,
+            ],
         ];
 
         foreach ($rules as $rule) {
