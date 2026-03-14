@@ -3,12 +3,10 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -59,56 +57,10 @@ class ManageSalesPlans extends ManageRelatedRecords
                 CreateAction::make()
                     ->schema(fn (Schema $schema) => SalesPlanResource::form($schema))
                     ->visible(fn () => $this->getOwnerRecord()->salesPlan()->doesntExist()),
-                Action::make('generateGIHeader')
-                    ->label('Create General Info')
-                    ->icon('heroicon-o-document-plus')
-                    ->color('success')
-                    ->visible(function () {
-                        $lead = $this->getOwnerRecord();
-                        $salesPlan = $lead->salesPlan;
-
-                        return $salesPlan &&
-                            $lead->generalInformations()->doesntExist() &&
-                            ! empty($salesPlan->revenue_distribution_planning);
-                    })
-                    ->requiresConfirmation()
-                    ->modalHeading('Create General Information')
-                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
-                    ->action(function () {
-                        $lead = $this->getOwnerRecord();
-                        $lead->salesPlan->toGeneralInformation();
-
-                        Notification::make()
-                            ->title('General Information Created')
-                            ->body('Data has been synced from Sales Plan.')
-                            ->success()
-                            ->send();
-
-                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
-                    }),
             ])
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                Action::make('generateGI')
-                    ->label('Generate GI')
-                    ->icon('heroicon-o-document-plus')
-                    ->color('success')
-                    ->visible(fn ($record) => ! empty($record->revenue_distribution_planning))
-                    ->requiresConfirmation()
-                    ->modalHeading('Generate General Information')
-                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
-                    ->action(function ($record) {
-                        $record->toGeneralInformation();
-
-                        Notification::make()
-                            ->title('General Information Created')
-                            ->body('Data has been synced from Sales Plan.')
-                            ->success()
-                            ->send();
-
-                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $this->getOwnerRecord()]));
-                    }),
                 DeleteAction::make(),
             ]);
     }

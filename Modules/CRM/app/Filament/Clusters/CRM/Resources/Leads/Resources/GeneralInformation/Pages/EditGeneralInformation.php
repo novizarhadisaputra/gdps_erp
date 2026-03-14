@@ -83,4 +83,9 @@ class EditGeneralInformation extends EditRecord
             }
         }
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('view', ['record' => $this->getRecord(), 'lead' => $this->parentRecord]);
+    }
 }

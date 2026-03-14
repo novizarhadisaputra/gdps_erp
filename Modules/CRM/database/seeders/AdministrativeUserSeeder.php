@@ -30,31 +30,31 @@ class AdministrativeUserSeeder extends Seeder
             [
                 'name' => 'Cornelis Radjawane',
                 'role' => 'Direksi',
-                'email' => 'cornelis@gdps.id',
+                'email' => 'cornelis@garudapratama.com',
                 'signature_pin' => '123456',
             ],
             [
                 'name' => 'Achmad Syifa',
                 'role' => 'VP Business Support',
-                'email' => 'achmad@gdps.id',
+                'email' => 'achmad@garudapratama.com',
                 'signature_pin' => '123456',
             ],
             [
                 'name' => 'Theresia',
                 'role' => 'VP Finance',
-                'email' => 'theresia@gdps.id',
+                'email' => 'theresia@garudapratama.com',
                 'signature_pin' => '123456',
             ],
             [
                 'name' => 'Dartin Anton',
                 'role' => 'VP Ops',
-                'email' => 'dartin@gdps.id',
+                'email' => 'dartin@garudapratama.com',
                 'signature_pin' => '123456',
             ],
             [
                 'name' => 'Wiwied Widyasmara',
                 'role' => 'VP Human Capital',
-                'email' => 'wiwied@gdps.id',
+                'email' => 'wiwied@garudapratama.com',
                 'signature_pin' => '123456',
             ],
         ];

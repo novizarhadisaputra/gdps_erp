@@ -8,4 +8,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\SalesP
 class EditSalesPlan extends EditRecord
 {
     protected static string $resource = SalesPlanResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('view', ['record' => $this->getRecord(), 'lead' => $this->getRecord()->lead_id]);
+    }
 }
