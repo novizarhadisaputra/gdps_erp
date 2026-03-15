@@ -22,6 +22,7 @@ class ViewLead extends ViewRecord
         return [
             MoveToApproachAction::make(),
             Actions\EditAction::make(),
+            Actions\DeleteAction::make(),
             ConvertToProjectAction::make(),
         ];
     }

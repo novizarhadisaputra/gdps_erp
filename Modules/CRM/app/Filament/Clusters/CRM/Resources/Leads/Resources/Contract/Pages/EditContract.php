@@ -11,4 +11,11 @@ class EditContract extends EditRecord
     use InteractsWithParentRecord;
 
     protected static string $resource = ContractResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\DeleteAction::make(),
+        ];
+    }
 }

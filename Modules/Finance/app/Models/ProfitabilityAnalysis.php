@@ -21,6 +21,7 @@ use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
+use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
@@ -52,6 +53,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'customer_id',
         'general_information_id',
         'proposal_id',
+        'project_type_id',
         'product_cluster_id',
         'project_area_id',
         'revenue_per_month',
@@ -173,6 +175,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         return $this->belongsTo(PaymentTerm::class);
     }
 
+    public function projectType(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\ProjectType::class);
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable')->oldest();
@@ -211,18 +218,77 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function indirectItems(): HasMany
     {
         return $this->hasMany(ProfitabilityAnalysisItem::class)
-            ->whereHas('category', function ($query) {
-                $query->where('type', 'indirect');
+            ->whereNull('costable_type');
+    }
+
+    public function getDirectItems(): \Illuminate\Support\Collection
+    {
+        if ($this->is_manual_cost) {
+            $items = collect($this->analysis_details['manual_costs'] ?? []);
+
+            return $items->map(function ($item) {
+                return (object) [
+                    'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
+                    'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
+                    'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? 0),
+                    'quantity' => 1,
+                    'is_manpower' => false,
+                ];
             });
+        }
+
+        return $this->items()
+            ->whereHas('category', fn ($q) => $q->where('type', 'direct'))
+            ->with('category')
+            ->get();
+    }
+
+    public function getIndirectItems(): \Illuminate\Support\Collection
+    {
+        $jsonIndirect = collect($this->analysis_details['indirect_costs'] ?? []);
+
+        if ($jsonIndirect->isNotEmpty()) {
+            return $jsonIndirect->map(function ($item) {
+                return (object) [
+                    'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
+                    'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
+                    'total_monthly_cost' => self::parseNumericValue($item['total_monthly_cost'] ?? 0),
+                    'markup_percentage' => self::parseNumericValue($item['markup_percentage'] ?? 0),
+                ];
+            });
+        }
+
+        return $this->items()
+            ->whereHas('category', fn ($q) => $q->where('type', 'indirect'))
+            ->with('category')
+            ->get();
     }
 
     public function isComplete(): bool
     {
+        $hasItems = $this->getDirectItems()->isNotEmpty() || $this->getIndirectItems()->isNotEmpty();
+
         return ! empty($this->customer_id) &&
             ! empty($this->product_cluster_id) &&
             ! empty($this->work_scheme_id) &&
             ! empty($this->revenue_per_month) &&
             $this->margin_percentage !== null &&
-            $this->items()->exists();
+            $hasItems;
+    }
+
+    protected static function parseNumericValue(mixed $value): float
+    {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        if (is_string($value)) {
+            // Remove thousand separators (.) and replace decimal separator (,) with (.)
+            $cleanValue = str_replace(['.', ','], ['', '.'], $value);
+
+            return (float) $cleanValue;
+        }
+
+        return 0.0;
     }
 }

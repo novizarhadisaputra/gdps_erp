@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Feature\Modules\Finance\Tests\Feature;
+namespace Tests\Feature\Modules\MasterData\tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
-class ProjectGenerationTest extends TestCase
+class ApprovalNotificationTest extends TestCase
 {
     /**
      * A basic feature test example.

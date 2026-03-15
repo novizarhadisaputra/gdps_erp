@@ -128,23 +128,18 @@
                         <tr class="bg-slate-50/80 dark:bg-slate-900/40">
                             <td
                                 class="px-8 py-5 font-black text-slate-900 dark:text-white uppercase tracking-tight border-r border-slate-200 dark:border-slate-700">
-                                <span class="text-slate-400 mr-2 font-black">II.</span> Direct
-                                Operating Costs
+                                <span class="text-slate-400 mr-2 font-black">II.</span> Direct Operating Costs
                             </td>
                             <td
                                 class="px-8 py-5 text-center border-r border-slate-200 dark:border-slate-700 text-slate-400">
                                 -</td>
                             <td class="px-8 py-5 text-right font-black text-slate-900 dark:text-slate-100 tabular-nums">
-                                (@money($record->direct_cost, 'IDR'))</td>
+                                @money($record->direct_cost, 'IDR')
+                            </td>
                         </tr>
 
                         @php
-                            $directCosts = $record
-                                ->items()
-                                ->whereHas('category', fn($q) => $q->where('type', 'direct'))
-                                ->with('category')
-                                ->get()
-                                ->groupBy('direct_cost_category_id');
+                            $directCosts = $record->getDirectItems()->groupBy('direct_cost_category_id');
                         @endphp
 
                         @foreach ($directCosts as $categoryId => $items)
@@ -193,15 +188,11 @@
                                 class="px-8 py-5 text-center border-r border-slate-200 dark:border-slate-700 text-slate-400">
                                 -</td>
                             <td class="px-8 py-5 text-right font-black text-slate-800 dark:text-slate-200 tabular-nums">
-                                (@money($record->items()->whereHas('category', fn($q) => $q->where('type', 'indirect'))->sum('total_monthly_cost'), 'IDR'))</td>
+                                @money($record->getIndirectItems()->sum(fn($i) => (float) ($i->total_monthly_cost ?? 0)), 'IDR')</td>
                         </tr>
 
                         @php
-                            $indirectItems = $record
-                                ->items()
-                                ->whereHas('category', fn($q) => $q->where('type', 'indirect'))
-                                ->with('category')
-                                ->get();
+                            $indirectItems = $record->getIndirectItems();
                         @endphp
 
                         @foreach ($indirectItems as $item)
@@ -310,7 +301,7 @@
                 $signatures = $record->signatures;
                 $marginSignature = $signatures->firstWhere('signature_type', 'margin_approval');
                 $otherSignatures = $signatures->where('signature_type', '!=', 'margin_approval');
-                
+
                 $totalCols = ($marginSignature ? 1 : 0) + $rules->count();
             @endphp
 
@@ -332,8 +323,7 @@
                             @endphp
                             <div class="mb-4">
                                 <img src="{{ $qrCode }}"
-                                    class="w-20 h-20 opacity-80 mix-blend-multiply dark:invert"
-                                    alt="Signature QR">
+                                    class="w-20 h-20 opacity-80 mix-blend-multiply dark:invert" alt="Signature QR">
                             </div>
                             <div class="w-full border-t border-blue-600 dark:border-blue-400 pt-2 text-center">
                                 <p
@@ -349,7 +339,10 @@
                     {{-- Approval Rules Signatures --}}
                     @foreach ($rules as $rule)
                         @php
-                            $matchingSignature = $otherSignatures->first(function ($sig) use ($rule, $signatureService) {
+                            $matchingSignature = $otherSignatures->first(function ($sig) use (
+                                $rule,
+                                $signatureService,
+                            ) {
                                 return $signatureService->isEligibleApprover($rule, $sig->user);
                             });
                         @endphp

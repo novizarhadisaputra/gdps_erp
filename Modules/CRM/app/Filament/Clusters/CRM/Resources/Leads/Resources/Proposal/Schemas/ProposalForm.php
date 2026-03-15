@@ -41,6 +41,13 @@ class ProposalForm
                             ->hidden()
                             ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->customer_id : null),
 
+                        TextInput::make('title')
+                            ->label('Proposal Title')
+                            ->placeholder('Enter proposal title')
+                            ->required()
+                            ->columnSpanFull()
+                            ->helperText('The standardized name for this proposal.'),
+
                         Select::make('work_scheme_id')
                             ->relationship('workScheme', 'name')
                             ->label('Project Work Scheme')

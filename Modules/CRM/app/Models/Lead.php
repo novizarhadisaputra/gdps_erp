@@ -130,6 +130,16 @@ class Lead extends Model implements HasMedia
         return $this->hasMany(ProfitabilityAnalysis::class);
     }
 
+    public function latestProfitabilityAnalysis(): HasOne
+    {
+        return $this->hasOne(ProfitabilityAnalysis::class)->latestOfMany();
+    }
+
+    public function latestGeneralInformation(): HasOne
+    {
+        return $this->hasOne(GeneralInformation::class)->latestOfMany();
+    }
+
     public function contracts(): HasMany
     {
         return $this->hasMany(Contract::class);
@@ -220,6 +230,8 @@ class Lead extends Model implements HasMedia
                 'customer_id' => $this->customer_id,
                 'project_area_id' => $this->salesPlan?->project_area_id ?? $this->project_area_id,
                 'product_cluster_id' => $this->salesPlan?->product_cluster_id ?? $this->product_cluster_id,
+                'work_scheme_id' => $this->salesPlan?->work_scheme_id ?? $this->work_scheme_id,
+                'project_type_id' => $this->salesPlan?->project_type_id ?? $this->project_type_id,
                 'payment_term_id' => $this->salesPlan?->payment_term_id ?? $this->payment_term_id,
                 'tax_id' => $this->tax_id,
                 'start_date' => $this->salesPlan?->start_date ?? $this->start_date,

@@ -24,5 +24,11 @@ class CostingTemplateObserver
         $costingTemplate->year = $year;
         $costingTemplate->sequence_number = $sequence;
         $costingTemplate->code = sprintf('GDPS/UB/TE-%03d/%s', $sequence, $shortYear);
+
+        // Naming convention: Customer Name + Tools & Equipment
+        if (! $costingTemplate->name || $costingTemplate->name === 'New Template') {
+            $customerName = $costingTemplate->lead?->customer?->name ?? 'Unknown Customer';
+            $costingTemplate->name = $customerName.' Tools & Equipment';
+        }
     }
 }

@@ -18,8 +18,14 @@ class ProfitabilityAnalysisFactory extends Factory
     public function definition(): array
     {
         return [
-            'project_number' => $this->faker->randomNumber(),
+            'project_number' => $this->faker->randomNumber(2),
             'status' => 'draft',
+            'customer_id' => \Modules\CRM\Models\Customer::factory(),
+            'product_cluster_id' => \Modules\MasterData\Models\ProductCluster::factory(),
+            'project_area_id' => \Modules\MasterData\Models\ProjectArea::factory(),
+            'project_type_id' => \Modules\MasterData\Models\ProjectType::factory(),
+            'tax_id' => \Modules\MasterData\Models\Tax::factory(),
+            'work_scheme_id' => \Modules\MasterData\Models\WorkScheme::factory(),
             'revenue_per_month' => $this->faker->randomFloat(2, 1000, 10000),
             'direct_cost' => $this->faker->randomFloat(2, 500, 5000),
             'management_fee' => $this->faker->randomFloat(2, 100, 1000),

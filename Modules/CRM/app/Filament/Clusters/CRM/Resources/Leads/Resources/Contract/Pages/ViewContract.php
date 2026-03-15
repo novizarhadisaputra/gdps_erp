@@ -113,6 +113,9 @@ class ViewContract extends ViewRecord
 
                     $this->record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
 
+                    // Notify next approvers
+                    $service->notifyNextApprovers($this->record);
+
                     Notification::make()
                         ->title('Document Successfully Signed')
                         ->success()
@@ -130,6 +133,7 @@ class ViewContract extends ViewRecord
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->update(['status' => ContractStatus::Submitted]);
+                    app(SignatureService::class)->notifyNextApprovers($this->record);
                     $this->refreshFormData(['status']);
                 })
                 ->visible(fn () => $this->record->status === ContractStatus::Draft),
@@ -210,6 +214,7 @@ class ViewContract extends ViewRecord
 
             EditAction::make()
                 ->visible(fn () => $this->record->status === ContractStatus::Draft),
+            \Filament\Actions\DeleteAction::make(),
         ];
     }
 }

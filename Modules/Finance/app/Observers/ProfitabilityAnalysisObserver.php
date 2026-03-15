@@ -147,6 +147,8 @@ class ProfitabilityAnalysisObserver
         $fields = [
             'product_cluster_id',
             'project_area_id',
+            'project_type_id',
+            'work_scheme_id',
             'tax_id',
             'start_date',
             'end_date',
@@ -155,12 +157,12 @@ class ProfitabilityAnalysisObserver
         // 1. Sync to Lead
         $leadData = [];
         foreach ($fields as $field) {
-            if ($analysis->isDirty($field)) {
+            if ($analysis->wasChanged($field)) {
                 $leadData[$field] = $analysis->{$field};
             }
         }
 
-        if ($analysis->isDirty('revenue_per_month')) {
+        if ($analysis->wasChanged('revenue_per_month')) {
             $leadData['estimated_amount'] = $analysis->revenue_per_month;
         }
 
@@ -173,12 +175,12 @@ class ProfitabilityAnalysisObserver
         if ($salesPlan) {
             $salesPlanData = [];
             foreach ($fields as $field) {
-                if ($analysis->isDirty($field)) {
+                if ($analysis->wasChanged($field)) {
                     $salesPlanData[$field] = $analysis->{$field};
                 }
             }
 
-            if ($analysis->isDirty('revenue_per_month')) {
+            if ($analysis->wasChanged('revenue_per_month')) {
                 $salesPlanData['estimated_value'] = $analysis->revenue_per_month;
             }
 

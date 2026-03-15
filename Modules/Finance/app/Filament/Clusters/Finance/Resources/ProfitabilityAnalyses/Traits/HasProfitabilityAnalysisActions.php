@@ -26,7 +26,10 @@ trait HasProfitabilityAnalysisActions
             ->color('info')
             ->icon('heroicon-o-paper-airplane')
             ->requiresConfirmation()
-            ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisStatus::Submitted]))
+            ->action(function ($record) {
+                $record->update(['status' => ProfitabilityAnalysisStatus::Submitted]);
+                app(SignatureService::class)->notifyNextApprovers($record);
+            })
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
                 if ($status instanceof \BackedEnum) {
@@ -178,6 +181,9 @@ trait HasProfitabilityAnalysisActions
 
                 $record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
 
+                // Notify next approvers
+                $service->notifyNextApprovers($record);
+
                 Notification::make()
                     ->title('Document Successfully Signed')
                     ->success()
@@ -290,18 +296,20 @@ trait HasProfitabilityAnalysisActions
                     return;
                 }
 
-                $proposal = Proposal::create([
-                    'customer_id' => $record->customer_id,
-                    'lead_id' => $record->lead_id,
-                    'profitability_analysis_id' => $record->id,
-                    'work_scheme_id' => $record->work_scheme_id,
-                    'amount' => is_numeric($data['amount']) ? (float) $data['amount'] : (float) str_replace(['.', ','], ['', '.'], $data['amount']),
-                    'submission_date' => $data['submission_date'],
-                    'status' => ProposalStatus::Draft,
-                ]);
+                DB::transaction(function () use ($record, $data) {
+                    $proposal = Proposal::create([
+                        'customer_id' => $record->customer_id,
+                        'lead_id' => $record->lead_id,
+                        'profitability_analysis_id' => $record->id,
+                        'work_scheme_id' => $record->work_scheme_id,
+                        'amount' => is_numeric($data['amount']) ? (float) $data['amount'] : (float) str_replace(['.', ','], ['', '.'], $data['amount']),
+                        'submission_date' => $data['submission_date'],
+                        'status' => ProposalStatus::Draft,
+                    ]);
 
-                $record->updateQuietly(['proposal_id' => $proposal->id]);
-                $record->lead?->update(['status' => LeadStatus::Proposal]);
+                    $record->updateQuietly(['proposal_id' => $proposal->id]);
+                    $record->lead?->update(['status' => LeadStatus::Proposal]);
+                });
 
                 Notification::make()
                     ->title('Proposal Created')
@@ -383,7 +391,24 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Manpower')
             ->icon('heroicon-o-users')
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
-            ->action(fn ($record, array $data) => $record->update($data))
+            ->fillForm(fn ($record) => $record->toArray())
+            ->action(function ($record, array $data) {
+                DB::transaction(function () use ($record, $data) {
+                    $record->update($data);
+
+                    if (isset($data['manpowerItems'])) {
+                        $record->manpowerItems()->delete();
+                        foreach ($data['manpowerItems'] as $item) {
+                            $record->manpowerItems()->create($item);
+                        }
+                    }
+                });
+
+                Notification::make()
+                    ->title('Manpower Costing Updated')
+                    ->success()
+                    ->send();
+            })
             ->modalHeading('Edit Manpower Costing')
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
@@ -398,7 +423,24 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Operational')
             ->icon('heroicon-o-wrench-screwdriver')
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
-            ->action(fn ($record, array $data) => $record->update($data))
+            ->fillForm(fn ($record) => $record->toArray())
+            ->action(function ($record, array $data) {
+                DB::transaction(function () use ($record, $data) {
+                    $record->update($data);
+
+                    if (isset($data['operationalItems'])) {
+                        $record->operationalItems()->delete();
+                        foreach ($data['operationalItems'] as $item) {
+                            $record->operationalItems()->create($item);
+                        }
+                    }
+                });
+
+                Notification::make()
+                    ->title('Operational Costing Updated')
+                    ->success()
+                    ->send();
+            })
             ->modalHeading('Edit Operational Costing')
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
@@ -413,7 +455,15 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Manual Costs')
             ->icon('heroicon-o-banknotes')
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
-            ->action(fn ($record, array $data) => $record->update($data))
+            ->fillForm(fn ($record) => $record->toArray())
+            ->action(function ($record, array $data) {
+                $record->update($data);
+
+                Notification::make()
+                    ->title('Manual Costs Updated')
+                    ->success()
+                    ->send();
+            })
             ->modalHeading('Edit Manual Cost Breakdown')
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
@@ -428,7 +478,15 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Indirect Costs')
             ->icon('heroicon-o-presentation-chart-line')
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
-            ->action(fn ($record, array $data) => $record->update($data))
+            ->fillForm(fn ($record) => $record->toArray())
+            ->action(function (array $data, ProfitabilityAnalysis $record): void {
+                $record->update($data);
+
+                Notification::make()
+                    ->title('Indirect Costs updated')
+                    ->success()
+                    ->send();
+            })
             ->modalHeading('Edit Indirect Costing')
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);

@@ -21,7 +21,12 @@ class ProposalInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
+                                TextEntry::make('title')
+                                    ->label('Proposal Title')
+                                    ->weight(FontWeight::Bold)
+                                    ->columnSpanFull(),
                                 TextEntry::make('proposal_number')
+                                    ->label('Proposal Number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('customer.name')
                                     ->label('Customer'),

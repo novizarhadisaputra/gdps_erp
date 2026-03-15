@@ -32,6 +32,12 @@ class ProposalObserver
         $proposal->year = $year;
         $proposal->sequence_number = $sequence;
         $proposal->proposal_number = sprintf('GDPS/UB/PROP-%03d/%s', $sequence, $shortYear);
+
+        // Naming convention: Customer Name + Proposal
+        if (! $proposal->title || $proposal->title === 'New Proposal') {
+            $customerName = $proposal->lead?->customer?->name ?? 'Unknown Customer';
+            $proposal->title = $customerName.' Proposal';
+        }
     }
 
     /**

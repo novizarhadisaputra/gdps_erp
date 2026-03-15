@@ -118,6 +118,9 @@ class ViewGeneralInformation extends ViewRecord
                     $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
                     $record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
 
+                    // Notify next approvers
+                    $service->notifyNextApprovers($record);
+
                     Notification::make()
                         ->title('Document Successfully Signed')
                         ->success()
@@ -145,6 +148,7 @@ class ViewGeneralInformation extends ViewRecord
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->getRecord()->update(['status' => GeneralInformationStatus::Submitted]);
+                    app(SignatureService::class)->notifyNextApprovers($this->getRecord());
                     $this->refreshFormData(['status']);
                 })
                 ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && $this->getRecord()->isComplete()),
@@ -166,6 +170,7 @@ class ViewGeneralInformation extends ViewRecord
 
                     return redirect()->to(LeadResource::getUrl('profitability-analyses', ['record' => $lead]));
                 }),
+            \Filament\Actions\DeleteAction::make(),
         ];
     }
 }

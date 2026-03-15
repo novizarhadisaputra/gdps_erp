@@ -35,6 +35,7 @@ class ViewManpowerTemplate extends ViewRecord
                     return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
                 }),
             EditAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ];
     }
 }

@@ -164,7 +164,7 @@ class ProfitabilityAnalysisInfolist
                             ->schema([
                                 TextEntry::make('direct_cost_manpower')
                                     ->label(' - Manpower')
-                                    ->state(function (ProfitabilityAnalysis $record) {
+                                    ->state(function ($record) {
                                         if ($record->is_manual_cost) {
                                             $cat = DirectCostCategory::where('code', 'manpower')->first();
                                             $manualCosts = $record->analysis_details['manual_costs'] ?? [];
@@ -181,7 +181,7 @@ class ProfitabilityAnalysisInfolist
                                     ->money('IDR'),
                                 TextEntry::make('direct_cost_tools')
                                     ->label(' - Tools & Eq')
-                                    ->state(function (ProfitabilityAnalysis $record) {
+                                    ->state(function ($record) {
                                         if ($record->is_manual_cost) {
                                             $cat = DirectCostCategory::where('code', 'tools_equipment')->first();
                                             $manualCosts = $record->analysis_details['manual_costs'] ?? [];
@@ -277,7 +277,7 @@ class ProfitabilityAnalysisInfolist
                         DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => $record->signatures()->exists()),
+                    ->visible(fn ($record) => $record?->signatures()->exists()),
             ]);
     }
 }

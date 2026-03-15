@@ -213,15 +213,18 @@
                             @php
                                 $user = $signature->user;
                                 $isGuest = is_null($user);
-                                $signerName = $isGuest ? ($signature->signer_name ?? 'Guest') : ($user->name ?? 'Unknown');
-                                $signerTitle = $isGuest ? ($signature->signer_title ?? 'Client') : ($signature->role ?? 'Signer');
+                                $signerName = $isGuest ? $signature->signer_name ?? 'Guest' : $user->name ?? 'Unknown';
+                                $signerTitle = $isGuest
+                                    ? $signature->signer_title ?? 'Client'
+                                    : $signature->role ?? 'Signer';
                                 $service = app(\Modules\MasterData\Services\SignatureService::class);
                             @endphp
                             <td class="signature-box" style="border: none;">
                                 <div class="signature-role">{{ $signerTitle }}</div>
 
                                 @if ($isGuest && ($media = $record->getFirstMedia('digital_signature')))
-                                    <div class="signature-pad-image" style="height: 70px; display: flex; align-items: center; justify-content: center;">
+                                    <div class="signature-pad-image"
+                                        style="height: 70px; display: flex; align-items: center; justify-content: center;">
                                         @php
                                             try {
                                                 $imageData = base64_encode($media->getContents());
@@ -230,13 +233,15 @@
                                                 $imageData = null;
                                             }
                                         @endphp
-                                        @if($imageData)
-                                            <img src="data:{{ $mimeType }};base64,{{ $imageData }}" style="max-height: 60px; max-width: 150px;" />
+                                        @if ($imageData)
+                                            <img src="data:{{ $mimeType }};base64,{{ $imageData }}"
+                                                style="max-height: 60px; max-width: 150px;" />
                                         @else
                                             <div style="height: 60px;"></div>
                                         @endif
                                     </div>
                                 @else
+                                    @php
                                         $qrUrl = $service->createSignatureData(
                                             $user,
                                             $record,

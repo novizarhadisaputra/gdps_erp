@@ -206,6 +206,7 @@ class GeneralInformation extends Model implements HasMedia
             'general_information_id' => $this->id,
             'customer_id' => $this->customer_id,
             'work_scheme_id' => $this->work_scheme_id,
+            'product_cluster_id' => $this->salesPlan?->product_cluster_id ?? $this->lead?->product_cluster_id,
             'tax_id' => $this->tax_id,
             'project_area_id' => $this->project_area_id,
         ]);

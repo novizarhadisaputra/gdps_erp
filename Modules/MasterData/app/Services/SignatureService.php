@@ -4,6 +4,7 @@ namespace Modules\MasterData\Services;
 
 use App\Models\User;
 use chillerlan\QRCode\Common\EccLevel;
+use Modules\MasterData\Notifications\ApprovalRequiredNotification;
 use chillerlan\QRCode\Common\Version;
 use chillerlan\QRCode\Output\QROutputInterface;
 use chillerlan\QRCode\QRCode;
@@ -109,6 +110,81 @@ class SignatureService
         }
 
         return false;
+    }
+
+    /**
+     * Get all users eligible for an approval rule.
+     */
+    public function getEligibleUsers(ApprovalRule $rule): \Illuminate\Support\Collection
+    {
+        $query = User::query();
+
+        if ($rule->approver_type === 'Role') {
+            $query->role($rule->approver_role ?? []);
+        } elseif ($rule->approver_type === 'User') {
+            $query->whereIn('id', $rule->approver_user_id ?? []);
+        } elseif ($rule->approver_type === 'Position') {
+            $query->whereIn('position', $rule->approver_position ?? []);
+        } elseif ($rule->approver_type === 'Unit') {
+            $query->whereIn('unit_id', $rule->approver_unit_id ?? []);
+        } else {
+            return collect();
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * Notify the next group of approvers for a model.
+     */
+    public function notifyNextApprovers(Model $model): void
+    {
+        $required = $this->getRequiredApprovers($model);
+        
+        // Find the first rule that is NOT yet satisfied
+        $nextRule = $required->first(fn ($rule) => ! $model->isRuleSatisfied($rule));
+
+        if ($nextRule) {
+            $eligibleUsers = $this->getEligibleUsers($nextRule);
+            $url = $this->getResourceUrl($model);
+            $message = "A " . class_basename($model) . " requires your approval.";
+
+            foreach ($eligibleUsers as $user) {
+                $user->notify(new ApprovalRequiredNotification($model, $message, $url));
+            }
+        }
+    }
+
+    /**
+     * Get the Filament resource URL for a model.
+     */
+    protected function getResourceUrl(Model $model): string
+    {
+        $class = get_class($model);
+        
+        $resource = match ($class) {
+            \Modules\CRM\Models\Proposal::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource::class,
+            \Modules\Finance\Models\ProfitabilityAnalysis::class => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::class,
+            \Modules\CRM\Models\Contract::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource::class,
+            \Modules\CRM\Models\MinutesOfAgreement::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource::class,
+            \Modules\CRM\Models\GeneralInformation::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::class,
+            \Modules\Project\Models\ProjectInformation::class => \Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\ProjectInformationResource::class,
+            \Modules\Project\Models\WorkCompletionReport::class => \Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource::class,
+            default => null,
+        };
+
+        if ($resource) {
+            $parameters = ['record' => $model->getKey()];
+            
+            // Check if it's a nested resource (like Proposal)
+            if (isset($model->lead_id)) {
+                $parameters['lead'] = $model->lead_id;
+            }
+
+            return $resource::getUrl('view', $parameters);
+        }
+
+        return url('/');
     }
 
     /**

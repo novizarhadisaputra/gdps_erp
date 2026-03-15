@@ -104,7 +104,10 @@ class ProjectInformationTable
                                 $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
                                 $qrCode = $service->generateQRCode($qrData);
 
-                                $record->addSignature(auth()->user(), $matchingRule->signature_type);
+                                 $record->addSignature(auth()->user(), $matchingRule->signature_type);
+
+                                // Notify next approvers
+                                $service->notifyNextApprovers($record);
 
                                 Notification::make()
                                     ->title('Dokumen Berhasil Ditandatangani')

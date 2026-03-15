@@ -92,6 +92,9 @@ class ViewMinutesOfAgreement extends ViewRecord
                     // Add signature
                     $this->record->addSignature($user, $matchingRule->signature_type, $recordedRole);
 
+                    // Notify next approvers
+                    $service->notifyNextApprovers($this->record);
+
                     Notification::make()
                         ->title('Document Successfully Signed')
                         ->success()
@@ -122,6 +125,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->update(['status' => MoAStatus::Submitted]);
+                    app(SignatureService::class)->notifyNextApprovers($this->record);
                     $this->refreshFormData(['status']);
                 })
                 ->visible(fn () => $this->record->status === MoAStatus::Draft && $this->record->isComplete()),

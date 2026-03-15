@@ -29,6 +29,7 @@ class EditCostingTemplate extends EditRecord
 
                     return response()->streamDownload(fn () => print ($pdf->output()), "costing-template-{$name}.pdf");
                 }),
+            \Filament\Actions\DeleteAction::make(),
         ];
     }
 }

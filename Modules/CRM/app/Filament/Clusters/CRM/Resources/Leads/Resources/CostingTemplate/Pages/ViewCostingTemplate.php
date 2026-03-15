@@ -31,6 +31,7 @@ class ViewCostingTemplate extends ViewRecord
                     return response()->streamDownload(fn () => print ($pdf->output()), "costing-template-{$name}.pdf");
                 }),
             EditAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ];
     }
 }

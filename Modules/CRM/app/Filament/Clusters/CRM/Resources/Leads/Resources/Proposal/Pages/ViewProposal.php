@@ -78,7 +78,10 @@ class ViewProposal extends ViewRecord
                 ->color('info')
                 ->icon('heroicon-o-paper-airplane')
                 ->requiresConfirmation()
-                ->action(fn () => $this->record->update(['status' => ProposalStatus::Submitted]))
+                ->action(function () {
+                    $this->record->update(['status' => ProposalStatus::Submitted]);
+                    app(SignatureService::class)->notifyNextApprovers($this->record);
+                })
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->record->isComplete()),
 
             Action::make('sign')
@@ -141,6 +144,9 @@ class ViewProposal extends ViewRecord
 
                     // Add signature
                     $this->record->addSignature($user, $matchingRule->signature_type, $recordedRole);
+
+                    // Notify next approvers
+                    $service->notifyNextApprovers($this->record);
 
                     Notification::make()
                         ->title('Document Successfully Signed')
@@ -238,7 +244,7 @@ class ViewProposal extends ViewRecord
                     'lead' => $this->record->lead_id,
                     'record' => $this->record->id,
                 ]))
-                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Approved, ProposalStatus::Sent])),
+                ->visible(fn () => $this->record->signatures()->count()),
 
             EditAction::make()
                 ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [

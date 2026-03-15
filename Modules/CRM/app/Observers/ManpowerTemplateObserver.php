@@ -24,5 +24,11 @@ class ManpowerTemplateObserver
         $manpowerTemplate->year = $year;
         $manpowerTemplate->sequence_number = $sequence;
         $manpowerTemplate->code = sprintf('GDPS/UB/MP-%03d/%s', $sequence, $shortYear);
+
+        // Naming convention: Customer Name + Manpower
+        if (! $manpowerTemplate->name || $manpowerTemplate->name === 'New Template') {
+            $customerName = $manpowerTemplate->lead?->customer?->name ?? 'Unknown Customer';
+            $manpowerTemplate->name = $customerName.' Manpower';
+        }
     }
 }

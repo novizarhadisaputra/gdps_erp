@@ -12,6 +12,13 @@ class EditProposal extends EditRecord
 
     protected static string $resource = ProposalResource::class;
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\DeleteAction::make(),
+        ];
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('view', ['record' => $this->record, 'lead' => $this->record->lead_id]);

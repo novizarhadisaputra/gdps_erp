@@ -26,6 +26,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProfitabilityA
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectInformations;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProposals;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageSalesPlans;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ProjectReviewAndApproval;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ViewLead;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
@@ -57,6 +58,7 @@ class LeadResource extends Resource
         return [
             ...$page->generateNavigationItems([
                 EditLead::class,
+                ProjectReviewAndApproval::class,
                 ManageProjectInformations::class,
             ]),
             ...collect($page->generateNavigationItems([
@@ -148,6 +150,7 @@ class LeadResource extends Resource
             'list' => ListLeads::route('/list'),
             'view' => ViewLead::route('/{record}'),
             'edit' => EditLead::route('/{record}/edit'),
+            'review' => ProjectReviewAndApproval::route('/{record}/review'),
             'sales-plans' => ManageSalesPlans::route('/{record}/sales-plans'),
             'general-informations' => ManageGeneralInformations::route('/{record}/general-informations'),
             'proposals' => ManageProposals::route('/{record}/proposals'),

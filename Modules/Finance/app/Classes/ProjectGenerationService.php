@@ -2,9 +2,11 @@
 
 namespace Modules\Finance\Classes;
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\CRM\Models\Contract;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Models\Employee;
 use Modules\Project\Models\Project;
 
 class ProjectGenerationService
@@ -21,8 +23,12 @@ class ProjectGenerationService
             // 2. Validate required fields for Project Code generation to avoid 'XXX' or 'XX'
             $this->validateProjectCodeSegments($pa);
 
-            // 3. Get Project Type from Lead
-            $projectTypeId = $pa->lead?->project_type_id;
+            // 3. Get Project Type from PA or Lead
+            $projectTypeId = $pa->project_type_id;
+            if (! $projectTypeId && $pa->work_scheme_id) {
+                $projectTypeId = $pa->workScheme?->project_type_id;
+            }
+            $projectTypeId = $projectTypeId ?? $pa->lead?->project_type_id;
 
             // 3. Create or Update the Project
             $projectData = [
@@ -39,8 +45,8 @@ class ProjectGenerationService
                 'profitability_analysis_id' => $pa->id,
                 'lead_id' => $pa->lead_id,
                 'contract_id' => $contract?->id,
-                'oprep_id' => $pa->lead?->oprep_id,
-                'ams_id' => $pa->lead?->ams_id,
+                'oprep_id' => $this->getEmployeeIdFromUser($pa->lead?->pic_costing_id),
+                'ams_id' => $this->getEmployeeIdFromUser($pa->lead?->user_id),
                 'payment_term_id' => $pa->lead?->payment_term_id,
                 'billing_option_id' => $pa->lead?->billing_option_id,
                 'start_date' => $pa->lead?->start_date,
@@ -134,25 +140,25 @@ class ProjectGenerationService
             $fields = implode(', ', $missing);
             throw new \RuntimeException("Cannot generate Project: Missing required data for Project Code: {$fields}. Please ensure these are selected in the Profitability Analysis or Lead.");
         }
-        
+
         // Also check if the codes are actually set on these models
         $pa->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'lead.customer']);
-        
+
         $customerCode = $pa->customer?->code ?? $pa->lead?->customer?->code;
         if (empty($customerCode)) {
             $missing[] = 'Customer Code';
         }
-        
+
         $areaCode = $pa->projectArea?->code ?? $pa->lead?->projectArea?->code;
         if (empty($areaCode)) {
             $missing[] = 'Project Area Code';
         }
-        
+
         $clusterCode = $pa->productCluster?->code ?? $pa->lead?->productCluster?->code;
         if (empty($clusterCode)) {
             $missing[] = 'Product Cluster Code';
         }
-        
+
         $taxCode = $pa->tax?->code;
         if (empty($taxCode)) {
             $missing[] = 'Tax Code';
@@ -195,5 +201,19 @@ class ProjectGenerationService
             ->first();
 
         return $lastProject ? (int) $lastProject->project_number + 1 : 1;
+    }
+
+    protected function getEmployeeIdFromUser(?string $userId): ?string
+    {
+        if (! $userId) {
+            return null;
+        }
+
+        $user = User::find($userId);
+        if (! $user || empty($user->email)) {
+            return null;
+        }
+
+        return Employee::where('email', $user->email)->first()?->id;
     }
 }

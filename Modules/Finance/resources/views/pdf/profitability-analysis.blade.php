@@ -250,12 +250,7 @@
                         <td class="text-right font-bold">({{ $formatMoney($record->direct_cost) }})</td>
                     </tr>
                     @php
-                        $directCosts = $record
-                            ->items()
-                            ->whereHas('category', fn($q) => $q->where('type', 'direct'))
-                            ->with('category')
-                            ->get()
-                            ->groupBy('direct_cost_category_id');
+                        $directCosts = $record->getDirectItems()->groupBy('direct_cost_category_id');
                     @endphp
                     @foreach ($directCosts as $categoryId => $items)
                         @php $category = $items->first()->category; @endphp
@@ -282,15 +277,11 @@
                         <td class="font-bold">IV. Indirect & Overhead Costs</td>
                         <td class="text-center">-</td>
                         <td class="text-right font-bold">
-                            ({{ $formatMoney($record->items()->whereHas('category', fn($q) => $q->where('type', 'indirect'))->sum('total_monthly_cost')) }})
+                            ({{ $formatMoney($record->getIndirectItems()->sum(fn($i) => (float)($i->total_monthly_cost ?? 0))) }})
                         </td>
                     </tr>
                     @php
-                        $indirectItems = $record
-                            ->items()
-                            ->whereHas('category', fn($q) => $q->where('type', 'indirect'))
-                            ->with('category')
-                            ->get();
+                        $indirectItems = $record->getIndirectItems();
                     @endphp
                     @foreach ($indirectItems as $item)
                         <tr>
