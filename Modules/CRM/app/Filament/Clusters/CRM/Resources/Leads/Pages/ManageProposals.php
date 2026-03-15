@@ -95,10 +95,14 @@ class ManageProposals extends ManageRelatedRecords
                             $proposal->addMediaFromDisk($data['file'], 's3')->toMediaCollection('final_proposal');
                         }
 
-                        $lead->update(['status' => LeadStatus::Proposal]);
+                        $lead->update([
+                            'status' => LeadStatus::Proposal,
+                            'title' => ($lead->customer?->name ?? 'Lead').' Proposal',
+                        ]);
 
                         Notification::make()
                             ->title('Proposal created manually via upload')
+                            ->body('The lead title has been standardized for professionalism.')
                             ->success()
                             ->send();
                     })

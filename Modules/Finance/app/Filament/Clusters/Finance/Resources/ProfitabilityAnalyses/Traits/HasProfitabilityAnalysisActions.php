@@ -29,8 +29,33 @@ trait HasProfitabilityAnalysisActions
             ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisStatus::Submitted]))
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                if ($status instanceof \BackedEnum) {
+                    $status = $status->value;
+                }
 
-                return $status === ProfitabilityAnalysisStatus::Draft || $status === 'draft';
+                $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
+
+                return ($status === ProfitabilityAnalysisStatus::Draft->value || $status === 'draft') && ($rec?->isComplete() ?? false);
+            });
+    }
+
+    protected function getIncompleteSubmitWarningAction(): Action
+    {
+        return Action::make('incompleteSubmitWarning')
+            ->label('Submit')
+            ->color('gray')
+            ->icon('heroicon-o-exclamation-triangle')
+            ->disabled()
+            ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 item costing untuk dapat melakukan Submit.')
+            ->visible(function ($record) {
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                if ($status instanceof \BackedEnum) {
+                    $status = $status->value;
+                }
+
+                $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
+
+                return ($status === ProfitabilityAnalysisStatus::Draft->value || $status === 'draft') && ! ($rec?->isComplete() ?? false);
             });
     }
 
@@ -429,6 +454,7 @@ trait HasProfitabilityAnalysisActions
             $this->getApproveMarginAction(),
             $this->getSignAction(),
             $this->getSubmitAction(),
+            $this->getIncompleteSubmitWarningAction(),
             $this->getRejectAction(),
             $this->getCreateProposalAction(),
         ];

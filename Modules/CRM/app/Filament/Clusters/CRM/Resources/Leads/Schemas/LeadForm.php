@@ -10,10 +10,11 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
-use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
@@ -38,6 +39,7 @@ class LeadForm
                         ->required()
                         ->maxLength(255)
                         ->placeholder('Example: IT Support Outsourcing or Laptop Procurement')
+                        ->live(onBlur: true)
                         ->columnSpanFull(),
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
@@ -45,10 +47,19 @@ class LeadForm
                         ->searchable()
                         ->preload()
                         ->required()
+                        ->live()
+                        ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                            if ($state && empty($get('title'))) {
+                                $customer = \Modules\CRM\Models\Customer::find($state);
+                                if ($customer) {
+                                    $set('title', $customer->name.' Lead');
+                                }
+                            }
+                        })
                         ->placeholder('Select customer')
                         ->createOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->createOptionUsing(fn (array $data) => Customer::create($data)->id)
+                        ->createOptionUsing(fn (array $data) => \Modules\CRM\Models\Customer::create($data)->id)
                         ->editOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Textarea::make('description')

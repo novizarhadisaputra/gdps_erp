@@ -28,7 +28,7 @@ class CostingTemplateForm
         $latestGi = $lead->generalInformations()->latest()->first();
 
         return [
-            'name' => $lead->customer?->name,
+            'name' => $lead->customer?->name.' Tools & Equipment',
             'description' => $latestGi?->scope_of_work,
             'pic_id' => $lead->pic_costing_id ?? auth()->id(),
             'work_scheme_id' => $latestGi?->work_scheme_id ?? $lead->work_scheme_id,

@@ -60,7 +60,7 @@ class ManageCostingTemplates extends ManageRelatedRecords
 
                         $record = CostingTemplate::create([
                             'lead_id' => $lead->id,
-                            'name' => 'Tools & Equipment Costing from '.now()->format('Y-m-d H:i'),
+                            'name' => ($lead->customer?->name ?? 'Lead').' Tools & Equipment',
                             'description' => $latestGi?->scope_of_work,
                             'pic_id' => $lead->pic_costing_id ?? auth()->id(),
                         ]);

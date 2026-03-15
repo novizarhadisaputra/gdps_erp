@@ -17,7 +17,7 @@ class CreateManpowerTemplate extends CreateRecord
         $latestGi = $this->parentRecord->generalInformations()->latest()->first();
 
         $this->form->fill([
-            'name' => $this->parentRecord->customer?->name,
+            'name' => $this->parentRecord->customer?->name.' Manpower',
             'description' => $latestGi?->scope_of_work,
             'project_area_id' => $latestGi?->project_area_id ?? $this->parentRecord->project_area_id,
             'work_scheme_id' => $latestGi?->work_scheme_id ?? $this->parentRecord->work_scheme_id,

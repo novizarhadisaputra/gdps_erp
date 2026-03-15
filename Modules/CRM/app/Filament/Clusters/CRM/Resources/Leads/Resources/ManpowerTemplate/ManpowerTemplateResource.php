@@ -5,6 +5,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTe
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Hidden;
@@ -421,11 +422,15 @@ class ManpowerTemplateResource extends Resource
                         return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
                     }),
                 ViewAction::make(),
+                DeleteAction::make(),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+            ])
+            ->toolbarActions([
+                //
             ]);
     }
 

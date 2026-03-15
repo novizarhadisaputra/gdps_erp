@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\T
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -60,8 +61,9 @@ class ProposalsTable
                     ->modalDescription('Are you sure you want to revise this proposal? This will reset the status to Draft and allow you to modify the Profitability Analysis costing.')
                     ->action(fn ($record) => $record->update(['status' => \Modules\CRM\Enums\ProposalStatus::Draft]))
                     ->visible(fn ($record) => $record->status === \Modules\CRM\Enums\ProposalStatus::Submitted || $record->status === 'submitted'),
+                DeleteAction::make(),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

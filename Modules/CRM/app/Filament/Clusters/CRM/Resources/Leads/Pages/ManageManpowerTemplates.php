@@ -59,7 +59,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
 
                         $record = ManpowerTemplate::create([
                             'lead_id' => $lead->id,
-                            'name' => 'Manpower Costing from '.now()->format('Y-m-d H:i'),
+                            'name' => ($lead->customer?->name ?? 'Lead').' Manpower',
                             'description' => $latestGi?->scope_of_work,
                             'project_area_id' => $latestGi?->project_area_id ?? $lead->project_area_id,
                             'work_scheme_id' => $latestGi?->work_scheme_id ?? $lead->work_scheme_id,

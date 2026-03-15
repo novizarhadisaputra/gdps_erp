@@ -66,12 +66,20 @@ class ViewProposal extends ViewRecord
                 ->color('gray')
                 ->button(),
 
+            Action::make('incompleteWarning')
+                ->label('Submit')
+                ->color('gray')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->disabled()
+                ->tooltip('Harap lengkapi semua data wajib (Required) termasuk link ke Profitability Analysis untuk dapat melakukan Submit.')
+                ->visible(fn () => $this->record->status === ProposalStatus::Draft && ! $this->record->isComplete()),
+
             Action::make('Submit')
                 ->color('info')
                 ->icon('heroicon-o-paper-airplane')
                 ->requiresConfirmation()
                 ->action(fn () => $this->record->update(['status' => ProposalStatus::Submitted]))
-                ->visible(fn () => $this->record->status === ProposalStatus::Draft),
+                ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->record->isComplete()),
 
             Action::make('sign')
                 ->label('Digital Signature')

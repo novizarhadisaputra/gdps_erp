@@ -111,4 +111,13 @@ class Proposal extends Model implements HasMedia
     {
         return $this->belongsTo(ProfitabilityAnalysis::class);
     }
+
+    public function isComplete(): bool
+    {
+        return ! empty($this->customer_id) &&
+            ! empty($this->work_scheme_id) &&
+            ! empty($this->amount) &&
+            ! empty($this->submission_date) &&
+            ! empty($this->profitability_analysis_id);
+    }
 }

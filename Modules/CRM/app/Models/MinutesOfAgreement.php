@@ -64,4 +64,15 @@ class MinutesOfAgreement extends Model implements HasMedia
             ->useDisk('s3')
             ->singleFile();
     }
+
+    public function isComplete(): bool
+    {
+        return ! empty($this->customer_id) &&
+            ! empty($this->proposal_id) &&
+            ! empty($this->amount) &&
+            ! empty($this->negotiation_date) &&
+            ! empty($this->scope_of_work) &&
+            ! empty($this->timeline) &&
+            ! empty($this->terms);
+    }
 }

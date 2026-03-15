@@ -215,4 +215,14 @@ class ProfitabilityAnalysis extends Model implements HasMedia
                 $query->where('type', 'indirect');
             });
     }
+
+    public function isComplete(): bool
+    {
+        return ! empty($this->customer_id) &&
+            ! empty($this->product_cluster_id) &&
+            ! empty($this->work_scheme_id) &&
+            ! empty($this->revenue_per_month) &&
+            $this->margin_percentage !== null &&
+            $this->items()->exists();
+    }
 }

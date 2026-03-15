@@ -228,4 +228,19 @@ class GeneralInformation extends Model implements HasMedia
             GeneralInformationStatus::Approved,
         ]);
     }
+
+    public function isComplete(): bool
+    {
+        return ! empty($this->customer_id) &&
+            ! empty($this->scope_of_work) &&
+            ! empty($this->estimated_start_date) &&
+            ! empty($this->estimated_end_date) &&
+            ! empty($this->project_area_id) &&
+            ! empty($this->work_scheme_id) &&
+            ! empty($this->manpower_qualifications) &&
+            ! empty($this->work_activities) &&
+            ! empty($this->service_level) &&
+            ! empty($this->billing_requirements) &&
+            $this->pics()->exists();
+    }
 }

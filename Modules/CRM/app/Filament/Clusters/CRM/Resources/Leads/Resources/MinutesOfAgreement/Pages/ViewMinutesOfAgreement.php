@@ -108,6 +108,14 @@ class ViewMinutesOfAgreement extends ViewRecord
                 })
                 ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Submitted),
 
+            Action::make('incompleteWarning')
+                ->label('Submit')
+                ->color('gray')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->disabled()
+                ->tooltip('Harap lengkapi semua data wajib (Required) MoA untuk dapat melakukan Submit.')
+                ->visible(fn () => $this->record->status === MoAStatus::Draft && ! $this->record->isComplete()),
+
             Action::make('Submit')
                 ->color('info')
                 ->icon('heroicon-o-paper-airplane')
@@ -116,7 +124,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                     $this->record->update(['status' => MoAStatus::Submitted]);
                     $this->refreshFormData(['status']);
                 })
-                ->visible(fn () => $this->record->status === MoAStatus::Draft),
+                ->visible(fn () => $this->record->status === MoAStatus::Draft && $this->record->isComplete()),
             Action::make('convertToContract')
                 ->label('Convert to Contract')
                 ->icon('heroicon-o-document-duplicate')

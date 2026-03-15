@@ -131,6 +131,14 @@ class ViewGeneralInformation extends ViewRecord
                 })
                 ->visible(fn () => in_array($this->getRecord()->status, [GeneralInformationStatus::Submitted])),
 
+            Action::make('incompleteWarning')
+                ->label('Submit')
+                ->color('gray')
+                ->icon('heroicon-o-exclamation-triangle')
+                ->disabled()
+                ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 PIC untuk dapat melakukan Submit.')
+                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && ! $this->getRecord()->isComplete()),
+
             Action::make('Submit')
                 ->color('info')
                 ->icon('heroicon-o-paper-airplane')
@@ -139,7 +147,7 @@ class ViewGeneralInformation extends ViewRecord
                     $this->getRecord()->update(['status' => GeneralInformationStatus::Submitted]);
                     $this->refreshFormData(['status']);
                 })
-                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft),
+                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && $this->getRecord()->isComplete()),
 
             Action::make('createPA')
                 ->label('Create PA')
