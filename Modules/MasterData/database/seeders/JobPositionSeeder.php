@@ -15,19 +15,19 @@ class JobPositionSeeder extends Seeder
         $nonFixedAllowances = NonFixedAllowance::whereIn('name', ['Tunjangan Makan (Tidak Tetap)', 'Tunjangan Transportasi (Tidak Tetap)'])->get();
 
         $positions = [
-            ['name' => 'Security', 'risk_level' => 'low', 'is_labor_intensive' => true],
-            ['name' => 'Driver', 'risk_level' => 'low', 'is_labor_intensive' => true],
-            ['name' => 'SPG', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
-            ['name' => 'Merchandizer', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
-            ['name' => 'Cleaner', 'risk_level' => 'low', 'is_labor_intensive' => true],
-            ['name' => 'Engineer', 'risk_level' => 'medium', 'is_labor_intensive' => false],
-            ['name' => 'Office Boy', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
-            ['name' => 'Receptionist', 'risk_level' => 'very_low', 'is_labor_intensive' => false],
+            ['code' => 'SEC', 'name' => 'Security', 'risk_level' => 'low', 'is_labor_intensive' => true],
+            ['code' => 'DRV', 'name' => 'Driver', 'risk_level' => 'low', 'is_labor_intensive' => true],
+            ['code' => 'SPG', 'name' => 'SPG', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
+            ['code' => 'MCD', 'name' => 'Merchandizer', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
+            ['code' => 'CLN', 'name' => 'Cleaner', 'risk_level' => 'low', 'is_labor_intensive' => true],
+            ['code' => 'ENG', 'name' => 'Engineer', 'risk_level' => 'medium', 'is_labor_intensive' => false],
+            ['code' => 'OBY', 'name' => 'Office Boy', 'risk_level' => 'very_low', 'is_labor_intensive' => true],
+            ['code' => 'RCP', 'name' => 'Receptionist', 'risk_level' => 'very_low', 'is_labor_intensive' => false],
         ];
 
         foreach ($positions as $p) {
             $jobPosition = JobPosition::updateOrCreate(
-                ['name' => $p['name']],
+                ['code' => $p['code']],
                 $p
             );
 

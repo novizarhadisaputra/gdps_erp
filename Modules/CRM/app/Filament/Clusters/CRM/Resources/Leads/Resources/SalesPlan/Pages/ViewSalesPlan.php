@@ -23,7 +23,7 @@ class ViewSalesPlan extends ViewRecord
                     return response()->streamDownload(fn () => print ($pdf->output()), "sales-plan-{$filename}.pdf");
                 }),
             \Filament\Actions\Action::make('generateGI')
-                ->label('Generate General Information')
+                ->label('Convert to GI')
                 ->icon('heroicon-o-document-plus')
                 ->color('success')
                 ->visible(fn () => $this->record->lead->generalInformations()->doesntExist() && ! empty($this->record->revenue_distribution_planning))

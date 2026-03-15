@@ -28,6 +28,7 @@ class MasterDataDatabaseSeeder extends Seeder
             JpConfigSeeder::class,
             HealthConfigSeeder::class,
             DirectCostCategorySeeder::class,
+            ApiClientSeeder::class,
         ]);
     }
 }

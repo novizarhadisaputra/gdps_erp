@@ -247,37 +247,29 @@
                 <thead>
                     <tr>
                         <th width="4%">#</th>
-                        <th width="24%">Posisi Pekerjaan</th>
-                        <th class="center" width="5%">Qty</th>
-                        <th class="right" width="12%">Gaji Pokok</th>
-                        <th class="right" width="11%">Tunjangan</th>
-                        <th class="right" width="11%">BPJS</th>
-                        <th class="right" width="11%">Pajak (PPh)</th>
-                        <th class="right" width="11%">THR/Komp</th>
-                        <th class="right" width="11%">Total Subcost</th>
+                        <th width="36%">Code</th>
+                        <th class="center" width="10%">Qty</th>
+                        <th class="right" width="25%">Direct Cost / Person</th>
+                        <th class="right" width="25%">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($costSimulation['rows'] as $i => $row)
                         <tr>
                             <td>{{ $i + 1 }}</td>
-                            <td>{{ $row['job_position_name'] }}</td>
+                            <td>{{ $row['job_position_code'] ?? \Modules\MasterData\Models\JobPosition::find($row['job_position_id'])?->code }}</td>
                             <td class="center">{{ $row['qty'] }}</td>
-                            <td class="right">Rp {{ number_format($row['basic_salary'], 0, ',', '.') }}</td>
-                            <td class="right">Rp {{ number_format($row['total_allowances'], 0, ',', '.') }}</td>
-                            <td class="right">Rp {{ number_format($row['bpjs_total'], 0, ',', '.') }}</td>
-                            <td class="right">Rp {{ number_format($row['pph21']['total'] ?? 0, 0, ',', '.') }}</td>
-                            <td class="right">Rp {{ number_format($row['thr_compensation'], 0, ',', '.') }}</td>
+                            <td class="right">Rp {{ number_format($row['unit_cost'], 0, ',', '.') }}</td>
                             <td class="right">Rp {{ number_format($row['line_total'], 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="7" class="right"
+                        <td colspan="3" class="right"
                             style="font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;">Total Estimasi
                             Biaya / Bulan</td>
-                        <td class="right" style="font-size: 13px;">Rp
+                        <td colspan="2" class="right" style="font-size: 13px;">Rp
                             {{ number_format($costSimulation['total'], 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>

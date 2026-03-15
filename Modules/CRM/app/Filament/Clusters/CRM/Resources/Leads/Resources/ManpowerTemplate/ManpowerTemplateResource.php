@@ -335,14 +335,9 @@ class ManpowerTemplateResource extends Resource
                                         $rows .= "
                                             <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
                                                 <td class='px-4 py-3'>
-                                                    <div class='font-medium text-gray-900 dark:text-gray-100'>{$jp->name}</div>
-                                                    <div class='text-xs text-gray-400'>Qty: {$qty} | Days: {$res['working_days']}</div>
+                                                    <div class='font-medium text-gray-900 dark:text-gray-100'>{$jp->code}</div>
                                                 </td>
-                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($basicSalary)}</td>
-                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['total_allowances'] ?? 0)}</td>
-                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['bpjs_total'] ?? 0)}</td>
-                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['pph21']['total'] ?? 0)}</td>
-                                                <td class='px-4 py-3 text-right text-gray-600 dark:text-gray-400'>Rp {$fmt($res['thr_compensation'] ?? 0)}</td>
+                                                <td class='px-4 py-3 text-center'>{$qty}</td>
                                                 <td class='px-4 py-3 text-right font-medium text-primary-600'>Rp {$fmt($unitCost)}</td>
                                                 <td class='px-4 py-3 text-right font-bold text-gray-900 dark:text-white'>Rp {$fmt($lineTotal)}</td>
                                             </tr>
@@ -354,12 +349,8 @@ class ManpowerTemplateResource extends Resource
                                             <table class='w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400'>
                                                 <thead class='text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400'>
                                                     <tr>
-                                                        <th scope='col' class='px-4 py-3'>Position & Qty</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Basic Salary</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Allowance</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>BPJS</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>Tax (PPh)</th>
-                                                        <th scope='col' class='px-4 py-3 text-right'>THR / Comp.</th>
+                                                        <th scope='col' class='px-4 py-3'>Code</th>
+                                                        <th scope='col' class='px-4 py-3 text-center'>Qty</th>
                                                         <th scope='col' class='px-4 py-3 text-right'>Direct Cost / Person</th>
                                                         <th scope='col' class='px-4 py-3 text-right'>Subtotal</th>
                                                     </tr>
@@ -369,8 +360,8 @@ class ManpowerTemplateResource extends Resource
                                                 </tbody>
                                                 <tfoot>
                                                     <tr class='font-bold text-gray-900 dark:text-white bg-gray-100/50 dark:bg-gray-800/50'>
-                                                        <td colspan='6' class='px-4 py-4 text-right uppercase tracking-wider'>Total Estimated Monthly Cost</td>
-                                                        <td class='px-4 py-4 text-right text-lg text-primary-600'>Rp ".number_format($totalTemplateCost, 0, ',', '.')."</td>
+                                                        <td colspan='2' class='px-4 py-4 text-right uppercase tracking-wider'>Total Estimated Monthly Cost</td>
+                                                        <td colspan='2' class='px-4 py-4 text-right text-lg text-primary-600'>Rp ".number_format($totalTemplateCost, 0, ',', '.')."</td>
                                                     </tr>
                                                 </tfoot>
                                             </table>

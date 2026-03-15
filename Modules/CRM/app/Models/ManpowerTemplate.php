@@ -148,9 +148,12 @@ class ManpowerTemplate extends Model implements HasMedia
             $lineTotal = $unitCost * $qty;
             $totalTemplateCost += $lineTotal;
 
+            $res['job_position_id'] = $jpId;
             $res['job_position_name'] = $jp->name;
+            $res['job_position_code'] = $jp->code;
             $res['qty'] = $qty;
             $res['basic_salary'] = $basicSalary;
+            $res['unit_cost'] = $unitCost;
             $res['line_total'] = $lineTotal;
 
             $rows[] = $res;

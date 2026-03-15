@@ -3,10 +3,10 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas;
 
 use Filament\Forms\Components\Repeater;
-use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Enums\RiskLevel;
 use Modules\MasterData\Models\FixedAllowance;

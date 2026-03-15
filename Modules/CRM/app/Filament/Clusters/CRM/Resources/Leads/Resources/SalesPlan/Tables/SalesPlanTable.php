@@ -13,7 +13,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Schemas\SalesPlanForm;
 use Modules\CRM\Models\SalesPlan;
 
 class SalesPlanTable
@@ -58,39 +57,38 @@ class SalesPlanTable
                     ->sortable(),
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->schema(fn ($schema) => SalesPlanForm::configure($schema))
-                    ->modalFooterActions([
-                        Action::make('convertToGI')
-                            ->label('Convert to GI')
-                            ->icon('heroicon-o-document-plus')
-                            ->color('success')
-                            ->requiresConfirmation()
-                            ->visible(fn (SalesPlan $record) => $record->lead?->generalInformations()->doesntExist())
-                            ->action(function (SalesPlan $record) {
-                                $lead = $record->lead;
+                ViewAction::make(),
+                Action::make('convertToGI')
+                    ->label('Convert to GI')
+                    ->icon('heroicon-o-document-plus')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (SalesPlan $record) => $record->lead?->generalInformations()->doesntExist())
+                    ->action(function (SalesPlan $record) {
+                        $lead = $record->lead;
 
-                                if (! $lead) {
-                                    Notification::make()
-                                        ->title('Error')
-                                        ->body('Lead not found for this Sales Plan.')
-                                        ->danger()
-                                        ->send();
+                        if (! $lead) {
+                            Notification::make()
+                                ->title('Error')
+                                ->body('Lead not found for this Sales Plan.')
+                                ->danger()
+                                ->send();
 
-                                    return;
-                                }
+                            return;
+                        }
 
-                                $record->toGeneralInformation();
+                        $record->toGeneralInformation();
 
-                                Notification::make()
-                                    ->title('General Information Created')
-                                    ->body('Data has been synced from Sales Plan.')
-                                    ->success()
-                                    ->send();
+                        Notification::make()
+                            ->title('General Information Created')
+                            ->body('Data has been synced from Sales Plan.')
+                            ->success()
+                            ->send();
 
-                                return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
-                            }),
-                    ]),
+                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
+                    }),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

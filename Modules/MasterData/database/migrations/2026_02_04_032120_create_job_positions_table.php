@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'job_positions' : 'master_data.job_positions', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('code')->unique();
             $table->string('name');
             $table->string('risk_level')->default('very_low'); // very_low, low, medium, high, very_high
             $table->boolean('is_labor_intensive')->default(false);
