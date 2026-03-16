@@ -3,9 +3,6 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
@@ -31,7 +28,7 @@ class ManageProposals extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ProposalResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static ?string $title = 'Lead Proposals';
 
@@ -44,30 +41,14 @@ class ManageProposals extends ManageRelatedRecords
     {
         return ProposalResource::table($table)
             ->headerActions([
-                Action::make('manualUpload')
-                    ->label('Manual Upload (Reference)')
+                Action::make('bookingCode')
+                    ->label('Booking Proposal Code')
                     ->icon('heroicon-o-document-plus')
                     ->color('info')
-                    ->modalWidth('xl')
-                    ->schema([
-                        SpatieMediaLibraryFileUpload::make('file')
-                            ->collection('final_proposal')
-                            ->label('Proposal Document')
-                            ->disk('s3')
-                            ->visibility('private')
-                            ->required()
-                            ->helperText('Upload the signed or final proposal document.'),
-                        TextInput::make('proposal_number')
-                            ->label('Proposal Number')
-                            ->placeholder('e.g. GDPS/UB/PROP-001/26')
-                            ->required(),
-                        DatePicker::make('submission_date')
-                            ->label('Submission Date')
-                            ->default(now())
-                            ->native(false)
-                            ->required(),
-                    ])
-                    ->action(function (array $data) {
+                    ->requiresConfirmation()
+                    ->modalHeading('Booking Proposal Code')
+                    ->modalDescription('This will generate a new Proposal record with an auto-generated code and link it to this Lead. You can upload the documentation later.')
+                    ->action(function () {
                         $lead = $this->getOwnerRecord();
 
                         // Find latest approved or submitted PA
@@ -79,21 +60,16 @@ class ManageProposals extends ManageRelatedRecords
                             ->latest()
                             ->first();
 
-                        $proposal = Proposal::create([
+                        Proposal::create([
                             'lead_id' => $lead->id,
                             'customer_id' => $lead->customer_id,
                             'profitability_analysis_id' => $latestPA?->id,
                             'work_scheme_id' => $latestPA?->work_scheme_id ?? $lead->work_scheme_id,
-                            'proposal_number' => $data['proposal_number'],
                             'amount' => $lead->estimated_amount ?? 0,
-                            'submission_date' => $data['submission_date'],
+                            'submission_date' => now(),
                             'status' => ProposalStatus::Draft,
                             'is_manual' => true,
                         ]);
-
-                        if (isset($data['file'])) {
-                            $proposal->addMediaFromDisk($data['file'], 's3')->toMediaCollection('final_proposal');
-                        }
 
                         $lead->update([
                             'status' => LeadStatus::Proposal,
@@ -101,12 +77,12 @@ class ManageProposals extends ManageRelatedRecords
                         ]);
 
                         Notification::make()
-                            ->title('Proposal created manually via upload')
+                            ->title('Proposal code booked successfully')
                             ->body('The lead title has been standardized for professionalism.')
                             ->success()
                             ->send();
                     })
-                    ->successNotificationTitle('Manual Proposal created'),
+                    ->successNotificationTitle('Proposal Code Booked'),
             ]);
     }
 }

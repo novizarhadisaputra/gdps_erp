@@ -2,13 +2,13 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Tables;
 
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Table;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Modules\Project\Enums\WorkCompletionStatus;
 
 class WorkCompletionReportsTable
@@ -48,6 +48,48 @@ class WorkCompletionReportsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                \Filament\Actions\Action::make('sendEmail')
+                    ->label('Send Email')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->requiresConfirmation()
+                    ->action(function (\Modules\Project\Models\WorkCompletionReport $record) {
+                        try {
+                            $signatureUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                                'work_completion_reports.public.sign',
+                                now()->addDays(7),
+                                ['report' => $record->id]
+                            );
+
+                            $messageBody = "Please review and sign Work Completion Report (BAPP) #{$record->report_number} by clicking the link below:<br><br>";
+                            $messageBody .= "<a href='{$signatureUrl}' style='display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;'>Sign BAPP Online</a>";
+
+                            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                                'content-type' => 'application/json',
+                                'x-requester-app' => 'GDPS-ERP',
+                            ])->post('https://machine.garudapratama.com/api/v1/email/send', [
+                                'to' => [$record->customer?->email],
+                                'subject' => "Work Completion Report (BAPP) - {$record->report_number}",
+                                'body' => $messageBody,
+                            ]);
+
+                            if (! $response->successful()) {
+                                throw new \Exception('External API Error: '.$response->status());
+                            }
+
+                            $record->update(['status' => WorkCompletionStatus::Sent]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Email Sent')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Failed to Send Email')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

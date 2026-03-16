@@ -2,7 +2,6 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,11 +17,16 @@ class ProfitabilityAnalysisResource extends Resource
 {
     protected static ?string $model = ProfitabilityAnalysis::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = FinanceCluster::class;
 
     protected static ?int $navigationSort = 1;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {

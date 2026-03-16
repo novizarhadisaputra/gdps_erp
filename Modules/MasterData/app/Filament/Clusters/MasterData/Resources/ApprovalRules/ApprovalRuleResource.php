@@ -2,7 +2,6 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApprovalRules;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -23,7 +22,7 @@ class ApprovalRuleResource extends Resource
 
     protected static ?string $model = ApprovalRule::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     public static function form(Schema $schema): Schema
     {

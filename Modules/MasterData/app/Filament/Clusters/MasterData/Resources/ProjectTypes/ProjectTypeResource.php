@@ -19,7 +19,7 @@ class ProjectTypeResource extends Resource
 
     protected static ?int $navigationSort = 40;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

@@ -2,7 +2,6 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -19,7 +18,7 @@ class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = FinanceCluster::class;
 

@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'sales_targets' : 'crm.sales_targets', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('unit_id')->nullable(); // Virtual relationship to Unit model
             $table->integer('year');
             $table->string('month'); // January, February, etc or numeric
             $table->decimal('amount', 15, 2);

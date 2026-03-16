@@ -19,7 +19,7 @@ class ProductClusterResource extends Resource
 
     protected static ?int $navigationSort = 42;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-rectangle-group';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-rectangle-group';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 

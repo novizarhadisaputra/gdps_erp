@@ -27,7 +27,7 @@ class ManageProjectInformations extends ManageRelatedRecords
 
     protected static string $relationship = 'projectInformations';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInformationCircle;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedInformationCircle;
 
     protected static ?string $title = 'Project Information';
 

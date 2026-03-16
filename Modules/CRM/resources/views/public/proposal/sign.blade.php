@@ -65,9 +65,9 @@
                         <p class="mt-1 text-xs text-gray-400 italic">Your email address as the person sending/approving this document.</p>
                     </div>
                     <div class="md:col-span-2">
-                        <label for="signed_proposal" class="block text-sm font-medium text-gray-700">Signed Proposal File <span class="text-red-500">*</span></label>
+                        <label for="signed_document" class="block text-sm font-medium text-gray-700">Signed Proposal File <span class="text-red-500">*</span></label>
                         <div class="mt-1 flex items-center">
-                            <input type="file" name="signed_proposal" id="signed_proposal" accept=".pdf,.png,.jpg,.jpeg" required
+                            <input type="file" name="signed_document" id="signed_document" accept=".pdf,.png,.jpg,.jpeg" required
                                    class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                         </div>
                         <p class="mt-1 text-xs text-gray-400 italic">Upload scanned copy or physical signature if available (PDF or Image).</p>

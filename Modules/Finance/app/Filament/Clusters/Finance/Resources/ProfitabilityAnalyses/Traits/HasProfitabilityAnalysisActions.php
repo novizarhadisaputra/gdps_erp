@@ -3,6 +3,7 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -193,30 +194,7 @@ trait HasProfitabilityAnalysisActions
                     $record->update(['status' => ProfitabilityAnalysisStatus::Approved]);
                 }
             })
-            ->visible(function ($record) {
-                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
-                if ($status instanceof \BackedEnum) {
-                    $status = $status->value;
-                }
-
-                $isMarginApproved = $record?->is_margin_approved ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->is_margin_approved : false);
-
-                // Check for approved proposal. Using relationship check which is now HasOne
-                $proposal = $record?->proposal;
-                $proposalStatus = $proposal?->status;
-                if ($proposalStatus instanceof \BackedEnum) {
-                    $proposalStatus = $proposalStatus->value;
-                }
-
-                $allowedPAStatuses = [
-                    ProfitabilityAnalysisStatus::Submitted->value,
-                    'submitted',
-                ];
-
-                return in_array($status, $allowedPAStatuses, true)
-                    && $isMarginApproved
-                    && ($proposalStatus === ProposalStatus::Approved->value || $proposalStatus === 'approved');
-            });
+            ->visible(false);
     }
 
     protected function getGenerateProjectAction(): Action
@@ -508,13 +486,21 @@ trait HasProfitabilityAnalysisActions
     protected function getProfitabilityAnalysisActions(): array
     {
         return [
-            $this->getDuplicateAction(),
             $this->getApproveMarginAction(),
             $this->getSignAction(),
             $this->getSubmitAction(),
             $this->getIncompleteSubmitWarningAction(),
-            $this->getRejectAction(),
-            $this->getCreateProposalAction(),
+            $this->getGenerateProjectAction(),
+
+            ActionGroup::make([
+                $this->getDuplicateAction(),
+                $this->getRejectAction(),
+                $this->getCreateProposalAction(),
+            ])
+                ->label('Options')
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
         ];
     }
 

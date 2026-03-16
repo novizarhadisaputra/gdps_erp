@@ -24,7 +24,7 @@ class SalesPlanResource extends Resource
 
     protected static ?string $parentResource = LeadResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
 
     public static function form(Schema $schema): Schema
     {

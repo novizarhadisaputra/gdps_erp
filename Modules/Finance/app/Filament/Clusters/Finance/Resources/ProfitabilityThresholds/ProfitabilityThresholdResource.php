@@ -19,7 +19,7 @@ class ProfitabilityThresholdResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 

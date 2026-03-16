@@ -52,6 +52,15 @@ class GeneralInformationObserver
     {
         $info->syncContactsToCustomer();
 
+        // Trigger ProjectReview creation when submitted
+        if ($info->wasChanged('status') && $info->status === GeneralInformationStatus::Submitted && $info->lead_id) {
+            $info->lead->projectReviews()->firstOrCreate([
+                'general_information_id' => $info->id,
+            ], [
+                'status' => 'draft',
+            ]);
+        }
+
         // Sync CostingTemplate and ManpowerTemplate description
         if ($info->wasChanged(['scope_of_work', 'project_area_id', 'status']) && $info->status === GeneralInformationStatus::Approved) {
             $lead = $info->lead;

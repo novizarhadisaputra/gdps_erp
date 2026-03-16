@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads;
 
-use BackedEnum;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Pages\Page;
@@ -24,9 +23,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageManpowerTempla
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageMinutesOfAgreements;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProfitabilityAnalyses;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectInformations;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectReviews;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProposals;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageSalesPlans;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ProjectReviewAndApproval;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ViewLead;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
@@ -42,7 +41,7 @@ class LeadResource extends Resource
 
     protected static ?string $cluster = CRMCluster::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFunnel;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedFunnel;
 
     protected static ?int $navigationSort = 1;
 
@@ -58,8 +57,8 @@ class LeadResource extends Resource
         return [
             ...$page->generateNavigationItems([
                 EditLead::class,
-                ProjectReviewAndApproval::class,
                 ManageProjectInformations::class,
+                ManageProjectReviews::class,
             ]),
             ...collect($page->generateNavigationItems([
                 ManageSalesPlans::class,
@@ -150,7 +149,7 @@ class LeadResource extends Resource
             'list' => ListLeads::route('/list'),
             'view' => ViewLead::route('/{record}'),
             'edit' => EditLead::route('/{record}/edit'),
-            'review' => ProjectReviewAndApproval::route('/{record}/review'),
+            'project-reviews' => ManageProjectReviews::route('/{record}/project-reviews'),
             'sales-plans' => ManageSalesPlans::route('/{record}/sales-plans'),
             'general-informations' => ManageGeneralInformations::route('/{record}/general-informations'),
             'proposals' => ManageProposals::route('/{record}/proposals'),

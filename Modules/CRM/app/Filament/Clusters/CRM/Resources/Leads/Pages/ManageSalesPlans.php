@@ -27,7 +27,7 @@ class ManageSalesPlans extends ManageRelatedRecords
 
     protected static ?string $relatedResource = SalesPlanResource::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
 
     public static function canAccess(array $parameters = []): bool
     {

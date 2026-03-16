@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -19,7 +18,7 @@ class SalesOrderResource extends Resource
 {
     protected static ?string $model = SalesOrder::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = CRMCluster::class;
 

@@ -2,8 +2,8 @@
 
 namespace Modules\CRM\Database\Seeders;
 
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 class RolePermissionSeeder extends Seeder
@@ -29,8 +29,12 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Project', 'View:Project',
             'ViewAny:Customer', 'View:Customer',
             'ViewAny:Contract', 'View:Contract',
+            'ViewAny:SalesOrder', 'View:SalesOrder',
+            'ViewAny:Invoice', 'View:Invoice',
+            'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport',
+            'ViewAny:ProjectReview', 'View:ProjectReview',
             'View:CRMCluster', 'View:FinanceCluster', 'View:ProjectCluster', 'View:MasterDataCluster',
-            'View:CRMAnalyticsPage', 'View:ProjectAnalyticsPage', 'View:ProjectDashboard',
+            'View:CRMAnalyticsPage', 'View:ProjectAnalyticsPage', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -42,13 +46,16 @@ class RolePermissionSeeder extends Seeder
 
         $permissions = [
             'ViewAny:Lead', 'View:Lead', 'Create:Lead', 'Update:Lead',
-            'ViewAny:Proposal', 'View:Proposal', 'Create:Proposal', 'Update:Proposal',
+            'ViewAny:Proposal', 'View:Proposal', 'Create:Proposal', 'Update:Proposal', 'SendEmail:Proposal',
             'ViewAny:MinutesOfAgreement', 'View:MinutesOfAgreement', 'Create:MinutesOfAgreement', 'Update:MinutesOfAgreement',
             'ViewAny:Customer', 'View:Customer', 'Create:Customer', 'Update:Customer',
             'ViewAny:GeneralInformation', 'View:GeneralInformation', 'Create:GeneralInformation', 'Update:GeneralInformation',
             'ViewAny:SalesPlan', 'View:SalesPlan',
             'ViewAny:ProfitabilityAnalysis', 'View:ProfitabilityAnalysis',
-            'View:CRMCluster', 'View:CRMAnalyticsPage',
+            'ViewAny:SalesOrder', 'View:SalesOrder', 'Create:SalesOrder', 'Update:SalesOrder', 'SendEmail:SalesOrder',
+            'ViewAny:Invoice', 'View:Invoice',
+            'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport',
+            'View:CRMCluster', 'View:CRMAnalyticsPage', 'View:ProjectReviewDashboard',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -66,7 +73,9 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Tax', 'View:Tax',
             'ViewAny:PaymentTerm', 'View:PaymentTerm',
             'ViewAny:BankAccount', 'View:BankAccount',
-            'View:FinanceCluster', 'View:CRMCluster',
+            'ViewAny:Invoice', 'View:Invoice', 'Create:Invoice', 'Update:Invoice', 'SendEmail:Invoice',
+            'ViewAny:SalesOrder', 'View:SalesOrder', 'Update:SalesOrder',
+            'View:FinanceCluster', 'View:CRMCluster', 'View:ProjectReviewDashboard',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -80,7 +89,10 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Project', 'View:Project', 'Update:Project',
             'ViewAny:Contract', 'View:Contract',
             'ViewAny:Lead', 'View:Lead',
-            'View:ProjectCluster', 'View:CRMCluster', 'View:ProjectDashboard',
+            'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport', 'Create:WorkCompletionReport', 'Update:WorkCompletionReport', 'SendEmail:WorkCompletionReport',
+            'ViewAny:SalesOrder', 'View:SalesOrder',
+            'ViewAny:Invoice', 'View:Invoice',
+            'View:ProjectCluster', 'View:CRMCluster', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
         ];
 
         $this->syncPermissions($role, $permissions);

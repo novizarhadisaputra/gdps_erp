@@ -5,7 +5,7 @@ namespace Modules\CRM\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Modules\CRM\Enums\ProposalStatus;
-use Modules\CRM\Http\Requests\SignProposalRequest;
+use Modules\CRM\Http\Requests\SignDocumentRequest;
 use Modules\CRM\Models\Proposal;
 use Modules\MasterData\Enums\ApprovalSignatureType;
 
@@ -19,13 +19,13 @@ class PublicProposalController extends Controller
         return view('crm::public.proposal.sign', compact('proposal', 'latestLog', 'positions'));
     }
 
-    public function sign(SignProposalRequest $request, Proposal $proposal)
+    public function sign(SignDocumentRequest $request, Proposal $proposal)
     {
         $validated = $request->validated();
 
         if (! empty($validated['signature_data'])) {
             $proposal->addMediaFromBase64($validated['signature_data'])
-                ->usingFileName("signature-{$proposal->id}-".time().'.png')
+                ->usingFileName("signature-proposal-{$proposal->id}-".time().'.png')
                 ->toMediaCollection('digital_signature', 's3');
         }
 

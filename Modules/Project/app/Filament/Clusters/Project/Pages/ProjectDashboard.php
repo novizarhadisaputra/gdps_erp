@@ -22,7 +22,7 @@ class ProjectDashboard extends Page
 
     protected static ?int $navigationSort = 0;
 
-    protected static string|null|\BackedEnum $navigationIcon = Heroicon::OutlinedChartBarSquare;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedChartBarSquare;
 
     public function getWidgets(): array
     {

@@ -4,6 +4,7 @@ namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource;
 use Modules\CRM\Models\CostingTemplate;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Models\Item;
@@ -33,7 +34,11 @@ class CostingTemplateResourceTest extends TestCase
                 'pic_id' => auth()->id(),
                 'file' => [\Illuminate\Http\UploadedFile::fake()->create('document.pdf')],
             ])
-            ->assertHasNoActionErrors();
+            ->assertHasNoActionErrors()
+            ->assertRedirect(CostingTemplateResource::getUrl('view', [
+                'lead' => $lead->id,
+                'record' => CostingTemplate::latest()->first()->id,
+            ]));
 
         $this->assertDatabaseHas('costing_templates', [
             'lead_id' => $lead->id,

@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
             $table->string('legal_entity_type')->nullable();
             $table->string('name');

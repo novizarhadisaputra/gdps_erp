@@ -2,7 +2,6 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\SkillCategories;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -16,7 +15,7 @@ class SkillCategoryResource extends Resource
 {
     protected static ?string $model = SkillCategory::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-academic-cap';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-academic-cap';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

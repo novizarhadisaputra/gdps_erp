@@ -17,7 +17,7 @@ class ManageMinutesOfAgreements extends ManageRelatedRecords
 
     protected static ?string $relatedResource = MinutesOfAgreementResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedPencilSquare;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPencilSquare;
 
     public function getSubheading(): ?string
     {

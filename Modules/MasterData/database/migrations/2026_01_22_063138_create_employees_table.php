@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'employees' : 'master_data.employees', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('unit_id')->nullable()->index();
             $table->string('code')->unique();
             $table->string('name');
             $table->string('email')->unique();

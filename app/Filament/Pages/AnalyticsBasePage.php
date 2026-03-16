@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages;
 
-use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
@@ -11,7 +10,7 @@ abstract class AnalyticsBasePage extends Page
 {
     protected string $view = 'filament.pages.analytics-base-page';
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-chart-bar';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-chart-bar';
 
     public function getMaxContentWidth(): Width|string|null
     {

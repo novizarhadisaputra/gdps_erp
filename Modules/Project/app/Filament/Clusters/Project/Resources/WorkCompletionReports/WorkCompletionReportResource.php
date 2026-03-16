@@ -2,7 +2,6 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -23,7 +22,7 @@ class WorkCompletionReportResource extends Resource
 
     protected static ?string $pluralLabel = 'Work Completion Reports';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = ProjectCluster::class;
 

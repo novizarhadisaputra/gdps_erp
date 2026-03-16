@@ -27,7 +27,7 @@ class ManageCostingTemplates extends ManageRelatedRecords
 
     protected static ?string $relatedResource = CostingTemplateResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
     protected static ?string $title = 'Tools & Equipment Costing';
 
@@ -69,12 +69,13 @@ class ManageCostingTemplates extends ManageRelatedRecords
                             $record->addMediaFromDisk($data['file'], 's3')->toMediaCollection('source_file');
                         }
 
-                        $this->redirect(CostingTemplateResource::getUrl('edit', ['lead' => $lead->id, 'record' => $record->id]));
+                        $this->redirect(CostingTemplateResource::getUrl('view', ['lead' => $lead->id, 'record' => $record->id]));
                     })
                     ->successNotificationTitle('Manual Tools & Equipment Costing created'),
                 CreateAction::make()
                     ->schema(fn (Schema $schema) => CostingTemplateResource::form($schema))
-                    ->fillForm(fn () => CostingTemplateForm::getAutoFillData($this->getOwnerRecord())),
+                    ->fillForm(fn () => CostingTemplateForm::getAutoFillData($this->getOwnerRecord()))
+                    ->after(fn (CostingTemplate $record) => $this->redirect(CostingTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
             ]);
     }
 }

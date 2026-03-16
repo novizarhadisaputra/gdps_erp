@@ -10,17 +10,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\MasterData\Database\Factories\ItemFactory;
 use Modules\MasterData\Traits\HasAutoCodeAndSlug;
-use Modules\MasterData\Traits\HasUnitScoping;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Item extends Model implements HasMedia
 {
-    use HasAutoCodeAndSlug, HasFactory, HasUnitScoping, HasUuids, InteractsWithMedia;
+    use HasAutoCodeAndSlug, HasFactory, HasUuids, InteractsWithMedia;
     use HasModuleSchema;
 
     protected $fillable = [
-        'unit_id',
         'item_category_id',
         'asset_group_id',
         'unit_of_measure_id',
@@ -63,11 +61,6 @@ class Item extends Model implements HasMedia
     public function itemPrices(): HasMany
     {
         return $this->hasMany(ItemPrice::class);
-    }
-
-    public function unit(): BelongsTo
-    {
-        return $this->belongsTo(Unit::class);
     }
 
     public function getPriceForArea(?string $areaId = null): float

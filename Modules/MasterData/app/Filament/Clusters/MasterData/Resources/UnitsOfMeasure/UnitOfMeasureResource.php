@@ -19,7 +19,7 @@ class UnitOfMeasureResource extends Resource
 
     protected static ?int $navigationSort = 82;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-beaker';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 

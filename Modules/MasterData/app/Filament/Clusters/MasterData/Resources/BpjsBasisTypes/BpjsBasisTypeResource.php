@@ -2,7 +2,6 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsBasisTypes;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -19,7 +18,7 @@ class BpjsBasisTypeResource extends Resource
 {
     protected static ?string $model = BpjsBasisType::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = MasterDataCluster::class;
 

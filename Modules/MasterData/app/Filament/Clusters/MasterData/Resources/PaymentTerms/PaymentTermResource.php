@@ -19,7 +19,7 @@ class PaymentTermResource extends Resource
 
     protected static ?int $navigationSort = 60;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-credit-card';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

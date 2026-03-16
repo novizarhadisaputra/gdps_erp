@@ -19,7 +19,7 @@ class ProjectAreaResource extends Resource
 
     protected static ?int $navigationSort = 41;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-map-pin';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Projects';
 

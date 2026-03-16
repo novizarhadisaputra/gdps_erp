@@ -19,7 +19,7 @@ class BillingOptionResource extends Resource
 
     protected static ?int $navigationSort = 61;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-banknotes';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

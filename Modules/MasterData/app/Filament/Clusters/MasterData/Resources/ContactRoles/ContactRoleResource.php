@@ -16,7 +16,7 @@ class ContactRoleResource extends Resource
 
     protected static ?string $model = ContactRole::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 

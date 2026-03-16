@@ -23,7 +23,7 @@ class ManageProfitabilityAnalyses extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ProfitabilityAnalysisResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedChartBar;
 
     protected static ?string $title = 'Profitability Analysis';
 

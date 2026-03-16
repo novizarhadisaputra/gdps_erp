@@ -4,7 +4,6 @@ namespace Modules\CRM\Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -27,7 +26,7 @@ class ProposalManualUploadTest extends TestCase
         Storage::fake('s3');
     }
 
-    public function test_can_manually_upload_proposal(): void
+    public function test_can_book_proposal_code(): void
     {
         $user = User::factory()->create();
         $lead = Lead::factory()->create([
@@ -35,30 +34,25 @@ class ProposalManualUploadTest extends TestCase
             'estimated_amount' => 1000000,
         ]);
 
-        $file = UploadedFile::fake()->create('proposal.pdf', 100);
-
         Livewire::actingAs($user)
             ->test(ManageProposals::class, [
                 'record' => $lead->id,
             ])
-            ->callTableAction('manualUpload', data: [
-                'file' => [$file->store('temp-manual-uploads', 'local')],
-                'amount' => '1.500.000',
-                'submission_date' => now()->format('Y-m-d'),
-            ])
+            ->callTableAction('bookingCode')
             ->assertHasNoTableActionErrors();
 
         $this->assertDatabaseHas('proposals', [
             'lead_id' => $lead->id,
-            'amount' => 1500000,
+            'amount' => 1000000,
             'status' => ProposalStatus::Draft->value,
             'is_manual' => true,
         ]);
 
+        /** @var Proposal $proposal */
         $proposal = Proposal::where('lead_id', $lead->id)->first();
         $this->assertNotNull($proposal);
-        /** @var \Modules\CRM\Models\Proposal $proposal */
-        $this->assertEquals(1, $proposal->getMedia('final_proposal')->count());
+        $this->assertStringContainsString('GDPS/UB/PROP-', $proposal->proposal_number);
+        $this->assertEquals(0, $proposal->getMedia('final_proposal')->count());
 
         $lead->refresh();
         $this->assertEquals(LeadStatus::Proposal, $lead->status);

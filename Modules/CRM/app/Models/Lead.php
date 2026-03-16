@@ -140,6 +140,16 @@ class Lead extends Model implements HasMedia
         return $this->hasOne(GeneralInformation::class)->latestOfMany();
     }
 
+    public function projectReviews(): HasMany
+    {
+        return $this->hasMany(ProjectReview::class);
+    }
+
+    public function latestProjectReview(): HasOne
+    {
+        return $this->hasOne(ProjectReview::class)->latestOfMany();
+    }
+
     public function contracts(): HasMany
     {
         return $this->hasMany(Contract::class);

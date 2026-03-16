@@ -2,7 +2,6 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units;
 
-use BackedEnum;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Pages\Page;
 use Filament\Resources\Resource;
@@ -22,7 +21,7 @@ class UnitResource extends Resource
 
     protected static ?string $model = Unit::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 

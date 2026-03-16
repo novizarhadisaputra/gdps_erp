@@ -4,6 +4,7 @@ namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\MasterData\Models\JobPosition;
@@ -13,6 +14,12 @@ use Tests\TestCase;
 class ManpowerTemplateResourceTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Gate::before(fn () => true);
+    }
 
     public function test_can_create_record(): void
     {
@@ -58,7 +65,11 @@ class ManpowerTemplateResourceTest extends TestCase
             ],
         ])
             ->call('create')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertRedirect(ManpowerTemplateResource::getUrl('view', [
+                'lead' => $lead->id,
+                'record' => ManpowerTemplate::latest()->first()->id,
+            ]));
 
         $this->assertDatabaseHas('manpower_templates', ['name' => 'New Manpower Template']);
     }

@@ -341,7 +341,7 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('management_fee_rate')
                                     ->label('Mgmt Fee / Target GPM (%)')
                                     ->numeric()
-                                    ->default(fn (Get $get, $livewire) => $get('/management_fee_rate') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->management_fee_percentage : 0) ?? 15.00)
+                                    ->default(fn (Get $get, $livewire) => $get('/data.management_fee_rate') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->management_fee_percentage : 0) ?? 15.00)
                                     ->placeholder('15.00')
                                     ->helperText('Target Gross Profit Margin percentage (Project Fee).')
                                     ->live(onBlur: true)
@@ -353,7 +353,7 @@ class ProfitabilityAnalysisForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->default(fn (Get $get, $livewire) => $get('/payment_term_id') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->payment_term_id : null))
+                                    ->default(fn (Get $get, $livewire) => $get('/data.payment_term_id') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->payment_term_id : null))
                                     ->live(onBlur: true)
                                     ->placeholder('Select payment term')
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
@@ -452,7 +452,7 @@ class ProfitabilityAnalysisForm
                                         if ($type === ManpowerTemplate::class) {
                                             $service = app(ManpowerCostingService::class);
                                             $areaId = $record->project_area_id;
-                                            $year = (int) ($get('../../year') ?? $get('/year') ?? date('Y'));
+                                            $year = (int) ($get('../../year') ?? $get('/data.year') ?? date('Y'));
 
                                             $totalPacketCost = 0.0;
                                             foreach ($record->items as $item) {
@@ -1286,7 +1286,7 @@ class ProfitabilityAnalysisForm
 
     public static function getProjectDurationMonths($get): float
     {
-        $giId = $get('/general_information_id');
+        $giId = $get('/data.general_information_id');
         $gi = self::getCachedModel(GeneralInformation::class, $giId);
 
         if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {
@@ -1312,11 +1312,11 @@ class ProfitabilityAnalysisForm
         $toolsCostMonthly = 0;
         $materialCostMonthly = 0;
 
-        $isManual = (bool) ($get('/is_manual_cost') ?? false);
+        $isManual = (bool) ($get('/data.is_manual_cost') ?? false);
 
         if ($isManual) {
             $totalManualCost = 0;
-            $manualCosts = $get('/analysis_details.manual_costs') ?? [];
+            $manualCosts = $get('/data.analysis_details.manual_costs') ?? [];
 
             $catManpowerId = DirectCostCategory::where('code', 'manpower')->first()?->id;
             $catToolsId = DirectCostCategory::where('code', 'tools_equipment')->first()?->id;
@@ -1338,10 +1338,10 @@ class ProfitabilityAnalysisForm
             }
 
             $totalProjectCost = $totalManualCost;
-            $set('/analysis_details.manual_revenue', $totalManualCost);
+            $set('/data.analysis_details.manual_revenue', $totalManualCost);
 
             $totalProjectRevenue = $totalManualCost;
-            $totalProjectDepreciation = self::parseNumericValue($get('/manual_depreciation') ?? 0) * $projectDurationMonths;
+            $totalProjectDepreciation = self::parseNumericValue($get('/data.manual_depreciation') ?? 0) * $projectDurationMonths;
 
             $manpowerCostMonthly = $projectDurationMonths > 0 ? $manpowerCostMonthly / $projectDurationMonths : 0;
             $toolsCostMonthly = $projectDurationMonths > 0 ? $toolsCostMonthly / $projectDurationMonths : 0;
@@ -1349,8 +1349,8 @@ class ProfitabilityAnalysisForm
         } else {
             // First pass: Calculate Revenue and Direct Costs from Fixed/Nominal items
             // (We need an initial revenue estimate for percentage-based costs)
-            $manpowerItems = $get('/manpowerItems') ?? [];
-            $operationalItems = $get('/operationalItems') ?? [];
+            $manpowerItems = $get('/data.manpowerItems') ?? [];
+            $operationalItems = $get('/data.operationalItems') ?? [];
 
             // To handle percentages correctly, we do it in a way that avoids circular dependency
             // Initial revenue is often set by the user or calculated from cost + markup.
@@ -1410,7 +1410,7 @@ class ProfitabilityAnalysisForm
         }
 
         // 2. Always Calculate Indirect Items (OPEX)
-        $indirectItems = $get('/analysis_details.indirect_costs') ?? [];
+        $indirectItems = $get('/data.analysis_details.indirect_costs') ?? [];
         $totalProjectIndirectCost = 0;
         foreach ($indirectItems as $item) {
             $itemGet = function ($path) use ($item, $get) {
@@ -1430,46 +1430,46 @@ class ProfitabilityAnalysisForm
         }
 
         // Handle Management Fee from Rate
-        $mgmtFeeRate = self::parseNumericValue($get('/management_fee_rate') ?? 0);
+        $mgmtFeeRate = self::parseNumericValue($get('/data.management_fee_rate') ?? 0);
         $avgMonthlyDirectCost = $projectDurationMonths > 0 ? ($totalProjectCost / $projectDurationMonths) : 0;
         $avgMonthlyIndirectCost = $projectDurationMonths > 0 ? ($totalProjectIndirectCost / $projectDurationMonths) : 0;
 
         if ($mgmtFeeRate > 0) {
             $calculatedMgmtFee = $avgMonthlyDirectCost * ($mgmtFeeRate / 100);
-            $set('/management_fee', $calculatedMgmtFee);
+            $set('/data.management_fee', $calculatedMgmtFee);
             $mgmtFee = $calculatedMgmtFee;
         } else {
-            $mgmtFee = (float) ($get('/management_fee') ?? 0);
+            $mgmtFee = (float) ($get('/data.management_fee') ?? 0);
         }
 
         // Add Management Fee to Revenue (Pro-rated monthly)
         $totalProjectRevenue += ($mgmtFee * $projectDurationMonths);
 
-        $set($root.'total_project_cost', $totalProjectCost);
-        $set($root.'total_project_revenue', $totalProjectRevenue);
+        $set('/data.total_project_cost', $totalProjectCost);
+        $set('/data.total_project_revenue', $totalProjectRevenue);
 
         // Update Indirect Subtotal
-        $set($root.'analysis_details.manual_indirect_total', $totalProjectIndirectCost);
+        $set('/data.analysis_details.manual_indirect_total', $totalProjectIndirectCost);
 
         // Pro-rated values back to "Standard Monthly" for high-level summary
         $avgMonthlyRevenue = $projectDurationMonths > 0 ? ($totalProjectRevenue / $projectDurationMonths) : 0;
         $avgMonthlyCost = $projectDurationMonths > 0 ? ($totalProjectCost / $projectDurationMonths) : 0;
         $avgMonthlyDepreciation = $projectDurationMonths > 0 ? ($totalProjectDepreciation / $projectDurationMonths) : 0;
 
-        $set('/direct_cost', $avgMonthlyCost);
-        $set('/depreciation', $avgMonthlyDepreciation);
-        $set('/revenue_per_month', $avgMonthlyRevenue);
+        $set('/data.direct_cost', $avgMonthlyCost);
+        $set('/data.depreciation', $avgMonthlyDepreciation);
+        $set('/data.revenue_per_month', $avgMonthlyRevenue);
 
         // Push Cost Breakdown to State
-        $set('/direct_cost_manpower', $manpowerCostMonthly);
-        $set('/direct_cost_tools', $toolsCostMonthly);
-        $set('/direct_cost_material', $materialCostMonthly);
-        $set('/avg_monthly_indirect_cost', $avgMonthlyIndirectCost);
-        $set('/gross_profit', $avgMonthlyRevenue - $avgMonthlyCost);
+        $set('/data.direct_cost_manpower', $manpowerCostMonthly);
+        $set('/data.direct_cost_tools', $toolsCostMonthly);
+        $set('/data.direct_cost_material', $materialCostMonthly);
+        $set('/data.avg_monthly_indirect_cost', $avgMonthlyIndirectCost);
+        $set('/data.gross_profit', $avgMonthlyRevenue - $avgMonthlyCost);
 
         // Advanced Financial Tiers
-        $interestRate = self::parseNumericValue($get('/interest_rate') ?? 0.0);
-        $taxRate = self::parseNumericValue($get('/tax_rate') ?? 22.0);
+        $interestRate = self::parseNumericValue($get('/data.interest_rate') ?? 0.0);
+        $taxRate = self::parseNumericValue($get('/data.tax_rate') ?? 22.0);
 
         // EBITDA = Revenue - (Direct Cost Excl Depr) - Total Indirect Cost (Dynamic)
         $avgMonthlyCostExclDepr = $avgMonthlyCost - $avgMonthlyDepreciation;
@@ -1479,7 +1479,7 @@ class ProfitabilityAnalysisForm
         $ebit = $ebitda - $avgMonthlyDepreciation;
 
         // Interest (Cost of Fund)
-        $paymentTermId = $get('/payment_term_id');
+        $paymentTermId = $get('/data.payment_term_id');
         $paymentTerm = $paymentTermId ? PaymentTerm::find($paymentTermId) : null;
         $topDays = (float) ($paymentTerm?->days ?? 30);
         $interest = ($topDays / 30.0 * (self::parseNumericValue($interestRate) / 100)) * $avgMonthlyCost;
@@ -1490,11 +1490,11 @@ class ProfitabilityAnalysisForm
         $netProfit = $ebt - $tax;
         $netProfitMargin = $avgMonthlyRevenue > 0 ? ($netProfit / $avgMonthlyRevenue) * 100 : 0;
 
-        $set('/ebitda', $ebitda);
-        $set('/ebit', $ebit);
-        $set('/ebt', $ebt);
-        $set('/net_profit', $netProfit);
-        $set('/net_profit_margin', round($netProfitMargin, 2));
+        $set('/data.ebitda', $ebitda);
+        $set('/data.ebit', $ebit);
+        $set('/data.ebt', $ebt);
+        $set('/data.net_profit', $netProfit);
+        $set('/data.net_profit_margin', round($netProfitMargin, 2));
 
         // Recalculate margin (GP Margin)
         self::calculateMargin($avgMonthlyRevenue, $avgMonthlyCost, $set);
@@ -1516,7 +1516,7 @@ class ProfitabilityAnalysisForm
 
             return [
                 'root' => $rootState,
-                'target_revenue' => $get('/revenue_per_month'),
+                'target_revenue' => $get('/data.revenue_per_month'),
             ];
         }));
     }
@@ -1525,6 +1525,9 @@ class ProfitabilityAnalysisForm
     {
         $set('total_monthly_cost', self::calculateItemMonthlyCost($get));
         $set('total_monthly_sale', self::calculateItemMonthlySale($get));
+
+        // Bubble up calculation to global totals
+        self::calculateDirectCost($get, $set);
     }
 
     public static function calculateItemMonthlyCost($get, ?float $totalRevenue = null, ?float $totalDirectCost = null): float
@@ -1538,10 +1541,10 @@ class ProfitabilityAnalysisForm
         if ($calcType === 'percentage') {
             $basisValue = 0;
             if ($basis === 'revenue') {
-                $basisValue = $totalRevenue ?? self::parseNumericValue($get('/revenue_per_month') ?? 0);
+                $basisValue = $totalRevenue ?? self::parseNumericValue($get('/data.revenue_per_month') ?? 0);
             } elseif ($basis === 'direct_cost') {
                 // Warning: Potential circular dependency if called during direct cost calculation
-                $basisValue = $totalDirectCost ?? self::parseNumericValue($get('/direct_cost') ?? 0);
+                $basisValue = $totalDirectCost ?? self::parseNumericValue($get('/data.direct_cost') ?? 0);
             }
 
             return ($basisValue * ($costPrice / 100)) * $qty;
@@ -1566,8 +1569,8 @@ class ProfitabilityAnalysisForm
             $result = $service->calculate(
                 basicSalary: $costPrice,
                 allowances: $costBreakdown,
-                projectAreaId: (string) ($get('/project_area_id')),
-                year: (int) ($get('/year') ?? date('Y')),
+                projectAreaId: (string) ($get('/data.project_area_id')),
+                year: (int) ($get('/data.year') ?? date('Y')),
                 riskLevel: $get('risk_level') ?? 'very_low',
                 isLaborIntensive: (bool) $get('is_labor_intensive'),
                 ptkpCode: PtkpConfig::find($get('ptkp_config_id'))?->code ?? 'TK/0'
@@ -1616,9 +1619,9 @@ class ProfitabilityAnalysisForm
 
         if ($revenue > 0) {
             $margin = (($revenue - $cost) / $revenue) * 100;
-            $set('margin_percentage', round($margin, 2));
+            $set('/data.margin_percentage', round($margin, 2));
         } else {
-            $set('margin_percentage', 0);
+            $set('/data.margin_percentage', 0);
         }
     }
 }

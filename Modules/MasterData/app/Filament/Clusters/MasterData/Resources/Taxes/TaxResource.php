@@ -19,7 +19,7 @@ class TaxResource extends Resource
 
     protected static ?int $navigationSort = 44;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-receipt-percent';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-receipt-percent';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 

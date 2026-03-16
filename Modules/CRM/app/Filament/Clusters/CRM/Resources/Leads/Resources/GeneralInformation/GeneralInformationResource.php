@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation;
 
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -23,7 +22,12 @@ class GeneralInformationResource extends Resource
 
     protected static ?string $model = GeneralInformation::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     protected static ?string $parentResource = LeadResource::class;
 

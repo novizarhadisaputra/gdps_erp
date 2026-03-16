@@ -19,7 +19,7 @@ class ItemResource extends Resource
 
     protected static ?int $navigationSort = 80;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cube';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 

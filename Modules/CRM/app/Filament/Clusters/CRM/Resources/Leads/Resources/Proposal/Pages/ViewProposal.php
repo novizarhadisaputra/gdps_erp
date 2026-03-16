@@ -7,7 +7,6 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -84,178 +83,92 @@ class ViewProposal extends ViewRecord
                 })
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->record->isComplete()),
 
-            Action::make('sign')
-                ->label('Digital Signature')
-                ->color('primary')
-                ->icon('heroicon-o-pencil-square')
-                ->modalWidth('md')
-                ->schema([
-                    TextInput::make('pin')
-                        ->label('Signature PIN')
-                        ->password()
-                        ->required()
-                        ->helperText('Enter your digital signature PIN to approve this proposal.'),
-                ])
-                ->action(function (array $data) {
-                    $user = auth()->user();
-                    $service = app(SignatureService::class);
+            ActionGroup::make([
+                Action::make('approvePa')
+                    ->label('Approve Profitability Analysis')
+                    ->color('warning')
+                    ->icon('heroicon-o-currency-dollar')
+                    ->url(fn () => $this->record->profitabilityAnalysis
+                        ? ProfitabilityAnalysisResource::getUrl('view', ['record' => $this->record->profitabilityAnalysis->id])
+                        : null
+                    )
+                    ->visible(fn () => $this->record->status === ProposalStatus::Approved &&
+                        $this->record->profitabilityAnalysis !== null &&
+                        $this->record->profitabilityAnalysis->status !== ProfitabilityAnalysisStatus::Approved
+                    ),
 
-                    if (! $service->verifyPin($user, $data['pin'])) {
+                Action::make('convertToMoA')
+                    ->label('Convert to MoA (BA)')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('info')
+                    ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->minutesOfAgreements()->exists())
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        // Fetch General Information from the Lead to transfer data
+                        $gi = $this->record->lead?->generalInformations()
+                            ->where('status', GeneralInformationStatus::Approved)
+                            ->latest()
+                            ->first() ?? $this->record->lead?->generalInformations()->latest()->first();
+
+                        $timeline = '';
+                        if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {
+                            $timeline = $gi->estimated_start_date->format('d/m/Y').' - '.$gi->estimated_end_date->format('d/m/Y');
+                        }
+
+                        $moa = MinutesOfAgreement::create([
+                            'customer_id' => $this->record->customer_id,
+                            'lead_id' => $this->record->lead_id,
+                            'proposal_id' => $this->record->id,
+                            'amount' => $this->record->amount,
+                            'scope_of_work' => $gi?->scope_of_work ?? '',
+                            'timeline' => $timeline,
+                            'terms' => $gi?->billing_requirements ?? '', // Billing requirements often contain payment terms
+                            'negotiation_date' => now(),
+                            'status' => MoAStatus::Draft,
+                        ]);
+
                         Notification::make()
-                            ->title('Incorrect PIN')
-                            ->danger()
-                            ->send();
-
-                        return;
-                    }
-
-                    $required = $service->getRequiredApprovers($this->record);
-                    $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, $user));
-
-                    if (! $matchingRule) {
-                        Notification::make()
-                            ->title('Access Denied')
-                            ->body('You do not have the authority to sign this document based on the current approval rules.')
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    // Check if signature already exists for this rule
-                    if ($this->record->isRuleSatisfied($matchingRule)) {
-                        Notification::make()
-                            ->title('Already Signed')
-                            ->body('This document has already been signed by the appropriate role(s) you represent.')
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    // Determine the role to record for this signature
-                    $recordedRole = null;
-                    if ($matchingRule->approver_type === 'Role') {
-                        $userRoles = $user->roles->pluck('name')->toArray();
-                        $ruleRoles = $matchingRule->approver_role ?? [];
-                        $commonRoles = array_intersect($userRoles, $ruleRoles);
-                        $recordedRole = reset($commonRoles);
-                    }
-
-                    // Add signature
-                    $this->record->addSignature($user, $matchingRule->signature_type, $recordedRole);
-
-                    // Notify next approvers
-                    $service->notifyNextApprovers($this->record);
-
-                    Notification::make()
-                        ->title('Document Successfully Signed')
-                        ->success()
-                        ->send();
-
-                    if ($this->record->isFullyApproved()) {
-                        Notification::make()
-                            ->title('Proposal Fully Signed')
-                            ->body('The document has been fully signed and is now ready for formal approval.')
+                            ->title('Converted to Minutes of Agreement')
+                            ->body('Scope of work, timeline, and terms have been transferred from General Information.')
                             ->success()
                             ->send();
-                    }
-                })
-                ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted])),
 
-            Action::make('Approve')
-                ->color('success')
-                ->icon('heroicon-o-check-badge')
-                ->requiresConfirmation()
-                ->action(function () {
-                    $this->record->update(['status' => ProposalStatus::Approved]);
+                        $this->redirect(MinutesOfAgreementResource::getUrl('edit', ['record' => $moa->id, 'lead' => $this->record->lead_id]));
+                    }),
 
-                    Notification::make()
-                        ->title('Proposal Formally Approved')
-                        ->success()
-                        ->send();
-                })
-                ->visible(fn () => $this->record->status === ProposalStatus::Submitted && $this->record->isFullyApproved()),
+                Action::make('sendEmail')
+                    ->label(fn () => $this->record->status === ProposalStatus::Sent ? 'Resend Email' : 'Send Email')
+                    ->color('info')
+                    ->icon('heroicon-o-envelope')
+                    ->url(fn () => route('filament.admin.crm.resources.leads.proposals.send', [
+                        'lead' => $this->record->lead_id,
+                        'record' => $this->record->id,
+                    ]))
+                    ->visible(fn () => $this->record->signatures()->count()),
 
-            Action::make('approvePa')
-                ->label('Approve Profitability Analysis')
-                ->color('warning')
-                ->icon('heroicon-o-currency-dollar')
-                ->url(fn () => $this->record->profitabilityAnalysis
-                    ? ProfitabilityAnalysisResource::getUrl('view', ['record' => $this->record->profitabilityAnalysis->id])
-                    : null
-                )
-                ->visible(fn () => $this->record->status === ProposalStatus::Approved &&
-                    $this->record->profitabilityAnalysis !== null &&
-                    $this->record->profitabilityAnalysis->status !== ProfitabilityAnalysisStatus::Approved
-                ),
+                EditAction::make()
+                    ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [
+                        'lead' => $this->record->lead_id,
+                        'record' => $this->record->id,
+                    ]))
+                    ->visible(fn () => $this->getRecord()->status === ProposalStatus::Draft),
 
-            Action::make('convertToMoA')
-                ->label('Convert to MoA (BA)')
-                ->icon('heroicon-o-document-duplicate')
-                ->color('info')
-                ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->minutesOfAgreements()->exists())
-                ->requiresConfirmation()
-                ->action(function () {
-                    // Fetch General Information from the Lead to transfer data
-                    $gi = $this->record->lead?->generalInformations()
-                        ->where('status', GeneralInformationStatus::Approved)
-                        ->latest()
-                        ->first() ?? $this->record->lead?->generalInformations()->latest()->first();
+                Action::make('Reject')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-mark')
+                    ->requiresConfirmation()
+                    ->action(fn () => $this->record->update(['status' => ProposalStatus::Rejected]))
+                    ->visible(fn () => $this->record->status === ProposalStatus::Submitted),
 
-                    $timeline = '';
-                    if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {
-                        $timeline = $gi->estimated_start_date->format('d/m/Y').' - '.$gi->estimated_end_date->format('d/m/Y');
-                    }
-
-                    $moa = MinutesOfAgreement::create([
-                        'customer_id' => $this->record->customer_id,
-                        'lead_id' => $this->record->lead_id,
-                        'proposal_id' => $this->record->id,
-                        'amount' => $this->record->amount,
-                        'scope_of_work' => $gi?->scope_of_work ?? '',
-                        'timeline' => $timeline,
-                        'terms' => $gi?->billing_requirements ?? '', // Billing requirements often contain payment terms
-                        'negotiation_date' => now(),
-                        'status' => MoAStatus::Draft,
-                    ]);
-
-                    Notification::make()
-                        ->title('Converted to Minutes of Agreement')
-                        ->body('Scope of work, timeline, and terms have been transferred from General Information.')
-                        ->success()
-                        ->send();
-
-                    $this->redirect(MinutesOfAgreementResource::getUrl('edit', ['record' => $moa->id, 'lead' => $this->record->lead_id]));
-                }),
-
-            Action::make('Reject')
-                ->color('danger')
-                ->icon('heroicon-o-x-mark')
-                ->requiresConfirmation()
-                ->action(fn () => $this->record->update(['status' => ProposalStatus::Rejected]))
-                ->visible(fn () => $this->record->status === ProposalStatus::Submitted),
-
-            Action::make('sendEmail')
-                ->label(fn () => $this->record->status === ProposalStatus::Sent ? 'Resend Email' : 'Send Email')
-                ->color('info')
-                ->icon('heroicon-o-envelope')
-                ->url(fn () => route('filament.admin.crm.resources.leads.proposals.send', [
-                    'lead' => $this->record->lead_id,
-                    'record' => $this->record->id,
-                ]))
-                ->visible(fn () => $this->record->signatures()->count()),
-
-            EditAction::make()
-                ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [
-                    'lead' => $this->record->lead_id,
-                    'record' => $this->record->id,
-                ]))
-                ->visible(fn () => $this->getRecord()->status === ProposalStatus::Draft),
-            DeleteAction::make()
-                ->successRedirectUrl(fn () => route('filament.admin.crm.resources.leads.proposals.index', [
-                    'lead' => $this->record->lead_id,
-                ])),
+                DeleteAction::make()
+                    ->successRedirectUrl(fn () => route('filament.admin.crm.resources.leads.proposals.index', [
+                        'lead' => $this->record->lead_id,
+                    ])),
+            ])
+                ->label('Options')
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
         ];
     }
 }

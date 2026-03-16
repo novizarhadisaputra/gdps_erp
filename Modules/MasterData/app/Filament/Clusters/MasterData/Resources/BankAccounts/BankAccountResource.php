@@ -19,7 +19,7 @@ class BankAccountResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-banknotes';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 

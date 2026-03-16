@@ -19,7 +19,7 @@ class VendorResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-storefront';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-building-storefront';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 

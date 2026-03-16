@@ -4,8 +4,8 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInf
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -29,110 +29,69 @@ class ViewGeneralInformation extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('pdf')
-                ->label('Export PDF')
-                ->color('gray')
+            ActionGroup::make([
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function () {
+                        $record = $this->getRecord();
+                        $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
+                        $name = Str::slug($record->document_number, '-');
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$name}.pdf");
+                    }),
+            ])
+                ->label('Export')
                 ->icon('heroicon-o-arrow-down-tray')
-                ->action(function () {
-                    $record = $this->getRecord();
-                    $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
-                    $name = Str::slug($record->document_number, '-');
+                ->color('gray')
+                ->button(),
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$name}.pdf");
-                }),
-            EditAction::make()
-                ->hidden(fn () => $this->getRecord()->isLocked()),
-            Action::make('Reject')
-                ->color('danger')
-                ->icon('heroicon-o-x-circle')
-                ->requiresConfirmation()
-                ->modalHeading('Reject General Information')
-                ->modalDescription('Are you sure you want to reject this General Information? The status will return to Rejected and it can be edited again.')
-                ->action(function () {
-                    $this->getRecord()->update(['status' => GeneralInformationStatus::Rejected]);
-                    $this->refreshFormData(['status']);
+            ActionGroup::make([
+                EditAction::make()
+                    ->hidden(fn () => $this->getRecord()->isLocked()),
 
-                    Notification::make()
-                        ->title('General Information Rejected')
-                        ->warning()
-                        ->send();
-                })
-                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Submitted),
-            Action::make('Sign')
-                ->label('Digital Signature')
-                ->color('primary')
-                ->icon('heroicon-o-pencil-square')
-                ->form([
-                    TextInput::make('pin')
-                        ->label('Signature PIN')
-                        ->password()
-                        ->required()
-                        ->helperText('Enter your digital signature PIN.'),
-                ])
-                ->action(function (array $data) {
-                    $record = $this->getRecord();
-                    $service = app(SignatureService::class);
+                Action::make('createPA')
+                    ->label('Create PA')
+                    ->icon('heroicon-o-presentation-chart-bar')
+                    ->color('success')
+                    ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Approved)
+                    ->action(function () {
+                        $record = $this->getRecord();
+                        $pa = $record->toProfitabilityAnalysis();
+                        $lead = $record->lead;
 
-                    if (! $service->verifyPin(auth()->user(), $data['pin'])) {
                         Notification::make()
-                            ->title('Incorrect PIN')
-                            ->danger()
+                            ->title('Profitability Analysis Created')
+                            ->success()
                             ->send();
 
-                        return;
-                    }
+                        return redirect()->to(LeadResource::getUrl('profitability-analyses', ['record' => $lead]));
+                    }),
 
-                    $required = $service->getRequiredApprovers($record);
-                    $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+                Action::make('Reject')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->requiresConfirmation()
+                    ->modalHeading('Reject General Information')
+                    ->modalDescription('Are you sure you want to reject this General Information? The status will return to Rejected and it can be edited again.')
+                    ->action(function () {
+                        $this->getRecord()->update(['status' => GeneralInformationStatus::Rejected]);
+                        $this->refreshFormData(['status']);
 
-                    if (! $matchingRule) {
                         Notification::make()
-                            ->title('Access Denied')
-                            ->body('You do not have the authority to sign this document based on the current approval rules.')
+                            ->title('General Information Rejected')
                             ->warning()
                             ->send();
+                    })
+                    ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Submitted),
 
-                        return;
-                    }
-
-                    // Check if signature already exists for this rule
-                    if ($record->isRuleSatisfied($matchingRule)) {
-                        Notification::make()
-                            ->title('Already Signed')
-                            ->body('This document has already been signed by the appropriate role(s) you represent.')
-                            ->warning()
-                            ->send();
-
-                        return;
-                    }
-
-                    // Determine the role to record for this signature
-                    $recordedRole = null;
-                    if ($matchingRule->approver_type === 'Role') {
-                        $userRoles = auth()->user()->roles->pluck('name')->toArray();
-                        $ruleRoles = $matchingRule->approver_role ?? [];
-                        $commonRoles = array_intersect($userRoles, $ruleRoles);
-                        $recordedRole = reset($commonRoles);
-                    }
-
-                    $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
-                    $record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
-
-                    // Notify next approvers
-                    $service->notifyNextApprovers($record);
-
-                    Notification::make()
-                        ->title('Document Successfully Signed')
-                        ->success()
-                        ->send();
-
-                    if ($record->isFullyApproved()) {
-                        $record->update(['status' => GeneralInformationStatus::Approved]);
-                    }
-
-                    $this->refreshFormData(['status']);
-                })
-                ->visible(fn () => in_array($this->getRecord()->status, [GeneralInformationStatus::Submitted])),
+                \Filament\Actions\DeleteAction::make(),
+            ])
+                ->label('Options')
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
 
             Action::make('incompleteWarning')
                 ->label('Submit')
@@ -153,24 +112,6 @@ class ViewGeneralInformation extends ViewRecord
                 })
                 ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && $this->getRecord()->isComplete()),
 
-            Action::make('createPA')
-                ->label('Create PA')
-                ->icon('heroicon-o-presentation-chart-bar')
-                ->color('success')
-                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Approved)
-                ->action(function () {
-                    $record = $this->getRecord();
-                    $pa = $record->toProfitabilityAnalysis();
-                    $lead = $record->lead;
-
-                    Notification::make()
-                        ->title('Profitability Analysis Created')
-                        ->success()
-                        ->send();
-
-                    return redirect()->to(LeadResource::getUrl('profitability-analyses', ['record' => $lead]));
-                }),
-            \Filament\Actions\DeleteAction::make(),
         ];
     }
 }

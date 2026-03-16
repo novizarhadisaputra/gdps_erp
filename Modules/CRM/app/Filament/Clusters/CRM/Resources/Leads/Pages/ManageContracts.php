@@ -24,7 +24,7 @@ class ManageContracts extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ContractResource::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
 
     protected static ?string $title = 'Contracts';
 

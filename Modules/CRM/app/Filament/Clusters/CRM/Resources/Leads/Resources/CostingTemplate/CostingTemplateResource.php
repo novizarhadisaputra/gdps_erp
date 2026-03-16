@@ -35,7 +35,7 @@ class CostingTemplateResource extends Resource
 
     protected static ?string $slug = 'tools-equipment-costing';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
     public static function form(Schema $schema): Schema
     {

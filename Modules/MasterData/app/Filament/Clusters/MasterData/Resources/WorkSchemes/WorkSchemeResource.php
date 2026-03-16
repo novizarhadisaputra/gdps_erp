@@ -19,7 +19,7 @@ class WorkSchemeResource extends Resource
 
     protected static ?int $navigationSort = 43;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

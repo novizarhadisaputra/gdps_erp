@@ -48,6 +48,11 @@ class ProposalObserver
         if ($proposal->lead && $proposal->lead->status->weight() < LeadStatus::Negotiation->weight()) {
             $proposal->lead()->update(['status' => LeadStatus::Negotiation]);
         }
+
+        // Trigger ProjectReview update
+        if ($proposal->lead && $proposal->lead->latestProjectReview) {
+            $proposal->lead->latestProjectReview->touch();
+        }
     }
 
     /**

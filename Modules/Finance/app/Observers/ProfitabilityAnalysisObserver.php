@@ -42,6 +42,11 @@ class ProfitabilityAnalysisObserver
             ]);
         }
 
+        // Trigger ProjectReview update
+        if ($analysis->lead && $analysis->lead->latestProjectReview) {
+            $analysis->lead->latestProjectReview->touch();
+        }
+
         // Auto-copy media from General Information if present
         if ($analysis->generalInformation) {
             foreach (['tor', 'rfp', 'rfi'] as $collection) {

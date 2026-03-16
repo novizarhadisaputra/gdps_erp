@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'units_of_measure' : 'master_data.units_of_measure', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('unit_id')->nullable()->index();
             $table->string('name')->unique();
             $table->string('code')->unique(); // e.g., pcs, ltr
             $table->timestamps();

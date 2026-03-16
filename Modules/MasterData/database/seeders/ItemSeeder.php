@@ -97,7 +97,6 @@ class ItemSeeder extends Seeder
                 $itemCategories[$categoryName] = ItemCategory::updateOrCreate(
                     ['name' => $categoryName],
                     [
-                        'unit_id' => $defaultUnit->id,
                         'code' => Str::upper(Str::slug($categoryName, '')),
                     ]
                 );
@@ -119,7 +118,6 @@ class ItemSeeder extends Seeder
                     ->first()
                     ?? UnitOfMeasure::create([
                         'name' => $uomName,
-                        'unit_id' => $defaultUnit->id,
                         'code' => $uomCode,
                     ]);
             }
@@ -138,7 +136,6 @@ class ItemSeeder extends Seeder
             Item::updateOrCreate(
                 ['name' => $data['Name']],
                 [
-                    'unit_id' => $defaultUnit->id,
                     'item_category_id' => $itemCategories[$categoryName]->id,
                     'unit_of_measure_id' => $uom->id,
                     'asset_group_id' => $assetGroupId,

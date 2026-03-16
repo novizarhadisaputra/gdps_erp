@@ -25,7 +25,7 @@ class AssetGroupResource extends Resource
 
     protected static ?int $navigationSort = 84;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-presentation-chart-line';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-presentation-chart-line';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 

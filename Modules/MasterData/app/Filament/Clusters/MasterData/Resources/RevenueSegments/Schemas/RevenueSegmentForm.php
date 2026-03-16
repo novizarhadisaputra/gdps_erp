@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -27,6 +28,12 @@ class RevenueSegmentForm
                 ->required()
                 ->maxLength(255)
                 ->placeholder('Aviation'),
+            Select::make('unit_id')
+                ->relationship('unit', 'name')
+                ->required()
+                ->searchable()
+                ->preload()
+                ->visible(fn () => auth()->user()->can('view_all_master_data')),
             Toggle::make('is_active')
                 ->default(true)
                 ->required(),

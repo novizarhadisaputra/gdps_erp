@@ -2,7 +2,6 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages;
 
-use BackedEnum;
 use BezhanSalleh\FilamentShield\Traits\HasShieldFormComponents;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Schema;
@@ -23,7 +22,7 @@ class ManageUnitPermissions extends EditRecord
 
     protected static ?string $navigationLabel = 'Permissions';
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-shield-check';
 
     public function form(Schema $schema): Schema
     {

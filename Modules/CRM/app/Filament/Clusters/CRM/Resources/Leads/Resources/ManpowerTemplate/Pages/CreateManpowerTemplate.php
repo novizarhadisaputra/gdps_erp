@@ -34,6 +34,6 @@ class CreateManpowerTemplate extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return $this->getResource()::getUrl('index', ['lead' => $this->parentRecord]);
+        return $this->getResource()::getUrl('view', ['lead' => $this->parentRecord, 'record' => $this->getRecord()]);
     }
 }

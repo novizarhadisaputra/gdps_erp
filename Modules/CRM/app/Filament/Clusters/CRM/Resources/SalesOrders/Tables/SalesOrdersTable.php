@@ -49,6 +49,48 @@ class SalesOrdersTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('sendEmail')
+                    ->label('Send Email')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->requiresConfirmation()
+                    ->action(function (SalesOrder $record) {
+                        try {
+                            $signatureUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                                'sales_orders.public.sign',
+                                now()->addDays(7),
+                                ['sales_order' => $record->id]
+                            );
+
+                            $messageBody = "Please review and sign Sales Order #{$record->so_number} by clicking the link below:<br><br>";
+                            $messageBody .= "<a href='{$signatureUrl}' style='display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;'>Sign Sales Order Online</a>";
+
+                            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                                'content-type' => 'application/json',
+                                'x-requester-app' => 'GDPS-ERP',
+                            ])->post('https://machine.garudapratama.com/api/v1/email/send', [
+                                'to' => [$record->customer?->email],
+                                'subject' => "Sales Order - {$record->so_number}",
+                                'body' => $messageBody,
+                            ]);
+
+                            if (! $response->successful()) {
+                                throw new \Exception('External API Error: '.$response->status());
+                            }
+
+                            $record->update(['status' => SalesOrderStatus::Sent]);
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Email Sent')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Failed to Send Email')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
                 Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')

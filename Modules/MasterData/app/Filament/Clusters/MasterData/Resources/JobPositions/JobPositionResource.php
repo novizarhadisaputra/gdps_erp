@@ -19,7 +19,7 @@ class JobPositionResource extends Resource
 
     protected static ?int $navigationSort = 100;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 

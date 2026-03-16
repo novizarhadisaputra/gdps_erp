@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'items' : 'master_data.items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('unit_id')->nullable()->index();
             $table->foreignUuid('item_category_id')->constrained(config('database.default') === 'sqlite' ? 'item_categories' : 'master_data.item_categories')->onDelete('cascade');
             $table->foreignUuid('asset_group_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'asset_groups' : 'master_data.asset_groups')->nullOnDelete();
             $table->foreignUuid('unit_of_measure_id')->constrained(config('database.default') === 'sqlite' ? 'units_of_measure' : 'master_data.units_of_measure')->onDelete('cascade');

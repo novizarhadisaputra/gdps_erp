@@ -26,7 +26,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ManpowerTemplateResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static ?string $title = 'Manpower Costing';
 
@@ -71,10 +71,11 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                             $record->addMediaFromDisk($data['file'], 's3')->toMediaCollection('source_file');
                         }
 
-                        $this->redirect(ManpowerTemplateResource::getUrl('edit', ['lead' => $lead->id, 'record' => $record->id]));
+                        $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $lead->id, 'record' => $record->id]));
                     })
                     ->successNotificationTitle('Manual Manpower Costing created'),
-                CreateAction::make(),
+                CreateAction::make()
+                    ->after(fn (ManpowerTemplate $record) => $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
             ]);
     }
 }

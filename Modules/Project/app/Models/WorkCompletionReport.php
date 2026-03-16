@@ -3,6 +3,7 @@
 namespace Modules\Project\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,9 +14,11 @@ use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Enums\WorkCompletionStatus;
+use Modules\Project\Observers\WorkCompletionReportObserver;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+#[ObservedBy(WorkCompletionReportObserver::class)]
 class WorkCompletionReport extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia, SoftDeletes;

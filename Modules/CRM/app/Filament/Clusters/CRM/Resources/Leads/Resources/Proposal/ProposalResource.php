@@ -22,12 +22,17 @@ class ProposalResource extends Resource
     protected static ?string $model = Proposal::class;
 
     protected static bool $isNested = true;
-    
+
     protected static ?string $slug = 'proposals';
 
     protected static ?string $parentResource = LeadResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentText;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Schema $schema): Schema
     {

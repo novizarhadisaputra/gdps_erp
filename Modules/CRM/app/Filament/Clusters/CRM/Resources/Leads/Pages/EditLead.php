@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
-use BackedEnum;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
@@ -19,7 +18,7 @@ class EditLead extends EditRecord
 
     protected static ?string $navigationLabel = 'Overview';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedHome;
 
     protected function getHeaderActions(): array
     {

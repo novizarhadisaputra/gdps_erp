@@ -21,7 +21,7 @@ class ProjectResource extends Resource
 
     protected static ?string $model = Project::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-briefcase';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?int $navigationSort = 10;
 

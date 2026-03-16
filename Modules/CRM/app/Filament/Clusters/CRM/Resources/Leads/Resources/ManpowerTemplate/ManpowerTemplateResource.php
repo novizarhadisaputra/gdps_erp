@@ -25,7 +25,7 @@ class ManpowerTemplateResource extends Resource
 
     protected static ?string $slug = 'manpower-costing';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUsers;
 
     public static function form(Schema $schema): Schema
     {

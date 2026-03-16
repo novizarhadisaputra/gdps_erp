@@ -31,7 +31,7 @@ class ProfitabilityAnalysisResource extends Resource
 
     protected static ?string $slug = 'profitability-analysis';
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedChartBar;
 
     public static function form(Schema $schema): Schema
     {

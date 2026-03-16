@@ -24,7 +24,7 @@ class ContractResource extends Resource
 
     protected static ?string $parentResource = LeadResource::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedPencilSquare;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPencilSquare;
 
     public static function form(Schema $schema): Schema
     {
