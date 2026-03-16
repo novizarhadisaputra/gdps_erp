@@ -14,7 +14,7 @@ class CreateManpowerTemplate extends CreateRecord
 
     protected function afterFill(): void
     {
-        $latestGi = $this->parentRecord->generalInformations()->latest()->first();
+        $latestGi = $this->parentRecord->generalInformations()->latest('created_at')->first();
 
         $this->form->fill([
             'name' => $this->parentRecord->customer?->name.' Manpower',

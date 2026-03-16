@@ -87,7 +87,10 @@ class ProjectReviewWaitingWidget extends TableWidget
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->url(fn (ProjectReview $record) => \Modules\CRM\Filament\Clusters\CRM\Resources\ProjectReview\ProjectReviewResource::getUrl('view', ['record' => $record])),
+                    ->url(fn (ProjectReview $record) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProjectReview\ProjectReviewResource::getUrl('view', [
+                        'lead' => $record->lead,
+                        'record' => $record,
+                    ])),
             ]);
     }
 

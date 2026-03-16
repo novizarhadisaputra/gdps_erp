@@ -61,7 +61,7 @@ class ManageContracts extends ManageRelatedRecords
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
                         // Try to find the latest proposal linked to this lead
-                        $latestProposal = $record->proposals()->latest()->first();
+                        $latestProposal = $record->proposals()->latest('created_at')->first();
 
                         return [
                             'customer_id' => $record->customer_id,

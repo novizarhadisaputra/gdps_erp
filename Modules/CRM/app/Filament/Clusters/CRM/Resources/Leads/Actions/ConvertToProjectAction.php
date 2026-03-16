@@ -43,7 +43,7 @@ class ConvertToProjectAction extends Action
             ->action(function (array $data, $record) {
                 // $record is the Lead
                 // Find latest approved PA
-                $pa = $record->profitabilityAnalyses()->where('status', 'approved')->latest()->first();
+                $pa = $record->profitabilityAnalyses()->where('status', 'approved')->latest('created_at')->first();
                 if (! $pa) {
                     Notification::make()->title('Operation failed: No Approved Profitability Analysis found.')->danger()->send();
 

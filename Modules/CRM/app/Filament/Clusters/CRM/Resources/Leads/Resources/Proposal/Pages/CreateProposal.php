@@ -26,7 +26,7 @@ class CreateProposal extends CreateRecord
                     \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Approved,
                     \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Submitted,
                 ])
-                ->latest()
+                ->latest('created_at')
                 ->first();
 
             if ($latestPA) {

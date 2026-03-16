@@ -112,7 +112,7 @@ class ImportCostingAiJob implements ShouldQueue
                 return;
             }
 
-            $latestGi = $lead?->generalInformations()?->latest()?->first();
+            $latestGi = $lead?->generalInformations()?->latest('created_at')?->first();
 
             $template->update([
                 'name' => ($lead?->customer?->name ?? $lead?->title ?? 'Template').' - AI Auto Generated ('.now()->format('H:i').')',

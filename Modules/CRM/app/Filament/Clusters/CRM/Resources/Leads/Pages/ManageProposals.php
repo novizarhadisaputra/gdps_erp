@@ -57,7 +57,7 @@ class ManageProposals extends ManageRelatedRecords
                                 ProfitabilityAnalysisStatus::Approved,
                                 ProfitabilityAnalysisStatus::Submitted,
                             ])
-                            ->latest()
+                            ->latest('created_at')
                             ->first();
 
                         Proposal::create([

@@ -55,7 +55,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                     ])
                     ->action(function (array $data) {
                         $lead = $this->getOwnerRecord();
-                        $latestGi = $lead->generalInformations()->latest()->first();
+                        $latestGi = $lead->generalInformations()->latest('created_at')->first();
 
                         $record = ManpowerTemplate::create([
                             'lead_id' => $lead->id,

@@ -26,7 +26,7 @@ class ExternalProjectController extends Controller
         // Example filtering or simple pagination
         $paginator = Project::query()
             ->with(['customer'])
-            ->latest()
+            ->latest('created_at')
             ->paginate(20);
         $data = ProjectResource::collection($paginator);
 

@@ -13,7 +13,7 @@ class PublicProposalController extends Controller
 {
     public function show(Proposal $proposal)
     {
-        $latestLog = $proposal->communicationLogs()->latest()->first();
+        $latestLog = $proposal->communicationLogs()->latest('created_at')->first();
         $positions = User::distinct()->whereNotNull('position')->orderBy('position')->pluck('position');
 
         return view('crm::public.proposal.sign', compact('proposal', 'latestLog', 'positions'));

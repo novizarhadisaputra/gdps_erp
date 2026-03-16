@@ -107,8 +107,8 @@ class ViewProposal extends ViewRecord
                         // Fetch General Information from the Lead to transfer data
                         $gi = $this->record->lead?->generalInformations()
                             ->where('status', GeneralInformationStatus::Approved)
-                            ->latest()
-                            ->first() ?? $this->record->lead?->generalInformations()->latest()->first();
+                            ->latest('created_at')
+                            ->first() ?? $this->record->lead?->generalInformations()->latest('created_at')->first();
 
                         $timeline = '';
                         if ($gi && $gi->estimated_start_date && $gi->estimated_end_date) {

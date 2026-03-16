@@ -69,7 +69,7 @@ class ManageProjectInformations extends ManageRelatedRecords
                 CreateAction::make()
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
-                        $pa = $record->profitabilityAnalyses()->where('status', 'approved')->latest()->first();
+                        $pa = $record->profitabilityAnalyses()->where('status', 'approved')->latest('created_at')->first();
                         $salesPlan = $record->salesPlan;
 
                         return [

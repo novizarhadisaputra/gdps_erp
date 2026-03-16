@@ -32,14 +32,7 @@ class ProjectReviewTable
                     ->placeholder('-')
                     ->searchable(),
                 TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'draft' => 'gray',
-                        'reviewing' => 'warning',
-                        'approved' => 'success',
-                        'rejected' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->badge(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

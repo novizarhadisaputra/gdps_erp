@@ -57,7 +57,9 @@ class ManpowerTemplateInfolist
                             $costSimulation = $record->getCostSimulation();
 
                             $rows = '';
-                            foreach ($costSimulation['items'] as $item) {
+                            $items = $costSimulation['rows'] ?? [];
+
+                            foreach ($items as $item) {
                                 $fmt = fn ($val) => number_format($val, 0, ',', '.');
                                 $rows .= "
                                     <tr class='border-b hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors'>
@@ -86,7 +88,7 @@ class ManpowerTemplateInfolist
                                         <tfoot>
                                             <tr class='font-bold text-gray-900 dark:text-white bg-gray-50/80 dark:bg-gray-800/80'>
                                                 <td colspan='2' class='px-4 py-5 text-right uppercase tracking-wider text-xs'>Estimated Monthly Direct Cost</td>
-                                                <td colspan='2' class='px-4 py-5 text-right text-xl text-primary-600'>Rp ".number_format($costSimulation['total_direct_cost'], 0, ',', '.')."</td>
+                                                <td colspan='2' class='px-4 py-5 text-right text-xl text-primary-600'>Rp ".number_format($costSimulation['total'] ?? 0, 0, ',', '.')."</td>
                                             </tr>
                                         </tfoot>
                                     </table>

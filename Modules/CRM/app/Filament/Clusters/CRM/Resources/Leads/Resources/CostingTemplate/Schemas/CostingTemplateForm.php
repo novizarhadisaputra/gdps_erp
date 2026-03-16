@@ -25,7 +25,7 @@ class CostingTemplateForm
 {
     public static function getAutoFillData(Lead $lead): array
     {
-        $latestGi = $lead->generalInformations()->latest()->first();
+        $latestGi = $lead->generalInformations()->latest('created_at')->first();
 
         return [
             'name' => $lead->customer?->name.' Tools & Equipment',

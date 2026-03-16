@@ -132,12 +132,12 @@ class Lead extends Model implements HasMedia
 
     public function latestProfitabilityAnalysis(): HasOne
     {
-        return $this->hasOne(ProfitabilityAnalysis::class)->latestOfMany();
+        return $this->hasOne(ProfitabilityAnalysis::class)->latest('created_at');
     }
 
     public function latestGeneralInformation(): HasOne
     {
-        return $this->hasOne(GeneralInformation::class)->latestOfMany();
+        return $this->hasOne(GeneralInformation::class)->latest('created_at');
     }
 
     public function projectReviews(): HasMany
@@ -147,7 +147,7 @@ class Lead extends Model implements HasMedia
 
     public function latestProjectReview(): HasOne
     {
-        return $this->hasOne(ProjectReview::class)->latestOfMany();
+        return $this->hasOne(ProjectReview::class)->latest('created_at');
     }
 
     public function contracts(): HasMany

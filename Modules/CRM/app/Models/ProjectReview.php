@@ -31,6 +31,14 @@ class ProjectReview extends Model
         return ProjectReviewFactory::new();
     }
 
+    protected function casts(): array
+    {
+        return [
+            'status' => \Modules\CRM\Enums\ProjectReviewStatus::class,
+            'revision_number' => 'integer',
+        ];
+    }
+
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class);

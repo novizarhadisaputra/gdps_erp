@@ -25,14 +25,14 @@ class ProjectReviewObserver
             if (! $projectReview->general_information_id) {
                 $projectReview->general_information_id = \Modules\CRM\Models\GeneralInformation::query()
                     ->where('lead_id', $leadId)
-                    ->latest()
+                    ->latest('created_at')
                     ->first()?->id;
             }
 
             if (! $projectReview->profitability_analysis_id) {
                 $projectReview->profitability_analysis_id = \Modules\Finance\Models\ProfitabilityAnalysis::query()
                     ->where('lead_id', $leadId)
-                    ->latest()
+                    ->latest('created_at')
                     ->first()?->id;
             }
 
@@ -40,7 +40,7 @@ class ProjectReviewObserver
                 $projectReview->proposal_id = $projectReview->profitabilityAnalysis?->proposal_id
                     ?? \Modules\CRM\Models\Proposal::query()
                         ->where('lead_id', $leadId)
-                        ->latest()
+                        ->latest('created_at')
                         ->first()?->id;
             }
         }
