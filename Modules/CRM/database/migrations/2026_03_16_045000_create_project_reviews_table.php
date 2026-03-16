@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'project_reviews' : 'crm.project_reviews', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('document_number')->nullable();
+            $table->integer('sequence_number')->nullable();
+            $table->integer('year')->nullable();
             $table->foreignUuid('lead_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('general_information_id')->nullable()->constrained('general_informations')->nullOnDelete();
             $table->foreignUuid('profitability_analysis_id')->nullable()->constrained('profitability_analyses')->nullOnDelete();

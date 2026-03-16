@@ -15,6 +15,12 @@ class ProjectReviewTable
     {
         return $table
             ->columns([
+                TextColumn::make('document_number')
+                    ->label('Review Code')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('primary'),
                 TextColumn::make('lead.company_name')
                     ->label('Lead / Company')
                     ->searchable()

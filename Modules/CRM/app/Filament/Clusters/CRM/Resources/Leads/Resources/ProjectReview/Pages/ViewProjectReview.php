@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProjectReview\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -34,15 +35,23 @@ class ViewProjectReview extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('print')
-                ->label('Print Report')
-                ->icon('heroicon-o-printer')
+            Action::make('pdf')
+                ->label('Download PDF')
+                ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
-                ->extraAttributes(['onclick' => 'window.print()']),
+                ->action(function () {
+                    $pdf = Pdf::loadView('crm::pdf.project-review', ['record' => $this->record]);
+
+                    $filename = 'Project-Review-'.($this->record->lead?->reference_no ?: $this->record->id);
+                    $filename = str_replace(['/', '\\'], '-', $filename);
+
+                    return response()->streamDownload(
+                        fn () => print ($pdf->output()),
+                        "{$filename}.pdf"
+                    );
+                }),
         ];
     }
-
-
 
     public function getGiSchemaProperty(): Schema
     {

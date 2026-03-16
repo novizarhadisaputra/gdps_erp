@@ -7,6 +7,26 @@ use Modules\CRM\Models\ProjectReview;
 class ProjectReviewObserver
 {
     /**
+     * Handle the ProjectReview "creating" event.
+     */
+    public function creating(ProjectReview $projectReview): void
+    {
+        $year = date('Y');
+        $shortYear = date('y');
+
+        $latest = ProjectReview::query()
+            ->where('year', $year)
+            ->orderBy('sequence_number', 'desc')
+            ->first();
+
+        $sequence = $latest ? $latest->sequence_number + 1 : 1;
+
+        $projectReview->year = $year;
+        $projectReview->sequence_number = $sequence;
+        $projectReview->document_number = sprintf('GDPS/UB/PR-%03d/%s', $sequence, $shortYear);
+    }
+
+    /**
      * Handle the ProjectReview "saving" event.
      */
     public function saving(ProjectReview $projectReview): void
