@@ -6,6 +6,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Filament\Resources\Pages\Page;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\Pages\CreateGeneralInformation;
@@ -53,6 +54,14 @@ class GeneralInformationResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            ViewGeneralInformation::class,
+            EditGeneralInformation::class,
+        ]);
     }
 
     public static function getPages(): array

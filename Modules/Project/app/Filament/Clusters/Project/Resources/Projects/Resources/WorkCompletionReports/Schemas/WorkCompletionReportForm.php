@@ -1,0 +1,72 @@
+<?php
+
+namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas;
+
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Modules\CRM\Models\Customer;
+use Modules\CRM\Models\SalesOrder;
+use Modules\Project\Enums\WorkCompletionStatus;
+use Modules\Project\Models\Project;
+
+class WorkCompletionReportForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make('Report Details')
+                    ->schema([
+                        TextInput::make('report_number')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->placeholder('Auto-generated'),
+                        DatePicker::make('document_date')
+                            ->required()
+                            ->default(now()),
+                        Select::make('project_id')
+                            ->label('Project')
+                            ->options(Project::all()->pluck('name', 'id'))
+                            ->searchable()
+                            ->required()
+                            ->live(),
+                        Select::make('customer_id')
+                            ->label('Customer')
+                            ->options(Customer::all()->pluck('name', 'id'))
+                            ->searchable()
+                            ->required(),
+                    ])->columns(2),
+
+                Section::make('Service & Progress')
+                    ->schema([
+                        DatePicker::make('service_period_start')
+                            ->required(),
+                        DatePicker::make('service_period_end')
+                            ->required(),
+                        TextInput::make('work_progress_percentage')
+                            ->numeric()
+                            ->suffix('%')
+                            ->required()
+                            ->default(100),
+                        Select::make('status')
+                            ->options(WorkCompletionStatus::class)
+                            ->required()
+                            ->default(WorkCompletionStatus::Draft),
+                    ])->columns(2),
+
+                Section::make('Additional Information')
+                    ->schema([
+                        Select::make('sales_order_id')
+                            ->label('Sales Order')
+                            ->options(SalesOrder::all()->pluck('number', 'id'))
+                            ->searchable(),
+                        Textarea::make('description')
+                            ->columnSpanFull(),
+                    ])->columns(2),
+            ]);
+    }
+}

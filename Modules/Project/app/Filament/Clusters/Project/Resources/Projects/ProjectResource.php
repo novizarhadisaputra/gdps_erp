@@ -2,12 +2,16 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects;
 
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\EditProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ListProjects;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectInformations;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageWorkCompletionReports;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ProjectBoard;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ViewProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
@@ -24,6 +28,21 @@ class ProjectResource extends Resource
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-briefcase';
 
     protected static ?int $navigationSort = 10;
+
+    public static function getSubNavigationPosition(): SubNavigationPosition
+    {
+        return SubNavigationPosition::Start;
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            ViewProject::class,
+            EditProject::class,
+            ManageProjectInformations::class,
+            ManageWorkCompletionReports::class,
+        ]);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -54,6 +73,8 @@ class ProjectResource extends Resource
             'list' => ListProjects::route('/list'),
             'view' => ViewProject::route('/{record}'),
             'edit' => EditProject::route('/{record}/edit'),
+            'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
+            'work-completion-reports' => ManageWorkCompletionReports::route('/{record}/work-completion-reports'),
         ];
     }
 }

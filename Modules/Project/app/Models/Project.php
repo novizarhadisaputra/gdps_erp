@@ -125,6 +125,11 @@ class Project extends Model implements HasMedia
         return $this->hasOne(ProjectInformation::class);
     }
 
+    public function workCompletionReports(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WorkCompletionReport::class);
+    }
+
     protected static function newFactory(): ProjectFactory
     {
         return ProjectFactory::new();

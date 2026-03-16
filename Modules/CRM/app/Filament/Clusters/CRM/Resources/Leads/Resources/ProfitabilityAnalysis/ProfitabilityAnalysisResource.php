@@ -6,10 +6,14 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Filament\Resources\Pages\Page;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\CreateProfitabilityAnalysis;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\EditProfitabilityAnalysis;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\ListProfitabilityAnalyses;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\SummaryProfitabilityAnalysis;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Pages\ListProfitabilityAnalysisRevisions;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Tables\ProfitabilityAnalysesTable;
@@ -48,13 +52,24 @@ class ProfitabilityAnalysisResource extends Resource
         return ProfitabilityAnalysisInfolist::configure($schema);
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            SummaryProfitabilityAnalysis::class,
+            EditProfitabilityAnalysis::class,
+            ListProfitabilityAnalysisRevisions::class,
+        ]);
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
             'create' => CreateProfitabilityAnalysis::route('/create'),
-            'view' => Pages\SummaryProfitabilityAnalysis::route('/{record}'),
+            'view' => SummaryProfitabilityAnalysis::route('/{record}'),
             'edit' => EditProfitabilityAnalysis::route('/{record}/edit'),
+            'revisions' => ListProfitabilityAnalysisRevisions::route('/{record}/revisions'),
+            'view-revision' => ViewProfitabilityAnalysisRevision::route('/{record}/revisions/{relatedRecord}'),
         ];
     }
 }

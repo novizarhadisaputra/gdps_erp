@@ -165,52 +165,28 @@ class ProfitabilityAnalysisInfolist
                                 TextEntry::make('direct_cost_manpower')
                                     ->label(' - Manpower')
                                     ->state(function ($record) {
-                                        if ($record->is_manual_cost) {
-                                            $cat = DirectCostCategory::where('code', 'manpower')->first();
-                                            $manualCosts = $record->analysis_details['manual_costs'] ?? [];
-
-                                            return collect($manualCosts)
-                                                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $cat?->id)
-                                                ->sum(fn ($item) => (float) ($item['amount'] ?? 0));
-                                        }
-
-                                        return $record->items()
-                                            ->whereHas('category', fn ($q) => $q->where('code', 'manpower'))
-                                            ->sum('total_monthly_cost');
+                                        $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+                                        return collect($manualCosts)
+                                            ->filter(fn ($item) => ($item['category'] ?? '') === 'Manpower' || ($item['direct_cost_category_id'] ?? null) == 1) // 1 = manpower usually
+                                            ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
                                     })
                                     ->money('IDR'),
                                 TextEntry::make('direct_cost_tools')
                                     ->label(' - Tools & Eq')
                                     ->state(function ($record) {
-                                        if ($record->is_manual_cost) {
-                                            $cat = DirectCostCategory::where('code', 'tools_equipment')->first();
-                                            $manualCosts = $record->analysis_details['manual_costs'] ?? [];
-
-                                            return collect($manualCosts)
-                                                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $cat?->id)
-                                                ->sum(fn ($item) => (float) ($item['amount'] ?? 0));
-                                        }
-
-                                        return $record->items()
-                                            ->whereHas('category', fn ($q) => $q->where('code', 'tools_equipment'))
-                                            ->sum('total_monthly_cost');
+                                        $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+                                        return collect($manualCosts)
+                                            ->filter(fn ($item) => ($item['category'] ?? '') === 'Tools & Equipment' || ($item['direct_cost_category_id'] ?? null) == 2)
+                                            ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
                                     })
                                     ->money('IDR'),
                                 TextEntry::make('direct_cost_material')
                                     ->label(' - Material')
-                                    ->state(function (ProfitabilityAnalysis $record) {
-                                        if ($record->is_manual_cost) {
-                                            $cat = DirectCostCategory::where('code', 'material')->first();
-                                            $manualCosts = $record->analysis_details['manual_costs'] ?? [];
-
-                                            return collect($manualCosts)
-                                                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $cat?->id)
-                                                ->sum(fn ($item) => (float) ($item['amount'] ?? 0));
-                                        }
-
-                                        return $record->items()
-                                            ->whereHas('category', fn ($q) => $q->where('code', 'material'))
-                                            ->sum('total_monthly_cost');
+                                    ->state(function ($record) {
+                                        $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+                                        return collect($manualCosts)
+                                            ->filter(fn ($item) => ($item['category'] ?? '') === 'Material' || ($item['direct_cost_category_id'] ?? null) == 3)
+                                            ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
                                     })
                                     ->money('IDR'),
                             ])->columnSpanFull(),

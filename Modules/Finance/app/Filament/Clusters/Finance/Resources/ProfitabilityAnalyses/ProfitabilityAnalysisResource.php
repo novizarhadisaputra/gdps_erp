@@ -6,8 +6,12 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Filament\Resources\Pages\Page;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\SummaryProfitabilityAnalysis;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ListProfitabilityAnalysisRevisions;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Tables\ProfitabilityAnalysesTable;
@@ -17,7 +21,7 @@ class ProfitabilityAnalysisResource extends Resource
 {
     protected static ?string $model = ProfitabilityAnalysis::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedChartBar;
 
     protected static ?string $cluster = FinanceCluster::class;
 
@@ -50,6 +54,14 @@ class ProfitabilityAnalysisResource extends Resource
         ];
     }
 
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            SummaryProfitabilityAnalysis::class,
+            ListProfitabilityAnalysisRevisions::class,
+        ]);
+    }
+
     /*
     public static function getPages(): array
     {
@@ -65,7 +77,9 @@ class ProfitabilityAnalysisResource extends Resource
     {
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
-            'view' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\SummaryProfitabilityAnalysis::route('/{record}'),
+            'view' => SummaryProfitabilityAnalysis::route('/{record}'),
+            'revisions' => ListProfitabilityAnalysisRevisions::route('/{record}/revisions'),
+            'view-revision' => ViewProfitabilityAnalysisRevision::route('/{record}/revisions/{relatedRecord}'),
         ];
     }
 }

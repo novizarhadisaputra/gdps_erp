@@ -14,7 +14,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\Schemas\ProjectInformationForm;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Schemas\ProjectInformationForm;
 
 class ManageProjectInformations extends ManageRelatedRecords
 {

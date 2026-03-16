@@ -35,6 +35,7 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:ProjectReview', 'View:ProjectReview',
             'View:CRMCluster', 'View:FinanceCluster', 'View:ProjectCluster', 'View:MasterDataCluster',
             'View:CRMAnalyticsPage', 'View:ProjectAnalyticsPage', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
+            'View:ProjectBoard', 'View:SummaryProfitabilityAnalysis',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -55,7 +56,9 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:SalesOrder', 'View:SalesOrder', 'Create:SalesOrder', 'Update:SalesOrder', 'SendEmail:SalesOrder',
             'ViewAny:Invoice', 'View:Invoice',
             'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport',
+            'ViewAny:ProjectReview', 'View:ProjectReview',
             'View:CRMCluster', 'View:CRMAnalyticsPage', 'View:ProjectReviewDashboard',
+            'View:SummaryProfitabilityAnalysis',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -75,7 +78,9 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:BankAccount', 'View:BankAccount',
             'ViewAny:Invoice', 'View:Invoice', 'Create:Invoice', 'Update:Invoice', 'SendEmail:Invoice',
             'ViewAny:SalesOrder', 'View:SalesOrder', 'Update:SalesOrder',
+            'ViewAny:ProjectReview', 'View:ProjectReview',
             'View:FinanceCluster', 'View:CRMCluster', 'View:ProjectReviewDashboard',
+            'View:SummaryProfitabilityAnalysis',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -92,7 +97,9 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport', 'Create:WorkCompletionReport', 'Update:WorkCompletionReport', 'SendEmail:WorkCompletionReport',
             'ViewAny:SalesOrder', 'View:SalesOrder',
             'ViewAny:Invoice', 'View:Invoice',
+            'ViewAny:ProjectReview', 'View:ProjectReview',
             'View:ProjectCluster', 'View:CRMCluster', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
+            'View:ProjectBoard',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -106,7 +113,8 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Employee', 'View:Employee',
             'ViewAny:ManpowerTemplate', 'View:ManpowerTemplate',
             'ViewAny:JobPosition', 'View:JobPosition',
-            'View:CRMCluster', 'View:MasterDataCluster',
+            'ViewAny:ProjectReview', 'View:ProjectReview',
+            'View:CRMCluster', 'View:MasterDataCluster', 'View:ProjectReviewDashboard',
         ];
 
         $this->syncPermissions($role, $permissions);

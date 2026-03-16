@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Finance\Models\ProfitabilityAnalysisRevision;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Models\Comment;
@@ -138,6 +139,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function proposal(): HasOne
     {
         return $this->hasOne(Proposal::class);
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(ProfitabilityAnalysisRevision::class);
     }
 
     public function lead(): BelongsTo

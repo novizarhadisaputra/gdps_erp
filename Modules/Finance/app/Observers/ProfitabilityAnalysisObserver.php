@@ -5,6 +5,7 @@ namespace Modules\Finance\Observers;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Finance\Models\ProfitabilityAnalysisRevision;
 use Modules\Project\Services\ProjectService;
 
 class ProfitabilityAnalysisObserver
@@ -80,6 +81,17 @@ class ProfitabilityAnalysisObserver
 
         // 2. When PA is reset to Draft (due to revision), track revision info and clear signatures
         if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Draft) {
+            // Create Snapshot Revision
+            ProfitabilityAnalysisRevision::create([
+                'profitability_analysis_id' => $analysis->id,
+                'revision_number' => $analysis->getOriginal('revision_number') ?? 0,
+                'snapshot' => $analysis->getRawOriginal(),
+                'reason' => request()->input('reason'),
+                'user_id' => auth()->id(),
+                'year' => date('Y'),
+                'sequence_number' => (ProfitabilityAnalysisRevision::where('profitability_analysis_id', $analysis->id)->max('sequence_number') ?? 0) + 1,
+            ]);
+
             $analysis->updateQuietly([
                 'revision_number' => $analysis->revision_number + 1,
                 'previous_code' => $analysis->document_number,

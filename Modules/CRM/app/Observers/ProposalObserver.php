@@ -5,6 +5,7 @@ namespace Modules\CRM\Observers;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
+use Modules\CRM\Models\ProposalRevision;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 
 class ProposalObserver
@@ -70,6 +71,17 @@ class ProposalObserver
 
         // 2. If Proposal is moved to Draft (Revised), reset linked PA status and track revision
         if ($proposal->wasChanged('status') && $proposal->status === ProposalStatus::Draft) {
+            // Create Snapshot Revision
+            ProposalRevision::create([
+                'proposal_id' => $proposal->id,
+                'revision_number' => $proposal->getOriginal('revision_number') ?? 0,
+                'snapshot' => $proposal->getRawOriginal(), // Get data before we changed it further
+                'reason' => request()->input('reason'), // Capture reason if provided via modal
+                'user_id' => auth()->id(),
+                'year' => date('Y'),
+                'sequence_number' => (ProposalRevision::where('proposal_id', $proposal->id)->max('sequence_number') ?? 0) + 1,
+            ]);
+
             // Track revision info on Proposal
             $newRevisionNumber = $proposal->revision_number + 1;
             $shortYear = date('y', strtotime($proposal->created_at));

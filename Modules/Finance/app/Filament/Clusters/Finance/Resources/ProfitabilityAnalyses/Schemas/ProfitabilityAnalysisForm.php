@@ -284,6 +284,25 @@ class ProfitabilityAnalysisForm
                                     ->dehydrated(),
                                 Grid::make(2)
                                     ->schema([
+                                        Select::make('manpower_template_id')
+                                            ->label('Manpower Template')
+                                            ->options(ManpowerTemplate::all()->pluck('name', 'id'))
+                                            ->searchable()
+                                            ->preload()
+                                            ->live()
+                                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleManpowerTemplateSelection($state, $set, $get)),
+                                        Select::make('costing_template_id')
+                                            ->label('Operational Template')
+                                            ->options(CostingTemplate::all()->pluck('name', 'id'))
+                                            ->searchable()
+                                            ->preload()
+                                            ->live()
+                                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleCostingTemplateSelection($state, $set, $get)),
+                                    ])->columnSpan(2),
+                                Grid::make(3)
+                                    ->schema([
                                         Toggle::make('require_manpower_costing')
                                             ->label('Require Manpower Costing')
                                             ->default(true)
@@ -306,6 +325,8 @@ class ProfitabilityAnalysisForm
                                                 if ($state) {
                                                     $set('require_manpower_costing', false);
                                                     $set('require_operational_costing', false);
+                                                    $set('manpower_template_id', null);
+                                                    $set('costing_template_id', null);
                                                 }
                                             }),
                                     ])->columnSpan(1),
@@ -1610,6 +1631,113 @@ class ProfitabilityAnalysisForm
         $markup = self::parseNumericValue($get('markup_percentage') ?? 0);
 
         return $monthlyCost * (1.0 + ($markup / 100));
+    }
+
+    protected static function handleManpowerTemplateSelection($state, Set $set, Get $get): void
+    {
+        if (! $state) {
+            return;
+        }
+
+        $template = ManpowerTemplate::with('items.jobPosition.fixedAllowances', 'items.jobPosition.nonFixedAllowances')->find($state);
+        if (! $template) {
+            return;
+        }
+
+        $service = app(ManpowerCostingService::class);
+        $areaId = (string) $get('/data.project_area_id');
+        $year = (int) ($get('/data.year') ?? date('Y'));
+        
+        $currentManualCosts = $get('/data.analysis_details.manual_costs') ?? [];
+        
+        // Find if 'Manpower' category item exists, or create one
+        $manpowerEntries = [];
+        
+        foreach ($template->items as $item) {
+            $jp = $item->jobPosition;
+            if (! $jp) {
+                continue;
+            }
+
+            $allowances = [];
+            foreach ($jp->fixedAllowances ?? [] as $allowance) {
+                $allowances[] = [
+                    'name' => $allowance->name,
+                    'type' => 'nominal',
+                    'value' => (float) $allowance->pivot->amount,
+                    'is_fixed' => true,
+                ];
+            }
+            foreach ($jp->nonFixedAllowances ?? [] as $allowance) {
+                $allowances[] = [
+                    'name' => $allowance->name,
+                    'type' => 'nominal',
+                    'value' => (float) $allowance->pivot->amount,
+                    'is_fixed' => false,
+                ];
+            }
+
+            $res = $service->calculate(
+                basicSalary: (float) $item->basic_salary,
+                allowances: $allowances,
+                projectAreaId: $areaId,
+                year: $year,
+                riskLevel: $jp->risk_level ?? 'very_low',
+                isLaborIntensive: $jp->is_labor_intensive ?? false
+            );
+
+            $unitCost = (float) $res['total_direct_cost'];
+            
+            $manpowerEntries[] = [
+                'item_name' => $jp->name,
+                'quantity' => (float) $item->quantity,
+                'unit_of_measure' => 'Person',
+                'unit_cost' => $unitCost,
+                'total_cost' => $unitCost * (float) $item->quantity,
+                'category' => 'Manpower',
+            ];
+        }
+
+        // Merge or replace: user expects 'Normal Process' to populate the list. 
+        // We'll append or replace existing 'Manpower' categorized items.
+        $filteredCosts = collect($currentManualCosts)->reject(fn($c) => ($c['category'] ?? '') === 'Manpower')->toArray();
+        $newCosts = array_merge($filteredCosts, $manpowerEntries);
+        
+        $set('/data.analysis_details.manual_costs', $newCosts);
+        self::calculateDirectCost($get, $set);
+    }
+
+    protected static function handleCostingTemplateSelection($state, Set $set, Get $get): void
+    {
+        if (! $state) {
+            return;
+        }
+
+        $template = CostingTemplate::with('items')->find($state);
+        if (! $template) {
+            return;
+        }
+
+        $currentManualCosts = $get('/data.analysis_details.manual_costs') ?? [];
+        $toolsEntries = [];
+
+        foreach ($template->items as $item) {
+            $unitCost = (float) $item->unit_price;
+            $toolsEntries[] = [
+                'item_name' => $item->item_name ?? 'Tools & Equipment',
+                'quantity' => (float) $item->quantity,
+                'unit_of_measure' => $item->uom ?? 'Unit',
+                'unit_cost' => $unitCost,
+                'total_cost' => $unitCost * (float) $item->quantity,
+                'category' => 'Tools & Equipment',
+            ];
+        }
+
+        $filteredCosts = collect($currentManualCosts)->reject(fn($c) => ($c['category'] ?? '') === 'Tools & Equipment')->toArray();
+        $newCosts = array_merge($filteredCosts, $toolsEntries);
+
+        $set('/data.analysis_details.manual_costs', $newCosts);
+        self::calculateDirectCost($get, $set);
     }
 
     protected static function calculateMargin($revenue, $cost, $set): void

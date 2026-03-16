@@ -4,6 +4,8 @@ namespace Modules\CRM\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
+use Modules\CRM\Livewire\Revision\RevisionComments;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
@@ -27,6 +29,8 @@ class CRMServiceProvider extends ServiceProvider
         $this->registerConfig();
         $this->registerViews();
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
+
+        Livewire::component('crm::revision.revision-comments', RevisionComments::class);
     }
 
     /**

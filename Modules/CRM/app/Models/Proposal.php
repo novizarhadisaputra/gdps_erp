@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\CRM\Models\ProposalRevision;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
@@ -81,6 +82,11 @@ class Proposal extends Model implements HasMedia
     protected static function newFactory(): ProposalFactory
     {
         return ProposalFactory::new();
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(ProposalRevision::class);
     }
 
     public function lead(): BelongsTo
