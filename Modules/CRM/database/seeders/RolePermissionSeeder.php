@@ -10,16 +10,16 @@ class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->assignDireksiPermissions();
+        $this->assignBoardOfDirectorsPermissions();
         $this->assignVPBusinessSupportPermissions();
         $this->assignVPFinancePermissions();
-        $this->assignVPOpsPermissions();
+        $this->assignVPOperationsPermissions();
         $this->assignVPHumanCapitalPermissions();
     }
 
-    protected function assignDireksiPermissions(): void
+    protected function assignBoardOfDirectorsPermissions(): void
     {
-        $role = Role::firstOrCreate(['name' => 'Direksi', 'guard_name' => 'web']);
+        $role = Role::firstOrCreate(['name' => 'Board of Directors', 'guard_name' => 'web']);
 
         $permissions = [
             'ViewAny:Lead', 'View:Lead',
@@ -33,9 +33,14 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Invoice', 'View:Invoice',
             'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport',
             'ViewAny:ProjectReview', 'View:ProjectReview',
+            'ViewAny:ProposalRevision', 'View:ProposalRevision',
+            'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
+            'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
+            'ViewAny:Comment', 'View:Comment',
             'View:CRMCluster', 'View:FinanceCluster', 'View:ProjectCluster', 'View:MasterDataCluster',
             'View:CRMAnalyticsPage', 'View:ProjectAnalyticsPage', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
             'View:ProjectBoard', 'View:SummaryProfitabilityAnalysis',
+            'View:AuditProposalRevision', 'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -57,8 +62,13 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Invoice', 'View:Invoice',
             'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport',
             'ViewAny:ProjectReview', 'View:ProjectReview',
+            'ViewAny:ProposalRevision', 'View:ProposalRevision',
+            'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
+            'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
+            'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
             'View:CRMCluster', 'View:CRMAnalyticsPage', 'View:ProjectReviewDashboard',
             'View:SummaryProfitabilityAnalysis',
+            'View:AuditProposalRevision', 'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -71,6 +81,7 @@ class RolePermissionSeeder extends Seeder
         $permissions = [
             'ViewAny:ProfitabilityAnalysis', 'View:ProfitabilityAnalysis', 'Create:ProfitabilityAnalysis', 'Update:ProfitabilityAnalysis',
             'ViewAny:SalesPlan', 'View:SalesPlan', 'Create:SalesPlan', 'Update:SalesPlan',
+            'ViewAny:Lead', 'View:Lead',
             'ViewAny:ProfitabilityThreshold', 'View:ProfitabilityThreshold', 'Update:ProfitabilityThreshold',
             'ViewAny:MinutesOfAgreement', 'View:MinutesOfAgreement',
             'ViewAny:Tax', 'View:Tax',
@@ -79,16 +90,20 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Invoice', 'View:Invoice', 'Create:Invoice', 'Update:Invoice', 'SendEmail:Invoice',
             'ViewAny:SalesOrder', 'View:SalesOrder', 'Update:SalesOrder',
             'ViewAny:ProjectReview', 'View:ProjectReview',
+            'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
+            'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
+            'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
             'View:FinanceCluster', 'View:CRMCluster', 'View:ProjectReviewDashboard',
             'View:SummaryProfitabilityAnalysis',
+            'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
         ];
 
         $this->syncPermissions($role, $permissions);
     }
 
-    protected function assignVPOpsPermissions(): void
+    protected function assignVPOperationsPermissions(): void
     {
-        $role = Role::firstOrCreate(['name' => 'VP Ops', 'guard_name' => 'web']);
+        $role = Role::firstOrCreate(['name' => 'VP Operations', 'guard_name' => 'web']);
 
         $permissions = [
             'ViewAny:Project', 'View:Project', 'Update:Project',
@@ -98,8 +113,11 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:SalesOrder', 'View:SalesOrder',
             'ViewAny:Invoice', 'View:Invoice',
             'ViewAny:ProjectReview', 'View:ProjectReview',
+            'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
+            'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
             'View:ProjectCluster', 'View:CRMCluster', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
             'View:ProjectBoard',
+            'View:AuditAmendment',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -113,7 +131,9 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Employee', 'View:Employee',
             'ViewAny:ManpowerTemplate', 'View:ManpowerTemplate',
             'ViewAny:JobPosition', 'View:JobPosition',
+            'ViewAny:Lead', 'View:Lead',
             'ViewAny:ProjectReview', 'View:ProjectReview',
+            'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
             'View:CRMCluster', 'View:MasterDataCluster', 'View:ProjectReviewDashboard',
         ];
 

@@ -57,7 +57,7 @@ class GeneralInformationInfolist
                                     ->label('ToR Document')
                                     ->state(fn ($record) => $record?->getFirstMedia('tor')?->file_name)
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('tor');
+                                        $media = $record?->getFirstMedia('tor');
                                         if (! $media) {
                                             return null;
                                         }
@@ -69,7 +69,7 @@ class GeneralInformationInfolist
                                     ->label('RFP Document')
                                     ->state(fn ($record) => $record?->getFirstMedia('rfp')?->file_name)
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('rfp');
+                                        $media = $record?->getFirstMedia('rfp');
                                         if (! $media) {
                                             return null;
                                         }
@@ -81,7 +81,7 @@ class GeneralInformationInfolist
                                     ->label('RFQ Document')
                                     ->state(fn ($record) => $record?->getFirstMedia('rfi')?->file_name)
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('rfi');
+                                        $media = $record?->getFirstMedia('rfi');
                                         if (! $media) {
                                             return null;
                                         }
@@ -93,6 +93,10 @@ class GeneralInformationInfolist
                                     ->label('Other Documents')
                                     ->html()
                                     ->formatStateUsing(function ($record) {
+                                        if (! $record) {
+                                            return null;
+                                        }
+
                                         return $record->getMedia('other_documents')->map(function ($media) {
                                             $url = $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
 

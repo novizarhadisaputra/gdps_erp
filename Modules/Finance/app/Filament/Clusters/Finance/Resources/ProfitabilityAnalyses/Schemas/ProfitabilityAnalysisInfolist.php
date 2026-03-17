@@ -11,7 +11,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\MasterData\Models\DirectCostCategory;
 
 class ProfitabilityAnalysisInfolist
 {
@@ -45,9 +44,9 @@ class ProfitabilityAnalysisInfolist
                             ->schema([
                                 TextEntry::make('tor_document')
                                     ->label('ToR Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('tor')?->file_name ?? 'No ToR')
+                                    ->state(fn ($record) => $record?->getFirstMedia('tor')?->file_name ?? 'No ToR')
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('tor');
+                                        $media = $record?->getFirstMedia('tor');
                                         if (! $media) {
                                             return null;
                                         }
@@ -58,9 +57,9 @@ class ProfitabilityAnalysisInfolist
                                     ->color(fn ($state) => $state === 'No ToR' ? 'gray' : 'primary'),
                                 TextEntry::make('rfp_document')
                                     ->label('RFP Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('rfp')?->file_name ?? 'No RFP')
+                                    ->state(fn ($record) => $record?->getFirstMedia('rfp')?->file_name ?? 'No RFP')
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('rfp');
+                                        $media = $record?->getFirstMedia('rfp');
                                         if (! $media) {
                                             return null;
                                         }
@@ -71,9 +70,9 @@ class ProfitabilityAnalysisInfolist
                                     ->color(fn ($state) => $state === 'No RFP' ? 'gray' : 'primary'),
                                 TextEntry::make('rfi_document')
                                     ->label('RFQ Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('rfi')?->file_name ?? 'No RFI')
+                                    ->state(fn ($record) => $record?->getFirstMedia('rfi')?->file_name ?? 'No RFI')
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('rfi');
+                                        $media = $record?->getFirstMedia('rfi');
                                         if (! $media) {
                                             return null;
                                         }
@@ -118,7 +117,7 @@ class ProfitabilityAnalysisInfolist
                             ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Manpower Costing')
-                            ->visible(fn ($record) => ! $record->is_manual_cost),
+                            ->visible(fn ($record) => $record && ! $record->is_manual_cost),
                         Action::make('Edit Operational')
                             ->label('Operational')
                             ->icon(Heroicon::OutlinedWrenchScrewdriver)
@@ -127,7 +126,7 @@ class ProfitabilityAnalysisInfolist
                             ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Operational Costing')
-                            ->visible(fn ($record) => ! $record->is_manual_cost),
+                            ->visible(fn ($record) => $record && ! $record->is_manual_cost),
                         Action::make('Edit Manual')
                             ->label('Manual Costs')
                             ->icon(Heroicon::OutlinedBanknotes)
@@ -136,7 +135,7 @@ class ProfitabilityAnalysisInfolist
                             ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Manual Cost Breakdown')
-                            ->visible(fn ($record) => $record->is_manual_cost),
+                            ->visible(fn ($record) => $record?->is_manual_cost),
                         Action::make('Edit Indirect')
                             ->label('Indirect')
                             ->icon(Heroicon::OutlinedPresentationChartLine)
@@ -165,7 +164,11 @@ class ProfitabilityAnalysisInfolist
                                 TextEntry::make('direct_cost_manpower')
                                     ->label(' - Manpower')
                                     ->state(function ($record) {
+                                        if (! $record) {
+                                            return 0;
+                                        }
                                         $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+
                                         return collect($manualCosts)
                                             ->filter(fn ($item) => ($item['category'] ?? '') === 'Manpower' || ($item['direct_cost_category_id'] ?? null) == 1) // 1 = manpower usually
                                             ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
@@ -174,7 +177,11 @@ class ProfitabilityAnalysisInfolist
                                 TextEntry::make('direct_cost_tools')
                                     ->label(' - Tools & Eq')
                                     ->state(function ($record) {
+                                        if (! $record) {
+                                            return 0;
+                                        }
                                         $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+
                                         return collect($manualCosts)
                                             ->filter(fn ($item) => ($item['category'] ?? '') === 'Tools & Equipment' || ($item['direct_cost_category_id'] ?? null) == 2)
                                             ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
@@ -183,7 +190,11 @@ class ProfitabilityAnalysisInfolist
                                 TextEntry::make('direct_cost_material')
                                     ->label(' - Material')
                                     ->state(function ($record) {
+                                        if (! $record) {
+                                            return 0;
+                                        }
                                         $manualCosts = $record->analysis_details['manual_costs'] ?? [];
+
                                         return collect($manualCosts)
                                             ->filter(fn ($item) => ($item['category'] ?? '') === 'Material' || ($item['direct_cost_category_id'] ?? null) == 3)
                                             ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
@@ -200,7 +211,11 @@ class ProfitabilityAnalysisInfolist
                                     ->color('info'),
                                 TextEntry::make('total_indirect_cost')
                                     ->label('4. TOTAL INDIRECT COST')
-                                    ->state(function (ProfitabilityAnalysis $record) {
+                                    ->state(function (?ProfitabilityAnalysis $record) {
+                                        if (! $record) {
+                                            return 0;
+                                        }
+
                                         $total = 0;
                                         $revenue = (float) $record->revenue_per_month;
                                         $directCost = (float) $record->direct_cost;

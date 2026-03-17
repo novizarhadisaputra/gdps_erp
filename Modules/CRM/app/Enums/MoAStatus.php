@@ -11,6 +11,7 @@ enum MoAStatus: string implements HasColor, HasIcon, HasLabel
     case Draft = 'draft';
     case Submitted = 'submitted';
     case Approved = 'approved';
+    case Rejected = 'rejected';
     case Cancelled = 'cancelled';
 
     public function getLabel(): ?string
@@ -19,6 +20,7 @@ enum MoAStatus: string implements HasColor, HasIcon, HasLabel
             self::Draft => 'Draft',
             self::Submitted => 'Submitted',
             self::Approved => 'Approved',
+            self::Rejected => 'Rejected',
             self::Cancelled => 'Cancelled',
         };
     }
@@ -29,7 +31,8 @@ enum MoAStatus: string implements HasColor, HasIcon, HasLabel
             self::Draft => 'gray',
             self::Submitted => 'info',
             self::Approved => 'success',
-            self::Cancelled => 'danger',
+            self::Rejected => 'danger',
+            self::Cancelled => 'gray',
         };
     }
 
@@ -39,6 +42,7 @@ enum MoAStatus: string implements HasColor, HasIcon, HasLabel
             self::Draft => 'heroicon-m-document',
             self::Submitted => 'heroicon-m-paper-airplane',
             self::Approved => 'heroicon-m-check-circle',
+            self::Rejected => 'heroicon-m-x-circle',
             self::Cancelled => 'heroicon-m-no-symbol',
         };
     }

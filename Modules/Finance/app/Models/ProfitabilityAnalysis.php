@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\Finance\Models\ProfitabilityAnalysisRevision;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Models\Comment;
@@ -280,6 +279,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             ! empty($this->revenue_per_month) &&
             $this->margin_percentage !== null &&
             $hasItems;
+    }
+
+    public function isMarginApproved(): bool
+    {
+        return $this->isTypeApproved('MarginApproval');
     }
 
     protected static function parseNumericValue(mixed $value): float

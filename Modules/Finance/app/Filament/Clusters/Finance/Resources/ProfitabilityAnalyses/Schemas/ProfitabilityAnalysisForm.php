@@ -282,25 +282,6 @@ class ProfitabilityAnalysisForm
                                     ->helperText('Determines the asset depreciation calculation model.')
                                     ->native(false)
                                     ->dehydrated(),
-                                Grid::make(2)
-                                    ->schema([
-                                        Select::make('manpower_template_id')
-                                            ->label('Manpower Template')
-                                            ->options(ManpowerTemplate::all()->pluck('name', 'id'))
-                                            ->searchable()
-                                            ->preload()
-                                            ->live()
-                                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
-                                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleManpowerTemplateSelection($state, $set, $get)),
-                                        Select::make('costing_template_id')
-                                            ->label('Operational Template')
-                                            ->options(CostingTemplate::all()->pluck('name', 'id'))
-                                            ->searchable()
-                                            ->preload()
-                                            ->live()
-                                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
-                                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleCostingTemplateSelection($state, $set, $get)),
-                                    ])->columnSpan(2),
                                 Grid::make(3)
                                     ->schema([
                                         Toggle::make('require_manpower_costing')
@@ -329,7 +310,7 @@ class ProfitabilityAnalysisForm
                                                     $set('costing_template_id', null);
                                                 }
                                             }),
-                                    ])->columnSpan(1),
+                                    ])->columnSpanFull(),
                             ]),
                     ]),
 
@@ -391,6 +372,15 @@ class ProfitabilityAnalysisForm
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->visible(fn (Get $get) => ! $get('is_manual_cost'))
                     ->schema([
+                        Select::make('manpower_template_id')
+                            ->label('Manpower Template')
+                            ->options(ManpowerTemplate::all()->pluck('name', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleManpowerTemplateSelection($state, $set, $get)),
+
                         Repeater::make('manpowerItems')
                             ->relationship('manpowerItems')
                             ->label('Personnel Requirements')
@@ -681,6 +671,15 @@ class ProfitabilityAnalysisForm
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->visible(fn (Get $get) => ! $get('is_manual_cost'))
                     ->schema([
+                        Select::make('costing_template_id')
+                            ->label('Operational Template')
+                            ->options(CostingTemplate::all()->pluck('name', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                            ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleCostingTemplateSelection($state, $set, $get)),
+
                         Repeater::make('operationalItems')
                             ->relationship('operationalItems')
                             ->label('Equipment & Material Items')
@@ -1647,12 +1646,12 @@ class ProfitabilityAnalysisForm
         $service = app(ManpowerCostingService::class);
         $areaId = (string) $get('/data.project_area_id');
         $year = (int) ($get('/data.year') ?? date('Y'));
-        
+
         $currentManualCosts = $get('/data.analysis_details.manual_costs') ?? [];
-        
+
         // Find if 'Manpower' category item exists, or create one
         $manpowerEntries = [];
-        
+
         foreach ($template->items as $item) {
             $jp = $item->jobPosition;
             if (! $jp) {
@@ -1687,7 +1686,7 @@ class ProfitabilityAnalysisForm
             );
 
             $unitCost = (float) $res['total_direct_cost'];
-            
+
             $manpowerEntries[] = [
                 'item_name' => $jp->name,
                 'quantity' => (float) $item->quantity,
@@ -1698,11 +1697,11 @@ class ProfitabilityAnalysisForm
             ];
         }
 
-        // Merge or replace: user expects 'Normal Process' to populate the list. 
+        // Merge or replace: user expects 'Normal Process' to populate the list.
         // We'll append or replace existing 'Manpower' categorized items.
-        $filteredCosts = collect($currentManualCosts)->reject(fn($c) => ($c['category'] ?? '') === 'Manpower')->toArray();
+        $filteredCosts = collect($currentManualCosts)->reject(fn ($c) => ($c['category'] ?? '') === 'Manpower')->toArray();
         $newCosts = array_merge($filteredCosts, $manpowerEntries);
-        
+
         $set('/data.analysis_details.manual_costs', $newCosts);
         self::calculateDirectCost($get, $set);
     }
@@ -1733,7 +1732,7 @@ class ProfitabilityAnalysisForm
             ];
         }
 
-        $filteredCosts = collect($currentManualCosts)->reject(fn($c) => ($c['category'] ?? '') === 'Tools & Equipment')->toArray();
+        $filteredCosts = collect($currentManualCosts)->reject(fn ($c) => ($c['category'] ?? '') === 'Tools & Equipment')->toArray();
         $newCosts = array_merge($filteredCosts, $toolsEntries);
 
         $set('/data.analysis_details.manual_costs', $newCosts);

@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notification;
 
-class ApprovalRequiredNotification extends Notification implements ShouldQueue
+class ApprovalRejectedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -15,7 +15,7 @@ class ApprovalRequiredNotification extends Notification implements ShouldQueue
         protected Model $record,
         protected string $message,
         protected string $url,
-        protected ?string $title = 'Approval Required'
+        protected ?string $title = 'Document Rejected'
     ) {}
 
     public function via($notifiable): array
@@ -28,8 +28,8 @@ class ApprovalRequiredNotification extends Notification implements ShouldQueue
         $notification = \Filament\Notifications\Notification::make()
             ->title($this->title)
             ->body($this->message)
-            ->icon('heroicon-o-pencil-square')
-            ->color('info')
+            ->icon('heroicon-m-x-circle')
+            ->color('danger')
             ->actions([
                 \Filament\Actions\Action::make('view')
                     ->label('View Document')

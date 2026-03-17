@@ -9,6 +9,7 @@ enum ApprovalSignatureType: string implements HasLabel
     case Reviewer = 'Reviewer';
     case Approver = 'Approver';
     case Acknowledger = 'Acknowledger';
+    case MarginApproval = 'MarginApproval';
 
     public function getLabel(): ?string
     {
@@ -16,6 +17,7 @@ enum ApprovalSignatureType: string implements HasLabel
             self::Reviewer => 'Reviewer',
             self::Approver => 'Approver',
             self::Acknowledger => 'Acknowledger',
+            self::MarginApproval => 'Margin Approval',
         };
     }
 }

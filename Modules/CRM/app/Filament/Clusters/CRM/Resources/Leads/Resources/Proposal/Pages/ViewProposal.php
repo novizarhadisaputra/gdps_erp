@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -157,7 +158,22 @@ class ViewProposal extends ViewRecord
                     ->color('danger')
                     ->icon('heroicon-o-x-mark')
                     ->requiresConfirmation()
-                    ->action(fn () => $this->record->update(['status' => ProposalStatus::Rejected]))
+                    ->modalHeading('Reject Proposal')
+                    ->schema([
+                        TextInput::make('reason')
+                            ->label('Reason for Rejection')
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $this->record->update(['status' => ProposalStatus::Rejected]);
+                        app(SignatureService::class)->notifyOwnerOnRejection($this->record, $data['reason']);
+                        $this->refreshFormData(['status']);
+
+                        Notification::make()
+                            ->title('Proposal Rejected')
+                            ->warning()
+                            ->send();
+                    })
                     ->visible(fn () => $this->record->status === ProposalStatus::Submitted),
 
                 DeleteAction::make()

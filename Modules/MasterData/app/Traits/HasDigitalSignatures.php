@@ -78,6 +78,28 @@ trait HasDigitalSignatures
     }
 
     /**
+     * Determine if all rules of a specific signature type have been satisfied.
+     */
+    public function isTypeApproved(string $type): bool
+    {
+        $service = app(SignatureService::class);
+        $rules = $service->getRequiredApprovers($this)
+            ->where('signature_type', $type);
+
+        if ($rules->isEmpty()) {
+            return true;
+        }
+
+        foreach ($rules as $rule) {
+            if (! $this->isRuleSatisfied($rule)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Determine if all required signatures have been obtained.
      */
     public function isFullyApproved(): bool

@@ -5,6 +5,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfA
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\CRM\Enums\MoAStatus;
@@ -83,9 +84,9 @@ class ViewMinutesOfAgreement extends ViewRecord
                     // Determine the role to record for this signature
                     $recordedRole = null;
                     if ($matchingRule->approver_type === 'Role') {
-                        $userRoles = $user->roles->pluck('name')->toArray();
+                        $userRoleIds = $user->roles->pluck('id')->toArray();
                         $ruleRoles = $matchingRule->approver_role ?? [];
-                        $commonRoles = array_intersect($userRoles, $ruleRoles);
+                        $commonRoles = array_intersect($userRoleIds, $ruleRoles);
                         $recordedRole = reset($commonRoles);
                     }
 
@@ -94,6 +95,9 @@ class ViewMinutesOfAgreement extends ViewRecord
 
                     // Notify next approvers
                     $service->notifyNextApprovers($this->record);
+
+                    // Notify owner
+                    $service->notifyOwnerOnSignature($this->record, $user, $matchingRule->signature_type);
 
                     Notification::make()
                         ->title('Document Successfully Signed')
@@ -150,6 +154,28 @@ class ViewMinutesOfAgreement extends ViewRecord
 
                     $this->redirect(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource::getUrl('edit', ['record' => $contract->id, 'lead' => $record->lead_id]));
                 }),
+            Action::make('Reject')
+                ->color('danger')
+                ->icon('heroicon-o-x-mark')
+                ->requiresConfirmation()
+                ->modalHeading('Reject MoA')
+                ->form([
+                    TextInput::make('reason')
+                        ->label('Reason for Rejection')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $this->record->update(['status' => MoAStatus::Rejected]);
+                    app(SignatureService::class)->notifyOwnerOnRejection($this->record, $data['reason']);
+                    $this->refreshFormData(['status']);
+
+                    Notification::make()
+                        ->title('MoA Rejected')
+                        ->warning()
+                        ->send();
+                })
+                ->visible(fn () => $this->record->status === MoAStatus::Submitted),
+
             EditAction::make(),
             DeleteAction::make(),
         ];

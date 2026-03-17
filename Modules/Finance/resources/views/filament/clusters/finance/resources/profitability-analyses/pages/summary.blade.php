@@ -299,8 +299,8 @@
                 $signatureService = app(\Modules\MasterData\Services\SignatureService::class);
                 $rules = $signatureService->getRequiredApprovers($record);
                 $signatures = $record->signatures;
-                $marginSignature = $signatures->firstWhere('signature_type', 'margin_approval');
-                $otherSignatures = $signatures->where('signature_type', '!=', 'margin_approval');
+                $marginSignature = $signatures->firstWhere('signature_type', 'MarginApproval');
+                $otherSignatures = $signatures->where('signature_type', '!=', 'MarginApproval');
 
                 $totalCols = ($marginSignature ? 1 : 0) + $rules->count();
             @endphp
@@ -317,7 +317,7 @@
                                 $qrUrl = $signatureService->createSignatureData(
                                     $marginSignature->user,
                                     $record,
-                                    'margin_approval',
+                                    'MarginApproval',
                                 );
                                 $qrCode = $signatureService->generateQRCode($qrUrl);
                             @endphp

@@ -6,6 +6,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -74,9 +75,15 @@ class ViewGeneralInformation extends ViewRecord
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
                     ->modalHeading('Reject General Information')
-                    ->modalDescription('Are you sure you want to reject this General Information? The status will return to Rejected and it can be edited again.')
-                    ->action(function () {
-                        $this->getRecord()->update(['status' => GeneralInformationStatus::Rejected]);
+                    ->form([
+                        TextInput::make('reason')
+                            ->label('Reason for Rejection')
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $record = $this->getRecord();
+                        $record->update(['status' => GeneralInformationStatus::Rejected]);
+                        app(SignatureService::class)->notifyOwnerOnRejection($record, $data['reason']);
                         $this->refreshFormData(['status']);
 
                         Notification::make()

@@ -94,6 +94,12 @@ class ViewProjectReview extends ViewRecord
             ])
             ->action(function (array $data, $record) {
                 $pa = $record->profitabilityAnalysis;
+                if (! $pa) {
+                    Notification::make()->title('Profitability Analysis not found')->danger()->send();
+
+                    return;
+                }
+
                 $service = app(SignatureService::class);
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
@@ -102,17 +108,61 @@ class ViewProjectReview extends ViewRecord
                     return;
                 }
 
-                $pa->addSignature(auth()->user(), 'margin_approval');
-                $pa->update(['is_margin_approved' => true]);
+                $required = $service->getRequiredApprovers($pa)
+                    ->where('signature_type', 'MarginApproval');
 
-                Notification::make()->title('Margin Approved')->success()->send();
+                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+
+                if ($eligibleRules->isEmpty()) {
+                    Notification::make()->title('Access Denied')->body('You do not have the authority to approve margin.')->warning()->send();
+
+                    return;
+                }
+
+                $matchingRule = $eligibleRules->first(fn ($rule) => ! $pa->isRuleSatisfied($rule));
+
+                if (! $matchingRule) {
+                    Notification::make()->title('Already Signed')->body('You have already signed this margin approval step.')->warning()->send();
+
+                    return;
+                }
+
+                $recordedRole = null;
+                if ($matchingRule->approver_type === 'Role') {
+                    $userRoles = auth()->user()->roles->pluck('name')->toArray();
+                    $ruleRoles = $matchingRule->approver_role ?? [];
+                    $commonRoles = array_intersect($userRoles, $ruleRoles);
+                    $recordedRole = reset($commonRoles);
+                }
+
+                $pa->addSignature(auth()->user(), 'MarginApproval', $recordedRole);
+
+                if ($pa->isMarginApproved()) {
+                    $pa->update(['is_margin_approved' => true]);
+                }
+
+                $service->notifyNextApprovers($pa);
+
+                // Notify owner
+                $service->notifyOwnerOnSignature($pa, auth()->user(), 'MarginApproval');
+
+                Notification::make()->title('Margin Approved Successfully')->success()->send();
             })
             ->visible(function ($record) {
                 $pa = $record->profitabilityAnalysis;
+                if (! $pa || $pa->isMarginApproved()) {
+                    return false;
+                }
 
-                return $pa &&
-                       $pa->status === ProfitabilityAnalysisStatus::Submitted &&
-                       ! $pa->is_margin_approved;
+                if ($pa->status->value !== ProfitabilityAnalysisStatus::Submitted->value) {
+                    return false;
+                }
+
+                $service = app(SignatureService::class);
+                $required = $service->getRequiredApprovers($pa)
+                    ->where('signature_type', 'MarginApproval');
+
+                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $pa->isRuleSatisfied($rule));
             });
     }
 
@@ -122,16 +172,34 @@ class ViewProjectReview extends ViewRecord
             ->label('Approve GI');
     }
 
+    public function rejectGIAction(): Action
+    {
+        return $this->getRejectionAction('generalInformation', 'GI')
+            ->label('Reject GI');
+    }
+
     public function approvePAAction(): Action
     {
         return $this->getApprovalAction('profitabilityAnalysis', 'PA')
             ->label('Approve PA');
     }
 
+    public function rejectPAAction(): Action
+    {
+        return $this->getRejectionAction('profitabilityAnalysis', 'PA')
+            ->label('Reject PA');
+    }
+
     public function approveProposalAction(): Action
     {
         return $this->getApprovalAction('proposal', 'Proposal')
             ->label('Approve Proposal');
+    }
+
+    public function rejectProposalAction(): Action
+    {
+        return $this->getRejectionAction('proposal', 'Proposal')
+            ->label('Reject Proposal');
     }
 
     protected function getApprovalAction(string $relation, string $label): Action
@@ -164,17 +232,22 @@ class ViewProjectReview extends ViewRecord
                     return;
                 }
 
-                $required = $service->getRequiredApprovers($subRecord);
-                $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+                $signatureType = 'approval'; // Default
+                $required = $service->getRequiredApprovers($subRecord)
+                    ->where('signature_type', $signatureType);
 
-                if (! $matchingRule) {
-                    Notification::make()->title('You are not an authorized approver for this document')->warning()->send();
+                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+
+                if ($eligibleRules->isEmpty()) {
+                    Notification::make()->title('Access Denied')->body('You do not have authorization for this document.')->warning()->send();
 
                     return;
                 }
 
-                if ($subRecord->isRuleSatisfied($matchingRule)) {
-                    Notification::make()->title('You have already signed this document')->warning()->send();
+                $matchingRule = $eligibleRules->first(fn ($rule) => ! $subRecord->isRuleSatisfied($rule));
+
+                if (! $matchingRule) {
+                    Notification::make()->title('Already Signed')->body('You have already signed this approval step.')->warning()->send();
 
                     return;
                 }
@@ -187,8 +260,12 @@ class ViewProjectReview extends ViewRecord
                     $recordedRole = reset($commonRoles);
                 }
 
-                $subRecord->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
+                $subRecord->addSignature(auth()->user(), $signatureType, $recordedRole);
+
                 $service->notifyNextApprovers($subRecord);
+
+                // Notify owner
+                $service->notifyOwnerOnSignature($subRecord, auth()->user(), $signatureType);
 
                 Notification::make()->title("{$label} Signed Successfully")->success()->send();
 
@@ -223,10 +300,74 @@ class ViewProjectReview extends ViewRecord
 
                 // PA Hierarchy: Margin must be approved before final PA approval
                 if ($relation === 'profitabilityAnalysis') {
-                    return (bool) $subRecord->is_margin_approved;
+                    if (! $subRecord->isMarginApproved()) {
+                        return false;
+                    }
                 }
 
-                return true;
+                if ($subRecord->isFullyApproved()) {
+                    return false;
+                }
+
+                $service = app(SignatureService::class);
+                $required = $service->getRequiredApprovers($subRecord)
+                    ->where('signature_type', 'approval');
+
+                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $subRecord->isRuleSatisfied($rule));
+            });
+    }
+
+    protected function getRejectionAction(string $relation, string $label): Action
+    {
+        return Action::make("reject{$label}")
+            ->icon('heroicon-m-x-circle')
+            ->color('danger')
+            ->size('xs')
+            ->extraAttributes(['class' => 'flex-1'])
+            ->record($this->record)
+            ->requiresConfirmation()
+            ->modalHeading("Reject {$label}")
+            ->form([
+                TextInput::make('reason')
+                    ->label('Reason for Rejection')
+                    ->required(),
+            ])
+            ->action(function (array $data, $record) use ($relation, $label) {
+                $subRecord = $record->{$relation};
+                if (! $subRecord) {
+                    Notification::make()->title('Document not found')->danger()->send();
+
+                    return;
+                }
+
+                $status = match ($relation) {
+                    'generalInformation' => GeneralInformationStatus::Rejected,
+                    'profitabilityAnalysis' => ProfitabilityAnalysisStatus::Rejected,
+                    'proposal' => ProposalStatus::Rejected,
+                    default => null,
+                };
+
+                if ($status) {
+                    $subRecord->update(['status' => $status]);
+                    app(SignatureService::class)->notifyOwnerOnRejection($subRecord, $data['reason']);
+
+                    Notification::make()->title("{$label} Rejected")->success()->send();
+                }
+            })
+            ->visible(function ($record) use ($relation) {
+                $subRecord = $record->{$relation};
+                if (! $subRecord) {
+                    return false;
+                }
+
+                $submittedStatus = match ($relation) {
+                    'generalInformation' => GeneralInformationStatus::Submitted,
+                    'profitabilityAnalysis' => ProfitabilityAnalysisStatus::Submitted,
+                    'proposal' => ProposalStatus::Submitted,
+                    default => null,
+                };
+
+                return $subRecord->status->value === $submittedStatus->value;
             });
     }
 }

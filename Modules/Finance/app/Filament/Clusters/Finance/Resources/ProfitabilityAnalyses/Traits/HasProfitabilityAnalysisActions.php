@@ -87,20 +87,77 @@ trait HasProfitabilityAnalysisActions
                     return;
                 }
 
-                $record->addSignature(auth()->user(), 'margin_approval');
-                $record->update(['is_margin_approved' => true]);
+                $required = $service->getRequiredApprovers($record)
+                    ->where('signature_type', 'MarginApproval');
+
+                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+
+                if ($eligibleRules->isEmpty()) {
+                    Notification::make()
+                        ->title('Access Denied')
+                        ->body('You do not have the authority to approve margin for this document.')
+                        ->warning()
+                        ->send();
+
+                    return;
+                }
+
+                $matchingRule = $eligibleRules->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
+
+                if (! $matchingRule) {
+                    Notification::make()
+                        ->title('Already Signed')
+                        ->body('You have already signed this margin approval step.')
+                        ->warning()
+                        ->send();
+
+                    return;
+                }
+
+                $recordedRole = null;
+                if ($matchingRule->approver_type === 'Role') {
+                    $userRoles = auth()->user()->roles->pluck('name')->toArray();
+                    $ruleRoles = $matchingRule->approver_role ?? [];
+                    $commonRoles = array_intersect($userRoles, $ruleRoles);
+                    $recordedRole = reset($commonRoles);
+                }
+
+                $record->addSignature(auth()->user(), 'MarginApproval', $recordedRole);
+
+                if ($record->isMarginApproved()) {
+                    $record->update(['is_margin_approved' => true]);
+                }
+
+                $service->notifyNextApprovers($record);
+
+                // Notify owner
+                $service->notifyOwnerOnSignature($record, auth()->user(), 'MarginApproval');
 
                 Notification::make()
                     ->title('Margin Approved')
-                    ->body('Net Profit Margin has been approved and signed. The process can now proceed to Proposal.')
+                    ->body('Your signature has been recorded.')
                     ->success()
                     ->send();
             })
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
-                $isMarginApproved = $record?->is_margin_approved ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->is_margin_approved : false);
+                if ($status instanceof \BackedEnum) {
+                    $status = $status->value;
+                }
 
-                return ($status === ProfitabilityAnalysisStatus::Submitted || $status === 'submitted') && ! $isMarginApproved;
+                if (! in_array($status, [ProfitabilityAnalysisStatus::Submitted->value, 'submitted'])) {
+                    return false;
+                }
+
+                if ($record?->isMarginApproved()) {
+                    return false;
+                }
+
+                $service = app(SignatureService::class);
+                $required = $service->getRequiredApprovers($record)
+                    ->where('signature_type', 'MarginApproval');
+
+                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $record->isRuleSatisfied($rule));
             });
     }
 
@@ -110,18 +167,34 @@ trait HasProfitabilityAnalysisActions
             ->color('danger')
             ->icon('heroicon-o-x-mark')
             ->requiresConfirmation()
-            ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisStatus::Rejected]))
+            ->modalHeading(fn ($record) => 'Reject '.class_basename($record))
+            ->form([
+                TextInput::make('reason')
+                    ->label('Reason for Rejection')
+                    ->required(),
+            ])
+            ->action(function ($record, array $data) {
+                $record->update(['status' => ProfitabilityAnalysisStatus::Rejected]);
+                app(SignatureService::class)->notifyOwnerOnRejection($record, $data['reason']);
+
+                Notification::make()
+                    ->title('Document Rejected')
+                    ->success()
+                    ->send();
+            })
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                if ($status instanceof \BackedEnum) {
+                    $status = $status->value;
+                }
 
-                return $status === ProfitabilityAnalysisStatus::Submitted || $status === 'submitted';
+                return in_array($status, [ProfitabilityAnalysisStatus::Submitted->value, 'submitted']);
             });
     }
 
-    protected function getSignAction(): Action
+    protected function getApprovePAAction(): Action
     {
-        return Action::make('Sign')
-            ->label('Digital Signature')
+        return Action::make('Approve PA')
             ->color('primary')
             ->icon('heroicon-o-pencil-square')
             ->schema([
@@ -129,7 +202,7 @@ trait HasProfitabilityAnalysisActions
                     ->label('Signature PIN')
                     ->password()
                     ->required()
-                    ->helperText('Enter your digital signature PIN.'),
+                    ->helperText('Enter your digital signature PIN to approve the Profitability Analysis.'),
             ])
             ->action(function ($record, array $data) {
                 $service = app(SignatureService::class);
@@ -143,58 +216,82 @@ trait HasProfitabilityAnalysisActions
                     return;
                 }
 
-                $required = $service->getRequiredApprovers($record);
+                $required = $service->getRequiredApprovers($record)
+                    ->where('signature_type', 'approval');
 
                 $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                 if ($eligibleRules->isEmpty()) {
                     Notification::make()
                         ->title('Access Denied')
-                        ->body('You do not have the authority to sign this document based on the current approval rules.')
+                        ->body('You do not have the authority to approve this PA.')
                         ->warning()
                         ->send();
 
                     return;
                 }
 
-                // Find the first rule that is not yet satisfied
                 $matchingRule = $eligibleRules->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
 
                 if (! $matchingRule) {
                     Notification::make()
                         ->title('Already Signed')
-                        ->body('This document has already been signed by the appropriate role(s) you represent.')
+                        ->body('You have already signed this approval step.')
                         ->warning()
                         ->send();
 
                     return;
                 }
 
-                // Determine the role to record for this signature
                 $recordedRole = null;
                 if ($matchingRule->approver_type === 'Role') {
-                    // Match user role against rule roles
                     $userRoles = auth()->user()->roles->pluck('name')->toArray();
                     $ruleRoles = $matchingRule->approver_role ?? [];
                     $commonRoles = array_intersect($userRoles, $ruleRoles);
                     $recordedRole = reset($commonRoles);
                 }
 
-                $record->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
-
-                // Notify next approvers
-                $service->notifyNextApprovers($record);
-
-                Notification::make()
-                    ->title('Document Successfully Signed')
-                    ->success()
-                    ->send();
+                $record->addSignature(auth()->user(), 'approval', $recordedRole);
 
                 if ($record->isFullyApproved()) {
                     $record->update(['status' => ProfitabilityAnalysisStatus::Approved]);
                 }
+
+                $service->notifyNextApprovers($record);
+
+                // Notify owner
+                $service->notifyOwnerOnSignature($record, auth()->user(), 'approval');
+
+                Notification::make()
+                    ->title('PA Approved')
+                    ->body('Your signature has been recorded.')
+                    ->success()
+                    ->send();
             })
-            ->visible(false);
+            ->visible(function ($record) {
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                if ($status instanceof \BackedEnum) {
+                    $status = $status->value;
+                }
+
+                if (! in_array($status, [ProfitabilityAnalysisStatus::Submitted->value, 'submitted'])) {
+                    return false;
+                }
+
+                if (! $record?->isMarginApproved()) {
+                    return false;
+                }
+
+                if ($record->isFullyApproved()) {
+                    return false;
+                }
+
+                $service = app(SignatureService::class);
+                $required = $service->getRequiredApprovers($record)
+                    ->where('signature_type', 'approval');
+
+                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $record->isRuleSatisfied($rule));
+            });
     }
 
     protected function getGenerateProjectAction(): Action
@@ -487,7 +584,7 @@ trait HasProfitabilityAnalysisActions
     {
         return [
             $this->getApproveMarginAction(),
-            $this->getSignAction(),
+            $this->getApprovePAAction(),
             $this->getSubmitAction(),
             $this->getIncompleteSubmitWarningAction(),
             $this->getGenerateProjectAction(),

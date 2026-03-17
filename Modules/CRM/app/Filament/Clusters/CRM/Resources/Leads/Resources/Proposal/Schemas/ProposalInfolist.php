@@ -40,15 +40,15 @@ class ProposalInfolist
                                     ->color('info'),
                                 TextEntry::make('previous_code')
                                     ->label('Previous Code')
-                                    ->visible(fn ($record) => filled($record->previous_code)),
+                                    ->visible(fn ($record) => filled($record?->previous_code)),
                             ]),
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('final_proposal_document')
                                     ->label('Proposal Document')
-                                    ->state(fn ($record) => $record->getFirstMedia('final_proposal')?->file_name ?? 'No Document')
+                                    ->state(fn ($record) => $record?->getFirstMedia('final_proposal')?->file_name ?? 'No Document')
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('final_proposal');
+                                        $media = $record?->getFirstMedia('final_proposal');
                                         if (! $media) {
                                             return null;
                                         }
@@ -59,9 +59,9 @@ class ProposalInfolist
                                     ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'primary'),
                                 TextEntry::make('signed_proposal_document')
                                     ->label('Signed Proposal')
-                                    ->state(fn ($record) => $record->getFirstMedia('signed_proposal')?->file_name ?? 'No Document')
+                                    ->state(fn ($record) => $record?->getFirstMedia('signed_proposal')?->file_name ?? 'No Document')
                                     ->url(function ($record) {
-                                        $media = $record->getFirstMedia('signed_proposal');
+                                        $media = $record?->getFirstMedia('signed_proposal');
                                         if (! $media) {
                                             return null;
                                         }
@@ -82,7 +82,7 @@ class ProposalInfolist
                         DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])->columnSpanFull()
-                    ->visible(fn ($record) => $record->signatures()->exists()),
+                    ->visible(fn ($record) => $record?->signatures()->exists()),
 
                 Section::make('Discussions')
                     ->description('Internal team notes and revision context.')
@@ -106,8 +106,7 @@ class ProposalInfolist
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull()
-                    ->collapsible()
-                    ->visible(fn ($record) => $record->comments()->exists()),
+                    ->visible(fn ($record) => $record?->comments()->exists()),
 
                 Section::make('Communication History')
                     ->description('Traceability of emails sent to the customer.')
@@ -133,8 +132,7 @@ class ProposalInfolist
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull()
-                    ->collapsible()
-                    ->visible(fn ($record) => $record->communicationLogs()->exists()),
+                    ->visible(fn ($record) => $record?->communicationLogs()->exists()),
             ]);
     }
 }

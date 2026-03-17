@@ -20,15 +20,15 @@ class ApprovalNotificationTest extends TestCase
         Notification::fake();
 
         // 1. Setup Approver with a specific role
-        \App\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $role = \App\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
         $approver = User::factory()->create();
-        $approver->assignRole('super_admin');
+        $approver->assignRole($role);
 
         // 2. Setup Approval Rule for Proposal
         ApprovalRule::create([
             'resource_type' => Proposal::class,
             'approver_type' => 'Role',
-            'approver_role' => ['super_admin'],
+            'approver_role' => [$role->id],
             'signature_type' => 'approval',
             'order' => 1,
             'is_active' => true,

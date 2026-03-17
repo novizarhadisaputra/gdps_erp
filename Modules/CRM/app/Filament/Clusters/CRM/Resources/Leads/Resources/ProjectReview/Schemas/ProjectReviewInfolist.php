@@ -227,7 +227,7 @@ class ProjectReviewInfolist
                     return;
                 }
 
-                $pa->addSignature(auth()->user(), 'margin_approval');
+                $pa->addSignature(auth()->user(), 'MarginApproval');
                 $pa->update(['is_margin_approved' => true]);
 
                 Notification::make()->title('Margin Approved')->success()->send();

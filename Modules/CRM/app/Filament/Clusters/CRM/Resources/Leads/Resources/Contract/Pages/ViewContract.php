@@ -105,9 +105,9 @@ class ViewContract extends ViewRecord
                     // Determine the role to record for this signature
                     $recordedRole = null;
                     if ($matchingRule->approver_type === 'Role') {
-                        $userRoles = $user->roles->pluck('name')->toArray();
+                        $userRoleIds = $user->roles->pluck('id')->toArray();
                         $ruleRoles = $matchingRule->approver_role ?? [];
-                        $commonRoles = array_intersect($userRoles, $ruleRoles);
+                        $commonRoles = array_intersect($userRoleIds, $ruleRoles);
                         $recordedRole = reset($commonRoles);
                     }
 
@@ -115,6 +115,9 @@ class ViewContract extends ViewRecord
 
                     // Notify next approvers
                     $service->notifyNextApprovers($this->record);
+
+                    // Notify owner
+                    $service->notifyOwnerOnSignature($this->record, $user, $matchingRule->signature_type);
 
                     Notification::make()
                         ->title('Document Successfully Signed')
@@ -137,6 +140,28 @@ class ViewContract extends ViewRecord
                     $this->refreshFormData(['status']);
                 })
                 ->visible(fn () => $this->record->status === ContractStatus::Draft),
+
+            Action::make('Reject')
+                ->color('danger')
+                ->icon('heroicon-o-x-mark')
+                ->requiresConfirmation()
+                ->modalHeading('Reject Contract')
+                ->form([
+                    TextInput::make('reason')
+                        ->label('Reason for Rejection')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $this->record->update(['status' => ContractStatus::Rejected]);
+                    app(SignatureService::class)->notifyOwnerOnRejection($this->record, $data['reason']);
+                    $this->refreshFormData(['status']);
+
+                    Notification::make()
+                        ->title('Contract Rejected')
+                        ->warning()
+                        ->send();
+                })
+                ->visible(fn () => $this->record->status === ContractStatus::Submitted),
 
             Action::make('Terminate')
                 ->color('danger')

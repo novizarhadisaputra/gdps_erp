@@ -15,10 +15,10 @@ class AdministrativeUserSeeder extends Seeder
     public function run(): void
     {
         $roles = [
-            'Direksi',
+            'Board of Directors',
             'VP Business Support',
             'VP Finance',
-            'VP Ops',
+            'VP Operations',
             'VP Human Capital',
         ];
 
@@ -29,7 +29,7 @@ class AdministrativeUserSeeder extends Seeder
         $users = [
             [
                 'name' => 'Cornelis Radjawane',
-                'role' => 'Direksi',
+                'role' => 'Board of Directors',
                 'email' => 'cornelis@garudapratama.com',
                 'signature_pin' => '123456',
             ],
@@ -47,7 +47,7 @@ class AdministrativeUserSeeder extends Seeder
             ],
             [
                 'name' => 'Dartin Anton',
-                'role' => 'VP Ops',
+                'role' => 'VP Operations',
                 'email' => 'dartin@garudapratama.com',
                 'signature_pin' => '123456',
             ],

@@ -12,6 +12,7 @@ enum ContractStatus: string implements HasColor, HasLabel
     case Active = 'active';
     case Expired = 'expired';
     case Terminated = 'terminated';
+    case Rejected = 'rejected';
 
     public function getLabel(): ?string
     {
@@ -21,6 +22,7 @@ enum ContractStatus: string implements HasColor, HasLabel
             self::Active => 'Active',
             self::Expired => 'Expired',
             self::Terminated => 'Terminated',
+            self::Rejected => 'Rejected',
         };
     }
 
@@ -32,6 +34,7 @@ enum ContractStatus: string implements HasColor, HasLabel
             self::Active => 'success',
             self::Expired => 'warning',
             self::Terminated => 'danger',
+            self::Rejected => 'danger',
         };
     }
 }
