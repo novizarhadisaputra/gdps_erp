@@ -2,15 +2,15 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses;
 
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Filament\Resources\Pages\Page;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisRevisions;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\SummaryProfitabilityAnalysis;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ListProfitabilityAnalysisRevisions;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
@@ -58,7 +58,7 @@ class ProfitabilityAnalysisResource extends Resource
     {
         return $page->generateNavigationItems([
             SummaryProfitabilityAnalysis::class,
-            ListProfitabilityAnalysisRevisions::class,
+            ManageProfitabilityAnalysisRevisions::class,
         ]);
     }
 
@@ -78,7 +78,7 @@ class ProfitabilityAnalysisResource extends Resource
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
             'view' => SummaryProfitabilityAnalysis::route('/{record}'),
-            'revisions' => ListProfitabilityAnalysisRevisions::route('/{record}/revisions'),
+            'revisions' => ManageProfitabilityAnalysisRevisions::route('/{record}/revisions'),
             'view-revision' => ViewProfitabilityAnalysisRevision::route('/{record}/revisions/{relatedRecord}'),
         ];
     }

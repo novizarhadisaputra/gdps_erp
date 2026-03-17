@@ -2,16 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders;
 
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Filament\Resources\Pages\Page;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\CreateSalesOrder;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\EditSalesOrder;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ListSalesOrders;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\ListAmendments;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ManageAmendments;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\ViewAmendment;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas\SalesOrderForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Tables\SalesOrdersTable;
@@ -41,7 +41,7 @@ class SalesOrderResource extends Resource
     {
         return $page->generateNavigationItems([
             EditSalesOrder::class,
-            ListAmendments::class,
+            ManageAmendments::class,
         ]);
     }
 
@@ -58,7 +58,7 @@ class SalesOrderResource extends Resource
             'index' => ListSalesOrders::route('/'),
             'create' => CreateSalesOrder::route('/create'),
             'edit' => EditSalesOrder::route('/{record}/edit'),
-            'amendments' => ListAmendments::route('/{record}/amendments'),
+            'amendments' => ManageAmendments::route('/{record}/amendments'),
             'view-amendment' => ViewAmendment::route('/{record}/amendments/{relatedRecord}'),
         ];
     }

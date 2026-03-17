@@ -12,7 +12,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\AuditProfitabilityAnalysisRevision;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ListProfitabilityAnalysisRevisions;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Schemas\ProfitabilityAnalysisRevisionForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Tables\ProfitabilityAnalysisRevisionsTable;
@@ -66,7 +65,6 @@ class ProfitabilityAnalysisRevisionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListProfitabilityAnalysisRevisions::route('/'),
             'view' => ViewProfitabilityAnalysisRevision::route('/{record}'),
             'audit' => AuditProfitabilityAnalysisRevision::route('/{record}/audit'),
         ];

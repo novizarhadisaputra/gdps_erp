@@ -13,7 +13,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Pages\AuditProposalRevision;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Pages\ListProposalRevisions;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Pages\ViewProposalRevision;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Schemas\ProposalRevisionForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Tables\ProposalRevisionsTable;
@@ -67,7 +66,6 @@ class ProposalRevisionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListProposalRevisions::route('/'),
             'view' => ViewProposalRevision::route('/{record}'),
             'audit' => AuditProposalRevision::route('/{record}/audit'),
         ];

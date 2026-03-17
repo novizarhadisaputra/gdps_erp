@@ -9,7 +9,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\ProfitabilityAnalysisResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Pages\AuditProfitabilityAnalysisRevision;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Pages\ListProfitabilityAnalysisRevisions;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Schemas\ProfitabilityAnalysisRevisionForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Tables\ProfitabilityAnalysisRevisionsTable;
@@ -62,7 +61,6 @@ class ProfitabilityAnalysisRevisionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListProfitabilityAnalysisRevisions::route('/'),
             'view' => ViewProfitabilityAnalysisRevision::route('/{record}'),
             'audit' => AuditProfitabilityAnalysisRevision::route('/{record}/audit'),
         ];
