@@ -152,7 +152,7 @@ class ApprovalRuleForm
 
                         Select::make('approver_role')
                             ->label('Role(s)')
-                            ->options(fn () => Role::pluck('name', 'name'))
+                            ->options(fn () => Role::pluck('name', 'id'))
                             ->searchable()
                             ->multiple()
                             ->live()

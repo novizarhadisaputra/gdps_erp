@@ -27,12 +27,14 @@ trait HasDigitalSignatures
     /**
      * Add a signature to the model.
      */
-    public function addSignature(User $user, string $type, ?string $role = null): void
+    public function addSignature(User $user, string|\Modules\MasterData\Enums\ApprovalSignatureType $type, ?string $role = null): void
     {
+        $typeValue = $type instanceof \Modules\MasterData\Enums\ApprovalSignatureType ? $type->value : $type;
+
         $this->signatures()->create([
             'user_id' => $user->id,
             'role' => $role ?? $user->roles->first()?->name ?? 'User',
-            'signature_type' => $type,
+            'signature_type' => $typeValue,
             'ip_address' => request()->ip(),
             'signed_at' => now(),
         ]);
@@ -65,7 +67,24 @@ trait HasDigitalSignatures
 
         return $signatures->contains(function ($signature) use ($rule) {
             if ($rule->approver_type === 'Role') {
-                return in_array($signature->role, $rule->approver_role ?? []);
+                $ruleRoleIdentifiers = $rule->approver_role ?? [];
+                
+                // If signature role matches any of the identifiers directly (either both are IDs or both are names)
+                if (in_array($signature->role, $ruleRoleIdentifiers)) {
+                    return true;
+                }
+
+                // If rule identifiers are UUIDs, but signature recorded the name, we need to resolve
+                foreach ($ruleRoleIdentifiers as $identifier) {
+                    if (\Illuminate\Support\Str::isUuid($identifier)) {
+                        $role = \Spatie\Permission\Models\Role::find($identifier);
+                        if ($role && $role->name === $signature->role) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
 
             if ($rule->approver_type === 'User') {
@@ -80,11 +99,12 @@ trait HasDigitalSignatures
     /**
      * Determine if all rules of a specific signature type have been satisfied.
      */
-    public function isTypeApproved(string $type): bool
+    public function isTypeApproved(string|\Modules\MasterData\Enums\ApprovalSignatureType $type): bool
     {
+        $typeValue = $type instanceof \Modules\MasterData\Enums\ApprovalSignatureType ? $type->value : $type;
         $service = app(SignatureService::class);
         $rules = $service->getRequiredApprovers($this)
-            ->where('signature_type', $type);
+            ->where('signature_type', $typeValue);
 
         if ($rules->isEmpty()) {
             return true;

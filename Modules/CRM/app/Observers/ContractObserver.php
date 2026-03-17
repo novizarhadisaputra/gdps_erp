@@ -6,6 +6,7 @@ use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\ContractType;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Contract;
+use Modules\MasterData\Services\SignatureService;
 
 class ContractObserver
 {
@@ -73,6 +74,10 @@ class ContractObserver
             if ($lead) {
                 $lead->update(['status' => LeadStatus::Won]);
             }
+        }
+
+        if ($contract->wasChanged('status') && $contract->status === ContractStatus::Submitted) {
+            app(SignatureService::class)->notifyNextApprovers($contract);
         }
     }
 }

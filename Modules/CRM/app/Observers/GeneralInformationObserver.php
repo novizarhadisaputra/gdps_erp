@@ -5,6 +5,7 @@ namespace Modules\CRM\Observers;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\GeneralInformation;
+use Modules\MasterData\Services\SignatureService;
 
 // Duplicate import removed
 
@@ -59,6 +60,8 @@ class GeneralInformationObserver
             ], [
                 'status' => 'draft',
             ]);
+
+            app(SignatureService::class)->notifyNextApprovers($info);
         }
 
         // Sync CostingTemplate and ManpowerTemplate description

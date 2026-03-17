@@ -6,6 +6,7 @@ use Modules\CRM\Enums\LeadStatus;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityAnalysisRevision;
+use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Services\ProjectService;
 
 class ProfitabilityAnalysisObserver
@@ -77,6 +78,10 @@ class ProfitabilityAnalysisObserver
             $analysis->lead->update([
                 'status' => LeadStatus::Proposal,
             ]);
+        }
+
+        if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Submitted) {
+            app(SignatureService::class)->notifyNextApprovers($analysis);
         }
 
         // 2. When PA is reset to Draft (due to revision), track revision info and clear signatures

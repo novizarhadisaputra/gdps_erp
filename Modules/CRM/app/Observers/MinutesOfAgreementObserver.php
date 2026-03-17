@@ -3,6 +3,7 @@
 namespace Modules\CRM\Observers;
 
 use Modules\CRM\Models\MinutesOfAgreement;
+use Modules\MasterData\Services\SignatureService;
 
 class MinutesOfAgreementObserver
 {
@@ -48,6 +49,10 @@ class MinutesOfAgreementObserver
             if ($minutesOfAgreement->lead) {
                 // Potential logic for next stage if needed
             }
+        }
+
+        if ($minutesOfAgreement->wasChanged('status') && $minutesOfAgreement->status === \Modules\CRM\Enums\MoAStatus::Submitted) {
+            app(SignatureService::class)->notifyNextApprovers($minutesOfAgreement);
         }
     }
 }

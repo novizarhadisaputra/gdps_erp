@@ -17,6 +17,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProjectReview\Pr
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalInfolist;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Services\SignatureService;
 
 class ViewProjectReview extends ViewRecord
@@ -50,6 +51,13 @@ class ViewProjectReview extends ViewRecord
                         "{$filename}.pdf"
                     );
                 }),
+            $this->approveProjectAction(),
+            $this->approveGIAction(),
+            $this->rejectGIAction(),
+            $this->approvePAAction(),
+            $this->rejectPAAction(),
+            $this->approveProposalAction(),
+            $this->rejectProposalAction(),
         ];
     }
 
@@ -77,10 +85,10 @@ class ViewProjectReview extends ViewRecord
         );
     }
 
-    public function approveMarginAction(): Action
+    public function approveProjectAction(): Action
     {
-        return Action::make('approveMargin')
-            ->label('Approve Margin')
+        return Action::make('approveProject')
+            ->label('Approve Project')
             ->icon('heroicon-m-check-badge')
             ->color('success')
             ->size('xs')
@@ -109,7 +117,7 @@ class ViewProjectReview extends ViewRecord
                 }
 
                 $required = $service->getRequiredApprovers($pa)
-                    ->where('signature_type', 'MarginApproval');
+                    ->where('signature_type', ApprovalSignatureType::MarginApproval->value);
 
                 $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
@@ -129,13 +137,14 @@ class ViewProjectReview extends ViewRecord
 
                 $recordedRole = null;
                 if ($matchingRule->approver_type === 'Role') {
-                    $userRoles = auth()->user()->roles->pluck('name')->toArray();
-                    $ruleRoles = $matchingRule->approver_role ?? [];
-                    $commonRoles = array_intersect($userRoles, $ruleRoles);
-                    $recordedRole = reset($commonRoles);
+                    $userRoles = auth()->user()->roles;
+                    $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
+
+                    $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
+                    $recordedRole = $matchedRole?->name;
                 }
 
-                $pa->addSignature(auth()->user(), 'MarginApproval', $recordedRole);
+                $pa->addSignature(auth()->user(), ApprovalSignatureType::MarginApproval, $recordedRole);
 
                 if ($pa->isMarginApproved()) {
                     $pa->update(['is_margin_approved' => true]);
@@ -144,9 +153,9 @@ class ViewProjectReview extends ViewRecord
                 $service->notifyNextApprovers($pa);
 
                 // Notify owner
-                $service->notifyOwnerOnSignature($pa, auth()->user(), 'MarginApproval');
+                $service->notifyOwnerOnSignature($pa, auth()->user(), ApprovalSignatureType::MarginApproval->value);
 
-                Notification::make()->title('Margin Approved Successfully')->success()->send();
+                Notification::make()->title('Project Approved Successfully')->success()->send();
             })
             ->visible(function ($record) {
                 $pa = $record->profitabilityAnalysis;
@@ -160,9 +169,11 @@ class ViewProjectReview extends ViewRecord
 
                 $service = app(SignatureService::class);
                 $required = $service->getRequiredApprovers($pa)
-                    ->where('signature_type', 'MarginApproval');
+                    ->where('signature_type', ApprovalSignatureType::MarginApproval->value);
 
-                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $pa->isRuleSatisfied($rule));
+                $nextRule = $required->first(fn ($rule) => ! $pa->isRuleSatisfied($rule));
+
+                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
             });
     }
 
@@ -232,9 +243,9 @@ class ViewProjectReview extends ViewRecord
                     return;
                 }
 
-                $signatureType = 'approval'; // Default
+                $signatureType = ApprovalSignatureType::Approver; // Standard Enum
                 $required = $service->getRequiredApprovers($subRecord)
-                    ->where('signature_type', $signatureType);
+                    ->where('signature_type', $signatureType->value);
 
                 $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
@@ -254,10 +265,11 @@ class ViewProjectReview extends ViewRecord
 
                 $recordedRole = null;
                 if ($matchingRule->approver_type === 'Role') {
-                    $userRoles = auth()->user()->roles->pluck('name')->toArray();
-                    $ruleRoles = $matchingRule->approver_role ?? [];
-                    $commonRoles = array_intersect($userRoles, $ruleRoles);
-                    $recordedRole = reset($commonRoles);
+                    $userRoles = auth()->user()->roles;
+                    $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
+
+                    $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
+                    $recordedRole = $matchedRole?->name;
                 }
 
                 $subRecord->addSignature(auth()->user(), $signatureType, $recordedRole);
@@ -265,9 +277,7 @@ class ViewProjectReview extends ViewRecord
                 $service->notifyNextApprovers($subRecord);
 
                 // Notify owner
-                $service->notifyOwnerOnSignature($subRecord, auth()->user(), $signatureType);
-
-                Notification::make()->title("{$label} Signed Successfully")->success()->send();
+                $service->notifyOwnerOnSignature($subRecord, auth()->user(), $signatureType->value);
 
                 if ($subRecord->isFullyApproved()) {
                     $status = match ($relation) {
@@ -279,6 +289,19 @@ class ViewProjectReview extends ViewRecord
                     if ($status) {
                         $subRecord->update(['status' => $status]);
                     }
+
+                    Notification::make()->title("{$label} Fully Approved")->success()->send();
+                } else {
+                    $notification = Notification::make()
+                        ->title("{$label} Signed Successfully")
+                        ->success();
+
+                    // Specific feedback for GI Risk Register
+                    if ($relation === 'generalInformation' && ! $subRecord->hasRiskRegisterApproval() && $subRecord->isTypeApproved(ApprovalSignatureType::Approver)) {
+                        $notification->body('Digital signatures are complete, but status remains "Submitted" pending Risk Register approval.');
+                    }
+
+                    $notification->send();
                 }
             })
             ->visible(function ($record) use ($relation) {
@@ -311,9 +334,11 @@ class ViewProjectReview extends ViewRecord
 
                 $service = app(SignatureService::class);
                 $required = $service->getRequiredApprovers($subRecord)
-                    ->where('signature_type', 'approval');
+                    ->where('signature_type', ApprovalSignatureType::Approver->value);
 
-                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $subRecord->isRuleSatisfied($rule));
+                $nextRule = $required->first(fn ($rule) => ! $subRecord->isRuleSatisfied($rule));
+
+                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
             });
     }
 
@@ -327,7 +352,7 @@ class ViewProjectReview extends ViewRecord
             ->record($this->record)
             ->requiresConfirmation()
             ->modalHeading("Reject {$label}")
-            ->form([
+            ->schema([
                 TextInput::make('reason')
                     ->label('Reason for Rejection')
                     ->required(),

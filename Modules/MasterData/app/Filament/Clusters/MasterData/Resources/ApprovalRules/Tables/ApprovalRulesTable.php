@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApprovalRules\Tables;
 
+use App\Models\Role;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -43,7 +44,10 @@ class ApprovalRulesTable
                         return $format($state);
                     }),
                 TextColumn::make('approver_role')
-                    ->badge(),
+                    ->badge()
+                    ->formatStateUsing(function ($state) {
+                        return Role::find($state)?->name;
+                    }),
                 TextColumn::make('signature_type'),
                 TextColumn::make('order')
                     ->sortable(),

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Observers\SignatureObserver;
 
 #[ObservedBy(SignatureObserver::class)]
@@ -39,6 +40,7 @@ class Signature extends Model
 
     protected $casts = [
         'signed_at' => 'datetime',
+        'signature_type' => ApprovalSignatureType::class,
     ];
 
     public function user(): BelongsTo

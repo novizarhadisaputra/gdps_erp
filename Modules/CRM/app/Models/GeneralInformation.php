@@ -144,12 +144,20 @@ class GeneralInformation extends Model implements HasMedia
     }
 
     /**
+     * Check if the Risk Register for this GI is approved.
+     */
+    public function hasRiskRegisterApproval(): bool
+    {
+        return $this->rr_status === 'approved';
+    }
+
+    /**
      * Determine if the document is fully approved.
      * Overridden to include Risk Register status check.
      */
     public function isFullyApproved(): bool
     {
-        return $this->rr_status === 'approved' && $this->traitIsFullyApproved();
+        return $this->hasRiskRegisterApproval() && $this->traitIsFullyApproved();
     }
 
     public function getPicCustomerNameAttribute(): ?string

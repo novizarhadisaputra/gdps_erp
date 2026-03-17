@@ -116,10 +116,11 @@ trait HasProfitabilityAnalysisActions
 
                 $recordedRole = null;
                 if ($matchingRule->approver_type === 'Role') {
-                    $userRoles = auth()->user()->roles->pluck('name')->toArray();
-                    $ruleRoles = $matchingRule->approver_role ?? [];
-                    $commonRoles = array_intersect($userRoles, $ruleRoles);
-                    $recordedRole = reset($commonRoles);
+                    $userRoles = auth()->user()->roles;
+                    $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
+
+                    $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
+                    $recordedRole = $matchedRole?->name;
                 }
 
                 $record->addSignature(auth()->user(), 'MarginApproval', $recordedRole);
@@ -157,7 +158,9 @@ trait HasProfitabilityAnalysisActions
                 $required = $service->getRequiredApprovers($record)
                     ->where('signature_type', 'MarginApproval');
 
-                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $record->isRuleSatisfied($rule));
+                $nextRule = $required->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
+
+                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
             });
     }
 
@@ -217,7 +220,7 @@ trait HasProfitabilityAnalysisActions
                 }
 
                 $required = $service->getRequiredApprovers($record)
-                    ->where('signature_type', 'approval');
+                    ->where('signature_type', 'Approver');
 
                 $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
@@ -245,13 +248,14 @@ trait HasProfitabilityAnalysisActions
 
                 $recordedRole = null;
                 if ($matchingRule->approver_type === 'Role') {
-                    $userRoles = auth()->user()->roles->pluck('name')->toArray();
-                    $ruleRoles = $matchingRule->approver_role ?? [];
-                    $commonRoles = array_intersect($userRoles, $ruleRoles);
-                    $recordedRole = reset($commonRoles);
+                    $userRoles = auth()->user()->roles;
+                    $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
+
+                    $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
+                    $recordedRole = $matchedRole?->name;
                 }
 
-                $record->addSignature(auth()->user(), 'approval', $recordedRole);
+                $record->addSignature(auth()->user(), 'Approver', $recordedRole);
 
                 if ($record->isFullyApproved()) {
                     $record->update(['status' => ProfitabilityAnalysisStatus::Approved]);
@@ -260,7 +264,7 @@ trait HasProfitabilityAnalysisActions
                 $service->notifyNextApprovers($record);
 
                 // Notify owner
-                $service->notifyOwnerOnSignature($record, auth()->user(), 'approval');
+                $service->notifyOwnerOnSignature($record, auth()->user(), 'Approver');
 
                 Notification::make()
                     ->title('PA Approved')
@@ -288,9 +292,11 @@ trait HasProfitabilityAnalysisActions
 
                 $service = app(SignatureService::class);
                 $required = $service->getRequiredApprovers($record)
-                    ->where('signature_type', 'approval');
+                    ->where('signature_type', 'Approver');
 
-                return $required->some(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()) && ! $record->isRuleSatisfied($rule));
+                $nextRule = $required->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
+
+                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
             });
     }
 

@@ -86,10 +86,14 @@ class SignatureService
     public function isEligibleApprover(ApprovalRule $rule, User $user): bool
     {
         if ($rule->approver_type === 'Role') {
-            $userRoleIds = $user->roles->pluck('id')->toArray();
+            $userRoles = $user->roles;
+            $userRoleIdentifiers = array_merge(
+                $userRoles->pluck('id')->toArray(),
+                $userRoles->pluck('name')->toArray()
+            );
             $ruleRoles = $rule->approver_role ?? [];
 
-            return ! empty(array_intersect($userRoleIds, $ruleRoles));
+            return ! empty(array_intersect($userRoleIdentifiers, $ruleRoles));
         }
 
         if ($rule->approver_type === 'User') {
@@ -121,8 +125,27 @@ class SignatureService
         $query = User::query();
 
         if ($rule->approver_type === 'Role') {
-            $roleIds = $rule->approver_role ?? [];
-            $query->whereHas('roles', fn ($q) => $q->whereIn('id', $roleIds));
+            $roleIdentifiers = $rule->approver_role ?? [];
+            $query->whereHas('roles', function ($q) use ($roleIdentifiers) {
+                $q->where(function ($q2) use ($roleIdentifiers) {
+                    $uuids = [];
+                    $names = [];
+                    foreach ($roleIdentifiers as $id) {
+                        if (\Illuminate\Support\Str::isUuid($id)) {
+                            $uuids[] = $id;
+                        } else {
+                            $names[] = $id;
+                        }
+                    }
+
+                    if (! empty($uuids)) {
+                        $q2->orWhereIn('id', $uuids);
+                    }
+                    if (! empty($names)) {
+                        $q2->orWhereIn('name', $names);
+                    }
+                });
+            });
         } elseif ($rule->approver_type === 'User') {
             $query->whereIn('id', $rule->approver_user_id ?? []);
         } elseif ($rule->approver_type === 'Position') {
@@ -190,7 +213,7 @@ class SignatureService
     /**
      * Notify the owner of the document when it is signed by an approver.
      */
-    public function notifyOwnerOnSignature(Model $model, User $approver, string $signatureType): void
+    public function notifyOwnerOnSignature(Model $model, User $approver, string|ApprovalSignatureType $signatureType): void
     {
         $owner = null;
 
@@ -204,8 +227,9 @@ class SignatureService
 
         if ($owner && $owner->id !== $approver->id) {
             $url = $this->getResourceUrl($model);
-            $enumCase = ApprovalSignatureType::tryFrom($signatureType);
-            $typeName = $enumCase ? $enumCase->getLabel() : str_replace('_', ' ', preg_replace('/(?<!^)([A-Z])/', ' $1', ucfirst($signatureType)));
+            $typeValue = $signatureType instanceof ApprovalSignatureType ? $signatureType->value : $signatureType;
+            $enumCase = ApprovalSignatureType::tryFrom($typeValue);
+            $typeName = $enumCase ? $enumCase->getLabel() : str_replace('_', ' ', preg_replace('/(?<!^)([A-Z])/', ' $1', ucfirst($typeValue)));
             $message = 'Your '.class_basename($model)." has been signed ({$typeName}) by {$approver->name}.";
 
             $owner->notify(new ApprovalSignedNotification($model, $message, $url));
@@ -275,8 +299,9 @@ class SignatureService
     /**
      * Create a secure data string for the signature QR Code.
      */
-    public function createSignatureData(?User $user, Model $model, string $type, ?string $guestName = null): string
+    public function createSignatureData(?User $user, Model $model, string|ApprovalSignatureType $type, ?string $guestName = null): string
     {
+        $typeValue = $type instanceof ApprovalSignatureType ? $type->value : $type;
         $timestamp = now()->toIso8601String();
         $recordId = $model->getKey();
         $recordClass = get_class($model);
@@ -286,7 +311,7 @@ class SignatureService
             'id' => $recordId,
             'user' => $user?->id,
             'guest_name' => $guestName,
-            'type' => $type,
+            'type' => $typeValue,
             'time' => $timestamp,
         ];
 

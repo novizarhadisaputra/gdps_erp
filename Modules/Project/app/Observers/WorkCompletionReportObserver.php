@@ -4,6 +4,7 @@ namespace Modules\Project\Observers;
 
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\WorkCompletionReport;
 
@@ -26,6 +27,10 @@ class WorkCompletionReportObserver
                 'amount' => $report->salesOrder?->amount ?? 0, // Should ideally be proportional to progress
                 'status' => InvoiceStatus::Draft,
             ]);
+        }
+
+        if ($report->wasChanged('status') && $report->status === WorkCompletionStatus::Submitted) {
+            app(SignatureService::class)->notifyNextApprovers($report);
         }
     }
 }

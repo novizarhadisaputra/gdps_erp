@@ -7,6 +7,7 @@ use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\ProposalRevision;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\MasterData\Services\SignatureService;
 
 class ProposalObserver
 {
@@ -67,6 +68,10 @@ class ProposalObserver
                     'status' => LeadStatus::Negotiation,
                 ]);
             }
+        }
+
+        if ($proposal->wasChanged('status') && $proposal->status === ProposalStatus::Submitted) {
+            app(SignatureService::class)->notifyNextApprovers($proposal);
         }
 
         // 2. If Proposal is moved to Draft (Revised), reset linked PA status and track revision
