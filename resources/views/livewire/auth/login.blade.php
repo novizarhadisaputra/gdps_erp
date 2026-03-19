@@ -1,15 +1,19 @@
 <div>
     <div
-        class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-amber-50 via-white to-amber-50">
+        class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-amber-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900">
         <div class="max-w-6xl w-full flex flex-col lg:flex-row gap-12 items-center">
 
             {{-- Left Column: ERP Info (Hidden on mobile, visible on LG+) --}}
             <div class="hidden lg:flex flex-1 flex-col space-y-8 animate-fade-in">
                 <div>
-                    <h1 class="text-5xl font-extrabold text-gray-900 tracking-tight">
+                    <div class="mb-6">
+                        <img src="{{ asset('images/logo.png') }}" class="h-12 w-auto dark:hidden" alt="GDPS Logo">
+                        <img src="{{ asset('images/logo-white.png') }}" class="h-12 w-auto hidden dark:block" alt="GDPS Logo">
+                    </div>
+                    <h1 class="text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight">
                         GDPS <span class="text-amber-600">ERP</span>
                     </h1>
-                    <p class="mt-4 text-xl text-gray-600 leading-relaxed">
+                    <p class="mt-4 text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
                         Integrated Enterprise Resource Planning for Garuda Daya Pratama Sejahtera.
                         Manage your workflow, finance, and operations in one unified platform.
                     </p>
@@ -17,46 +21,46 @@
 
                 <div class="grid grid-cols-2 gap-6">
                     <div
-                        class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                        class="p-6 bg-white dark:bg-gray-800/50 rounded-2xl shadow-sm border border-amber-100 dark:border-gray-700 hover:shadow-md transition-shadow">
                         <div
-                            class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
+                            class="h-10 w-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-600 mb-4">
                             <x-heroicon-o-presentation-chart-bar class="h-6 w-6" />
                         </div>
-                        <h3 class="font-bold text-gray-900">CRM & Sales</h3>
-                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">Manage Lead Pipelines, Proposal
+                        <h3 class="font-bold text-gray-900 dark:text-white">CRM & Sales</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">Manage Lead Pipelines, Proposal
                             Generations & Contract Lifecycles (SPK). Integrated lead-to-deal tracking.</p>
                     </div>
 
                     <div
-                        class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                        class="p-6 bg-white dark:bg-gray-800/50 rounded-2xl shadow-sm border border-amber-100 dark:border-gray-700 hover:shadow-md transition-shadow">
                         <div
-                            class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
+                            class="h-10 w-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-600 mb-4">
                             <x-heroicon-o-banknotes class="h-6 w-6" />
                         </div>
-                        <h3 class="font-bold text-gray-900">Finance Core</h3>
-                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">SAP compatible General Ledger, automated
+                        <h3 class="font-bold text-gray-900 dark:text-white">Finance Core</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">SAP compatible General Ledger, automated
                             AP/AR, Treasury, and Real-time Project Budgeting.</p>
                     </div>
 
                     <div
-                        class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                        class="p-6 bg-white dark:bg-gray-800/50 rounded-2xl shadow-sm border border-amber-100 dark:border-gray-700 hover:shadow-md transition-shadow">
                         <div
-                            class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
+                            class="h-10 w-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-600 mb-4">
                             <x-heroicon-o-clipboard-document-check class="h-6 w-6" />
                         </div>
-                        <h3 class="font-bold text-gray-900">Project Management</h3>
-                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">Master PI verification, automated Project
+                        <h3 class="font-bold text-gray-900 dark:text-white">Project Management</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">Master PI verification, automated Project
                             Code generation, and tiered Profitability Analysis.</p>
                     </div>
 
                     <div
-                        class="p-6 bg-white rounded-2xl shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                        class="p-6 bg-white dark:bg-gray-800/50 rounded-2xl shadow-sm border border-amber-100 dark:border-gray-700 hover:shadow-md transition-shadow">
                         <div
-                            class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 mb-4">
+                            class="h-10 w-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-600 mb-4">
                             <x-heroicon-o-truck class="h-6 w-6" />
                         </div>
-                        <h3 class="font-bold text-gray-900">Logistics & Asset</h3>
-                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">Procurement lifecycle (PR/PO), Multi-site
+                        <h3 class="font-bold text-gray-900 dark:text-white">Logistics & Asset</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">Procurement lifecycle (PR/PO), Multi-site
                             Inventory tracking, and Asset Management.</p>
                     </div>
                 </div>
@@ -65,29 +69,29 @@
             {{-- Right Column: Login Form --}}
             <div class="max-w-md w-full space-y-8 flex-shrink-0">
                 <div class="text-center lg:text-left lg:hidden">
-                    <div
-                        class="mx-auto h-16 w-16 lg:mx-0 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
-                        <x-heroicon-o-computer-desktop class="h-10 w-10 text-white" />
+                    <div class="mb-6 flex justify-center lg:justify-start">
+                        <img src="{{ asset('images/logo.png') }}" class="h-12 w-auto dark:hidden" alt="GDPS Logo">
+                        <img src="{{ asset('images/logo-white.png') }}" class="h-12 w-auto hidden dark:block" alt="GDPS Logo">
                     </div>
-                    <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                    <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
                         GDPS ERP System
                     </h2>
-                    <p class="mt-2 text-sm text-gray-600">
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                         Sign in to your account
                     </p>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-800">
                     <div class="mb-8 hidden lg:block">
-                        <h2 class="text-2xl font-bold text-gray-900">Welcome Back</h2>
-                        <p class="text-gray-500 mt-1 text-sm">Please enter your credentials to continue.</p>
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Welcome Back</h2>
+                        <p class="text-gray-500 dark:text-gray-400 mt-1 text-sm">Please enter your credentials to continue.</p>
                     </div>
 
 
                     <form wire:submit="login" class="space-y-6">
                         {{-- Email Field --}}
                         <div>
-                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Email Address
                             </label>
                             <div class="relative">
@@ -96,7 +100,7 @@
                                     <x-heroicon-o-envelope class="h-5 w-5" />
                                 </div>
                                 <input wire:model="email" id="email" type="email" required autocomplete="email"
-                                    class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 @error('email') border-red-500 @enderror"
+                                    class="block w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 @error('email') border-red-500 @enderror"
                                     placeholder="you@example.com">
                             </div>
                             @error('email')
@@ -106,7 +110,7 @@
 
                         {{-- Password Field with Hide/Show Toggle --}}
                         <div x-data="{ show: false }">
-                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Password
                             </label>
                             <div class="relative">
@@ -116,7 +120,7 @@
                                 </div>
                                 <input wire:model="password" id="password" :type="show ? 'text' : 'password'" required
                                     autocomplete="current-password"
-                                    class="block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 @error('password') border-red-500 @enderror"
+                                    class="block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 @error('password') border-red-500 @enderror"
                                     placeholder="••••••••">
                                 <button type="button" @click="show = !show"
                                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-amber-600 transition-colors cursor-pointer focus:outline-none">
@@ -135,8 +139,8 @@
                         {{-- Remember Me --}}
                         <div class="flex items-center">
                             <input wire:model="remember" id="remember" type="checkbox"
-                                class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded cursor-pointer transition-colors">
-                            <label for="remember" class="ml-2 block text-sm text-gray-700 cursor-pointer select-none">
+                                class="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded cursor-pointer transition-colors">
+                            <label for="remember" class="ml-2 block text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
                                 Keep me signed in
                             </label>
                         </div>
@@ -162,18 +166,45 @@
 
                 {{-- Footer --}}
                 <div class="pt-4 text-center">
-                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">
                         &copy; {{ date('Y') }} PT Garuda Daya Pratama Sejahtera
                     </p>
                     <div class="mt-2 flex justify-center space-x-4">
-                        <a href="#" class="text-xs text-gray-400 hover:text-amber-600 transition-colors">Internal
+                        <a href="#" class="text-xs text-gray-400 dark:text-gray-500 hover:text-amber-600 transition-colors">Internal
                             Portal</a>
-                        <span class="text-gray-300">•</span>
+                        <span class="text-gray-300 dark:text-gray-700">•</span>
                         <a href="#"
-                            class="text-xs text-gray-400 hover:text-amber-600 transition-colors">Support</a>
+                            class="text-xs text-gray-400 dark:text-gray-500 hover:text-amber-600 transition-colors">Support</a>
                     </div>
                 </div>
             </div>
+        </div>
+
+        {{-- Theme Switcher --}}
+        <div class="fixed top-4 right-4 z-50">
+            <button x-data="{
+                theme: localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'),
+                toggle() {
+                    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('theme', this.theme);
+
+                    if (this.theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+
+                    window.dispatchEvent(new CustomEvent('theme-changed', {
+                        detail: this.theme
+                    }));
+                }
+            }" @click="toggle()"
+                class="p-2 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all group">
+                <x-heroicon-o-sun x-show="theme === 'dark'" x-cloak
+                    class="h-6 w-6 text-amber-500 transition-transform group-hover:rotate-12" />
+                <x-heroicon-o-moon x-show="theme === 'light'" x-cloak
+                    class="h-6 w-6 text-gray-600 transition-transform group-hover:-rotate-12" />
+            </button>
         </div>
 
     </div>
