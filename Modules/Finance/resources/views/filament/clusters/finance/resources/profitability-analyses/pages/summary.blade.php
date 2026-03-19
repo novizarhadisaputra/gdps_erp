@@ -330,11 +330,23 @@
                         (is_array($roleIdentifiers) ? implode(' / ', $roleIdentifiers) : $roleIdentifiers);
                 };
 
+                // Helper to resolve eligible user names
+                $getEligibleUserNames = function ($rule) use ($signatureService) {
+                    if (!$rule) {
+                        return null;
+                    }
+                    $users = $signatureService->getEligibleUsers($rule);
+                    if ($users->isEmpty()) {
+                        return null;
+                    }
+                    return $users->pluck('name')->implode(', ');
+                };
+
                 // Helper to build display items
-                $buildItem = function ($user, $role, $type, $isSigned, $date) {
+                $buildItem = function ($user, $role, $type, $isSigned, $date, $eligibleNames = null) {
                     return [
                         'is_signed' => $isSigned,
-                        'signer_name' => $user?->name ?? ($isSigned ? '-' : 'Waiting...'),
+                        'signer_name' => $user?->name ?? ($isSigned ? '-' : ($eligibleNames ?: 'Waiting...')),
                         'role' => $role,
                         'type' => $type,
                         'user' => $user,
@@ -362,6 +374,7 @@
                             'Reviewer',
                             (bool) $sig,
                             $sig?->signed_at,
+                            $getEligibleUserNames($rule)
                         ),
                     );
                 }
@@ -389,6 +402,7 @@
                             'MarginApproval',
                             (bool) $sig,
                             $sig?->signed_at,
+                            $getEligibleUserNames($rule)
                         ),
                     );
                 }
@@ -426,6 +440,7 @@
                             'Approver',
                             (bool) $sig,
                             $sig?->signed_at,
+                            $getEligibleUserNames($rule)
                         ),
                     );
                 }
@@ -454,6 +469,7 @@
                             'Acknowledger',
                             (bool) $sig,
                             $sig?->signed_at,
+                            $getEligibleUserNames($rule)
                         ),
                     );
                 }

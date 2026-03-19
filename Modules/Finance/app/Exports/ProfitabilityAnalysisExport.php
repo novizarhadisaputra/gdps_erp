@@ -265,9 +265,11 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
 
     protected function getExpectedApproverForRule(ApprovalRule $rule, ApprovalSignatureType $type): array
     {
+        $service = app(SignatureService::class);
         $title = $type->getLabel();
         $name = '-';
 
+        // 1. Resolve Title (Role Names or Position)
         if ($rule->approver_type === 'Role') {
             $roleIds = $rule->approver_role ?? [];
             if (! empty($roleIds)) {
@@ -278,15 +280,19 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
 
                 $title = implode(', ', $roleNames);
             }
-        } elseif ($rule->approver_type === 'User') {
-            $userIds = $rule->approver_user_id ?? [];
-            if (! empty($userIds)) {
-                $users = User::whereIn('id', $userIds)->get();
-                $name = $users->pluck('name')->implode(', ');
-                $title = $users->first()?->position ?? $title;
-            }
         } elseif ($rule->approver_type === 'Position') {
             $title = implode(', ', $rule->approver_position ?? []);
+        }
+
+        // 2. Resolve Names (Eligible Users)
+        $eligibleUsers = $service->getEligibleUsers($rule);
+        if ($eligibleUsers->isNotEmpty()) {
+            $name = $eligibleUsers->pluck('name')->implode(', ');
+            
+            // If it's a 'User' type rule, the title should be their position
+            if ($rule->approver_type === 'User') {
+                $title = $eligibleUsers->first()?->position ?? $title;
+            }
         }
 
         return [
