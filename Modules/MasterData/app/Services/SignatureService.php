@@ -126,6 +126,9 @@ class SignatureService
 
         if ($rule->approver_type === 'Role') {
             $roleIdentifiers = $rule->approver_role ?? [];
+            if (empty($roleIdentifiers)) {
+                return collect();
+            }
             $query->whereHas('roles', function ($q) use ($roleIdentifiers) {
                 $q->where(function ($q2) use ($roleIdentifiers) {
                     $uuids = [];
@@ -147,11 +150,23 @@ class SignatureService
                 });
             });
         } elseif ($rule->approver_type === 'User') {
-            $query->whereIn('id', $rule->approver_user_id ?? []);
+            $userIds = $rule->approver_user_id ?? [];
+            if (empty($userIds)) {
+                return collect();
+            }
+            $query->whereIn('id', $userIds);
         } elseif ($rule->approver_type === 'Position') {
-            $query->whereIn('position', $rule->approver_position ?? []);
+            $positions = $rule->approver_position ?? [];
+            if (empty($positions)) {
+                return collect();
+            }
+            $query->whereIn('position', $positions);
         } elseif ($rule->approver_type === 'Unit') {
-            $query->whereIn('unit_id', $rule->approver_unit_id ?? []);
+            $unitIds = $rule->approver_unit_id ?? [];
+            if (empty($unitIds)) {
+                return collect();
+            }
+            $query->whereIn('unit_id', $unitIds);
         } else {
             return collect();
         }

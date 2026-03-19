@@ -358,10 +358,7 @@
                     $reviewItems->push(
                         $buildItem(
                             $sig?->user,
-                            $sig?->role ??
-                                (is_array($rule->approver_role)
-                                    ? implode(' / ', $rule->approver_role)
-                                    : $rule->approver_role),
+                            $sig?->role ?? $getRoleName($rule->approver_role),
                             'Reviewer',
                             (bool) $sig,
                             $sig?->signed_at,
@@ -388,7 +385,7 @@
                     $marginItems->push(
                         $buildItem(
                             $sig?->user,
-                            $sig?->role ?? 'Margin Approval',
+                            $sig?->role ?? $getRoleName($rule->approver_role),
                             'MarginApproval',
                             (bool) $sig,
                             $sig?->signed_at,
@@ -425,10 +422,7 @@
                     $approvalItems->push(
                         $buildItem(
                             $sig?->user,
-                            $sig?->role ??
-                                (is_array($rule->approver_role)
-                                    ? implode(' / ', $rule->approver_role)
-                                    : $rule->approver_role),
+                            $sig?->role ?? $getRoleName($rule->approver_role),
                             'Approver',
                             (bool) $sig,
                             $sig?->signed_at,
