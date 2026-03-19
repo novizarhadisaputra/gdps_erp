@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Tables;
 
 use Filament\Actions\Action;
+use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -55,7 +56,7 @@ class ProposalsTable
                     ])),
                 Action::make('Revise')
                     ->label('Revise')
-                    ->icon('heroicon-o-arrow-path')
+                    ->icon(Heroicon::OutlinedArrowPath)
                     ->color('warning')
                     ->requiresConfirmation()
                     ->modalDescription('Are you sure you want to revise this proposal? This will reset the status to Draft and allow you to modify the Profitability Analysis costing.')

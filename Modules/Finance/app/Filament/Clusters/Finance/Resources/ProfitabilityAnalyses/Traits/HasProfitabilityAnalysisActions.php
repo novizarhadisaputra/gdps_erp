@@ -3,6 +3,7 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits;
 
 use Filament\Actions\Action;
+use Filament\Support\Icons\Heroicon;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
@@ -25,7 +26,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('Submit')
             ->color('info')
-            ->icon('heroicon-o-paper-airplane')
+            ->icon(Heroicon::OutlinedPaperAirplane)
             ->requiresConfirmation()
             ->action(function ($record) {
                 $record->update(['status' => ProfitabilityAnalysisStatus::Submitted]);
@@ -48,7 +49,7 @@ trait HasProfitabilityAnalysisActions
         return Action::make('incompleteSubmitWarning')
             ->label('Submit')
             ->color('gray')
-            ->icon('heroicon-o-exclamation-triangle')
+            ->icon(Heroicon::OutlinedExclamationTriangle)
             ->disabled()
             ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 item costing untuk dapat melakukan Submit.')
             ->visible(function ($record) {
@@ -67,7 +68,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('Approve Margin')
             ->color('success')
-            ->icon('heroicon-o-check-badge')
+            ->icon(Heroicon::OutlinedCheckBadge)
             ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
@@ -168,7 +169,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('Reject')
             ->color('danger')
-            ->icon('heroicon-o-x-mark')
+            ->icon(Heroicon::OutlinedXMark)
             ->requiresConfirmation()
             ->modalHeading(fn ($record) => 'Reject '.class_basename($record))
             ->form([
@@ -199,7 +200,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('Approve PA')
             ->color('primary')
-            ->icon('heroicon-o-pencil-square')
+            ->icon(Heroicon::OutlinedPencilSquare)
             ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
@@ -304,7 +305,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('generateProject')
             ->label('Generate Project')
-            ->icon('heroicon-o-plus-circle')
+            ->icon(Heroicon::OutlinedPlusCircle)
             ->color('success')
             ->visible(function ($record) {
                 if (! $record && method_exists($this, 'getRecord')) {
@@ -355,7 +356,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('createProposal')
             ->label('Create Proposal')
-            ->icon('heroicon-o-document-plus')
+            ->icon(Heroicon::OutlinedDocumentPlus)
             ->color('primary')
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
@@ -405,7 +406,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('duplicate')
             ->label('Duplicate')
-            ->icon('heroicon-o-document-duplicate')
+            ->icon(Heroicon::OutlinedDocumentDuplicate)
             ->color('gray')
             ->requiresConfirmation()
             ->action(function (ProfitabilityAnalysis $record) {
@@ -470,7 +471,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('edit_manpower')
             ->label('Edit Manpower')
-            ->icon('heroicon-o-users')
+            ->icon(Heroicon::OutlinedUsers)
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
             ->fillForm(fn ($record) => $record->toArray())
             ->action(function ($record, array $data) {
@@ -502,7 +503,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('edit_operational')
             ->label('Edit Operational')
-            ->icon('heroicon-o-wrench-screwdriver')
+            ->icon(Heroicon::OutlinedWrenchScrewdriver)
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
             ->fillForm(fn ($record) => $record->toArray())
             ->action(function ($record, array $data) {
@@ -534,7 +535,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('edit_manual')
             ->label('Edit Manual Costs')
-            ->icon('heroicon-o-banknotes')
+            ->icon(Heroicon::OutlinedBanknotes)
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
             ->fillForm(fn ($record) => $record->toArray())
             ->action(function ($record, array $data) {
@@ -557,7 +558,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('edit_indirect')
             ->label('Edit Indirect Costs')
-            ->icon('heroicon-o-presentation-chart-line')
+            ->icon(Heroicon::OutlinedPresentationChartLine)
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
             ->fillForm(fn ($record) => $record->toArray())
             ->action(function (array $data, ProfitabilityAnalysis $record): void {
@@ -601,7 +602,7 @@ trait HasProfitabilityAnalysisActions
                 $this->getCreateProposalAction(),
             ])
                 ->label('Options')
-                ->icon('heroicon-o-ellipsis-vertical')
+                ->icon(Heroicon::OutlinedEllipsisVertical)
                 ->color('gray')
                 ->button(),
         ];

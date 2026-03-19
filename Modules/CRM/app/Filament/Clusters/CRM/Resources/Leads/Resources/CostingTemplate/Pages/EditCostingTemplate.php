@@ -6,6 +6,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource;
 
@@ -21,7 +22,7 @@ class EditCostingTemplate extends EditRecord
             Action::make('pdf')
                 ->label('Export PDF')
                 ->color('gray')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->action(function () {
                     $record = $this->getRecord();
                     $pdf = Pdf::loadView('crm::pdf.costing_template', ['record' => $record]);

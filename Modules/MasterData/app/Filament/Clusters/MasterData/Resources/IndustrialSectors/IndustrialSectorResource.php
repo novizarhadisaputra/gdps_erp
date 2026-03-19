@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -15,7 +16,7 @@ class IndustrialSectorResource extends Resource
 {
     protected static ?string $model = IndustrialSector::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

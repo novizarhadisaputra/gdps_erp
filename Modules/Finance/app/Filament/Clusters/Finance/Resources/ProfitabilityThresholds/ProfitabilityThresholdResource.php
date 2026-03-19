@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThres
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityThresholds\Pages\ListProfitabilityThresholds;
@@ -19,7 +20,7 @@ class ProfitabilityThresholdResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-adjustments-horizontal';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedAdjustmentsHorizontal;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Settings';
 

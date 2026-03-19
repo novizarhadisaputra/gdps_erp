@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTe
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -45,7 +46,7 @@ class ManpowerTemplatesTable
                 Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function ($record) {
                         $costSimulation = $record->getCostSimulation();
                         $pdf = Pdf::loadView('crm::pdf.manpower_template', [

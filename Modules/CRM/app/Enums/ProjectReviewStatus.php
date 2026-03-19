@@ -2,9 +2,12 @@
 
 namespace Modules\CRM\Enums;
 
+use BackedEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 enum ProjectReviewStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -36,14 +39,14 @@ enum ProjectReviewStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): ?string
+    public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::Draft => 'heroicon-m-pencil',
-            self::InProgress => 'heroicon-m-arrow-path',
-            self::Completed => 'heroicon-m-check-circle',
-            self::RevisionNeeded => 'heroicon-m-exclamation-triangle',
-            self::Cancelled => 'heroicon-m-x-circle',
+            self::Draft => Heroicon::Pencil,
+            self::InProgress => Heroicon::ArrowPath,
+            self::Completed => Heroicon::CheckCircle,
+            self::RevisionNeeded => Heroicon::ExclamationTriangle,
+            self::Cancelled => Heroicon::XCircle,
         };
     }
 }

@@ -10,13 +10,18 @@ use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\EditProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ListProjects;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageDailyReports;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectComments;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectInformations;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectMembers;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectTasks;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageWorkCompletionReports;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ProjectBoard;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ViewProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectInfolist;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Tables\ProjectsTable;
+use Filament\Support\Icons\Heroicon;
 use Modules\Project\Models\Project;
 
 class ProjectResource extends Resource
@@ -25,7 +30,7 @@ class ProjectResource extends Resource
 
     protected static ?string $model = Project::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-briefcase';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
     protected static ?int $navigationSort = 10;
 
@@ -40,6 +45,10 @@ class ProjectResource extends Resource
             ViewProject::class,
             EditProject::class,
             ManageProjectInformations::class,
+            ManageProjectMembers::class,
+            ManageProjectTasks::class,
+            ManageDailyReports::class,
+            ManageProjectComments::class,
             ManageWorkCompletionReports::class,
         ]);
     }
@@ -74,6 +83,10 @@ class ProjectResource extends Resource
             'view' => ViewProject::route('/{record}'),
             'edit' => EditProject::route('/{record}/edit'),
             'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
+            'project-members' => ManageProjectMembers::route('/{record}/members'),
+            'project-tasks' => ManageProjectTasks::route('/{record}/tasks'),
+            'project-daily-reports' => ManageDailyReports::route('/{record}/daily-reports'),
+            'project-comments' => ManageProjectComments::route('/{record}/discussions'),
             'work-completion-reports' => ManageWorkCompletionReports::route('/{record}/work-completion-reports'),
         ];
     }

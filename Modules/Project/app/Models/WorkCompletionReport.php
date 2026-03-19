@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Models\Invoice;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Models\Comment;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Observers\WorkCompletionReportObserver;
@@ -72,5 +74,10 @@ class WorkCompletionReport extends Model implements HasMedia
     public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable')->oldest();
     }
 }

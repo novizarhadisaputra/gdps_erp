@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Modules\Finance\Models\Invoice;
 
 class InvoicesTable
@@ -40,7 +41,7 @@ class InvoicesTable
                 EditAction::make(),
                 Action::make('sendEmail')
                     ->label('Send Email')
-                    ->icon('heroicon-o-paper-airplane')
+                    ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
                     ->action(function (Invoice $record) {
                         try {
@@ -83,7 +84,7 @@ class InvoicesTable
                 Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function (Invoice $record) {
                         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('finance::pdf.invoice', ['record' => $record]);
                         $filename = str_replace(['/', '\\'], '-', $record->invoice_number);

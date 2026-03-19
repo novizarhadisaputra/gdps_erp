@@ -2,9 +2,12 @@
 
 namespace Modules\CRM\Enums;
 
+use BackedEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 enum LeadStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -48,18 +51,18 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): ?string
+    public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::Lead => 'heroicon-m-funnel',
-            self::Approach => 'heroicon-m-chat-bubble-bottom-center-text',
-            self::Proposal => 'heroicon-m-document-text',
-            self::Negotiation => 'heroicon-m-scale',
-            self::Contract => 'heroicon-m-document-check',
-            self::Won => 'heroicon-m-trophy',
-            self::ClosedLost => 'heroicon-m-x-circle',
-            self::Postponed => 'heroicon-m-pause-circle',
-            self::Cancelled => 'heroicon-m-no-symbol',
+            self::Lead => Heroicon::Funnel,
+            self::Approach => Heroicon::ChatBubbleBottomCenterText,
+            self::Proposal => Heroicon::DocumentText,
+            self::Negotiation => Heroicon::Scale,
+            self::Contract => Heroicon::DocumentCheck,
+            self::Won => Heroicon::Trophy,
+            self::ClosedLost => Heroicon::XCircle,
+            self::Postponed => Heroicon::PauseCircle,
+            self::Cancelled => Heroicon::NoSymbol,
         };
     }
 

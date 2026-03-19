@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Notifications;
 
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
@@ -28,7 +29,7 @@ class ApprovalSignedNotification extends Notification implements ShouldQueue
         $notification = \Filament\Notifications\Notification::make()
             ->title($this->title)
             ->body($this->message)
-            ->icon('heroicon-m-check-badge')
+            ->icon(Heroicon::CheckBadge)
             ->color('success')
             ->actions([
                 \Filament\Actions\Action::make('view')

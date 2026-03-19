@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Notifications;
 
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
@@ -28,7 +29,7 @@ class ApprovalRequiredNotification extends Notification implements ShouldQueue
         $notification = \Filament\Notifications\Notification::make()
             ->title($this->title)
             ->body($this->message)
-            ->icon('heroicon-o-pencil-square')
+            ->icon(Heroicon::OutlinedPencilSquare)
             ->color('info')
             ->actions([
                 \Filament\Actions\Action::make('view')

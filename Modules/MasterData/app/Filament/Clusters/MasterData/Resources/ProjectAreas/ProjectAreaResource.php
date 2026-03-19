@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class ProjectAreaResource extends Resource
 
     protected static ?int $navigationSort = 41;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-map-pin';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedMapPin;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Projects';
 

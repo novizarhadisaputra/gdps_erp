@@ -12,6 +12,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
 
@@ -107,7 +108,7 @@ class ProfitabilityAnalysesTable
                 EditAction::make(),
                 ActionGroup::make($instance->getStepActions())
                     ->label('Steps')
-                    ->icon('heroicon-m-list-bullet')
+                    ->icon(Heroicon::ListBullet)
                     ->color('info')
                     ->button(),
                 $instance->getDuplicateAction(),

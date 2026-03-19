@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class UnitOfMeasureResource extends Resource
 
     protected static ?int $navigationSort = 82;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-beaker';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBeaker;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 

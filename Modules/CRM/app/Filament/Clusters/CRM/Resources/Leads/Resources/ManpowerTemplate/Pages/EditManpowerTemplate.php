@@ -8,6 +8,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 
@@ -23,7 +24,7 @@ class EditManpowerTemplate extends EditRecord
             Action::make('pdf')
                 ->label('Export PDF')
                 ->color('gray')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->action(function () {
                     $record = $this->getRecord();
                     $costSimulation = $record->getCostSimulation();

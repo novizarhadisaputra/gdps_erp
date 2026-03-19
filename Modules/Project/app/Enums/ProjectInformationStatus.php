@@ -2,9 +2,12 @@
 
 namespace Modules\Project\Enums;
 
+use BackedEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 enum ProjectInformationStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -30,12 +33,12 @@ enum ProjectInformationStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): ?string
+    public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::Planning => 'heroicon-m-document',
-            self::Ongoing => 'heroicon-m-play',
-            self::Closed => 'heroicon-m-check-circle',
+            self::Planning => Heroicon::Document,
+            self::Ongoing => Heroicon::Play,
+            self::Closed => Heroicon::CheckCircle,
         };
     }
 }

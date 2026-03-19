@@ -9,6 +9,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 
 class GeneralInformationTable
 {
@@ -74,7 +75,7 @@ class GeneralInformationTable
                     }, true),
                 IconColumn::make('rr_document_path')
                     ->label('RR Doc')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
                     ->color('success')
                     ->url(fn ($record) => $record?->rr_document_path, true)
                     ->visible(fn ($record) => filled($record?->rr_document_path)),

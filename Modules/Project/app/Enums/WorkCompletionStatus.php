@@ -2,9 +2,12 @@
 
 namespace Modules\Project\Enums;
 
+use BackedEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 enum WorkCompletionStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -39,15 +42,15 @@ enum WorkCompletionStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): ?string
+    public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::Draft => 'heroicon-m-pencil',
-            self::Submitted => 'heroicon-m-paper-airplane',
-            self::Sent => 'heroicon-m-paper-airplane',
-            self::Signed => 'heroicon-m-pencil-square',
-            self::Approved => 'heroicon-m-check-circle',
-            self::Rejected => 'heroicon-m-x-circle',
+            self::Draft => Heroicon::Pencil,
+            self::Submitted => Heroicon::PaperAirplane,
+            self::Sent => Heroicon::PaperAirplane,
+            self::Signed => Heroicon::PencilSquare,
+            self::Approved => Heroicon::CheckCircle,
+            self::Rejected => Heroicon::XCircle,
         };
     }
 }

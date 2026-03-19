@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -25,7 +26,7 @@ class AssetGroupResource extends Resource
 
     protected static ?int $navigationSort = 84;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-presentation-chart-line';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 

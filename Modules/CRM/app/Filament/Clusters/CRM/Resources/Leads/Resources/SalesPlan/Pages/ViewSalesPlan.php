@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Pages;
 
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\SalesPlanResource;
 
 class ViewSalesPlan extends ViewRecord
@@ -15,7 +16,7 @@ class ViewSalesPlan extends ViewRecord
             \Filament\Actions\Action::make('pdf')
                 ->label('Export PDF')
                 ->color('gray')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->action(function () {
                     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.sales_plan', ['record' => $this->record]);
                     $filename = str_replace(['/', '\\'], '-', $this->record->document_number);
@@ -24,7 +25,7 @@ class ViewSalesPlan extends ViewRecord
                 }),
             \Filament\Actions\Action::make('generateGI')
                 ->label('Convert to GI')
-                ->icon('heroicon-o-document-plus')
+                ->icon(Heroicon::OutlinedDocumentPlus)
                 ->color('success')
                 ->visible(fn () => $this->record->lead->generalInformations()->doesntExist() && ! empty($this->record->revenue_distribution_planning))
                 ->requiresConfirmation()

@@ -19,7 +19,16 @@ class ProjectPolicy
 
     public function view(AuthUser $authUser, Project $project): bool
     {
-        return $authUser->can('View:Project');
+        if ($authUser->can('View:Project')) {
+            return true;
+        }
+
+        return $project->members()
+            ->whereHasMorph('memberable', [\Modules\MasterData\Models\Employee::class, \App\Models\User::class], function ($query) use ($authUser) {
+                $query->where('email', $authUser->email)
+                    ->orWhere('id', $authUser->id);
+            })
+            ->exists();
     }
 
     public function create(AuthUser $authUser): bool
@@ -29,7 +38,18 @@ class ProjectPolicy
 
     public function update(AuthUser $authUser, Project $project): bool
     {
-        return $authUser->can('Update:Project');
+        if ($authUser->can('Update:Project')) {
+            return true;
+        }
+
+        // Project Managers can update their own projects
+        return $project->members()
+            ->where('role', 'Project Manager')
+            ->whereHasMorph('memberable', [\Modules\MasterData\Models\Employee::class, \App\Models\User::class], function ($query) use ($authUser) {
+                $query->where('email', $authUser->email)
+                    ->orWhere('id', $authUser->id);
+            })
+            ->exists();
     }
 
     public function delete(AuthUser $authUser, Project $project): bool

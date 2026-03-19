@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -15,7 +16,7 @@ class RevenueSegmentResource extends Resource
 {
     protected static ?string $model = RevenueSegment::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-presentation-chart-bar';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPresentationChartBar;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

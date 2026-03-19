@@ -6,6 +6,7 @@ use App\Services\AnalyticsCacheService;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
 
@@ -69,7 +70,7 @@ class CRMStatsOverviewWidget extends BaseWidget
             return [
                 Stat::make('Active Leads', number_format($activeLeads))
                     ->description('Leads in pipeline')
-                    ->descriptionIcon('heroicon-m-funnel')
+                    ->descriptionIcon(Heroicon::Funnel)
                     ->color('primary')
                     ->chart($this->getLeadsSparklineData()),
 
@@ -79,17 +80,17 @@ class CRMStatsOverviewWidget extends BaseWidget
                             ? '+'.$conversionTrend.'% from last month'
                             : $conversionTrend.'% from last month'
                     )
-                    ->descriptionIcon($conversionTrend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                    ->descriptionIcon($conversionTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
                     ->color($conversionTrend >= 0 ? 'success' : 'danger'),
 
                 Stat::make('Pipeline Value', 'Rp '.number_format($pipelineValue, 0, ',', '.'))
                     ->description('Total estimated value')
-                    ->descriptionIcon('heroicon-m-currency-dollar')
+                    ->descriptionIcon(Heroicon::CurrencyDollar)
                     ->color('warning'),
 
                 Stat::make('Avg Deal Size', 'Rp '.number_format($avgDealSize, 0, ',', '.'))
                     ->description('From won deals')
-                    ->descriptionIcon('heroicon-m-calculator')
+                    ->descriptionIcon(Heroicon::Calculator)
                     ->color('info'),
 
                 Stat::make('New Leads', number_format($leadsThisMonth))
@@ -98,7 +99,7 @@ class CRMStatsOverviewWidget extends BaseWidget
                             ? '+'.$leadsTrend.'% from last month'
                             : $leadsTrend.'% from last month'
                     )
-                    ->descriptionIcon($leadsTrend >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                    ->descriptionIcon($leadsTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
                     ->color($leadsTrend >= 0 ? 'success' : 'danger')
                     ->chart($this->getNewLeadsSparklineData()),
             ];

@@ -2,16 +2,19 @@
 
 namespace Modules\CRM\Livewire\Revision;
 
-use Livewire\Component;
-use Modules\CRM\Models\Comment;
+use App\Models\Comment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class RevisionComments extends Component
 {
     public Model $record;
+
     public string $body = '';
+
     public ?string $editingCommentId = null;
+
     public string $editingBody = '';
 
     protected $rules = [
@@ -40,7 +43,7 @@ class RevisionComments extends Component
     public function editComment($id)
     {
         $comment = Comment::findOrFail($id);
-        
+
         if ($comment->user_id !== Auth::id()) {
             return;
         }

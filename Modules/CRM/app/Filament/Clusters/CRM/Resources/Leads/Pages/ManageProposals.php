@@ -43,7 +43,7 @@ class ManageProposals extends ManageRelatedRecords
             ->headerActions([
                 Action::make('bookingCode')
                     ->label('Booking Proposal Code')
-                    ->icon('heroicon-o-document-plus')
+                    ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->requiresConfirmation()
                     ->modalHeading('Booking Proposal Code')

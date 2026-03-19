@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -9,6 +10,7 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Modules\Project\Enums\WorkCompletionStatus;
 
 class WorkCompletionReportsTable
@@ -48,9 +50,14 @@ class WorkCompletionReportsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                \Filament\Actions\Action::make('sendEmail')
+                Action::make('discussions')
+                    ->label('Discussions')
+                    ->icon(Heroicon::OutlinedChatBubbleLeftRight)
+                    ->color('info')
+                    ->url(fn ($record) => "/admin/projects/{$record->project_id}/work-completion-reports/{$record->id}/discussions"),
+                Action::make('sendEmail')
                     ->label('Send Email')
-                    ->icon('heroicon-o-paper-airplane')
+                    ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
                     ->action(function (\Modules\Project\Models\WorkCompletionReport $record) {
                         try {

@@ -14,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Models\ProjectInformation;
 
@@ -56,7 +57,7 @@ class ProjectInformationTable
                         Action::make('Sign')
                             ->label('Digital Signature')
                             ->color('primary')
-                            ->icon('heroicon-o-pencil-square')
+                            ->icon(Heroicon::OutlinedPencilSquare)
                             ->form([
                                 TextInput::make('pin')
                                     ->label('Signature PIN')
@@ -120,7 +121,7 @@ class ProjectInformationTable
                             }),
                         Action::make('exportPdf')
                             ->label('Export PDF')
-                            ->icon('heroicon-o-document-arrow-down')
+                            ->icon(Heroicon::OutlinedDocumentArrowDown)
                             ->color('danger')
                             ->action(function (ProjectInformation $record) {
                                 $pdf = Pdf::loadView(
@@ -144,7 +145,7 @@ class ProjectInformationTable
                     ]),
                 Action::make('exportPdf')
                     ->label('Export PDF')
-                    ->icon('heroicon-o-document-arrow-down')
+                    ->icon(Heroicon::OutlinedDocumentArrowDown)
                     ->color('danger')
                     ->action(function (ProjectInformation $record) {
                         $pdf = Pdf::loadView(

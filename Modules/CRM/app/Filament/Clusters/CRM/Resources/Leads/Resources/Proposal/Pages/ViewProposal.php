@@ -11,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Icons\Heroicon;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\MoAStatus;
@@ -36,7 +37,7 @@ class ViewProposal extends ViewRecord
                 Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function () {
                         if ($this->record->is_manual && $media = $this->record->getFirstMedia('final_proposal')) {
                             return $media;
@@ -51,7 +52,7 @@ class ViewProposal extends ViewRecord
                 Action::make('excel')
                     ->label('Export Excel')
                     ->color('success')
-                    ->icon('heroicon-o-table-cells')
+                    ->icon(Heroicon::OutlinedTableCells)
                     ->action(function () {
                         $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
 
@@ -69,14 +70,14 @@ class ViewProposal extends ViewRecord
             Action::make('incompleteWarning')
                 ->label('Submit')
                 ->color('gray')
-                ->icon('heroicon-o-exclamation-triangle')
+                ->icon(Heroicon::OutlinedExclamationTriangle)
                 ->disabled()
                 ->tooltip('Harap lengkapi semua data wajib (Required) termasuk link ke Profitability Analysis untuk dapat melakukan Submit.')
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft && ! $this->record->isComplete()),
 
             Action::make('Submit')
                 ->color('info')
-                ->icon('heroicon-o-paper-airplane')
+                ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->update(['status' => ProposalStatus::Submitted]);
@@ -88,7 +89,7 @@ class ViewProposal extends ViewRecord
                 Action::make('approvePa')
                     ->label('Approve Profitability Analysis')
                     ->color('warning')
-                    ->icon('heroicon-o-currency-dollar')
+                    ->icon(Heroicon::OutlinedCurrencyDollar)
                     ->url(fn () => $this->record->profitabilityAnalysis
                         ? ProfitabilityAnalysisResource::getUrl('view', ['record' => $this->record->profitabilityAnalysis->id])
                         : null
@@ -100,7 +101,7 @@ class ViewProposal extends ViewRecord
 
                 Action::make('convertToMoA')
                     ->label('Convert to MoA (BA)')
-                    ->icon('heroicon-o-document-duplicate')
+                    ->icon(Heroicon::OutlinedDocumentDuplicate)
                     ->color('info')
                     ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->minutesOfAgreements()->exists())
                     ->requiresConfirmation()
@@ -140,7 +141,7 @@ class ViewProposal extends ViewRecord
                 Action::make('sendEmail')
                     ->label(fn () => $this->record->status === ProposalStatus::Sent ? 'Resend Email' : 'Send Email')
                     ->color('info')
-                    ->icon('heroicon-o-envelope')
+                    ->icon(Heroicon::OutlinedEnvelope)
                     ->url(fn () => route('filament.admin.crm.resources.leads.proposals.send', [
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
@@ -156,7 +157,7 @@ class ViewProposal extends ViewRecord
 
                 Action::make('Reject')
                     ->color('danger')
-                    ->icon('heroicon-o-x-mark')
+                    ->icon(Heroicon::OutlinedXMark)
                     ->requiresConfirmation()
                     ->modalHeading('Reject Proposal')
                     ->schema([
@@ -182,7 +183,7 @@ class ViewProposal extends ViewRecord
                     ])),
             ])
                 ->label('Options')
-                ->icon('heroicon-o-ellipsis-vertical')
+                ->icon(Heroicon::OutlinedEllipsisVertical)
                 ->color('gray')
                 ->button(),
         ];

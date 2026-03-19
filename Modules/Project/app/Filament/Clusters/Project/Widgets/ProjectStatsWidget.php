@@ -6,6 +6,7 @@ use App\Services\AnalyticsCacheService;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Support\Icons\Heroicon;
 use Modules\Project\Models\Project;
 
 class ProjectStatsWidget extends BaseWidget
@@ -54,38 +55,38 @@ class ProjectStatsWidget extends BaseWidget
             return [
                 Stat::make('Total Projects', number_format($totalProjects))
                     ->description('All project records')
-                    ->descriptionIcon('heroicon-m-briefcase')
+                    ->descriptionIcon(Heroicon::Briefcase)
                     ->color('primary')
                     ->chart($this->getProjectSparklineData()),
 
                 Stat::make('Active Projects', number_format($activeProjects))
                     ->description('Currently in progress')
-                    ->descriptionIcon('heroicon-m-play')
+                    ->descriptionIcon(Heroicon::Play)
                     ->color('success'),
 
                 Stat::make('Planning Projects', number_format($planningProjects))
                     ->description('In planning phase')
-                    ->descriptionIcon('heroicon-m-clipboard-document-list')
+                    ->descriptionIcon(Heroicon::ClipboardDocumentList)
                     ->color('warning'),
 
                 Stat::make('Completed Projects', number_format($completedProjects))
                     ->description($successRate.'% success rate')
-                    ->descriptionIcon('heroicon-m-check-circle')
+                    ->descriptionIcon(Heroicon::CheckCircle)
                     ->color('info'),
 
                 Stat::make('Total Value', 'Rp '.number_format($totalValue / 1000000, 0, ',', '.').'M')
                     ->description('All projects value')
-                    ->descriptionIcon('heroicon-m-currency-dollar')
+                    ->descriptionIcon(Heroicon::CurrencyDollar)
                     ->color('primary'),
 
                 Stat::make('Overdue Projects', number_format($overdueProjects))
                     ->description('Past end date')
-                    ->descriptionIcon('heroicon-m-exclamation-triangle')
+                    ->descriptionIcon(Heroicon::ExclamationTriangle)
                     ->color($overdueProjects > 0 ? 'danger' : 'success'),
 
                 Stat::make('Avg Duration', round($avgDuration ?? 0).' days')
                     ->description('Average project length')
-                    ->descriptionIcon('heroicon-m-clock')
+                    ->descriptionIcon(Heroicon::Clock)
                     ->color('gray'),
             ];
         });

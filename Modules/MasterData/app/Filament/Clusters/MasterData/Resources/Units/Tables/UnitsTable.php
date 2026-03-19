@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\UnitResource;
 use Modules\MasterData\Models\Unit;
 use Modules\MasterData\Services\UnitService;
@@ -20,7 +21,7 @@ class UnitsTable
             ->headerActions([
                 Action::make('sync')
                     ->label('Sync from API')
-                    ->icon('heroicon-o-arrow-path')
+                    ->icon(Heroicon::OutlinedArrowPath)
                     ->color('gray')
                     ->modalHeading('Sync Units from SSO')
                     ->modalDescription('This will fetch and update unit records from the SSO API.')
@@ -115,7 +116,7 @@ class UnitsTable
             ->recordActions([
                 Action::make('permissions')
                     ->label('Manage Permissions')
-                    ->icon('heroicon-o-shield-check')
+                    ->icon(Heroicon::OutlinedShieldCheck)
                     ->color('primary')
                     ->url(fn (Unit $record): string => UnitResource::getUrl('permissions', ['record' => $record])),
             ])

@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class TaxResource extends Resource
 
     protected static ?int $navigationSort = 44;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-receipt-percent';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedReceiptPercent;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 

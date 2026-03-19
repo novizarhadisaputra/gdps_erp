@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -20,7 +21,7 @@ class EmployeeResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
 

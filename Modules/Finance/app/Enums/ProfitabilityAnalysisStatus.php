@@ -5,6 +5,9 @@ namespace Modules\Finance\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
+use BackedEnum;
 
 enum ProfitabilityAnalysisStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -36,14 +39,14 @@ enum ProfitabilityAnalysisStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): ?string
+    public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::Draft => 'heroicon-m-document',
-            self::Submitted => 'heroicon-m-paper-airplane',
-            self::Approved => 'heroicon-m-check-circle',
-            self::Rejected => 'heroicon-m-x-circle',
-            self::Converted => 'heroicon-m-arrow-path',
+            self::Draft => Heroicon::Document,
+            self::Submitted => Heroicon::PaperAirplane,
+            self::Approved => Heroicon::CheckCircle,
+            self::Rejected => Heroicon::XCircle,
+            self::Converted => Heroicon::ArrowPath,
         };
     }
 }

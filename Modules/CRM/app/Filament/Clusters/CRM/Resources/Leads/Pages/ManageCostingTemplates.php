@@ -44,7 +44,7 @@ class ManageCostingTemplates extends ManageRelatedRecords
             ->headerActions([
                 Action::make('manualUpload')
                     ->label('Manual Upload (Reference)')
-                    ->icon('heroicon-o-document-plus')
+                    ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('file')

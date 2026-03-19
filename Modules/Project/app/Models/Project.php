@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Models;
 
+use App\Models\Comment;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\Lead;
@@ -60,6 +62,7 @@ class Project extends Model implements HasMedia
         'proposal_id',
         'profitability_analysis_id',
         'lead_id',
+        'progress_percentage',
     ];
 
     public static function generateProjectCode(self $project): string
@@ -108,6 +111,7 @@ class Project extends Model implements HasMedia
     {
         return [
             'status' => ProjectStatus::class,
+            'progress_percentage' => 'decimal:2',
         ];
     }
 
@@ -125,9 +129,29 @@ class Project extends Model implements HasMedia
         return $this->hasOne(ProjectInformation::class);
     }
 
+    public function members(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProjectMember::class);
+    }
+
     public function workCompletionReports(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(WorkCompletionReport::class);
+    }
+
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProjectTask::class);
+    }
+
+    public function dailyReports(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(DailyReport::class);
+    }
+
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable')->oldest();
     }
 
     protected static function newFactory(): ProjectFactory

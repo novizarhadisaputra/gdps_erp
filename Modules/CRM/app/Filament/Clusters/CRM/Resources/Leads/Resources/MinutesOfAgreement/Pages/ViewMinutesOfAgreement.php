@@ -8,6 +8,7 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Enums\MoAStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
 use Modules\CRM\Models\MinutesOfAgreement;
@@ -25,7 +26,7 @@ class ViewMinutesOfAgreement extends ViewRecord
             Action::make('pdf')
                 ->label('Export PDF')
                 ->color('gray')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->action(function () {
                     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.minutes_of_agreement', ['record' => $this->record]);
                     $filename = str_replace(['/', '\\'], '-', $this->record->document_number);
@@ -35,7 +36,7 @@ class ViewMinutesOfAgreement extends ViewRecord
             Action::make('sign')
                 ->label('Digital Signature')
                 ->color('primary')
-                ->icon('heroicon-o-pencil-square')
+                ->icon(Heroicon::OutlinedPencilSquare)
                 ->modalWidth('md')
                 ->schema([
                     \Filament\Forms\Components\TextInput::make('pin')
@@ -118,14 +119,14 @@ class ViewMinutesOfAgreement extends ViewRecord
             Action::make('incompleteWarning')
                 ->label('Submit')
                 ->color('gray')
-                ->icon('heroicon-o-exclamation-triangle')
+                ->icon(Heroicon::OutlinedExclamationTriangle)
                 ->disabled()
                 ->tooltip('Harap lengkapi semua data wajib (Required) MoA untuk dapat melakukan Submit.')
                 ->visible(fn () => $this->record->status === MoAStatus::Draft && ! $this->record->isComplete()),
 
             Action::make('Submit')
                 ->color('info')
-                ->icon('heroicon-o-paper-airplane')
+                ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->update(['status' => MoAStatus::Submitted]);
@@ -135,7 +136,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                 ->visible(fn () => $this->record->status === MoAStatus::Draft && $this->record->isComplete()),
             Action::make('convertToContract')
                 ->label('Convert to Contract')
-                ->icon('heroicon-o-document-duplicate')
+                ->icon(Heroicon::OutlinedDocumentDuplicate)
                 ->color('primary')
                 ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Approved && ! $record->proposal?->contracts()->exists())
                 ->requiresConfirmation()
@@ -156,7 +157,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                 }),
             Action::make('Reject')
                 ->color('danger')
-                ->icon('heroicon-o-x-mark')
+                ->icon(Heroicon::OutlinedXMark)
                 ->requiresConfirmation()
                 ->modalHeading('Reject MoA')
                 ->form([

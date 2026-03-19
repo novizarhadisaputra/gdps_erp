@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -43,7 +44,7 @@ class CostingTemplatesTable
                 Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function ($record) {
                         $pdf = Pdf::loadView('crm::pdf.costing_template', ['record' => $record]);
                         $name = Str::slug($record->name, '-');

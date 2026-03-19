@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class BankAccountResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-banknotes';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Finance & Accounting';
 

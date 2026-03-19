@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ItemCategories;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class ItemCategoryResource extends Resource
 
     protected static ?int $navigationSort = 81;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-tag';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedTag;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Products & Inventory';
 

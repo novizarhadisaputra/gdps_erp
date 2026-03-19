@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\HealthConfigs;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -16,7 +17,7 @@ class HealthConfigResource extends Resource
 
     protected static ?string $cluster = MasterDataCluster::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-shield-check';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
     protected static ?string $modelLabel = 'Health (BPJS Kes) Config';
 

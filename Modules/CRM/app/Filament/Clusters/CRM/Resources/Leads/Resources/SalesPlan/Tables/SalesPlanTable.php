@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Tables;
 
 use Filament\Actions\Action;
+use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -60,7 +61,7 @@ class SalesPlanTable
                 ViewAction::make(),
                 Action::make('convertToGI')
                     ->label('Convert to GI')
-                    ->icon('heroicon-o-document-plus')
+                    ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('success')
                     ->requiresConfirmation()
                     ->visible(fn (SalesPlan $record) => $record->lead?->generalInformations()->doesntExist())

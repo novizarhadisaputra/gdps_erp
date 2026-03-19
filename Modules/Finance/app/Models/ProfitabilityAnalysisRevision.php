@@ -2,17 +2,17 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\Comment;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Modules\CRM\Models\Comment;
 
 class ProfitabilityAnalysisRevision extends Model
 {
-    use HasFactory, HasUuids, HasModuleSchema;
+    use HasFactory, HasModuleSchema, HasUuids;
 
     protected $fillable = [
         'profitability_analysis_id',

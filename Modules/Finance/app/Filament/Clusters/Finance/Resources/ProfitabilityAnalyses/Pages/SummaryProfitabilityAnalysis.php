@@ -5,6 +5,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\Width;
+use Filament\Support\Icons\Heroicon;
 use Maatwebsite\Excel\Facades\Excel;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
@@ -32,13 +33,13 @@ class SummaryProfitabilityAnalysis extends ViewRecord
         return [
             \Filament\Actions\ActionGroup::make($this->getStepActions())
                 ->label('Edit Steps')
-                ->icon('heroicon-m-pencil-square')
+                ->icon(Heroicon::PencilSquare)
                 ->color('info')
                 ->button(),
             \Filament\Actions\ActionGroup::make([
                 Action::make('exportExcel')
                     ->label('Excel')
-                    ->icon('heroicon-o-table-cells')
+                    ->icon(Heroicon::OutlinedTableCells)
                     ->color('success')
                     ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
                         $filename = 'profitability_analysis_'.($record->document_number ?? $record->id).'.xlsx';
@@ -51,7 +52,7 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                     }),
                 Action::make('exportPdf')
                     ->label('PDF')
-                    ->icon('heroicon-o-document-arrow-down')
+                    ->icon(Heroicon::OutlinedDocumentArrowDown)
                     ->color('danger')
                     ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
                         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
@@ -74,7 +75,7 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                     }),
             ])
                 ->label('Export')
-                ->icon('heroicon-m-arrow-down-tray')
+                ->icon(Heroicon::ArrowDownTray)
                 ->color('success')
                 ->button(),
             ...$this->getProfitabilityAnalysisActions(),

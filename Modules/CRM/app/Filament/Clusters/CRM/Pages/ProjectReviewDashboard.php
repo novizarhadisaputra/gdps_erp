@@ -3,11 +3,12 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Pages;
 
 use Filament\Pages\Page;
+use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 
 class ProjectReviewDashboard extends Page
 {
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-check';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
     protected static ?string $cluster = CRMCluster::class;
 

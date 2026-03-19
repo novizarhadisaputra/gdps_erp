@@ -4,6 +4,7 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApiClients;
 
 use App\Models\ApiClient;
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class ApiClientResource extends Resource
 
     protected static ?int $navigationSort = 150;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-key';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedKey;
 
     protected static string|\UnitEnum|null $navigationGroup = 'System & Configuration';
 

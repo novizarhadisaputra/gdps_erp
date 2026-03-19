@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class VendorResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-building-storefront';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('name');
             $table->string('status')->default('planning');
+            $table->decimal('progress_percentage', 5, 2)->default(0);
             $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
             $table->foreignUuid('contract_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'contracts' : 'crm.contracts')->onDelete('set null');
             $table->foreignUuid('proposal_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals')->onDelete('set null');

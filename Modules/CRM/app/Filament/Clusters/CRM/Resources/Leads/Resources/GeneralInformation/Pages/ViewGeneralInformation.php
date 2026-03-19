@@ -11,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Str;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
@@ -36,7 +37,7 @@ class ViewGeneralInformation extends ViewRecord
                 Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function () {
                         $record = $this->getRecord();
                         $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
@@ -56,7 +57,7 @@ class ViewGeneralInformation extends ViewRecord
 
                 Action::make('createPA')
                     ->label('Create PA')
-                    ->icon('heroicon-o-presentation-chart-bar')
+                    ->icon(Heroicon::OutlinedPresentationChartBar)
                     ->color('success')
                     ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Approved)
                     ->action(function () {
@@ -74,7 +75,7 @@ class ViewGeneralInformation extends ViewRecord
 
                 Action::make('Reject')
                     ->color('danger')
-                    ->icon('heroicon-o-x-circle')
+                    ->icon(Heroicon::OutlinedXCircle)
                     ->requiresConfirmation()
                     ->modalHeading('Reject General Information')
                     ->schema([
@@ -97,7 +98,7 @@ class ViewGeneralInformation extends ViewRecord
 
                 Action::make('Approve')
                     ->color('success')
-                    ->icon('heroicon-o-check-circle')
+                    ->icon(Heroicon::OutlinedCheckCircle)
                     ->requiresConfirmation()
                     ->modalHeading('Approve General Information')
                     ->schema([
@@ -186,21 +187,21 @@ class ViewGeneralInformation extends ViewRecord
                 DeleteAction::make(),
             ])
                 ->label('Options')
-                ->icon('heroicon-o-ellipsis-vertical')
+                ->icon(Heroicon::OutlinedEllipsisVertical)
                 ->color('gray')
                 ->button(),
 
             Action::make('incompleteWarning')
                 ->label('Submit')
                 ->color('gray')
-                ->icon('heroicon-o-exclamation-triangle')
+                ->icon(Heroicon::OutlinedExclamationTriangle)
                 ->disabled()
                 ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 PIC untuk dapat melakukan Submit.')
                 ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && ! $this->getRecord()->isComplete()),
 
             Action::make('Submit')
                 ->color('info')
-                ->icon('heroicon-o-paper-airplane')
+                ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->getRecord()->update(['status' => GeneralInformationStatus::Submitted]);

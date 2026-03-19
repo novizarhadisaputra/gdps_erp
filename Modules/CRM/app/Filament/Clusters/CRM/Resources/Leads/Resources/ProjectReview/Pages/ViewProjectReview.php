@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Modules\CRM\Enums\GeneralInformationStatus;
@@ -38,7 +39,7 @@ class ViewProjectReview extends ViewRecord
         return [
             Action::make('pdf')
                 ->label('Download PDF')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->color('gray')
                 ->action(function () {
                     $pdf = Pdf::loadView('crm::pdf.project-review', ['record' => $this->record]);
@@ -82,7 +83,7 @@ class ViewProjectReview extends ViewRecord
     {
         return Action::make('approveProject')
             ->label('Approve Project')
-            ->icon('heroicon-m-check-badge')
+            ->icon(Heroicon::CheckBadge)
             ->color('success')
             ->size('xs')
             ->extraAttributes(['class' => 'flex-1'])
@@ -199,7 +200,7 @@ class ViewProjectReview extends ViewRecord
     protected function getApprovalAction(string $relation, string $label): Action
     {
         return Action::make("approve{$label}")
-            ->icon('heroicon-m-check-badge')
+            ->icon(Heroicon::CheckBadge)
             ->color('success')
             ->size('xs')
             ->extraAttributes(['class' => 'flex-1'])
@@ -329,7 +330,7 @@ class ViewProjectReview extends ViewRecord
     {
         return Action::make("reject{$label}")
             ->outlined()
-            ->icon('heroicon-m-x-circle')
+            ->icon(Heroicon::XCircle)
             ->color('danger')
             ->size('xs')
             ->extraAttributes(['class' => 'flex-1'])

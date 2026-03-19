@@ -8,6 +8,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
@@ -38,7 +39,7 @@ class LeadBoard extends BoardResourcePage
         return [
             Action::make('list')
                 ->label('List View')
-                ->icon('heroicon-o-table-cells')
+                ->icon(Heroicon::OutlinedTableCells)
                 ->url(LeadResource::getUrl('list')),
             CreateAction::make()
                 ->label('New Lead')
@@ -82,7 +83,7 @@ class LeadBoard extends BoardResourcePage
                 Action::make('salesPlan')
                     ->label('Setup Sales Plan')
                     ->visible(fn (Lead $record) => $record->status === LeadStatus::Approach && $record->salesPlan()->doesntExist())
-                    ->icon('heroicon-o-presentation-chart-line')
+                    ->icon(Heroicon::OutlinedPresentationChartLine)
                     ->color('info')
                     ->action(function (Lead $record) {
                         return redirect(LeadResource::getUrl('sales-plans', ['record' => $record]));
@@ -90,7 +91,7 @@ class LeadBoard extends BoardResourcePage
                 Action::make('setupGI')
                     ->label('Setup General Info')
                     ->visible(fn (Lead $record) => $record->status === LeadStatus::Approach && $record->salesPlan()->exists() && $record->generalInformations()->doesntExist())
-                    ->icon('heroicon-o-clipboard-document-list')
+                    ->icon(Heroicon::OutlinedClipboardDocumentList)
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalHeading('Setup General Information')

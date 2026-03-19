@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -19,7 +20,7 @@ class WorkSchemeResource extends Resource
 
     protected static ?int $navigationSort = 43;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Sales Master';
 

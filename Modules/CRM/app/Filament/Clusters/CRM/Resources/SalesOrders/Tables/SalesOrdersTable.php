@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Tables;
 
 use Filament\Actions\Action;
+use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -51,7 +52,7 @@ class SalesOrdersTable
                 EditAction::make(),
                 Action::make('sendEmail')
                     ->label('Send Email')
-                    ->icon('heroicon-o-paper-airplane')
+                    ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
                     ->action(function (SalesOrder $record) {
                         try {
@@ -94,7 +95,7 @@ class SalesOrdersTable
                 Action::make('pdf')
                     ->label('Export PDF')
                     ->color('gray')
-                    ->icon('heroicon-o-arrow-down-tray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function (SalesOrder $record) {
                         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
                         $filename = str_replace(['/', '\\'], '-', $record->so_number);

@@ -5,6 +5,9 @@ namespace Modules\Finance\Enums;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
+use BackedEnum;
 
 enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -39,15 +42,15 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): ?string
+    public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::Draft => 'heroicon-m-pencil',
-            self::Sent => 'heroicon-m-paper-airplane',
-            self::Partial => 'heroicon-m-clock',
-            self::Paid => 'heroicon-m-check-circle',
-            self::Overdue => 'heroicon-m-exclamation-circle',
-            self::Cancelled => 'heroicon-m-x-circle',
+            self::Draft => Heroicon::Pencil,
+            self::Sent => Heroicon::PaperAirplane,
+            self::Partial => Heroicon::Clock,
+            self::Paid => Heroicon::CheckCircle,
+            self::Overdue => Heroicon::ExclamationCircle,
+            self::Cancelled => Heroicon::XCircle,
         };
     }
 }

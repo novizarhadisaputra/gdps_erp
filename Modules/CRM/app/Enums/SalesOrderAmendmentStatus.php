@@ -2,9 +2,12 @@
 
 namespace Modules\CRM\Enums;
 
+use BackedEnum;
 use Filament\Support\Contracts\HasColor;
 use Filament\Support\Contracts\HasIcon;
 use Filament\Support\Contracts\HasLabel;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
 
 enum SalesOrderAmendmentStatus: string implements HasColor, HasIcon, HasLabel
 {
@@ -30,12 +33,12 @@ enum SalesOrderAmendmentStatus: string implements HasColor, HasIcon, HasLabel
         };
     }
 
-    public function getIcon(): ?string
+    public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::Draft => 'heroicon-m-document',
-            self::Approved => 'heroicon-m-check-circle',
-            self::Cancelled => 'heroicon-m-no-symbol',
+            self::Draft => Heroicon::Document,
+            self::Approved => Heroicon::CheckCircle,
+            self::Cancelled => Heroicon::NoSymbol,
         };
     }
 }

@@ -19,6 +19,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\HtmlString;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 use Modules\CRM\Models\CostingTemplate;
@@ -87,7 +88,7 @@ class ProfitabilityAnalysisForm
                 Step::make('Project Identification')
                     ->label('Project Identification')
                     ->description('Identify RR submission and associated customer.')
-                    ->icon('heroicon-m-identification')
+                    ->icon(Heroicon::Identification)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->schema([
                         Grid::make(3)
@@ -198,7 +199,7 @@ class ProfitabilityAnalysisForm
                 Step::make('Parameters & Assets')
                     ->label('Operational Parameters')
                     ->description('Configure project scope, work scheme, area, and asset ownership.')
-                    ->icon('heroicon-m-adjustments-horizontal')
+                    ->icon(Heroicon::AdjustmentsHorizontal)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->schema([
                         Grid::make(2)
@@ -315,7 +316,7 @@ class ProfitabilityAnalysisForm
                 Step::make('Financial Assumptions')
                     ->label('Financial Assumptions')
                     ->description('Set expectations for overhead costs, interest, and company tax.')
-                    ->icon('heroicon-m-banknotes')
+                    ->icon(Heroicon::Banknotes)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->schema([
                         Grid::make(3)
@@ -366,7 +367,7 @@ class ProfitabilityAnalysisForm
                 Step::make('Manpower Requirements')
                     ->label('Manpower Planning')
                     ->description('Determine personnel needs based on job positions or manpower packets.')
-                    ->icon('heroicon-m-user-group')
+                    ->icon(Heroicon::UserGroup)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->visible(fn (Get $get) => ! $get('is_manual_cost'))
                     ->schema([
@@ -665,7 +666,7 @@ class ProfitabilityAnalysisForm
                 Step::make('Operational & Equipment Costs')
                     ->label('Operational & Equipment Costs')
                     ->description('Determine material, equipment, services, and other cost requirements.')
-                    ->icon('heroicon-m-shopping-cart')
+                    ->icon(Heroicon::ShoppingCart)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->visible(fn (Get $get) => ! $get('is_manual_cost'))
                     ->schema([
@@ -887,7 +888,7 @@ class ProfitabilityAnalysisForm
                 Step::make('Manual Costing')
                     ->label('Manual Cost Entry')
                     ->description('Enter high-level monthly direct costs and revenue.')
-                    ->icon('heroicon-m-calculator')
+                    ->icon(Heroicon::Calculator)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->visible(fn (Get $get) => (bool) $get('is_manual_cost'))
                     ->schema([
@@ -1054,7 +1055,7 @@ class ProfitabilityAnalysisForm
                 Step::make('Indirect Costs')
                     ->label('Indirect Costs')
                     ->description('Set management expenses, entertainment, and other indirect fees.')
-                    ->icon('heroicon-m-receipt-percent')
+                    ->icon(Heroicon::ReceiptPercent)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->schema([
                         TextInput::make('analysis_details.manual_indirect_total')
@@ -1134,13 +1135,13 @@ class ProfitabilityAnalysisForm
                 Step::make('Financial Performance')
                     ->label('Financial Performance')
                     ->description('Key monthly and project-wide financial metrics.')
-                    ->icon('heroicon-m-presentation-chart-line')
+                    ->icon(Heroicon::PresentationChartLine)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->schema([
                         Section::make('Automated Cost Review')
                             ->description('Aggregated monthly costs calculated from personnel, tools, and indirect inputs.')
                             ->visible(fn (Get $get) => ! $get('is_manual_cost'))
-                            ->icon('heroicon-m-magnifying-glass-circle')
+                            ->icon(Heroicon::MagnifyingGlassCircle)
                             ->collapsible()
                             ->schema([
                                 Grid::make(4)

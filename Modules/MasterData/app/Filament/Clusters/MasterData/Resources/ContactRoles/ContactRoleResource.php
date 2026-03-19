@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles;
 
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
@@ -16,7 +17,7 @@ class ContactRoleResource extends Resource
 
     protected static ?string $model = ContactRole::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-briefcase';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
 

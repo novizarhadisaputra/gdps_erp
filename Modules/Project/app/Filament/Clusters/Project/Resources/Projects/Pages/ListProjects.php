@@ -4,6 +4,7 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Schema;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
@@ -18,7 +19,7 @@ class ListProjects extends ListRecords
         return [
             Action::make('board')
                 ->label('Kanban Board')
-                ->icon('heroicon-o-view-columns')
+                ->icon(Heroicon::OutlinedViewColumns)
                 ->url(ProjectResource::getUrl('index')),
             CreateAction::make()
                 ->form(fn (Schema $schema) => ProjectForm::configure($schema)),

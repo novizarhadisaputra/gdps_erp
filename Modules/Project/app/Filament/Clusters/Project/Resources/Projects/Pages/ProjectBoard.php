@@ -9,6 +9,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
@@ -29,7 +30,7 @@ class ProjectBoard extends BoardResourcePage
         return [
             Action::make('list')
                 ->label('List View')
-                ->icon('heroicon-o-table-cells')
+                ->icon(Heroicon::OutlinedTableCells)
                 ->url(ProjectResource::getUrl('list')),
             CreateAction::make()
                 ->label('New project')

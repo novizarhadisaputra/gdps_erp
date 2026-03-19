@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\ProfitabilityAnalysisRevisionResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Tables\ProfitabilityAnalysisRevisionsTable;
@@ -16,7 +17,7 @@ class ManageProfitabilityAnalysisRevisions extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ProfitabilityAnalysisRevisionResource::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clock';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClock;
 
     protected static ?string $title = 'Revision History';
 

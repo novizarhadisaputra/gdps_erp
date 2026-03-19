@@ -1,8 +1,7 @@
 <?php
 
-namespace Modules\CRM\Models;
+namespace App\Models;
 
-use App\Models\User;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,11 +18,17 @@ class Comment extends Model
         'body',
     ];
 
+    /**
+     * Get the parent commentable model.
+     */
     public function commentable(): MorphTo
     {
         return $this->morphTo();
     }
 
+    /**
+     * Get the user who posted the comment.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

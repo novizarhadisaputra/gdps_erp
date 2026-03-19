@@ -30,7 +30,7 @@ class ViewContract extends ViewRecord
             Action::make('pdf')
                 ->label('Export PDF')
                 ->color('gray')
-                ->icon('heroicon-o-arrow-down-tray')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->action(function () {
                     $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.contract', ['record' => $this->record]);
                     $filename = str_replace(['/', '\\'], '-', $this->record->contract_number);
@@ -40,7 +40,7 @@ class ViewContract extends ViewRecord
             Action::make('Sign')
                 ->label('Digital Signature')
                 ->color('primary')
-                ->icon('heroicon-o-pencil-square')
+                ->icon(Heroicon::OutlinedPencilSquare)
                 ->schema([
                     TextInput::make('pin')
                         ->label('Signature PIN')
@@ -132,7 +132,7 @@ class ViewContract extends ViewRecord
 
             Action::make('Submit')
                 ->color('info')
-                ->icon('heroicon-o-paper-airplane')
+                ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->update(['status' => ContractStatus::Submitted]);
@@ -143,7 +143,7 @@ class ViewContract extends ViewRecord
 
             Action::make('Reject')
                 ->color('danger')
-                ->icon('heroicon-o-x-mark')
+                ->icon(Heroicon::OutlinedXMark)
                 ->requiresConfirmation()
                 ->modalHeading('Reject Contract')
                 ->form([
@@ -165,7 +165,7 @@ class ViewContract extends ViewRecord
 
             Action::make('Terminate')
                 ->color('danger')
-                ->icon('heroicon-o-x-circle')
+                ->icon(Heroicon::OutlinedXCircle)
                 ->requiresConfirmation()
                 ->schema([
                     Textarea::make('termination_reason')
@@ -177,7 +177,7 @@ class ViewContract extends ViewRecord
 
             Action::make('Mark Expired')
                 ->color('warning')
-                ->icon('heroicon-o-clock')
+                ->icon(Heroicon::OutlinedClock)
                 ->requiresConfirmation()
                 ->action(fn () => $this->record->update(['status' => ContractStatus::Expired]))
                 ->visible(fn () => $this->record->status === ContractStatus::Active),

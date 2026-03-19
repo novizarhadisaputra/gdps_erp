@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Models;
 
+use App\Models\Comment;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -11,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Modules\CRM\Models\Comment;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;

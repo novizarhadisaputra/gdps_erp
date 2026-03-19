@@ -5,6 +5,7 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Pages\ListProjectInformations;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Pages\ViewProjectInformation;
@@ -20,7 +21,7 @@ class ProjectInformationResource extends Resource
 
     protected static ?string $parentResource = ProjectResource::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-information-circle';
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedInformationCircle;
 
     public static function shouldRegisterNavigation(): bool
     {
