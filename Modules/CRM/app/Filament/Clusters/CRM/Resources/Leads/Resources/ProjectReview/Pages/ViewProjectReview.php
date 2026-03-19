@@ -51,13 +51,6 @@ class ViewProjectReview extends ViewRecord
                         "{$filename}.pdf"
                     );
                 }),
-            $this->approveProjectAction(),
-            $this->approveGIAction(),
-            $this->rejectGIAction(),
-            $this->approvePAAction(),
-            $this->rejectPAAction(),
-            $this->approveProposalAction(),
-            $this->rejectProposalAction(),
         ];
     }
 
@@ -177,22 +170,12 @@ class ViewProjectReview extends ViewRecord
             });
     }
 
-    public function approveGIAction(): Action
-    {
-        return $this->getApprovalAction('generalInformation', 'GI')
-            ->label('Approve GI');
-    }
-
-    public function rejectGIAction(): Action
-    {
-        return $this->getRejectionAction('generalInformation', 'GI')
-            ->label('Reject GI');
-    }
 
     public function approvePAAction(): Action
     {
         return $this->getApprovalAction('profitabilityAnalysis', 'PA')
-            ->label('Approve PA');
+            ->label('Approve PA')
+            ->extraAttributes(['class' => 'flex-1']);
     }
 
     public function rejectPAAction(): Action
@@ -345,6 +328,7 @@ class ViewProjectReview extends ViewRecord
     protected function getRejectionAction(string $relation, string $label): Action
     {
         return Action::make("reject{$label}")
+            ->outlined()
             ->icon('heroicon-m-x-circle')
             ->color('danger')
             ->size('xs')

@@ -236,7 +236,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
                     'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
                     'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
                     'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? 0),
-                    'quantity' => 1,
+                    'quantity' => self::parseNumericValue($item['quantity'] ?? 1),
                     'is_manpower' => false,
                 ];
             });

@@ -70,6 +70,26 @@ class AdministrativeUserSeeder extends Seeder
                 ]
             );
             $user->syncRoles([$userData['role']]);
+
+            // Assign Unit based on Role
+            $unitSearch = match ($userData['role']) {
+                'VP Business Support' => 'Business Support',
+                'VP Finance' => 'Finance',
+                'VP Operations' => 'Operations',
+                'VP Human Capital' => 'Human Capital',
+                'Board of Directors' => 'Board of Director',
+                default => null,
+            };
+
+            if ($unitSearch) {
+                $unit = \Modules\MasterData\Models\Unit::where('name', 'like', "%{$unitSearch}%")->first();
+                if ($unit) {
+                    $user->update([
+                        'unit_id' => $unit->external_id,
+                        'unit' => $unit->name,
+                    ]);
+                }
+            }
         }
     }
 }

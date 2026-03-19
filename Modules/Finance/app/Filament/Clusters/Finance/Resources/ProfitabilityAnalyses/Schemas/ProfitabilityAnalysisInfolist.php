@@ -267,8 +267,7 @@ class ProfitabilityAnalysisInfolist
                     ->schema([
                         DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
-                    ])
-                    ->visible(fn ($record) => $record?->signatures()->exists()),
+                    ]),
             ]);
     }
 }

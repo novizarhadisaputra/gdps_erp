@@ -30,6 +30,7 @@ class ApprovalRule extends Model
     ];
 
     protected $casts = [
+        'signature_type' => \Modules\MasterData\Enums\ApprovalSignatureType::class,
         'value' => 'decimal:2',
         'max_value' => 'decimal:2',
         'order' => 'integer',

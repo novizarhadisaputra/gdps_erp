@@ -13,6 +13,8 @@ class Unit extends Model
     use HasFactory, HasRoles, HasUuids;
     use HasModuleSchema;
 
+    protected string $guard_name = 'web';
+
     protected static function newFactory(): \Modules\MasterData\Database\Factories\UnitFactory
     {
         return \Modules\MasterData\Database\Factories\UnitFactory::new();

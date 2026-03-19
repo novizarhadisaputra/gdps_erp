@@ -27,26 +27,26 @@ class UnitService
     /**
      * Fetch all units from the external API and sync with local database.
      */
-    public function syncFromApi(): Collection
+    public function syncFromApi(?string $accessToken = null): Collection
     {
         $user = \Illuminate\Support\Facades\Auth::user();
 
-        if (! ($user instanceof \App\Models\User)) {
-            return collect([]);
-        }
+        // 1. If token is provided, use it. Otherwise, use Auth user's token.
+        if (! $accessToken && ($user instanceof \App\Models\User)) {
+            // Proactive Refresh if needed
+            if ($user->needsTokenRefresh()) {
+                if (! $user->refreshSsoToken()) {
+                    \Illuminate\Support\Facades\Log::warning('UnitService::syncFromApi: Proactive refresh failed.');
 
-        // 1. Proactive Refresh if needed
-        if ($user->needsTokenRefresh()) {
-            if (! $user->refreshSsoToken()) {
-                \Illuminate\Support\Facades\Log::warning('UnitService::syncFromApi: Proactive refresh failed.');
-
-                return collect([]);
+                    return collect([]);
+                }
             }
+            $accessToken = $user->access_token;
         }
-
-        $accessToken = $user->access_token;
 
         if (! $accessToken) {
+            \Illuminate\Support\Facades\Log::warning('UnitService::syncFromApi: No access token provided or found for user.');
+
             return collect([]);
         }
 
@@ -61,9 +61,10 @@ class UnitService
 
             // 3. Handle Unauthorized (401) or explicit "jwt expired"
             if ($response->status() === 401 || ($json['message'] ?? '') === 'jwt expired') {
-                \Illuminate\Support\Facades\Log::info('UnitService::syncFromApi: Token expired mid-request, attempting final refresh.');
+                \Illuminate\Support\Facades\Log::info('UnitService::syncFromApi: Token expired mid-request.');
 
-                if ($user->refreshSsoToken()) {
+                if ($user instanceof \App\Models\User && $user->refreshSsoToken()) {
+                    \Illuminate\Support\Facades\Log::info('UnitService::syncFromApi: Retrying with refreshed token.');
                     // Retry with new token
                     $response = Http::asJson()
                         ->withHeader('Accept', 'application/json')
@@ -72,7 +73,7 @@ class UnitService
 
                     $json = $response->json();
                 } else {
-                    \Illuminate\Support\Facades\Log::warning('UnitService::syncFromApi: Final refresh failed after 401/expired JWT. User session might be expired.');
+                    \Illuminate\Support\Facades\Log::warning('UnitService::syncFromApi: Request failed with 401 and no user refresh possible.');
 
                     return collect([]);
                 }
@@ -108,7 +109,7 @@ class UnitService
 
                 return $syncedUnits;
             } else {
-                \Illuminate\Support\Facades\Log::error('UnitService::syncFromApi request failed after potential retry', [
+                \Illuminate\Support\Facades\Log::error('UnitService::syncFromApi request failed', [
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);

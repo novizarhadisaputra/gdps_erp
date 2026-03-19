@@ -1,3 +1,8 @@
+@use(Modules\MasterData\Services\SignatureService)
+@use(Spatie\Permission\Models\Role)
+@use(Illuminate\Support\Str)
+@use(Modules\MasterData\Enums\ApprovalSignatureType)
+
 <x-filament-panels::page>
     <div class="bg-white dark:bg-gray-950 shadow-xl rounded-sm border border-gray-200 dark:border-gray-800 printable mx-auto overflow-hidden w-full"
         style="min-height: 29.7cm;">
@@ -98,7 +103,7 @@
                                 -</td>
                             <td
                                 class="px-8 py-5 text-right font-black text-slate-950 dark:text-white tabular-nums text-lg">
-                                @money($record->revenue_per_month, 'IDR')
+                                @money($record->revenue_per_month, 'IDR', true)
                             </td>
                         </tr>
                         <tr>
@@ -107,7 +112,7 @@
                                 Base Project Fee / Price</td>
                             <td class="px-8 py-3 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-6 py-2 text-right text-xs text-gray-400 tabular-nums">
-                                @money($record->revenue_per_month - $record->management_fee, 'IDR')
+                                @money($record->revenue_per_month - $record->management_fee, 'IDR', true)
                             </td>
                         </tr>
                         @if ($record->management_fee > 0)
@@ -117,9 +122,9 @@
                                     Management Fee</td>
                                 <td
                                     class="px-6 py-2 text-center text-[10px] font-black text-primary-600 border-r border-gray-200 dark:border-gray-700 tabular-nums">
-                                    {{ number_format($record->management_fee_rate, 2) }}%</td>
+                                    {{ number_format($record->management_fee_rate, 2, ',', '.') }}%</td>
                                 <td class="px-6 py-2 text-right text-xs text-gray-600 tabular-nums">
-                                    @money($record->management_fee, 'IDR')
+                                    @money($record->management_fee, 'IDR', true)
                                 </td>
                             </tr>
                         @endif
@@ -134,7 +139,7 @@
                                 class="px-8 py-5 text-center border-r border-slate-200 dark:border-slate-700 text-slate-400">
                                 -</td>
                             <td class="px-8 py-5 text-right font-black text-slate-900 dark:text-slate-100 tabular-nums">
-                                @money($record->direct_cost, 'IDR')
+                                @money($record->direct_cost, 'IDR', true)
                             </td>
                         </tr>
 
@@ -153,7 +158,7 @@
                                     {{ $category?->name === 'Manpower' ? (int) $items->sum('quantity') . ' Headcount' : '-' }}
                                 </td>
                                 <td class="px-8 py-3 text-right text-xs text-gray-600 tabular-nums">
-                                    @money($items->sum('total_monthly_cost'), 'IDR')
+                                    @money($items->sum('total_monthly_cost'), 'IDR', true)
                                 </td>
                             </tr>
                         @endforeach
@@ -169,11 +174,11 @@
                             </td>
                             <td class="px-8 py-6 text-center border-r border-slate-200 dark:border-slate-700">
                                 <span
-                                    class="bg-emerald-600 text-white px-3 py-1 text-[10px] font-black tabular-nums shadow-sm rounded-sm">{{ number_format($record->margin_percentage, 2) }}%</span>
+                                    class="bg-emerald-600 text-white px-3 py-1 text-[10px] font-black tabular-nums shadow-sm rounded-sm">{{ number_format($record->margin_percentage, 2, ',', '.') }}%</span>
                             </td>
                             <td
                                 class="px-8 py-6 text-right font-black text-emerald-700 dark:text-emerald-400 text-xl tabular-nums">
-                                @money($record->revenue_per_month - $record->direct_cost, 'IDR')
+                                @money($record->revenue_per_month - $record->direct_cost, 'IDR', true)
                             </td>
                         </tr>
 
@@ -188,7 +193,7 @@
                                 class="px-8 py-5 text-center border-r border-slate-200 dark:border-slate-700 text-slate-400">
                                 -</td>
                             <td class="px-8 py-5 text-right font-black text-slate-800 dark:text-slate-200 tabular-nums">
-                                @money($record->getIndirectItems()->sum(fn($i) => (float) ($i->total_monthly_cost ?? 0)), 'IDR')</td>
+                                @money($record->getIndirectItems()->sum(fn($i) => (float) ($i->total_monthly_cost ?? 0)), 'IDR', true)</td>
                         </tr>
 
                         @php
@@ -205,7 +210,7 @@
                                     {{ $item->markup_percentage > 0 ? number_format($item->markup_percentage, 2) . '%' : '-' }}
                                 </td>
                                 <td class="px-8 py-3 text-right text-xs text-gray-500 tabular-nums">
-                                    @money($item->total_monthly_cost, 'IDR')
+                                    @money($item->total_monthly_cost, 'IDR', true)
                                 </td>
                             </tr>
                         @endforeach
@@ -218,7 +223,7 @@
                             </td>
                             <td class="px-8 py-5 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-5 text-right font-black text-amber-600 dark:text-amber-400 tabular-nums">
-                                @money($record->ebitda, 'IDR')
+                                @money($record->ebitda, 'IDR', true)
                             </td>
                         </tr>
                         <tr>
@@ -227,7 +232,7 @@
                                 Depreciation & Amortization</td>
                             <td class="px-8 py-3 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-3 text-right text-xs text-gray-400 tabular-nums">
-                                (@money($record->depreciation + $record->manual_depreciation, 'IDR'))
+                                (@money($record->depreciation + $record->manual_depreciation, 'IDR', true))
                             </td>
                         </tr>
 
@@ -238,7 +243,7 @@
                                 EBIT (Earnings Before Interest & Tax)</td>
                             <td class="px-8 py-4 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-4 text-right font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                                @money($record->ebit, 'IDR')
+                                @money($record->ebit, 'IDR', true)
                             </td>
                         </tr>
                         <tr>
@@ -247,9 +252,9 @@
                                 Finance Cost / Project Interest</td>
                             <td
                                 class="px-8 py-3 text-center text-[10px] font-black text-amber-600 border-r border-gray-200 dark:border-gray-700 tabular-nums">
-                                {{ number_format($record->interest_rate, 2) }}%</td>
+                                {{ number_format($record->interest_rate, 2, ',', '.') }}%</td>
                             <td class="px-8 py-3 text-right text-xs text-gray-400 tabular-nums">
-                                (@money($record->ebit - $record->ebt, 'IDR'))
+                                (@money($record->ebit - $record->ebt, 'IDR', true))
                             </td>
                         </tr>
                         <tr class="bg-gray-50/30 dark:bg-gray-900/20 font-black">
@@ -258,7 +263,7 @@
                                 (Earnings Before Tax)</td>
                             <td class="px-8 py-4 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-4 text-right tabular-nums">
-                                @money($record->ebt, 'IDR')
+                                @money($record->ebt, 'IDR', true)
                             </td>
                         </tr>
                         <tr>
@@ -267,146 +272,277 @@
                                 Corporate Income Tax (Est.)</td>
                             <td
                                 class="px-8 py-3 text-center text-[10px] text-slate-400 border-r border-slate-200 dark:border-slate-700 tabular-nums font-bold">
-                                {{ number_format($record->tax_rate, 2) }}%</td>
+                                {{ number_format($record->tax_rate, 2, ',', '.') }}%</td>
                             <td class="px-8 py-3 text-right text-xs text-slate-500 tabular-nums">
                                 (
-                                @money($record->ebt - $record->net_profit, 'IDR')
+                                @money($record->ebt - $record->net_profit, 'IDR', true)
                                 )
                             </td>
                         </tr>
 
                         {{-- NET PROFIT FINAL --}}
                         <tr class="bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-2xl">
-                            <td class="px-8 py-10 font-black text-3xl uppercase tracking-[0.2em]">
+                            <td class="px-8 py-6 font-black text-3xl uppercase tracking-[0.2em]">
                                 Net Profit</td>
-                            <td class="px-8 py-10 text-center border-x border-slate-700 dark:border-slate-200">
+                            <td class="px-8 py-6 text-center border-x border-slate-700 dark:border-slate-200">
                                 <div
                                     class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-2 leading-none">
                                     Profitability Ratio</div>
                                 <div class="text-2xl font-black tabular-nums tracking-tighter shadow-sm">
-                                    {{ number_format($record->net_profit_margin, 2) }}%</div>
+                                    {{ number_format($record->net_profit_margin, 2, ',', '.') }}%</div>
                             </td>
-                            <td class="px-8 py-10 text-right text-4xl font-black tabular-nums shadow-inner">
-                                @money($record->net_profit, 'IDR')
+                            <td class="px-8 py-6 text-right text-4xl font-black tabular-nums shadow-inner">
+                                @money($record->net_profit, 'IDR', true)
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            {{-- Signature Section --}}
+            {{-- Grouped Signature Section --}}
             @php
-                $signatureService = app(\Modules\MasterData\Services\SignatureService::class);
+                $signatureService = app(SignatureService::class);
                 $rules = $signatureService->getRequiredApprovers($record);
                 $signatures = $record->signatures;
-                $marginSignature = $signatures->firstWhere('signature_type', 'MarginApproval');
-                $otherSignatures = $signatures->where('signature_type', '!=', 'MarginApproval');
 
-                $totalCols = ($marginSignature ? 1 : 0) + $rules->count();
+                // Helper to resolve role name
+                $getRoleName = function ($roleIdentifiers) {
+                    if (empty($roleIdentifiers)) {
+                        return '...';
+                    }
+                    $ids = is_array($roleIdentifiers) ? $roleIdentifiers : [$roleIdentifiers];
+
+                    return Role::where(function ($q) use ($ids) {
+                        $uuids = collect($ids)
+                            ->filter(fn($id) => Str::isUuid($id))
+                            ->toArray();
+                        $names = collect($ids)
+                            ->filter(fn($id) => !Str::isUuid($id))
+                            ->toArray();
+                        if (!empty($uuids)) {
+                            $q->orWhereIn('id', $uuids);
+                        }
+                        if (!empty($names)) {
+                            $q->orWhereIn('name', $names);
+                        }
+                    })->pluck('name')
+                        ->implode(' / ') ?:
+                        (is_array($roleIdentifiers) ? implode(' / ', $roleIdentifiers) : $roleIdentifiers);
+                };
+
+                // Helper to build display items
+                $buildItem = function ($user, $role, $type, $isSigned, $date) {
+                    return [
+                        'is_signed' => $isSigned,
+                        'signer_name' => $user?->name ?? ($isSigned ? '-' : 'Waiting...'),
+                        'role' => $role,
+                        'type' => $type,
+                        'user' => $user,
+                        'date' => $date,
+                    ];
+                };
+
+                $stages = collect();
+
+                // 2. Review Stage
+                $reviewItems = collect();
+                $reviewerRules = $rules->where(
+                    'signature_type',
+                    ApprovalSignatureType::Reviewer,
+                );
+                foreach ($reviewerRules as $rule) {
+                    $sig = $signatures->first(
+                        fn($s) => $s->signature_type === 'Reviewer' &&
+                            $signatureService->isEligibleApprover($rule, $s->user),
+                    );
+                    $reviewItems->push(
+                        $buildItem(
+                            $sig?->user,
+                            $sig?->role ??
+                                (is_array($rule->approver_role)
+                                    ? implode(' / ', $rule->approver_role)
+                                    : $rule->approver_role),
+                            'Reviewer',
+                            (bool) $sig,
+                            $sig?->signed_at,
+                        ),
+                    );
+                }
+                if ($reviewItems->isNotEmpty()) {
+                    $stages->push(['label' => 'Review & Verification', 'items' => $reviewItems]);
+                }
+
+                // 3. Margin Authorization Stage
+                $marginItems = collect();
+                $marginSignature = $signatures->firstWhere('signature_type', 'MarginApproval');
+                $marginRules = $rules->where(
+                    'signature_type',
+                    ApprovalSignatureType::MarginApproval,
+                );
+
+                foreach ($marginRules as $rule) {
+                    $sig = $signatures->first(
+                        fn($s) => $s->signature_type === 'MarginApproval' &&
+                            $signatureService->isEligibleApprover($rule, $s->user),
+                    );
+                    $marginItems->push(
+                        $buildItem(
+                            $sig?->user,
+                            $sig?->role ?? 'Margin Approval',
+                            'MarginApproval',
+                            (bool) $sig,
+                            $sig?->signed_at,
+                        ),
+                    );
+                }
+                // Fallback for direct MarginApproval without rule if any
+                if ($marginItems->isEmpty() && $marginSignature) {
+                    $marginItems->push(
+                        $buildItem(
+                            $marginSignature->user,
+                            $marginSignature->role,
+                            'MarginApproval',
+                            true,
+                            $marginSignature->signed_at,
+                        ),
+                    );
+                }
+                if ($marginItems->isNotEmpty()) {
+                    $stages->push(['label' => 'Margin Authorization', 'items' => $marginItems]);
+                }
+
+                // 4. Final Approval Stage
+                $approvalItems = collect();
+                $approverRules = $rules->where(
+                    'signature_type',
+                    ApprovalSignatureType::Approver,
+                );
+                foreach ($approverRules as $rule) {
+                    $sig = $signatures->first(
+                        fn($s) => $s->signature_type === 'Approver' &&
+                            $signatureService->isEligibleApprover($rule, $s->user),
+                    );
+                    $approvalItems->push(
+                        $buildItem(
+                            $sig?->user,
+                            $sig?->role ??
+                                (is_array($rule->approver_role)
+                                    ? implode(' / ', $rule->approver_role)
+                                    : $rule->approver_role),
+                            'Approver',
+                            (bool) $sig,
+                            $sig?->signed_at,
+                        ),
+                    );
+                }
+                if ($approvalItems->isNotEmpty()) {
+                    $stages->push(['label' => 'Final Approval', 'items' => $approvalItems]);
+                }
+
+                // 5. Acknowledgment Stage
+                $ackItems = collect();
+                $ackRules = $rules->where(
+                    'signature_type',
+                    ApprovalSignatureType::Acknowledger,
+                );
+                foreach ($ackRules as $rule) {
+                    $sig = $signatures->first(
+                        fn($s) => $s->signature_type === 'Acknowledger' &&
+                            $signatureService->isEligibleApprover($rule, $s->user),
+                    );
+                    $ackItems->push(
+                        $buildItem(
+                            $sig?->user,
+                            $sig?->role ??
+                                ($rule->approver_type === 'Role'
+                                    ? $getRoleName($rule->approver_role)
+                                    : 'Acknowledger'),
+                            'Acknowledger',
+                            (bool) $sig,
+                            $sig?->signed_at,
+                        ),
+                    );
+                }
+                if ($ackItems->isNotEmpty()) {
+                    $stages->push(['label' => 'Acknowledgment', 'items' => $ackItems]);
+                }
             @endphp
 
-            @if ($totalCols > 0)
-                <div class="mt-24 grid grid-cols-{{ min(4, $totalCols) }} gap-12">
-                    {{-- Margin Approval Signature --}}
-                    @if ($marginSignature)
-                        <div class="flex flex-col items-center">
-                            <p class="text-[9px] font-black text-primary-600 uppercase tracking-widest mb-4">
-                                Margin Approval</p>
-
-                            @php
-                                $qrUrl = $signatureService->createSignatureData(
-                                    $marginSignature->user,
-                                    $record,
-                                    'MarginApproval',
-                                );
-                                $qrCode = $signatureService->generateQRCode($qrUrl);
-                            @endphp
-                            <div class="mb-4">
-                                <img src="{{ $qrCode }}"
-                                    class="w-20 h-20 opacity-80 mix-blend-multiply dark:invert" alt="Signature QR">
-                            </div>
-                            <div class="w-full border-t border-blue-600 dark:border-blue-400 pt-2 text-center">
-                                <p
-                                    class="text-[10px] font-black text-gray-900 dark:text-white uppercase leading-tight">
-                                    {{ $marginSignature->user->name }}
-                                </p>
-                                <p class="text-[8px] font-medium text-gray-400 uppercase tracking-tighter">
-                                    {{ $marginSignature->role }}</p>
-                            </div>
+            <div class="mt-16 space-y-12">
+                @foreach ($stages as $stage)
+                    <div
+                        class="bg-gray-50/50 dark:bg-gray-900/20 p-6 rounded-sm border border-gray-100 dark:border-gray-800">
+                        <div class="flex items-center gap-4 mb-6">
+                            <h3
+                                class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">
+                                {{ $stage['label'] }}</h3>
+                            <div class="h-px bg-slate-200 dark:bg-slate-800 w-full"></div>
                         </div>
-                    @endif
 
-                    {{-- Approval Rules Signatures --}}
-                    @foreach ($rules as $rule)
-                        @php
-                            $matchingSignature = $otherSignatures->first(function ($sig) use (
-                                $rule,
-                                $signatureService,
-                            ) {
-                                return $signatureService->isEligibleApprover($rule, $sig->user);
-                            });
-                        @endphp
-                        <div class="flex flex-col items-center">
-                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-4">
-                                {{ $rule->signature_type ?: 'Final Approval' }}</p>
+                        <div class="grid grid-cols-4 gap-8">
+                            @foreach ($stage['items'] as $item)
+                                <div class="flex flex-col items-center">
+                                    {{-- Role Title --}}
+                                    <div class="mb-4 text-center h-8 flex flex-col justify-end">
+                                        <span
+                                            class="text-[8px] font-black {{ $item['is_signed'] ? 'text-primary-600' : 'text-slate-300' }} uppercase tracking-widest leading-tight">
+                                            {{ $item['role'] }}
+                                        </span>
+                                    </div>
 
-                            @if ($matchingSignature)
-                                @php
-                                    $qrUrl = $signatureService->createSignatureData(
-                                        $matchingSignature->user,
-                                        $record,
-                                        $matchingSignature->signature_type ?? 'approved',
-                                    );
-                                    $qrCode = $signatureService->generateQRCode($qrUrl);
-                                @endphp
-                                <div class="mb-4">
-                                    <img src="{{ $qrCode }}"
-                                        class="w-20 h-20 opacity-80 mix-blend-multiply dark:invert"
-                                        alt="Signature QR">
-                                </div>
-                                <div class="w-full border-t border-gray-900 dark:border-white pt-2 text-center">
-                                    <p
-                                        class="text-[10px] font-black text-gray-900 dark:text-white uppercase leading-tight">
-                                        {{ $matchingSignature->user->name }}
-                                    </p>
-                                    <p class="text-[8px] font-medium text-gray-400 uppercase tracking-tighter">
-                                        {{ $matchingSignature->role }}</p>
-                                </div>
-                            @else
-                                <div class="h-20 mb-4 flex items-center justify-center">
+                                    {{-- QR Code / Placeholder --}}
+                                    <div class="relative mb-4">
+                                        @if ($item['is_signed'] && $item['user'])
+                                            @php
+                                                $qrUrl = $signatureService->createSignatureData(
+                                                    $item['user'],
+                                                    $record,
+                                                    $item['type'],
+                                                );
+                                                $qrCode = $signatureService->generateQRCode($qrUrl);
+                                            @endphp
+                                            <div
+                                                class="p-1 bg-white border border-slate-100 rounded-sm shadow-sm transition-transform hover:scale-105">
+                                                <img src="{{ $qrCode }}"
+                                                    class="w-16 h-16 mix-blend-multiply opacity-90"
+                                                    alt="Signature QR">
+                                            </div>
+                                            <div
+                                                class="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5 border-2 border-white shadow-sm">
+                                                <x-heroicon-m-check-badge class="w-3 h-3" />
+                                            </div>
+                                        @else
+                                            <div
+                                                class="w-16 h-16 border-2 border-dashed border-slate-200 rounded-sm flex items-center justify-center bg-white/50">
+                                                <x-heroicon-o-pencil-square class="w-5 h-5 text-slate-200" />
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- Signer Name & Date --}}
                                     <div
-                                        class="w-16 h-16 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-full flex items-center justify-center">
-                                        <x-heroicon-o-pencil class="w-6 h-6 text-gray-100 dark:text-gray-800" />
+                                        class="w-full text-center border-t border-slate-200 dark:border-slate-800 pt-3">
+                                        <p class="text-[10px] font-black text-slate-900 dark:text-white uppercase truncate px-1"
+                                            title="{{ $item['signer_name'] }}">
+                                            {{ $item['signer_name'] }}
+                                        </p>
+                                        @if ($item['is_signed'] && $item['date'])
+                                            <p class="text-[7px] font-mono text-slate-400 mt-1 uppercase">
+                                                {{ $item['date']->format('d M Y') }}
+                                            </p>
+                                        @else
+                                            <p
+                                                class="text-[7px] font-semibold text-slate-300 mt-1 uppercase tracking-tighter italic">
+                                                Pending
+                                            </p>
+                                        @endif
                                     </div>
                                 </div>
-                                <div class="w-full border-t border-gray-200 dark:border-gray-800 pt-2 text-center">
-                                    <p
-                                        class="text-[10px] font-bold text-gray-400 dark:text-gray-600 uppercase leading-tight">
-                                        @if ($rule->approver_type === 'Role')
-                                            {{ is_array($rule->approver_role) ? implode(' / ', $rule->approver_role) : $rule->approver_role }}
-                                        @elseif($rule->approver_type === 'Position')
-                                            {{ is_array($rule->approver_position) ? implode(' / ', $rule->approver_position) : $rule->approver_position }}
-                                        @else
-                                            {{ $rule->approver_type }}
-                                        @endif
-                                    </p>
-                                    <p
-                                        class="text-[7px] font-medium text-gray-300 dark:text-gray-700 uppercase tracking-tighter">
-                                        Waiting for Signature
-                                    </p>
-                                </div>
-                            @endif
+                            @endforeach
                         </div>
-                    @endforeach
-                </div>
-            @else
-                <div
-                    class="mt-24 p-6 border-2 border-dashed border-gray-100 dark:border-gray-900 rounded-sm text-center">
-                    <p class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">No Approval Rules Defined
-                        for
-                        this Document</p>
-                </div>
-            @endif
+                    </div>
+                @endforeach
+            </div>
 
         </div>
     </div>

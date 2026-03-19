@@ -25,8 +25,8 @@
             </div>
         </div>
 
-        {{-- 3-Section Modular Grid --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {{-- 2-Column Modular Grid --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
             {{-- Card 1: General Information --}}
             <div class="flex flex-col h-full">
@@ -127,14 +127,17 @@
                     @if ($record->generalInformation)
                         <div
                             class="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 flex flex-col gap-3">
-                            <div class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="flex flex-col gap-2 mb-2">
                                 <button type="button" @click="$dispatch('open-modal', { id: 'preview-gi' })"
-                                    class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
+                                    class="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
                                     <x-heroicon-m-magnifying-glass-circle class="w-4 h-4" />
                                     Preview Detail
                                 </button>
 
-                                {{ $this->getAction('approveGI') }}
+                                <div class="grid grid-cols-2 gap-2">
+                                    {{ $this->getAction('approveGI') }}
+                                    {{ $this->getAction('rejectGI') }}
+                                </div>
                             </div>
                             <a href="{{ route('filament.admin.crm.resources.leads.general-informations.view', ['lead' => $record->lead_id, 'record' => $record->general_information_id]) }}"
                                 target="_blank"
@@ -257,16 +260,18 @@
                     @if ($record->profitabilityAnalysis)
                         <div
                             class="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 flex flex-col gap-3">
-                            <div class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="flex flex-col gap-2 mb-2">
                                 <button type="button" @click="$dispatch('open-modal', { id: 'preview-pa' })"
-                                    class="flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
+                                    class="w-full flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
                                     <x-heroicon-m-magnifying-glass-circle class="w-4 h-4" />
                                     Preview Detail
                                 </button>
 
-                                {{ $this->getAction('approveMargin') }}
-
-                                {{ $this->getAction('approvePA') }}
+                                <div class="grid grid-cols-2 gap-2">
+                                    {{ $this->getAction('approveProject') }}
+                                    {{ $this->getAction('approvePA') }}
+                                    {{ $this->getAction('rejectPA') }}
+                                </div>
                             </div>
                             <a href="{{ route('filament.admin.crm.resources.leads.profitability-analyses.view', ['lead' => $record->lead_id, 'record' => $record->profitability_analysis_id]) }}"
                                 target="_blank"
@@ -368,14 +373,17 @@
                     @if ($record->proposal)
                         <div
                             class="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 flex flex-col gap-3">
-                            <div class="grid grid-cols-2 gap-2 mb-4">
+                            <div class="flex flex-col gap-2 mb-2">
                                 <button type="button" @click="$dispatch('open-modal', { id: 'preview-proposal' })"
-                                    class="flex-1 flex items-center justify-center gap-2 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
+                                    class="w-full flex items-center justify-center gap-2 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
                                     <x-heroicon-m-magnifying-glass-circle class="w-4 h-4" />
                                     Preview Detail
                                 </button>
 
-                                {{ $this->getAction('approveProposal') }}
+                                <div class="grid grid-cols-2 gap-2">
+                                    {{ $this->getAction('approveProposal') }}
+                                    {{ $this->getAction('rejectProposal') }}
+                                </div>
                             </div>
                             <a href="{{ route('filament.admin.crm.resources.leads.proposals.view', ['lead' => $record->lead_id, 'record' => $record->proposal_id]) }}"
                                 target="_blank"
@@ -383,6 +391,82 @@
                                 View Full Record
                                 <x-heroicon-m-arrow-top-right-on-square class="w-3 h-3" />
                             </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Card 4: Risk Register --}}
+            <div class="flex flex-col h-full">
+                <div
+                    class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden flex flex-col h-full border-t-4 border-t-rose-600 transition hover:shadow-md">
+                    <div class="p-6 flex-1">
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="p-2 bg-rose-50 dark:bg-rose-950/30 rounded-lg">
+                                <x-heroicon-o-shield-exclamation class="w-5 h-5 text-rose-600" />
+                            </div>
+                            <span
+                                class="text-[9px] font-black text-rose-600 uppercase tracking-widest bg-rose-50 dark:bg-rose-950/30 px-2 py-1 rounded">Module
+                                RR</span>
+                        </div>
+
+                        <h3 class="text-base font-black text-gray-900 dark:text-white uppercase mb-4 leading-tight">
+                            Risk Register</h3>
+
+                        @if ($record->generalInformation)
+                            <div class="space-y-4">
+                                <div class="flex flex-col border-b border-gray-50 dark:border-gray-800 pb-2">
+                                    <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Document
+                                        No.</span>
+                                    <span
+                                        class="text-xs font-black text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->generalInformation->rr_document_number ?: 'NOT SUBMITTED' }}</span>
+                                </div>
+                                <div class="flex flex-col border-b border-gray-50 dark:border-gray-800 pb-2">
+                                    <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Submission
+                                        ID</span>
+                                    <span
+                                        class="text-xs font-medium text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->generalInformation->rr_submission_id ?: 'N/A' }}</span>
+                                </div>
+
+                                <div class="flex flex-col mt-4 pt-2">
+                                    <span
+                                        class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Status</span>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span
+                                            class="inline-block w-2.5 h-2.5 rounded-full @if ($record->generalInformation->rr_status === 'approved') bg-emerald-600 shadow-[0_0_8px_rgba(5,150,105,0.4)] @else bg-rose-600 shadow-[0_0_8px_rgba(225,29,72,0.4)] @endif"></span>
+                                        <span
+                                            class="text-xs font-black @if ($record->generalInformation->rr_status === 'approved') text-emerald-600 @else text-rose-600 @endif uppercase">{{ $record->generalInformation->rr_status ?: 'DRAFT' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="flex-1 flex flex-col justify-center items-center py-12">
+                                <x-heroicon-o-document-minus class="w-12 h-12 text-gray-200 dark:text-gray-800 mb-3" />
+                                <p
+                                    class="text-[10px] font-bold text-gray-300 dark:text-gray-700 uppercase tracking-[0.2em] italic">
+                                    No GI Linked</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    @if ($record->generalInformation)
+                        <div
+                            class="p-4 bg-gray-50 dark:bg-gray-800/30 border-t border-gray-100 dark:border-gray-800 flex flex-col gap-3">
+                            <div class="flex flex-col gap-2 mb-2">
+                                @if($record->generalInformation->rr_document_path)
+                                <a href="{{ $record->generalInformation->rr_document_path }}" target="_blank"
+                                    class="w-full flex items-center justify-center gap-2 py-2 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
+                                    <x-heroicon-m-arrow-top-right-on-square class="w-4 h-4" />
+                                    View Full Document
+                                </a>
+                                @endif
+
+                                <a href="{{ route('filament.admin.crm.resources.leads.general-informations.view', ['lead' => $record->lead_id, 'record' => $record->general_information_id]) }}"
+                                    class="w-full flex items-center justify-center gap-2 py-2 border border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all duration-300">
+                                    <x-heroicon-m-cog-6-tooth class="w-4 h-4" />
+                                    Manage RR in GI
+                                </a>
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -418,7 +502,7 @@
                 }
 
                 $uniqueSignatures = $allSignatures->groupBy(
-                    fn($item) => $item['sig']->user_id . '_' . $item['sig']->signature_type,
+                    fn($item) => $item['sig']->user_id . '_' . ($item['sig']->signature_type instanceof \Modules\MasterData\Enums\ApprovalSignatureType ? $item['sig']->signature_type->value : $item['sig']->signature_type),
                 );
             @endphp
 
@@ -431,7 +515,7 @@
                     <div class="flex flex-col items-center">
                         <p
                             class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-4 h-6 text-center leading-tight">
-                            {{ $sig->signature_type ?: 'Manual Approval' }}
+                            {{ $sig->signature_type instanceof \Modules\MasterData\Enums\ApprovalSignatureType ? $sig->signature_type->getLabel() : ($sig->signature_type ?: 'Manual Approval') }}
                         </p>
 
                         @php

@@ -47,8 +47,10 @@ class ManageUnitPermissions extends EditRecord
     protected function handleRecordUpdate(\Illuminate\Database\Eloquent\Model $record, array $data): \Illuminate\Database\Eloquent\Model
     {
         $permissions = [];
-        foreach ($data as $key => $permission) {
-            $permissions = array_merge($permission, $data[$key]);
+        foreach ($data as $permissionSet) {
+            if (is_array($permissionSet)) {
+                $permissions = array_merge($permissions, $permissionSet);
+            }
         }
         $record->syncPermissions($permissions);
 

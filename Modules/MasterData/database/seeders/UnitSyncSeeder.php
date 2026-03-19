@@ -12,12 +12,27 @@ class UnitSyncSeeder extends Seeder
      */
     public function run(): void
     {
-        /** @var UnitService $service */
-        $service = app(UnitService::class);
+        /** @var \App\Services\SsoAuthService $authService */
+        $authService = app(\App\Services\SsoAuthService::class);
+        /** @var UnitService $unitService */
+        $unitService = app(UnitService::class);
+
+        $this->command->info('Attempting SSO login for Unit Sync...');
+
+        $accessToken = null;
+        try {
+            // Using the system administrator credentials defined in DatabaseSeeder
+            $authData = $authService->login('rajabannisa.wahyuni@garudapratama.com', 'gdps2019!');
+            $accessToken = $authData['accessToken'] ?? $authData['access_token'] ?? null;
+            $this->command->info('SSO login successful.');
+        } catch (\Exception $e) {
+            $this->command->error('SSO login failed: '.$e->getMessage());
+            $this->command->warn('Proceeding without SSO token (will likely use fallback).');
+        }
 
         $this->command->info('Syncing units from external API...');
 
-        $synced = $service->syncFromApi();
+        $synced = $unitService->syncFromApi($accessToken);
 
         if ($synced->isEmpty()) {
             $this->command->warn('No units found from API. Creating fallback unit.');

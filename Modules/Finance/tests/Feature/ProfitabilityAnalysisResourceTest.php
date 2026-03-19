@@ -39,6 +39,6 @@ class ProfitabilityAnalysisResourceTest extends TestCase
 
         $this->get(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\ProfitabilityAnalysisResource::getUrl('index', ['lead' => $lead->id]))
             ->assertSuccessful()
-            ->assertSee('Profitability Analyses');
+            ->assertSee('Profitability Analysis');
     }
 }
