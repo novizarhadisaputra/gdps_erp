@@ -6,7 +6,6 @@ use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\Width;
 use Maatwebsite\Excel\Facades\Excel;
-use Modules\Finance\Exports\ProfitabilityAnalysisSummaryExport;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
 
@@ -38,24 +37,11 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                 ->button(),
             \Filament\Actions\ActionGroup::make([
                 Action::make('exportExcel')
-                    ->label('Excel (Summary)')
-                    ->icon('heroicon-o-document-chart-bar')
-                    ->color('success')
-                    ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
-                        $filename = 'profitability_summary_'.($record->document_number ?? $record->id).'.xlsx';
-                        $filename = str_replace(['/', '\\'], '_', $filename);
-
-                        return Excel::download(
-                            new ProfitabilityAnalysisSummaryExport($record),
-                            $filename
-                        );
-                    }),
-                Action::make('exportDetailedExcel')
-                    ->label('Excel (Detailed)')
+                    ->label('Excel')
                     ->icon('heroicon-o-table-cells')
                     ->color('success')
                     ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
-                        $filename = 'profitability_detailed_'.($record->document_number ?? $record->id).'.xlsx';
+                        $filename = 'profitability_analysis_'.($record->document_number ?? $record->id).'.xlsx';
                         $filename = str_replace(['/', '\\'], '_', $filename);
 
                         return Excel::download(
