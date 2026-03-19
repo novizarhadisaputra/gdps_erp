@@ -122,8 +122,8 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
             $amount = (float) ($item->total_monthly_cost ?? 0);
 
             // Check if it's manpower
-            $isManpower = ($item->category?->code === 'manpower') ||
-                         ($item->costable_type === JobPosition::class) ||
+            $isManpower = (($item->category?->code ?? null) === 'manpower') ||
+                         (($item->costable_type ?? null) === JobPosition::class) ||
                          (isset($item->is_manpower) && $item->is_manpower);
 
             if ($isManpower) {

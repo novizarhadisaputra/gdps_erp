@@ -126,7 +126,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             ->useDisk('s3')
             ->singleFile();
 
-        $this->addMediaCollection('rfi')
+        $this->addMediaCollection('rfq')
             ->useDisk('s3')
             ->singleFile();
 
@@ -236,8 +236,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
                     'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
                     'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
                     'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? 0),
+                    'unit_cost_price' => self::parseNumericValue($item['amount'] ?? 0),
                     'quantity' => self::parseNumericValue($item['quantity'] ?? 1),
                     'is_manpower' => false,
+                    'costable_type' => null,
+                    'costable' => null,
                 ];
             });
         }
@@ -259,6 +262,9 @@ class ProfitabilityAnalysis extends Model implements HasMedia
                     'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
                     'total_monthly_cost' => self::parseNumericValue($item['total_monthly_cost'] ?? 0),
                     'markup_percentage' => self::parseNumericValue($item['markup_percentage'] ?? 0),
+                    'costable_type' => null,
+                    'costable' => null,
+                    'unit_cost_price' => 0, // Added unit_cost_price with a default value
                 ];
             });
         }

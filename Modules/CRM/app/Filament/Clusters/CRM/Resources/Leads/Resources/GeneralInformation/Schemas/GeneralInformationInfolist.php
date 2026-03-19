@@ -77,18 +77,18 @@ class GeneralInformationInfolist
                                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                                     }, true)
                                     ->visible(fn ($record) => $record?->hasMedia('rfp')),
-                                TextEntry::make('rfi')
+                                TextEntry::make('rfq')
                                     ->label('RFQ Document')
-                                    ->state(fn ($record) => $record?->getFirstMedia('rfi')?->file_name)
+                                    ->state(fn ($record) => $record?->getFirstMedia('rfq')?->file_name)
                                     ->url(function ($record) {
-                                        $media = $record?->getFirstMedia('rfi');
+                                        $media = $record->getFirstMedia('rfq');
                                         if (! $media) {
                                             return null;
                                         }
 
                                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                                     }, true)
-                                    ->visible(fn ($record) => $record?->hasMedia('rfi')),
+                                    ->visible(fn ($record) => $record?->hasMedia('rfq')),
                                 TextEntry::make('other_documents')
                                     ->label('Other Documents')
                                     ->html()

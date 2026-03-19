@@ -430,8 +430,8 @@ trait HasProfitabilityAnalysisActions
                             $newItem->save();
                         }
 
-                        // Copy media (TOR, RFP, RFI)
-                        foreach (['tor', 'rfp', 'rfi'] as $collection) {
+                        // Copy media (TOR, RFP, RFQ)
+                        foreach (['tor', 'rfp', 'rfq'] as $collection) {
                             $media = $record->getFirstMedia($collection);
                             if ($media) {
                                 $media->copy($newRecord, $collection);

@@ -68,11 +68,11 @@ class ProfitabilityAnalysisInfolist
                                     }, true)
                                     ->icon(Heroicon::OutlinedDocumentChartBar)
                                     ->color(fn ($state) => $state === 'No RFP' ? 'gray' : 'primary'),
-                                TextEntry::make('rfi_document')
-                                    ->label('RFQ Document')
-                                    ->state(fn ($record) => $record?->getFirstMedia('rfi')?->file_name ?? 'No RFI')
+                                TextEntry::make('rfq_document')
+                                    ->label('RFQ')
+                                    ->state(fn ($record) => $record?->getFirstMedia('rfq')?->file_name ?? 'No RFQ')
                                     ->url(function ($record) {
-                                        $media = $record?->getFirstMedia('rfi');
+                                        $media = $record?->getFirstMedia('rfq');
                                         if (! $media) {
                                             return null;
                                         }
@@ -80,7 +80,7 @@ class ProfitabilityAnalysisInfolist
                                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                                     }, true)
                                     ->icon(Heroicon::OutlinedInformationCircle)
-                                    ->color(fn ($state) => $state === 'No RFI' ? 'gray' : 'primary'),
+                                    ->color(fn ($state) => $state === 'No RFQ' ? 'gray' : 'primary'),
                             ]),
                     ]),
                 Section::make('Project Parameters')

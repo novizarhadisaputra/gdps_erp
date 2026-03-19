@@ -130,8 +130,8 @@ class GeneralInformationForm
                         ->label('RFP Document')
                         ->disk('s3')
                         ->visibility('private'),
-                    SpatieMediaLibraryFileUpload::make('rfi')
-                        ->collection('rfi')
+                    SpatieMediaLibraryFileUpload::make('rfq')
+                        ->collection('rfq')
                         ->label('RFQ Document')
                         ->disk('s3')
                         ->visibility('private'),

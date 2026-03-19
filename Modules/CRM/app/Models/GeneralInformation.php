@@ -90,8 +90,8 @@ class GeneralInformation extends Model implements HasMedia
             ->useDisk('s3')
             ->singleFile();
 
-        // RFI collection is already here
-        $this->addMediaCollection('rfi')
+        // RFQ collection
+        $this->addMediaCollection('rfq')
             ->useDisk('s3')
             ->singleFile();
 
@@ -220,7 +220,7 @@ class GeneralInformation extends Model implements HasMedia
         ]);
 
         // Copy media collections to the new PA
-        foreach (['tor', 'rfp', 'rfi'] as $collection) {
+        foreach (['tor', 'rfp', 'rfq'] as $collection) {
             $media = $this->getFirstMedia($collection);
             if ($media) {
                 $media->copy($pa, $collection);

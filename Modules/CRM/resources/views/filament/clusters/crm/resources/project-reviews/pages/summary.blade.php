@@ -80,7 +80,7 @@
                                     $giMedia = [
                                         'TOR' => $record->generalInformation->getFirstMedia('tor'),
                                         'RFP' => $record->generalInformation->getFirstMedia('rfp'),
-                                        'RFI' => $record->generalInformation->getFirstMedia('rfi'),
+                                        'RFQ' => $record->generalInformation->getFirstMedia('rfq'),
                                     ];
                                     $hasGIMedia = collect($giMedia)->filter()->isNotEmpty();
                                 @endphp

@@ -77,12 +77,12 @@ class ProfitabilityAnalysesTable
                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                     }, true)
                     ->toggleable(),
-                IconColumn::make('rfi')
-                    ->label('RFI')
-                    ->getStateUsing(fn ($record) => $record->hasMedia('rfi'))
+                IconColumn::make('rfq')
+                    ->label('RFQ')
+                    ->getStateUsing(fn ($record) => $record->hasMedia('rfq'))
                     ->boolean()
                     ->url(function ($record) {
-                        $media = $record->getFirstMedia('rfi');
+                        $media = $record->getFirstMedia('rfq');
                         if (! $media) {
                             return null;
                         }

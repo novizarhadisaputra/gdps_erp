@@ -51,7 +51,7 @@ class ProfitabilityAnalysisObserver
 
         // Auto-copy media from General Information if present
         if ($analysis->generalInformation) {
-            foreach (['tor', 'rfp', 'rfi'] as $collection) {
+            foreach (['tor', 'rfp', 'rfq'] as $collection) {
                 // Only copy if PA doesn't have its own media yet
                 if (! $analysis->hasMedia($collection)) {
                     $media = $analysis->generalInformation->getFirstMedia($collection);

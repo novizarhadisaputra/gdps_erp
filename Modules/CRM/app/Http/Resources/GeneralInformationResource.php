@@ -34,7 +34,7 @@ class GeneralInformationResource extends JsonResource
             'documents' => [
                 'tor' => $this->getFirstMedia('tor')?->getTemporaryUrl(now()->addMinutes(60)),
                 'rfp' => $this->getFirstMedia('rfp')?->getTemporaryUrl(now()->addMinutes(60)),
-                'rfi' => $this->getFirstMedia('rfi')?->getTemporaryUrl(now()->addMinutes(60)),
+                'rfq' => $this->getFirstMedia('rfq')?->getTemporaryUrl(now()->addMinutes(60)),
             ],
             'signatures_status' => $this->isFullyApproved() ? 'complete' : 'incomplete',
             'created_at' => $this->created_at,

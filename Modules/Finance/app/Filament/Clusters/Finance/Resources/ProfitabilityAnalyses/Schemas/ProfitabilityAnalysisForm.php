@@ -201,7 +201,7 @@ class ProfitabilityAnalysisForm
                     ->icon('heroicon-m-adjustments-horizontal')
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->schema([
-                        Grid::make(1)
+                        Grid::make(2)
                             ->schema([
                                 Select::make('product_cluster_id')
                                     ->relationship('productCluster', 'name')
@@ -245,23 +245,22 @@ class ProfitabilityAnalysisForm
                                     ->helperText('Budget year for minimum wage references.')
                                     ->live(onBlur: true)
                                     ->dehydrated(),
-                                Grid::make(2)
-                                    ->schema([
-                                        DatePicker::make('start_date')
-                                            ->label('Start Date')
-                                            ->required()
-                                            ->native(false)
-                                            ->live()
-                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
-                                            ->dehydrated(),
-                                        DatePicker::make('end_date')
-                                            ->label('End Date')
-                                            ->required()
-                                            ->native(false)
-                                            ->live()
-                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
-                                            ->dehydrated(),
-                                    ]),
+
+                                DatePicker::make('start_date')
+                                    ->label('Start Date')
+                                    ->required()
+                                    ->native(false)
+                                    ->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->dehydrated(),
+                                DatePicker::make('end_date')
+                                    ->label('End Date')
+                                    ->required()
+                                    ->native(false)
+                                    ->live()
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->dehydrated(),
+
                                 Select::make('tax_id')
                                     ->label('Tax')
                                     ->relationship('tax', 'name')
@@ -271,9 +270,7 @@ class ProfitabilityAnalysisForm
                                     ->placeholder('Select tax configuration')
                                     ->helperText('Tax configuration for the project code (e.g. PPN 11%).')
                                     ->dehydrated(),
-                            ]),
-                        Grid::make(2)
-                            ->schema([
+
                                 Select::make('asset_ownership')
                                     ->options(AssetOwnership::class)
                                     ->default(AssetOwnership::GdpsOwned)
@@ -282,36 +279,37 @@ class ProfitabilityAnalysisForm
                                     ->helperText('Determines the asset depreciation calculation model.')
                                     ->native(false)
                                     ->dehydrated(),
-                                Grid::make(3)
-                                    ->schema([
-                                        Toggle::make('require_manpower_costing')
-                                            ->label('Require Manpower Costing')
-                                            ->default(true)
-                                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
-                                            ->live()
-                                            ->dehydrated(),
-                                        Toggle::make('require_operational_costing')
-                                            ->label('Require Operational Costing')
-                                            ->default(true)
-                                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
-                                            ->live()
-                                            ->dehydrated(),
-                                        Toggle::make('is_manual_cost')
-                                            ->label('Manual Cost Entry')
-                                            ->default(false)
-                                            ->helperText('Skip detail costing and enter totals manually.')
-                                            ->live()
-                                            ->dehydrated()
-                                            ->afterStateUpdated(function ($state, Set $set) {
-                                                if ($state) {
-                                                    $set('require_manpower_costing', false);
-                                                    $set('require_operational_costing', false);
-                                                    $set('manpower_template_id', null);
-                                                    $set('costing_template_id', null);
-                                                }
-                                            }),
-                                    ])->columnSpanFull(),
                             ]),
+
+                        Grid::make(3)
+                            ->schema([
+                                Toggle::make('require_manpower_costing')
+                                    ->label('Require Manpower Costing')
+                                    ->default(true)
+                                    ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                                    ->live()
+                                    ->dehydrated(),
+                                Toggle::make('require_operational_costing')
+                                    ->label('Require Operational Costing')
+                                    ->default(true)
+                                    ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                                    ->live()
+                                    ->dehydrated(),
+                                Toggle::make('is_manual_cost')
+                                    ->label('Manual Cost Entry')
+                                    ->default(false)
+                                    ->helperText('Skip detail costing and enter totals manually.')
+                                    ->live()
+                                    ->dehydrated()
+                                    ->afterStateUpdated(function ($state, Set $set) {
+                                        if ($state) {
+                                            $set('require_manpower_costing', false);
+                                            $set('require_operational_costing', false);
+                                            $set('manpower_template_id', null);
+                                            $set('costing_template_id', null);
+                                        }
+                                    }),
+                            ])->columnSpanFull(),
                     ]),
 
                 Step::make('Financial Assumptions')
@@ -936,7 +934,7 @@ class ProfitabilityAnalysisForm
                                         $docIcon = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" /><path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" /></svg>';
                                         $dupIcon = '<svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z" /><path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6c-1.036 0-1.875.84-1.875 1.875v12.75c0 1.035.84 1.875 1.875 1.875h9.75c1.035 0 1.875-.84 1.875-1.875V17.25a.75.75 0 0 0-1.5 0v2.25c0 .207-.168.375-.375.375h-9.75a.375.375 0 0 1-.375-.375V7.875c0-.207.168-.375.375-.375H7.5a.75.75 0 0 0 0-1.5H4.875Z" /></svg>';
 
-                                        // Get Lead Media (RFI, RFP, etc)
+                                        // Get Lead Media (RFQ, RFP, etc)
                                         $lead->getMedia('*')->each(function ($media) use ($links, $docIcon) {
                                             $url = $media->disk === 's3'
                                                 ? $media->getTemporaryUrl(now()->addMinutes(30))
