@@ -181,20 +181,9 @@ class SendProposal extends Page
                 $attachmentName = $filename;
             }
 
-            // 2. Generate Signature Portal URL
-            $signatureUrl = URL::temporarySignedRoute(
-                'proposals.public.sign',
-                now()->addDays(7),
-                ['proposal' => $this->record->id]
-            );
-
-            // 3. Prepare Message with Signature Link
+            // 3. Prepare Message
             $messageBody = $formData['message'] ?? '';
-            $messageBody .= "<br><br><div style='margin-top: 20px; padding: 15px; background: #f0f7ff; border: 1px solid #cce3ff; border-radius: 8px;'>
-                <strong>Digital Signature Required:</strong><br>
-                Please review and sign this proposal by clicking the link below:<br>
-                <a href='{$signatureUrl}' style='display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;'>Sign Proposal Online</a>
-            </div>";
+
 
             // 4. Send via External API
             $response = Http::withHeaders([
