@@ -421,7 +421,7 @@ class ProfitabilityAnalysisForm
                                             return;
                                         }
 
-                                        // Auto-set category to Man Power
+                                        // Auto-set category to Manpower
                                         $set('direct_cost_category_id', DirectCostCategory::where('code', 'manpower')->first()?->id);
 
                                         $type = $get('costable_type');
@@ -1019,27 +1019,54 @@ class ProfitabilityAnalysisForm
                                         Repeater::make('sub_items')
                                             ->label('Sub-component Breakdown')
                                             ->schema([
-                                                Grid::make(2)
+                                                Grid::make(3)
                                                     ->schema([
                                                         TextInput::make('name')
                                                             ->label('Sub-item Name')
                                                             ->required()
-                                                            ->placeholder('e.g. Security Guard Salary'),
-                                                        TextInput::make('amount')
-                                                            ->label('Amount')
+                                                            ->placeholder('e.g. Security Guard Salary')
+                                                            ->columnSpan(2),
+                                                        TextInput::make('quantity')
+                                                            ->label('Qty')
+                                                            ->numeric()
+                                                            ->default(1)
+                                                            ->required()
+                                                            ->live()
+                                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateSubItemAmount($get, $set))
+                                                            ->columnSpan(1),
+                                                        TextInput::make('unit_of_measure')
+                                                            ->label('UoM')
+                                                            ->placeholder('Org, Pcs, etc.')
+                                                            ->columnSpan(1),
+                                                        TextInput::make('unit_amount')
+                                                            ->label('Unit Price')
                                                             ->numeric()
                                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                                             ->prefix('IDR ')
                                                             ->required()
-                                                            ->live(onBlur: true)
+                                                            ->live()
+                                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateSubItemAmount($get, $set))
+                                                            ->columnSpan(1),
+                                                        TextInput::make('amount')
+                                                            ->label('Total')
+                                                            ->numeric()
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->prefix('IDR ')
+                                                            ->readOnly()
+                                                            ->required()
+                                                            ->columnSpan(1)
                                                             ->afterStateUpdated(function (Get $get, Set $set) {
-                                                                // Calculate category total from sub-items
+                                                                // Trigger update for Category Total (amount field in parent repeater)
                                                                 $subItems = $get('../../sub_items') ?? [];
                                                                 $total = collect($subItems)->sum(fn ($i) => self::parseNumericValue($i['amount'] ?? 0));
                                                                 $set('../../amount', $total);
+
+                                                                // Trigger global direct cost calculation
+                                                                self::calculateDirectCost($get, $set, '../../../');
                                                             }),
                                                     ]),
                                             ])
+
                                             ->collapsible()
                                             ->defaultItems(0)
                                             ->reorderableWithButtons()
@@ -1749,5 +1776,24 @@ class ProfitabilityAnalysisForm
         } else {
             $set('/data.margin_percentage', 0);
         }
+    }
+
+    public static function calculateSubItemAmount(Get $get, Set $set): void
+    {
+        $qty = self::parseNumericValue($get('quantity') ?? 1);
+        $unitAmount = self::parseNumericValue($get('unit_amount') ?? 0);
+        $total = $qty * $unitAmount;
+
+        $set('amount', $total);
+
+        // Sum up all sub-items to update the Category Total (parent grid amount)
+        $subItems = $get('../../sub_items') ?? [];
+        $categoryTotal = collect($subItems)->sum(fn ($i) => self::parseNumericValue($i['amount'] ?? 0));
+
+        // Update Category Total
+        $set('../../amount', $categoryTotal);
+
+        // Bubble up calculation to Financial Performance (Wizard Step 6)
+        self::calculateDirectCost($get, $set, '../../../');
     }
 }

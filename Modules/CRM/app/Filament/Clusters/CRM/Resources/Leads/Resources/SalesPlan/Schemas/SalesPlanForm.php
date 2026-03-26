@@ -46,52 +46,8 @@ class SalesPlanForm
     {
         return [
             Wizard::make([
-                Step::make('Core Information')
-                    ->description('Identify the sales lead and account manager.')
-                    ->schema([
-                        Grid::make(2)
-                            ->schema([
-                                Select::make('lead_id')
-                                    ->relationship('lead', 'title', fn ($query) => $query->where('status', '!=', 'lead'))
-                                    ->required()
-                                    ->hidden()
-                                    ->searchable()
-                                    ->preload()
-                                    ->live()
-                                    ->helperText('Select the associated lead or prospect for this sales plan.')
-                                    ->afterStateUpdated(function ($state, Set $set) {
-                                        if (! $state) {
-                                            return;
-                                        }
-
-                                        $lead = Lead::find($state);
-                                        if ($lead) {
-                                            $set('estimated_value', $lead->estimated_amount);
-                                            $set('confidence_level', $lead->confidence_level);
-                                            $set('revenue_segment_id', $lead->revenue_segment_id);
-                                            $set('product_cluster_id', $lead->product_cluster_id);
-                                            $set('project_type_id', $lead->project_type_id);
-                                            $set('industrial_sector_id', $lead->industrial_sector_id);
-                                            $set('project_area_id', $lead->project_area_id);
-                                        }
-                                    }),
-                                Select::make('ams_id')
-                                    ->label('AMS (Account Manager/Sales)')
-                                    ->relationship('ams', 'name')
-                                    ->default(auth()->id())
-                                    ->required()
-                                    ->searchable()
-                                    ->preload()
-                                    ->helperText('Auto-detected from login, but can be adjusted if needed.')
-                                    ->createOptionForm(EmployeeForm::schema())
-                                    ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                    ->editOptionForm(EmployeeForm::schema())
-                                    ->editOptionAction(fn (Action $action) => $action->slideOver())
-                                    ->disabled(fn () => ! auth()->user()->hasRole('super_admin')),
-                            ]),
-                    ]),
-
                 Step::make('Service Categorization')
+
                     ->description('Classify the project into master data segments.')
                     ->schema([
                         Grid::make(3)

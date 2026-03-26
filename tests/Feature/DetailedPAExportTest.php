@@ -67,7 +67,7 @@ class DetailedPAExportTest extends TestCase
 
         $this->assertArrayHasKey('base', $data['direct_cost']['manpower']);
         $this->assertArrayHasKey('benefit', $data['direct_cost']['manpower']);
-        $this->assertEquals('Man Power', $data['direct_cost']['manpower']['base']['name']);
+        $this->assertEquals('Manpower', $data['direct_cost']['manpower']['base']['name']);
 
         // Check financial calculations
         $this->assertArrayHasKey('interest', $data['financial']);

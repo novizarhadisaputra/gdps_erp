@@ -17,7 +17,7 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
 
     public function test_calculate_direct_cost_with_indirect_costs()
     {
-        $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Man Power']);
+        $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Manpower']);
         $toolsCat = DirectCostCategory::firstOrCreate(['code' => 'tools_equipment'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Tools & Equipment']);
 
         $get = function ($path) use ($manpowerCat, $toolsCat) {
@@ -78,7 +78,7 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
 
     public function test_calculate_direct_cost_with_manual_entry()
     {
-        $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Man Power']);
+        $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Manpower']);
         $toolsCat = DirectCostCategory::firstOrCreate(['code' => 'tools_equipment'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Tools & Equipment']);
 
         $get = function ($path) use ($manpowerCat, $toolsCat) {

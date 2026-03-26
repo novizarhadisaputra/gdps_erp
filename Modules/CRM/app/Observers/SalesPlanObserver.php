@@ -14,8 +14,8 @@ class SalesPlanObserver
      */
     public function creating(SalesPlan $salesPlan): void
     {
-        if (empty($salesPlan->ams_id) && auth()->check()) {
-            $salesPlan->ams_id = auth()->id();
+        if (auth()->check()) {
+            $salesPlan->ams_id = $salesPlan->ams_id ?? auth()->id();
         }
     }
 

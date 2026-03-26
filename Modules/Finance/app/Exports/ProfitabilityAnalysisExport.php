@@ -67,7 +67,7 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
             ],
             'direct_cost' => [
                 'manpower' => [
-                    'base' => ['name' => 'Man Power', 'qty' => 0, 'amount' => 0],
+                    'base' => ['name' => 'Manpower', 'qty' => 0, 'amount' => 0],
                     'team_leader' => ['name' => 'Team Leader', 'qty' => 0, 'amount' => 0],
                     'variable' => ['name' => 'Variable Manpower (Tunjangan Tidak Tetap)', 'qty' => 0, 'amount' => 0],
                     'benefit' => ['name' => 'BPJS, THR, IPK, Perlengkapan Kerja Ditanggung Perusahaan', 'qty' => 0, 'amount' => 0],
