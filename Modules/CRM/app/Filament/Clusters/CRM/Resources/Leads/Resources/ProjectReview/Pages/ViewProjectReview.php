@@ -157,7 +157,7 @@ class ViewProjectReview extends ViewRecord
                     return false;
                 }
 
-                if ($pa->status->value !== ProfitabilityAnalysisStatus::Submitted->value) {
+                if (! in_array($pa->status->value, [ProfitabilityAnalysisStatus::Submitted->value, 'submitted'])) {
                     return false;
                 }
 
@@ -165,10 +165,28 @@ class ViewProjectReview extends ViewRecord
                 $required = $service->getRequiredApprovers($pa)
                     ->where('signature_type', ApprovalSignatureType::MarginApproval->value);
 
-                $nextRule = $required->first(fn ($rule) => ! $pa->isRuleSatisfied($rule));
+                if ($required->isEmpty()) {
+                    return false;
+                }
 
-                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
+                // Parallel Approval: Check if user is eligible for ANY of the unsatisfied rules
+                return $required->contains(fn ($rule) => 
+                    ! $pa->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                );
             });
+    }
+
+    public function approveGIAction(): Action
+    {
+        return $this->getApprovalAction('generalInformation', 'GI')
+            ->label('Approve GI')
+            ->extraAttributes(['class' => 'flex-1']);
+    }
+
+    public function rejectGIAction(): Action
+    {
+        return $this->getRejectionAction('generalInformation', 'GI')
+            ->label('Reject GI');
     }
 
 
@@ -305,24 +323,32 @@ class ViewProjectReview extends ViewRecord
                     return false;
                 }
 
-                // PA Hierarchy: Margin must be approved before final PA approval
-                if ($relation === 'profitabilityAnalysis') {
-                    if (! $subRecord->isMarginApproved()) {
-                        return false;
-                    }
-                }
+                // PA Hierarchy: In fully parallel mode, we don't wait for Margin to be approved
+                // unless specifically requested by business rules. Removing wait-for-margin.
 
                 if ($subRecord->isFullyApproved()) {
                     return false;
                 }
 
                 $service = app(SignatureService::class);
+                $signatureType = match ($relation) {
+                    'profitabilityAnalysis' => ApprovalSignatureType::Approver,
+                    'generalInformation' => ApprovalSignatureType::Approver,
+                    'proposal' => ApprovalSignatureType::Approver,
+                    default => ApprovalSignatureType::Approver,
+                };
+
                 $required = $service->getRequiredApprovers($subRecord)
-                    ->where('signature_type', ApprovalSignatureType::Approver->value);
+                    ->where('signature_type', $signatureType->value);
 
-                $nextRule = $required->first(fn ($rule) => ! $subRecord->isRuleSatisfied($rule));
+                if ($required->isEmpty()) {
+                    return false;
+                }
 
-                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
+                // Parallel Approval: User can see the button if they are eligible for ANY unsatisfied rule
+                return $required->contains(fn ($rule) => 
+                    ! $subRecord->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                );
             });
     }
 

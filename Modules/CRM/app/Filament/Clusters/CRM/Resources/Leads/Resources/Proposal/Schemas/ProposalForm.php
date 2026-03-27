@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
 
 class ProposalForm
@@ -45,6 +46,7 @@ class ProposalForm
                             ->label('Proposal Title')
                             ->placeholder('Enter proposal title')
                             ->required()
+                            ->disabled(fn ($record) => $record?->status !== ProposalStatus::Draft)
                             ->columnSpanFull()
                             ->helperText('The standardized name for this proposal.'),
 
@@ -65,6 +67,7 @@ class ProposalForm
                             ->prefixIcon('heroicon-o-banknotes')
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
+                            ->disabled(fn ($record) => $record?->status !== ProposalStatus::Draft)
                             ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
                             ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                             ->helperText('Total value including all service costs.'),
@@ -93,6 +96,7 @@ class ProposalForm
                                     ->label('Submission Date')
                                     ->prefixIcon('heroicon-o-calendar')
                                     ->native(false)
+                                    ->disabled(fn ($record) => $record?->status !== ProposalStatus::Draft)
                                     ->placeholder('Select date')
                                     ->helperText('When this proposal was sent to the client.'),
                             ]),

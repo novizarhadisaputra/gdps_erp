@@ -51,7 +51,7 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
                 'ams' => $pa->lead?->salesPlan?->ams?->name ?? $pa->ams?->name ?? $pa->lead?->ams?->name ?? '-',
                 'customer' => $pa->customer?->name ?? '-',
                 'project_name' => $pa->lead?->title ?? '-',
-                'project_code' => $pa->project_code ?? $pa->lead?->project_number ?? '-',
+                'project_code' => $pa->project?->code ?? $pa->lead?->salesPlan?->project_code ?? '-',
                 'revision' => sprintf('%02d', $pa->revision_number ?? 0),
                 'start_date' => $pa->start_date?->format('d-M-y') ?? '-',
                 'end_date' => $pa->end_date?->format('d-M-y') ?? '-',
@@ -93,7 +93,7 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
                     'Business Partner' => ['amount' => 0],
                     'Concession' => ['amount' => 0],
                 ],
-                'total' => 0,
+                'total' => $pa->getTotalIndirectCost(),
             ],
             'financial' => [
                 'ebitda' => (float) $pa->ebitda,
@@ -195,7 +195,15 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
         $indirectItems = $pa->getIndirectItems();
         foreach ($indirectItems as $item) {
             $catName = $item->category?->name ?? 'Others';
-            $amount = (float) ($item->total_monthly_cost ?? 0);
+
+            $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
+            $finalVal = $val;
+            if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                $basis = $item->percentage_basis ?? 'revenue';
+                $basisValue = $basis === 'revenue' ? (float) $pa->revenue_per_month : (float) $pa->direct_cost;
+                $finalVal = $basisValue * ($val / 100);
+            }
+            $amount = $finalVal;
 
             // Specific overrides to match spreadsheet categories
             if (str_contains($catName, 'Management Expense')) {
@@ -212,7 +220,6 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
                 $sections['indirect_cost']['categories'][$catName] = ['amount' => 0];
             }
             $sections['indirect_cost']['categories'][$catName]['amount'] += $amount;
-            $sections['indirect_cost']['total'] += $amount;
         }
 
         return $sections;
@@ -221,13 +228,13 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
     protected function getSignaturesByType(ApprovalSignatureType $type): array
     {
         $signatures = $this->record->signatures()
-            ->where('signature_type', $type)
+            ->where('signature_type', $type->value)
             ->get();
 
         $items = [];
         $service = app(SignatureService::class);
         $rules = $service->getRequiredApprovers($this->record);
-        $specificRules = $rules->where('signature_type', $type);
+        $specificRules = $rules->filter(fn($r) => $r->signature_type === $type);
 
         // Map existing signatures
         foreach ($signatures as $signature) {
@@ -288,7 +295,7 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
         $eligibleUsers = $service->getEligibleUsers($rule);
         if ($eligibleUsers->isNotEmpty()) {
             $name = $eligibleUsers->pluck('name')->implode(', ');
-            
+
             // If it's a 'User' type rule, the title should be their position
             if ($rule->approver_type === 'User') {
                 $title = $eligibleUsers->first()?->position ?? $title;

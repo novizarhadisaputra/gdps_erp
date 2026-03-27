@@ -133,7 +133,7 @@ class ProjectInformationTable
                                     ]
                                 )->setPaper('a4', 'portrait');
 
-                                $filename = 'project_info_'.($record->project?->project_code ?? $record->id).'.pdf';
+                                $filename = 'project_info_'.($record->project?->code ?? $record->id).'.pdf';
                                 $filename = str_replace(['/', '\\'], '_', $filename);
 
                                 return response()->streamDownload(function () use ($pdf) {

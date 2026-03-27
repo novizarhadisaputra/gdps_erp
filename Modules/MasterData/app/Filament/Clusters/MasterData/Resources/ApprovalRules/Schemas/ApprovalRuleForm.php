@@ -90,12 +90,22 @@ class ApprovalRuleForm
                                     ->live()
                                     ->required()
                                     ->columnSpan(2),
-                                TextInput::make('value')
-                                    ->numeric()
+                                Hidden::make('value'),
+
+                                TextInput::make('value_text')
+                                    ->label('Value')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix(fn (Get $get) => in_array($get('field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
                                     ->suffix(fn (Get $get) => $get('field') === 'margin_percentage' ? '%' : null)
-                                    ->required()
+                                    ->required(fn (Get $get) => empty($get('value_select')) && ! array_key_exists($get('field'), static::getRelationshipFields()))
+                                    ->live()
+                                    ->afterStateUpdated(fn ($state, Set $set) => $set('value', $state))
+                                    ->afterStateHydrated(function ($component, Set $set, Get $get) {
+                                        $field = $get('field');
+                                        if ($field && ! array_key_exists($field, static::getRelationshipFields())) {
+                                            $set('value_text', $get('value'));
+                                        }
+                                    })
                                     ->visible(function (Get $get) {
                                         $field = $get('field');
                                         if (! $field) {
@@ -106,7 +116,7 @@ class ApprovalRuleForm
                                     })
                                     ->columnSpan(2),
 
-                                Select::make('value')
+                                Select::make('value_select')
                                     ->label('Value')
                                     ->options(function (Get $get) {
                                         $field = $get('field');
@@ -122,7 +132,27 @@ class ApprovalRuleForm
                                         return $model::query()->pluck($label, 'id');
                                     })
                                     ->searchable()
-                                    ->required()
+                                    ->multiple(fn (Get $get) => $get('operator') === 'in')
+                                    ->required(fn (Get $get) => empty($get('value_text')) && array_key_exists($get('field'), static::getRelationshipFields()))
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                        if ($get('operator') === 'in') {
+                                            $set('value', (array) $state);
+                                        } else {
+                                            $set('value', (string) $state);
+                                        }
+                                    })
+                                    ->afterStateHydrated(function ($component, Set $set, Get $get) {
+                                        $field = $get('field');
+                                        if ($field && array_key_exists($field, static::getRelationshipFields())) {
+                                            $value = $get('value');
+                                            // Ensure array if operator is 'in'
+                                            if ($get('operator') === 'in' && is_string($value)) {
+                                                $value = explode(',', $value);
+                                            }
+                                            $set('value_select', $value);
+                                        }
+                                    })
                                     ->visible(function (Get $get) {
                                         $field = $get('field');
 
@@ -147,7 +177,15 @@ class ApprovalRuleForm
 
                 Section::make('Approval Config')
                     ->schema([
-                        Hidden::make('approver_type')
+                        Select::make('approver_type')
+                            ->options([
+                                'Role' => 'Role',
+                                'User' => 'User',
+                                'Unit' => 'Unit',
+                                'Position' => 'Position',
+                            ])
+                            ->disabled()
+                            ->dehydrated()
                             ->default('Role'),
 
                         Select::make('approver_role')
@@ -201,7 +239,7 @@ class ApprovalRuleForm
                             ->searchable()
                             ->multiple()
                             ->live()
-                            ->afterStateUpdated(function ($state, \Filament\Schemas\Components\Utilities\Set $set) {
+                            ->afterStateUpdated(function ($state, Set $set) {
                                 if (! empty($state)) {
                                     $set('approver_type', 'Position');
                                     $set('approver_role', null);

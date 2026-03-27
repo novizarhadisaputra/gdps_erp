@@ -128,4 +128,9 @@ class Proposal extends Model implements HasMedia
             ! empty($this->submission_date) &&
             ! empty($this->profitability_analysis_id);
     }
+
+    public function getProductClusterIdAttribute(): ?string
+    {
+        return $this->profitabilityAnalysis?->product_cluster_id ?? $this->lead?->product_cluster_id;
+    }
 }

@@ -80,6 +80,7 @@ class ProjectObserver
             'tax_id',
             'project_number',
             'work_scheme_id',
+            'project_type_id',
         ];
 
         if ($project->isDirty($segments)) {

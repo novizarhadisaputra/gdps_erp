@@ -177,7 +177,7 @@ class User extends Authenticatable implements FilamentUser, HasMedia
 
     public function unit_model(): ?Unit
     {
-        return $this->unit;
+        return $this->unit()->getResults();
     }
 
     /**

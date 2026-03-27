@@ -277,7 +277,7 @@
                         <td class="font-bold">IV. Indirect & Overhead Costs</td>
                         <td class="text-center">-</td>
                         <td class="text-right font-bold">
-                            ({{ $formatMoney($record->getIndirectItems()->sum(fn($i) => (float)($i->total_monthly_cost ?? 0))) }})
+                            ({{ $formatMoney($record->getTotalIndirectCost()) }})
                         </td>
                     </tr>
                     @php
@@ -288,9 +288,24 @@
                             <td style="padding-left: 30px;" class="italic">{{ $item->category?->name ?? 'Indirect' }}
                             </td>
                             <td class="text-center">
-                                {{ $item->markup_percentage > 0 ? number_format($item->markup_percentage, 2) . '%' : '-' }}
+                                @if (($item->calculation_type ?? 'fixed') === 'percentage')
+                                    {{ (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0) }}% of {{ $item->percentage_basis ?? 'rev' }}
+                                @else
+                                    Fixed
+                                @endif
                             </td>
-                            <td class="text-right">{{ $formatMoney($item->total_monthly_cost) }}</td>
+                            <td class="text-right">
+                                @php
+                                    $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
+                                    $finalVal = $val;
+                                    if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                                        $basis = $item->percentage_basis ?? 'revenue';
+                                        $basisValue = $basis === 'revenue' ? (float) $record->revenue_per_month : (float) $record->direct_cost;
+                                        $finalVal = $basisValue * ($val / 100);
+                                    }
+                                @endphp
+                                {{ $formatMoney($finalVal) }}
+                            </td>
                         </tr>
                     @endforeach
 

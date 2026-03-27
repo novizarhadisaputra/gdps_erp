@@ -20,6 +20,7 @@ use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\Item;
@@ -262,17 +263,50 @@ class ProfitabilityAnalysis extends Model implements HasMedia
                     'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
                     'total_monthly_cost' => self::parseNumericValue($item['total_monthly_cost'] ?? 0),
                     'markup_percentage' => self::parseNumericValue($item['markup_percentage'] ?? 0),
+                    'calculation_type' => $item['calculation_type'] ?? 'fixed',
+                    'percentage_basis' => $item['percentage_basis'] ?? 'revenue',
+                    'unit_cost_price' => self::parseNumericValue($item['unit_cost_price'] ?? 0),
                     'costable_type' => null,
                     'costable' => null,
-                    'unit_cost_price' => 0, // Added unit_cost_price with a default value
                 ];
             });
         }
 
         return $this->items()
             ->whereHas('category', fn ($q) => $q->where('type', 'indirect'))
-            ->with('category')
+            ->with(['category'])
             ->get();
+    }
+
+    public function getTotalDirectCostByCategory(string $categoryCode): float
+    {
+        $items = $this->getDirectItems();
+
+        return (float) $items->filter(function ($item) use ($categoryCode) {
+            return ($item->category->code ?? null) === $categoryCode;
+        })->sum('total_monthly_cost');
+    }
+
+    public function getTotalIndirectCost(): float
+    {
+        $revenue = (float) $this->revenue_per_month;
+        $directCost = (float) $this->direct_cost;
+        $items = $this->getIndirectItems();
+
+        $total = 0;
+        foreach ($items as $item) {
+            $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
+
+            if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                $basis = $item->percentage_basis ?? 'revenue';
+                $basisValue = $basis === 'revenue' ? $revenue : $directCost;
+                $total += $basisValue * ($val / 100);
+            } else {
+                $total += $val;
+            }
+        }
+
+        return $total;
     }
 
     public function isComplete(): bool
@@ -289,7 +323,26 @@ class ProfitabilityAnalysis extends Model implements HasMedia
 
     public function isMarginApproved(): bool
     {
-        return $this->isTypeApproved('MarginApproval');
+        // Check the database column first for performance and consistency
+        if ($this->is_margin_approved) {
+            return true;
+        }
+
+        return $this->isTypeApproved(ApprovalSignatureType::MarginApproval);
+    }
+
+    /**
+     * Synchronize the boolean column with reality of signatures.
+     */
+    public function syncIsMarginApproved(): void
+    {
+        if ($this->getAttribute('is_margin_approved')) {
+            return;
+        }
+
+        if ($this->isTypeApproved(ApprovalSignatureType::MarginApproval)) {
+            $this->update(['is_margin_approved' => true]);
+        }
     }
 
     protected static function parseNumericValue(mixed $value): float

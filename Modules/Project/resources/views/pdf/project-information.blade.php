@@ -142,7 +142,7 @@
             </div>
             <div class="document-type" style="float: right; width: 50%;">
                 <h1>PROJECT INFORMATION</h1>
-                <p>{{ $record->project?->project_code ?? 'PENDING' }}</p>
+                <p>{{ $record->project?->code ?? 'PENDING' }}</p>
                 <div style="font-size: 9px; color: #94a3b8; margin-top: 5px;">Date: {{ now()->format('d M Y') }}</div>
             </div>
             <div style="clear: both;"></div>

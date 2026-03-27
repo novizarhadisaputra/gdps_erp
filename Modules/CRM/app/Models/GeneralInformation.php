@@ -252,4 +252,9 @@ class GeneralInformation extends Model implements HasMedia
             ! empty($this->billing_requirements) &&
             $this->pics()->exists();
     }
+
+    public function getProductClusterIdAttribute(): ?string
+    {
+        return $this->salesPlan?->product_cluster_id ?? $this->lead?->product_cluster_id;
+    }
 }

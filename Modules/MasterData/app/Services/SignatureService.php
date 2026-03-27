@@ -38,7 +38,7 @@ class SignatureService
                         '<' => $fieldValue < $rule->value,
                         '<=' => $fieldValue <= $rule->value,
                         '=' => $fieldValue == $rule->value,
-                        'in' => in_array($fieldValue, array_map('trim', explode(',', $rule->value))),
+                        'in' => in_array($fieldValue, is_array($rule->value) ? $rule->value : array_map('trim', explode(',', (string) $rule->value))),
                         'between' => $fieldValue >= $rule->value && $fieldValue <= $rule->max_value,
                         default => false,
                     };
@@ -67,7 +67,7 @@ class SignatureService
                             '<' => $fieldValue < $value,
                             '<=' => $fieldValue <= $value,
                             '=' => $fieldValue == $value,
-                            'in' => in_array($fieldValue, array_map('trim', explode(',', $value))),
+                            'in' => in_array($fieldValue, is_array($value) ? $value : array_map('trim', explode(',', (string) $value))),
                             'between' => $fieldValue >= $value && $fieldValue <= $max,
                             default => false,
                         };
@@ -180,17 +180,30 @@ class SignatureService
     public function notifyNextApprovers(Model $model): void
     {
         $required = $this->getRequiredApprovers($model);
+        
+        // Find if we are in Margin stage or PA stage (hierarchical stages but parallel within stages)
+        $isMarginStage = method_exists($model, 'isMarginApproved') && ! $model->isMarginApproved();
+        $targetType = $isMarginStage ? 'MarginApproval' : 'Approver';
 
-        // Find the first rule that is NOT yet satisfied
-        $nextRule = $required->first(fn ($rule) => ! $model->isRuleSatisfied($rule));
+        // Find all rules of the current stage that are NOT yet satisfied
+        $unsatisfiedRules = $required->filter(function ($rule) use ($model, $targetType) {
+            $ruleType = $rule->signature_type instanceof \BackedEnum ? $rule->signature_type->value : (string) $rule->signature_type;
+            return $ruleType === $targetType && ! $model->isRuleSatisfied($rule);
+        });
 
-        if ($nextRule) {
-            $eligibleUsers = $this->getEligibleUsers($nextRule);
+        if ($unsatisfiedRules->isNotEmpty()) {
             $url = $this->getResourceUrl($model);
             $message = 'A '.class_basename($model).' requires your approval.';
+            $notifiedUsers = [];
 
-            foreach ($eligibleUsers as $user) {
-                $user->notify(new ApprovalRequiredNotification($model, $message, $url));
+            foreach ($unsatisfiedRules as $rule) {
+                $eligibleUsers = $this->getEligibleUsers($rule);
+                foreach ($eligibleUsers as $user) {
+                    if (! in_array($user->id, $notifiedUsers)) {
+                        $user->notify(new ApprovalRequiredNotification($model, $message, $url));
+                        $notifiedUsers[] = $user->id;
+                    }
+                }
             }
         }
     }

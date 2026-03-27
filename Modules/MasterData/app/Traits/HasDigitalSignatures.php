@@ -103,8 +103,12 @@ trait HasDigitalSignatures
     {
         $typeValue = $type instanceof \Modules\MasterData\Enums\ApprovalSignatureType ? $type->value : $type;
         $service = app(SignatureService::class);
-        $rules = $service->getRequiredApprovers($this)
-            ->where('signature_type', $typeValue);
+        $rules = $service->getRequiredApprovers($this);
+        $rules = $rules->filter(function ($rule) use ($typeValue) {
+            $ruleType = $rule->signature_type instanceof \BackedEnum ? $rule->signature_type->value : (string) $rule->signature_type;
+
+            return $ruleType === $typeValue;
+        });
 
         if ($rules->isEmpty()) {
             return true;

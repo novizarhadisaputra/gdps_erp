@@ -163,42 +163,15 @@ class ProfitabilityAnalysisInfolist
                             ->schema([
                                 TextEntry::make('direct_cost_manpower')
                                     ->label(' - Manpower')
-                                    ->state(function ($record) {
-                                        if (! $record) {
-                                            return 0;
-                                        }
-                                        $manualCosts = $record->analysis_details['manual_costs'] ?? [];
-
-                                        return collect($manualCosts)
-                                            ->filter(fn ($item) => ($item['category'] ?? '') === 'Manpower' || ($item['direct_cost_category_id'] ?? null) == 1) // 1 = manpower usually
-                                            ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
-                                    })
+                                    ->state(fn ($record) => $record?->getTotalDirectCostByCategory('manpower') ?? 0)
                                     ->money('IDR'),
                                 TextEntry::make('direct_cost_tools')
                                     ->label(' - Tools & Eq')
-                                    ->state(function ($record) {
-                                        if (! $record) {
-                                            return 0;
-                                        }
-                                        $manualCosts = $record->analysis_details['manual_costs'] ?? [];
-
-                                        return collect($manualCosts)
-                                            ->filter(fn ($item) => ($item['category'] ?? '') === 'Tools & Equipment' || ($item['direct_cost_category_id'] ?? null) == 2)
-                                            ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
-                                    })
+                                    ->state(fn ($record) => $record?->getTotalDirectCostByCategory('tools_equipment') ?? 0)
                                     ->money('IDR'),
                                 TextEntry::make('direct_cost_material')
                                     ->label(' - Material')
-                                    ->state(function ($record) {
-                                        if (! $record) {
-                                            return 0;
-                                        }
-                                        $manualCosts = $record->analysis_details['manual_costs'] ?? [];
-
-                                        return collect($manualCosts)
-                                            ->filter(fn ($item) => ($item['category'] ?? '') === 'Material' || ($item['direct_cost_category_id'] ?? null) == 3)
-                                            ->sum(fn ($item) => (float) ($item['total_cost'] ?? $item['amount'] ?? 0));
-                                    })
+                                    ->state(fn ($record) => $record?->getTotalDirectCostByCategory('material') ?? 0)
                                     ->money('IDR'),
                             ])->columnSpanFull(),
 
@@ -211,31 +184,40 @@ class ProfitabilityAnalysisInfolist
                                     ->color('info'),
                                 TextEntry::make('total_indirect_cost')
                                     ->label('4. TOTAL INDIRECT COST')
-                                    ->state(function (?ProfitabilityAnalysis $record) {
-                                        if (! $record) {
-                                            return 0;
-                                        }
-
-                                        $total = 0;
-                                        $revenue = (float) $record->revenue_per_month;
-                                        $directCost = (float) $record->direct_cost;
-
-                                        foreach ($record->indirectItems as $item) {
-                                            $val = (float) $item->unit_cost_price;
-                                            if ($item->calculation_type === 'percentage') {
-                                                $basis = $item->percentage_basis ?? 'revenue';
-                                                $basisValue = $basis === 'revenue' ? $revenue : $directCost;
-                                                $total += $basisValue * ($val / 100);
-                                            } else {
-                                                $total += $val;
-                                            }
-                                        }
-
-                                        return $total;
-                                    })
+                                    ->state(fn ($record) => $record?->getTotalIndirectCost() ?? 0)
                                     ->money('IDR')
                                     ->weight(FontWeight::Bold),
                             ]),
+
+                        Grid::make(1)
+                            ->schema([
+                                TextEntry::make('indirect_breakdown')
+                                    ->label('Indirect Cost Breakdown')
+                                    ->state(function (ProfitabilityAnalysis $record) {
+                                        $items = $record->getIndirectItems();
+                                        if ($items->isEmpty()) {
+                                            return 'No indirect costs defined.';
+                                        }
+
+                                        return $items->map(function ($item) use ($record) {
+                                            $name = $item->category->name ?? 'Miscellaneous';
+                                            $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
+                                            $formattedVal = number_format($val, 0, ',', '.');
+
+                                            if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                                                $basis = $item->percentage_basis ?? 'revenue';
+                                                $basisValue = $basis === 'revenue' ? (float) $record->revenue_per_month : (float) $record->direct_cost;
+                                                $calc = number_format($basisValue * ($val / 100), 0, ',', '.');
+
+                                                return "• {$name}: {$val}% of {$basis} (IDR {$calc})";
+                                            }
+
+                                            return "• {$name}: IDR {$formattedVal}";
+                                        })->join("\n");
+                                    })
+                                    ->prose()
+                                    ->listWithLineBreaks(),
+                            ])->visible(fn ($record) => $record?->getIndirectItems()->isNotEmpty()),
 
                         Grid::make(4)
                             ->schema([

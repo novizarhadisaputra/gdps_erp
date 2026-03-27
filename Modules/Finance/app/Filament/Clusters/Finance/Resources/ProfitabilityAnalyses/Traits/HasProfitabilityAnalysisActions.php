@@ -159,9 +159,10 @@ trait HasProfitabilityAnalysisActions
                 $required = $service->getRequiredApprovers($record)
                     ->where('signature_type', 'MarginApproval');
 
-                $nextRule = $required->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
-
-                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
+                // Parallel Approval: User can see the button if they match ANY remaining margin rule
+                return $required->contains(fn ($rule) => 
+                    ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                );
             });
     }
 
@@ -283,9 +284,7 @@ trait HasProfitabilityAnalysisActions
                     return false;
                 }
 
-                if (! $record?->isMarginApproved()) {
-                    return false;
-                }
+                // Removed sequential margin requirement for fully parallel workflow
 
                 if ($record->isFullyApproved()) {
                     return false;
@@ -295,9 +294,10 @@ trait HasProfitabilityAnalysisActions
                 $required = $service->getRequiredApprovers($record)
                     ->where('signature_type', 'Approver');
 
-                $nextRule = $required->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
-
-                return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
+                // Parallel Approval: Match ANY remaining PA approval rule
+                return $required->contains(fn ($rule) => 
+                    ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                );
             });
     }
 

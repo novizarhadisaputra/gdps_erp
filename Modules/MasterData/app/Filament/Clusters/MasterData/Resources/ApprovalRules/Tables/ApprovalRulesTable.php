@@ -19,34 +19,58 @@ class ApprovalRulesTable
                 TextColumn::make('resource_type')
                     ->formatStateUsing(fn (string $state) => class_basename($state))
                     ->label('Resource'),
-                TextColumn::make('criteria_field'),
-                TextColumn::make('operator'),
-                TextColumn::make('value')
-                    ->formatStateUsing(function ($state, $record) {
-                        $isMonetary = in_array($record->criteria_field, ['revenue_per_month', 'net_profit', 'amount']);
-                        $isPercentage = $record->criteria_field === 'margin_percentage';
+                // TextColumn::make('conditions')
+                //     ->label('Rules / Conditions')
+                //     ->formatStateUsing(function ($state, $record) {
+                //         if (empty($state)) {
+                //             // Fallback to legacy base columns if conditions empty
+                //             if (! $record->criteria_field) {
+                //                 return 'No specific criteria';
+                //             }
 
-                        $format = function ($val) use ($isMonetary, $isPercentage) {
-                            if ($isMonetary) {
-                                return 'IDR '.number_format($val, 2, ',', '.');
-                            }
-                            if ($isPercentage) {
-                                return number_format($val, 2, ',', '.').'%';
-                            }
+                //             return "{$record->criteria_field} {$record->operator} {$record->value}";
+                //         }
 
-                            return number_format($val, 2, ',', '.');
-                        };
+                //         $summaries = [];
+                //         foreach ((array) $state as $cond) {
+                //             if (! is_array($cond)) {
+                //                 continue;
+                //             }
 
-                        if ($record->operator === 'between') {
-                            return $format($state).' - '.$format($record->max_value);
-                        }
+                //             $field = $cond['field'] ?? 'unknown';
+                //             $op = $cond['operator'] ?? '=';
+                //             $val = $cond['value'] ?? '?';
 
-                        return $format($state);
-                    }),
+                //             // Try to resolve labels for UUIDs
+                //             if ($field === 'product_cluster_id') {
+                //                 if (is_array($val)) {
+                //                     $names = \Modules\MasterData\Models\ProductCluster::whereIn('id', $val)->pluck('code')->toArray();
+                //                     $val = implode(', ', $names);
+                //                 } else {
+                //                     $name = \Modules\MasterData\Models\ProductCluster::where('id', $val)->value('code');
+                //                     $val = $name ?: $val;
+                //                 }
+                //             }
+
+                //             $summaries[] = "[{$field} {$op} {$val}]";
+                //         }
+
+                //         return implode(' AND ', $summaries);
+                //     })
+                //     ->wrap()
+                //     ->size('xs'),
                 TextColumn::make('approver_role')
+                    ->label('Approvers')
                     ->badge()
                     ->formatStateUsing(function ($state) {
-                        return Role::find($state)?->name;
+                        if (empty($state)) {
+                            return null;
+                        }
+
+                        $ids = (array) $state;
+                        $roleNames = Role::whereIn('id', $ids)->pluck('name')->toArray();
+
+                        return is_array($roleNames) ? implode(', ', $roleNames) : $roleNames;
                     }),
                 TextColumn::make('signature_type'),
                 TextColumn::make('order')

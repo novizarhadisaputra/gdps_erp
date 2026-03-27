@@ -158,7 +158,7 @@
                                     {{ $category?->name === 'Manpower' ? (int) $items->sum('quantity') . ' Headcount' : '-' }}
                                 </td>
                                 <td class="px-8 py-3 text-right text-xs text-gray-600 tabular-nums">
-                                    @money($items->sum('total_monthly_cost'), 'IDR', true)
+                                    @money($items->sum(fn($i) => (float)($i->total_monthly_cost ?? 0)), 'IDR', true)
                                 </td>
                             </tr>
                         @endforeach
@@ -193,7 +193,7 @@
                                 class="px-8 py-5 text-center border-r border-slate-200 dark:border-slate-700 text-slate-400">
                                 -</td>
                             <td class="px-8 py-5 text-right font-black text-slate-800 dark:text-slate-200 tabular-nums">
-                                @money($record->getIndirectItems()->sum(fn($i) => (float) ($i->total_monthly_cost ?? 0)), 'IDR', true)</td>
+                                @money($record->getTotalIndirectCost(), 'IDR', true)</td>
                         </tr>
 
                         @php
@@ -207,10 +207,23 @@
                                     {{ $item->category?->name ?? 'Indirect' }}</td>
                                 <td
                                     class="px-8 py-3 text-center text-[9px] font-mono text-gray-300 border-r border-gray-200 dark:border-gray-700 tabular-nums">
-                                    {{ $item->markup_percentage > 0 ? number_format($item->markup_percentage, 2) . '%' : '-' }}
+                                    @if (($item->calculation_type ?? 'fixed') === 'percentage')
+                                        {{ number_format((float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0), 2) }}% of {{ $item->percentage_basis ?? 'rev' }}
+                                    @else
+                                        Fixed
+                                    @endif
                                 </td>
                                 <td class="px-8 py-3 text-right text-xs text-gray-500 tabular-nums">
-                                    @money($item->total_monthly_cost, 'IDR', true)
+                                    @php
+                                        $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
+                                        $finalVal = $val;
+                                        if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                                            $basis = $item->percentage_basis ?? 'revenue';
+                                            $basisValue = $basis === 'revenue' ? (float) $record->revenue_per_month : (float) $record->direct_cost;
+                                            $finalVal = $basisValue * ($val / 100);
+                                        }
+                                    @endphp
+                                    @money($finalVal, 'IDR', true)
                                 </td>
                             </tr>
                         @endforeach
@@ -364,7 +377,7 @@
                 );
                 foreach ($reviewerRules as $rule) {
                     $sig = $signatures->first(
-                        fn($s) => $s->signature_type === 'Reviewer' &&
+                        fn($s) => ($s->signature_type instanceof \BackedEnum ? $s->signature_type->value : (string)$s->signature_type) === 'Reviewer' &&
                             $signatureService->isEligibleApprover($rule, $s->user),
                     );
                     $reviewItems->push(
@@ -384,7 +397,7 @@
 
                 // 3. Margin Authorization Stage
                 $marginItems = collect();
-                $marginSignature = $signatures->firstWhere('signature_type', 'MarginApproval');
+                $marginSignature = $signatures->first(fn($s) => ($s->signature_type instanceof \BackedEnum ? $s->signature_type->value : (string)$s->signature_type) === 'MarginApproval');
                 $marginRules = $rules->where(
                     'signature_type',
                     ApprovalSignatureType::MarginApproval,
@@ -392,7 +405,7 @@
 
                 foreach ($marginRules as $rule) {
                     $sig = $signatures->first(
-                        fn($s) => $s->signature_type === 'MarginApproval' &&
+                        fn($s) => ($s->signature_type instanceof \BackedEnum ? $s->signature_type->value : (string)$s->signature_type) === 'MarginApproval' &&
                             $signatureService->isEligibleApprover($rule, $s->user),
                     );
                     $marginItems->push(
@@ -430,7 +443,7 @@
                 );
                 foreach ($approverRules as $rule) {
                     $sig = $signatures->first(
-                        fn($s) => $s->signature_type === 'Approver' &&
+                        fn($s) => ($s->signature_type instanceof \BackedEnum ? $s->signature_type->value : (string)$s->signature_type) === 'Approver' &&
                             $signatureService->isEligibleApprover($rule, $s->user),
                     );
                     $approvalItems->push(
@@ -456,7 +469,7 @@
                 );
                 foreach ($ackRules as $rule) {
                     $sig = $signatures->first(
-                        fn($s) => $s->signature_type === 'Acknowledger' &&
+                        fn($s) => ($s->signature_type instanceof \BackedEnum ? $s->signature_type->value : (string)$s->signature_type) === 'Acknowledger' &&
                             $signatureService->isEligibleApprover($rule, $s->user),
                     );
                     $ackItems->push(

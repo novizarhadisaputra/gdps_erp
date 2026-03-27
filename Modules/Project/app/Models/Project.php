@@ -70,7 +70,7 @@ class Project extends Model implements HasMedia
         // Formula: [Customer(3)][ProjectSeq(2)][Area(3)][BranchSeq(2)][Cluster(3)][TaxCode(2)]
 
         // Ensure relations are loaded for code segments
-        $project->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'lead.customer']);
+        $project->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'lead.customer', 'projectType']);
 
         $customerCode = $project->customer?->code ?? $project->lead?->customer?->code ?? 'XXX';
         $customerShortCode = str_pad(substr($customerCode, 0, 3), 3, 'X', STR_PAD_RIGHT);

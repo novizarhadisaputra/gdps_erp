@@ -76,14 +76,18 @@ class ViewProposal extends ViewRecord
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft && ! $this->record->isComplete()),
 
             Action::make('Submit')
+                ->label('Send Proposal')
                 ->color('info')
                 ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
                 ->action(function () {
                     $this->record->update(['status' => ProposalStatus::Submitted]);
                     app(SignatureService::class)->notifyNextApprovers($this->record);
+                    
+                    Notification::make()->title('Proposal Sent Successfully')->success()->send();
                 })
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->record->isComplete()),
+                
 
             ActionGroup::make([
                 Action::make('approvePa')
@@ -146,14 +150,14 @@ class ViewProposal extends ViewRecord
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
                     ]))
-                    ->visible(fn () => $this->record->signatures()->count()),
+                    ->visible(fn () => $this->record->status === ProposalStatus::Approved),
 
                 EditAction::make()
                     ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
                     ]))
-                    ->visible(fn () => $this->getRecord()->status === ProposalStatus::Draft),
+                    ->visible(fn () => ! in_array($this->getRecord()->status, [ProposalStatus::Cancelled, ProposalStatus::Rejected, ProposalStatus::Converted])),
 
                 Action::make('Reject')
                     ->color('danger')

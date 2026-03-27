@@ -27,41 +27,80 @@ class ApprovalRuleSeeder extends Seeder
             'VP Business Support' => Role::where('name', 'VP Business Support')->value('id'),
             'VP Operations' => Role::where('name', 'VP Operations')->value('id'),
             'VP Human Capital' => Role::where('name', 'VP Human Capital')->value('id'),
+            'Board of Directors' => Role::where('name', 'Board of Directors')->value('id'),
         ];
+
+        ApprovalRule::truncate();
 
         $rules = [
             // General Information Rules - Always applies
             [
                 'resource_type' => 'Modules\CRM\Models\GeneralInformation',
-                'criteria_field' => 'sequence_number',
-                'operator' => '>=',
-                'value' => 0,
+                'conditions' => [
+                    ['field' => 'sequence_number', 'operator' => '>=', 'value' => 0],
+                ],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['super_admin']]),
+                'approver_role' => array_values(array_filter([$roleIds['super_admin']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
             ],
-            // Proposal Rules - Always applies
+            // Proposal Rules - Mirrors PA Approval Step
             [
                 'resource_type' => 'Modules\CRM\Models\Proposal',
-                'criteria_field' => 'amount',
-                'operator' => '>=',
-                'value' => 0,
+                'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['super_admin']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'signature_type' => 'Approver',
+                'order' => 2,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'conditions' => [
+                    ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
+                ],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Human Capital']])),
+                'signature_type' => 'Approver',
+                'order' => 3,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'conditions' => [
+                    ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
+                ],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Operations']])),
+                'signature_type' => 'Approver',
+                'order' => 4,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
+                'signature_type' => 'Approver',
+                'order' => 5,
                 'is_active' => true,
             ],
             // Minutes of Agreement Rules
             [
                 'resource_type' => 'Modules\CRM\Models\MinutesOfAgreement',
-                'criteria_field' => null,
-                'operator' => null,
-                'value' => null,
+                'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['super_admin']]),
+                'approver_role' => array_values(array_filter([$roleIds['super_admin']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -69,11 +108,9 @@ class ApprovalRuleSeeder extends Seeder
             // Contract Rules
             [
                 'resource_type' => 'Modules\CRM\Models\Contract',
-                'criteria_field' => null,
-                'operator' => null,
-                'value' => null,
+                'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['super_admin']]),
+                'approver_role' => array_values(array_filter([$roleIds['super_admin']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -84,16 +121,18 @@ class ApprovalRuleSeeder extends Seeder
              */
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Finance']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
                 'signature_type' => 'MarginApproval',
                 'order' => 1,
                 'is_active' => true,
             ],
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Business Support']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
                 'signature_type' => 'MarginApproval',
                 'order' => 2,
                 'is_active' => true,
@@ -102,10 +141,10 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
                 'conditions' => [
-                    ['field' => 'product_cluster_id', 'operator' => '=', 'value' => $beyondCareId],
+                    ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
                 ],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Human Capital']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Human Capital']])),
                 'signature_type' => 'MarginApproval',
                 'order' => 3,
                 'is_active' => true,
@@ -114,12 +153,12 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
                 'conditions' => [
-                    ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => implode(',', $beyondOpsIds)],
+                    ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
                 ],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Operations']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Operations']])),
                 'signature_type' => 'MarginApproval',
-                'order' => 3,
+                'order' => 4, // Changed order to prevent collision if needed, but truncate fixes it
                 'is_active' => true,
             ],
 
@@ -128,16 +167,18 @@ class ApprovalRuleSeeder extends Seeder
              */
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Finance']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
                 'signature_type' => 'Approver',
                 'order' => 10,
                 'is_active' => true,
             ],
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Business Support']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
                 'signature_type' => 'Approver',
                 'order' => 11,
                 'is_active' => true,
@@ -146,10 +187,10 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
                 'conditions' => [
-                    ['field' => 'product_cluster_id', 'operator' => '=', 'value' => $beyondCareId],
+                    ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
                 ],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Human Capital']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Human Capital']])),
                 'signature_type' => 'Approver',
                 'order' => 12,
                 'is_active' => true,
@@ -158,25 +199,27 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
                 'conditions' => [
-                    ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => implode(',', $beyondOpsIds)],
+                    ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
                 ],
                 'approver_type' => 'Role',
-                'approver_role' => array_filter([$roleIds['VP Operations']]),
+                'approver_role' => array_values(array_filter([$roleIds['VP Operations']])),
                 'signature_type' => 'Approver',
-                'order' => 12,
+                'order' => 13,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
+                'signature_type' => 'Approver',
+                'order' => 14,
                 'is_active' => true,
             ],
         ];
 
         foreach ($rules as $rule) {
-            ApprovalRule::updateOrCreate(
-                [
-                    'resource_type' => $rule['resource_type'],
-                    'signature_type' => $rule['signature_type'] ?? 'approval',
-                    'order' => $rule['order'],
-                ],
-                $rule
-            );
+            ApprovalRule::create($rule);
         }
     }
 }
