@@ -6,6 +6,7 @@ use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\ProjectReviewStatus;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Models\ProfitabilityAnalysis;
@@ -26,14 +27,9 @@ class ProjectReviewForm
                                     ->live()
                                     ->searchable(),
                                 Select::make('status')
-                                    ->options([
-                                        'draft' => 'Draft',
-                                        'reviewing' => 'Reviewing',
-                                        'approved' => 'Approved',
-                                        'rejected' => 'Rejected',
-                                    ])
+                                    ->options(ProjectReviewStatus::class)
                                     ->required()
-                                    ->default('draft'),
+                                    ->default(ProjectReviewStatus::Draft),
                             ]),
                         Grid::make(3)
                             ->schema([
