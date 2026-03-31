@@ -15,15 +15,13 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
-use Modules\CRM\Models\ManpowerTemplate;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
-use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\DirectCostCategory;
-use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
@@ -201,81 +199,42 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         return $this->hasOne(Project::class);
     }
 
-    public function items(): HasMany
-    {
-        return $this->hasMany(ProfitabilityAnalysisItem::class);
-    }
-
-    public function manpowerItems(): HasMany
-    {
-        return $this->hasMany(ProfitabilityAnalysisItem::class)
-            ->whereIn('costable_type', [
-                JobPosition::class,
-                ManpowerTemplate::class,
-            ]);
-    }
-
-    public function operationalItems(): HasMany
-    {
-        return $this->hasMany(ProfitabilityAnalysisItem::class)
-            ->where('costable_type', Item::class);
-    }
-
-    public function indirectItems(): HasMany
-    {
-        return $this->hasMany(ProfitabilityAnalysisItem::class)
-            ->whereNull('costable_type');
-    }
-
     public function getDirectItems(): \Illuminate\Support\Collection
     {
-        if ($this->is_manual_cost) {
-            $items = collect($this->analysis_details['manual_costs'] ?? []);
+        $items = collect($this->analysis_details['manual_costs'] ?? []);
 
-            return $items->map(function ($item) {
-                return (object) [
-                    'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
-                    'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
-                    'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? 0),
-                    'unit_cost_price' => self::parseNumericValue($item['amount'] ?? 0),
-                    'quantity' => self::parseNumericValue($item['quantity'] ?? 1),
-                    'is_manpower' => false,
-                    'costable_type' => null,
-                    'costable' => null,
-                ];
-            });
-        }
-
-        return $this->items()
-            ->whereHas('category', fn ($q) => $q->where('type', 'direct'))
-            ->with('category')
-            ->get();
+        return $items->map(function ($item) {
+            return (object) [
+                'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
+                'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
+                'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? $item['total_monthly_cost'] ?? 0),
+                'unit_cost_price' => self::parseNumericValue($item['unit_amount'] ?? $item['unit_cost_price'] ?? 0),
+                'quantity' => self::parseNumericValue($item['quantity'] ?? 1),
+                'is_manpower' => ($item['costable_type'] ?? null) === JobPosition::class || ($item['job_position_id'] ?? null) !== null,
+                'costable_type' => $item['costable_type'] ?? (\Modules\MasterData\Models\JobPosition::class),
+                'costable' => null, // We could load it if needed, but usually ID is enough
+                'name' => $item['name'] ?? null,
+            ];
+        });
     }
 
     public function getIndirectItems(): \Illuminate\Support\Collection
     {
         $jsonIndirect = collect($this->analysis_details['indirect_costs'] ?? []);
 
-        if ($jsonIndirect->isNotEmpty()) {
-            return $jsonIndirect->map(function ($item) {
-                return (object) [
-                    'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
-                    'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
-                    'total_monthly_cost' => self::parseNumericValue($item['total_monthly_cost'] ?? 0),
-                    'markup_percentage' => self::parseNumericValue($item['markup_percentage'] ?? 0),
-                    'calculation_type' => $item['calculation_type'] ?? 'fixed',
-                    'percentage_basis' => $item['percentage_basis'] ?? 'revenue',
-                    'unit_cost_price' => self::parseNumericValue($item['unit_cost_price'] ?? 0),
-                    'costable_type' => null,
-                    'costable' => null,
-                ];
-            });
-        }
-
-        return $this->items()
-            ->whereHas('category', fn ($q) => $q->where('type', 'indirect'))
-            ->with(['category'])
-            ->get();
+        return $jsonIndirect->map(function ($item) {
+            return (object) [
+                'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
+                'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
+                'total_monthly_cost' => self::parseNumericValue($item['total_monthly_cost'] ?? $item['amount'] ?? 0),
+                'markup_percentage' => self::parseNumericValue($item['markup_percentage'] ?? 0),
+                'calculation_type' => $item['calculation_type'] ?? 'fixed',
+                'percentage_basis' => $item['percentage_basis'] ?? 'revenue',
+                'unit_cost_price' => self::parseNumericValue($item['unit_cost_price'] ?? $item['unit_amount'] ?? 0),
+                'costable_type' => null,
+                'costable' => null,
+            ];
+        });
     }
 
     public function getTotalDirectCostByCategory(string $categoryCode): float
@@ -359,5 +318,57 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         }
 
         return 0.0;
+    }
+
+    public function getManpowerRequirementsAttribute(): array
+    {
+        $manpowerCategoryId = DirectCostCategory::where('code', 'manpower')->first()?->id;
+
+        $items = collect($this->analysis_details['manual_costs'] ?? [])
+            ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $manpowerCategoryId || ! empty($item['sub_items']))
+            ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+
+        return $items->map(fn ($item) => [
+            'job_position_id' => $item['job_position_id'] ?? $item['costable_id'] ?? null,
+            'job_position_name' => $item['name'] ?? $item['job_position_name'] ?? null,
+            'quantity' => $item['quantity'] ?? 1,
+            'unit_cost' => $item['unit_amount'] ?? $item['unit_cost_price'] ?? 0,
+            'total_monthly_cost' => $item['amount'] ?? $item['total_monthly_cost'] ?? 0,
+            'risk_level' => $item['risk_level'] ?? 'very_low',
+            'employee_type' => $item['employee_type'] ?? 'ppu',
+            'is_labor_intensive' => $item['is_labor_intensive'] ?? false,
+            'bill_thr_monthly' => $item['bill_thr_monthly'] ?? true,
+            'bill_compensation_monthly' => $item['bill_compensation_monthly'] ?? true,
+            'include_non_fixed_in_accruals' => $item['include_non_fixed_in_accruals'] ?? false,
+            'extra_costs' => $item['extra_costs'] ?? [],
+            'ptkp_config_id' => $item['ptkp_config_id'] ?? null,
+            'cost_breakdown' => $item['cost_breakdown'] ?? null,
+        ])->toArray();
+    }
+
+    public function getFinancialAssumptionsAttribute(): array
+    {
+        $operationalCategoryId = DirectCostCategory::where('code', 'tools_equipment')->first()?->id;
+
+        $opItems = collect($this->analysis_details['manual_costs'] ?? [])
+            ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $operationalCategoryId)
+            ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+
+        return [
+            'interest_rate' => $this->interest_rate,
+            'tax_rate' => $this->tax_rate,
+            'management_fee_rate' => $this->management_fee_rate,
+            'asset_ownership' => $this->asset_ownership,
+            'is_manual_cost' => $this->is_manual_cost,
+            'operational_costs' => $opItems->map(fn ($item) => [
+                'item_id' => $item['item_id'] ?? $item['costable_id'] ?? null,
+                'item_name' => $item['name'] ?? $item['item_name'] ?? null,
+                'quantity' => $item['quantity'] ?? 1,
+                'unit_cost' => $item['unit_amount'] ?? $item['unit_cost_price'] ?? 0,
+                'total_monthly_cost' => $item['amount'] ?? $item['total_monthly_cost'] ?? 0,
+                'calculation_type' => $item['calculation_type'] ?? 'nominal',
+                'percentage_basis' => $item['percentage_basis'] ?? null,
+            ])->toArray(),
+        ];
     }
 }

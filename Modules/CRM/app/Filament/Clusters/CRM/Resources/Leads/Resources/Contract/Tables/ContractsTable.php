@@ -13,6 +13,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Models\Contract;
+use Modules\Project\Services\ProjectService;
 
 class ContractsTable
 {
@@ -61,6 +62,29 @@ class ContractsTable
                             ->send();
                     })
                     ->visible(fn (Contract $record) => $record->status === ContractStatus::Active || $record->status === ContractStatus::Expired),
+                Action::make('handoverToProject')
+                    ->label('Handover to Project')
+                    ->icon(Heroicon::OutlinedRocketLaunch)
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->action(function (Contract $record, ProjectService $service) {
+                        $project = $service->attemptProjectCreation($record->proposal);
+
+                        if ($project) {
+                            Notification::make()
+                                ->title('Project Created Successfully')
+                                ->body("Project {$project->code} has been created and initialized.")
+                                ->success()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('Project Creation Failed')
+                                ->body('Unable to create project. Please ensure: 1. A signed proposal file is uploaded. 2. Profitability Analysis is fully approved.')
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->visible(fn (Contract $record) => $record->project()->doesntExist() && $record->proposal_id !== null),
                 DeleteAction::make(),
             ])
             ->bulkActions([

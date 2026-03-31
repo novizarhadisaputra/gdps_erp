@@ -152,8 +152,7 @@ class ProfitabilityAnalysisObserver
      */
     public function deleting(ProfitabilityAnalysis $analysis): void
     {
-        // Cascade delete items
-        $analysis->items()->delete();
+        // No items relationship to cascade delete anymore
     }
 
     /**

@@ -22,8 +22,8 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
 
         $get = function ($path) use ($manpowerCat, $toolsCat) {
             $data = [
-                'general_information_id' => null,
-                'manpowerItems' => [
+                '/data.general_information_id' => null,
+                '/data.manpowerItems' => [
                     [
                         'quantity' => 10,
                         'unit_cost_price' => 5000000,
@@ -33,7 +33,7 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
                         'direct_cost_category_id' => $manpowerCat->id,
                     ],
                 ],
-                'operationalItems' => [
+                '/data.operationalItems' => [
                     [
                         'quantity' => 2,
                         'unit_cost_price' => 10000000,
@@ -43,17 +43,17 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
                         'direct_cost_category_id' => $toolsCat->id,
                     ],
                 ],
-                'management_fee_rate' => 5,
-                'indirect_mgmt_expenses' => 1000000,
-                'indirect_entertainment' => 500000,
-                'indirect_concession' => 0,
-                'indirect_business_partners' => [
+                '/data.management_fee_rate' => 5,
+                '/data.indirect_mgmt_expenses' => 1000000,
+                '/data.indirect_entertainment' => 500000,
+                '/data.indirect_concession' => 0,
+                '/data.indirect_business_partners' => [
                     ['amount' => 2000000],
                 ],
-                'management_expense_rate' => 2,
-                'interest_rate' => 1,
-                'tax_rate' => 22,
-                'payment_term_id' => null,
+                '/data.management_expense_rate' => 2,
+                '/data.interest_rate' => 1,
+                '/data.tax_rate' => 22,
+                '/data.payment_term_id' => null,
             ];
 
             return $data[$path] ?? null;
@@ -67,12 +67,12 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
         try {
             ProfitabilityAnalysisForm::calculateDirectCost($get, $set);
 
-            $this->assertArrayHasKey('direct_cost', $setResults);
-            $this->assertArrayHasKey('ebitda', $setResults);
-            $this->assertArrayHasKey('net_profit', $setResults);
+            $this->assertArrayHasKey('/data.direct_cost', $setResults);
+            $this->assertArrayHasKey('/data.ebitda', $setResults);
+            $this->assertArrayHasKey('/data.net_profit', $setResults);
 
         } catch (\Throwable $e) {
-            $this->fail('calculateDirectCost failed: '.$e->getMessage());
+            $this->fail('calculateDirectCost failed: '.$e->getMessage().' in '.$e->getFile().':'.$e->getLine());
         }
     }
 
@@ -83,22 +83,22 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
 
         $get = function ($path) use ($manpowerCat, $toolsCat) {
             $data = [
-                'is_manual_cost' => true,
-                'analysis_details.manual_revenue' => 50000000,
-                'analysis_details.manual_costs' => [
+                '/data.is_manual_cost' => true,
+                '/data.analysis_details.manual_revenue' => 50000000,
+                '/data.analysis_details.manual_costs' => [
                     ['direct_cost_category_id' => $manpowerCat->id, 'amount' => 20000000],
                     ['direct_cost_category_id' => $toolsCat->id, 'amount' => 10000000],
                 ],
-                'general_information_id' => null,
-                'management_fee_rate' => 0,
-                'management_fee' => 5000000,
-                'management_expense_rate' => 2,
-                'indirect_mgmt_expenses' => 0,
-                'indirect_entertainment' => 0,
-                'indirect_concession' => 0,
-                'indirect_business_partners' => [],
-                'interest_rate' => 0,
-                'tax_rate' => 22,
+                '/data.general_information_id' => null,
+                '/data.management_fee_rate' => 0,
+                '/data.management_fee' => 5000000,
+                '/data.management_expense_rate' => 2,
+                '/data.indirect_mgmt_expenses' => 0,
+                '/data.indirect_entertainment' => 0,
+                '/data.indirect_concession' => 0,
+                '/data.indirect_business_partners' => [],
+                '/data.interest_rate' => 0,
+                '/data.tax_rate' => 22,
             ];
 
             return $data[$path] ?? null;
@@ -112,9 +112,9 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
         ProfitabilityAnalysisForm::calculateDirectCost($get, $set);
 
         // Direct Cost = 20M + 10M = 30M
-        $this->assertEquals(30000000, $setResults['direct_cost']);
+        $this->assertEquals(30000000, $setResults['/data.direct_cost']);
         // Revenue = 30M (Costs) + 5M (MGMT Fee) = 35M
-        $this->assertEquals(35000000, $setResults['revenue_per_month']);
+        $this->assertEquals(35000000, $setResults['/data.revenue_per_month']);
     }
 
     public function test_validate_profitability_thresholds()

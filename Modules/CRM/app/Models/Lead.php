@@ -22,8 +22,6 @@ use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\IndustrialSector;
-use Modules\MasterData\Models\Item;
-use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
@@ -250,8 +248,13 @@ class Lead extends Model implements HasMedia
                 'status' => ProfitabilityAnalysisStatus::Draft,
             ], array_filter($additionalData, fn ($v) => ! is_null($v))));
 
+            $manualCosts = [];
+            $manpowerCategoryId = \Modules\MasterData\Models\DirectCostCategory::where('code', 'manpower')->first()?->id;
+            $operationalCategoryId = \Modules\MasterData\Models\DirectCostCategory::where('code', 'tools_equipment')->first()?->id;
+
             // 1. Manpower Items from Lead's templates
             foreach ($this->manpowerTemplates as $template) {
+                $subItems = [];
                 foreach ($template->items as $item) {
                     $jp = $item->jobPosition;
                     if (! $jp) {
@@ -260,7 +263,6 @@ class Lead extends Model implements HasMedia
 
                     $breakdown = [];
                     foreach ($jp->remunerationComponents ?? [] as $component) {
-                        // Skip 'Gaji Pokok' because it is already handled by unit_cost_price
                         if (str_contains(strtolower($component->name), 'gaji pokok')) {
                             continue;
                         }
@@ -273,31 +275,66 @@ class Lead extends Model implements HasMedia
                         ];
                     }
 
-                    $pa->items()->create([
-                        'costable_type' => JobPosition::class,
-                        'costable_id' => $jp->id,
+                    $subItems[] = [
+                        'job_position_id' => $jp->id,
+                        'name' => $jp->name,
                         'quantity' => $item->quantity ?? 1,
-                        'unit_cost_price' => $item->basic_salary ?? 0,
-                        'duration_months' => 1,
-                        'depreciation_months' => 1,
+                        'unit_amount' => $item->basic_salary ?? 0,
+                        'amount' => ($item->basic_salary ?? 0) * ($item->quantity ?? 1),
                         'cost_breakdown' => $breakdown,
-                    ]);
+                        'risk_level' => $item->risk_level ?? 'very_low',
+                        'employee_type' => $item->employee_type ?? 'ppu',
+                        'is_labor_intensive' => (bool) ($item->is_labor_intensive ?? false),
+                        'bill_thr_monthly' => (bool) ($item->bill_thr_monthly ?? true),
+                        'bill_compensation_monthly' => (bool) ($item->bill_compensation_monthly ?? true),
+                        'include_non_fixed_in_accruals' => (bool) ($item->include_non_fixed_in_accruals ?? false),
+                        'extra_costs' => $item->extra_costs ?? [],
+                    ];
+                }
+
+                if (! empty($subItems)) {
+                    $manualCosts[] = [
+                        'name' => $template->name,
+                        'direct_cost_category_id' => $manpowerCategoryId,
+                        'costable_type' => ManpowerTemplate::class,
+                        'costable_id' => $template->id,
+                        'quantity' => 1,
+                        'amount' => collect($subItems)->sum('amount'),
+                        'sub_items' => $subItems,
+                    ];
                 }
             }
 
             // 2. Operational Items from Lead's templates
             foreach ($this->costingTemplates as $template) {
+                $subItems = [];
                 foreach ($template->costingTemplateItems as $item) {
-                    $pa->items()->create([
-                        'costable_type' => Item::class,
-                        'costable_id' => $item->item_id,
+                    $subItems[] = [
+                        'item_id' => $item->item_id,
+                        'name' => $item->item?->name ?? 'Unknown',
                         'quantity' => $item->quantity ?? 1,
-                        'unit_cost_price' => $item->unit_price ?? 0,
-                        'duration_months' => 1,
+                        'unit_amount' => $item->unit_price ?? 0,
+                        'amount' => ($item->unit_price ?? 0) * ($item->quantity ?? 1),
                         'depreciation_months' => $item->depreciation_months ?? 1,
-                    ]);
+                    ];
+                }
+
+                if (! empty($subItems)) {
+                    $manualCosts[] = [
+                        'name' => $template->name,
+                        'direct_cost_category_id' => $operationalCategoryId,
+                        'quantity' => 1,
+                        'amount' => collect($subItems)->sum('amount'),
+                        'sub_items' => $subItems,
+                    ];
                 }
             }
+
+            $pa->update([
+                'analysis_details' => array_merge($pa->analysis_details ?? [], [
+                    'manual_costs' => $manualCosts,
+                ]),
+            ]);
 
             return $pa;
         });

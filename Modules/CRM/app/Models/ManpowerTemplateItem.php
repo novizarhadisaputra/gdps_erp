@@ -25,7 +25,29 @@ class ManpowerTemplateItem extends Model
         'quantity',
         'basic_salary',
         'notes',
+        'risk_level',
+        'employee_type',
+        'is_labor_intensive',
+        'bill_thr_monthly',
+        'bill_compensation_monthly',
+        'include_non_fixed_in_accruals',
+        'extra_costs',
+        'allowances',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'integer',
+            'basic_salary' => 'decimal:2',
+            'is_labor_intensive' => 'boolean',
+            'bill_thr_monthly' => 'boolean',
+            'bill_compensation_monthly' => 'boolean',
+            'include_non_fixed_in_accruals' => 'boolean',
+            'extra_costs' => 'array',
+            'allowances' => 'array',
+        ];
+    }
 
     public function template(): BelongsTo
     {

@@ -29,16 +29,10 @@ class ManpowerTemplate extends Model implements HasMedia
     protected $fillable = [
         'lead_id',
         'project_area_id',
-        'contract_type_id',
         'work_scheme_id',
         'code',
         'name',
         'description',
-        'risk_level',
-        'is_labor_intensive',
-        'employee_type',
-        'bill_thr_monthly',
-        'bill_compensation_monthly',
         'is_active',
         'is_imported',
         'import_source_id',
@@ -47,17 +41,9 @@ class ManpowerTemplate extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'is_labor_intensive' => 'boolean',
-        'bill_thr_monthly' => 'boolean',
-        'bill_compensation_monthly' => 'boolean',
         'is_active' => 'boolean',
         'is_imported' => 'boolean',
     ];
-
-    public function contractType(): BelongsTo
-    {
-        return $this->belongsTo(\Modules\MasterData\Models\ContractType::class);
-    }
 
     public function workScheme(): BelongsTo
     {
@@ -91,12 +77,6 @@ class ManpowerTemplate extends Model implements HasMedia
             return ['rows' => [], 'total' => 0];
         }
 
-        $riskLevel = $this->risk_level ?? 'very_low';
-        $isLaborIntensive = (bool) ($this->is_labor_intensive ?? false);
-        $employeeType = $this->employee_type ?? 'ppu';
-        $billThr = (bool) ($this->bill_thr_monthly ?? true);
-        $billComp = (bool) ($this->bill_compensation_monthly ?? true);
-
         foreach ($this->items as $item) {
             $jpId = $item->job_position_id ?? null;
             $qty = (int) ($item->quantity ?? 0);
@@ -105,28 +85,21 @@ class ManpowerTemplate extends Model implements HasMedia
                 continue;
             }
 
-            $jp = \Modules\MasterData\Models\JobPosition::with(['fixedAllowances', 'nonFixedAllowances'])->find($jpId);
+            $jp = \Modules\MasterData\Models\JobPosition::find($jpId);
             if (! $jp) {
                 continue;
             }
 
-            $allowances = [];
-            foreach ($jp->fixedAllowances ?? [] as $allowance) {
-                $allowances[] = [
-                    'name' => $allowance->name,
-                    'type' => 'nominal',
-                    'value' => $allowance->pivot->amount,
-                    'is_fixed' => true,
-                ];
-            }
-            foreach ($jp->nonFixedAllowances ?? [] as $allowance) {
-                $allowances[] = [
-                    'name' => $allowance->name,
-                    'type' => 'nominal',
-                    'value' => $allowance->pivot->amount,
-                    'is_fixed' => false,
-                ];
-            }
+            // Allowances are defined per-item (per-project), not from JobPosition master data
+            $allowances = $item->allowances ?? [];
+
+            $riskLevel = $item->risk_level ?? 'very_low';
+            $isLaborIntensive = (bool) ($item->is_labor_intensive ?? false);
+            $employeeType = $item->employee_type ?? 'ppu';
+            $billThr = (bool) ($item->bill_thr_monthly ?? true);
+            $billComp = (bool) ($item->bill_compensation_monthly ?? true);
+            $includeNonFixed = (bool) ($item->include_non_fixed_in_accruals ?? false);
+            $extraCosts = $item->extra_costs ?? [];
 
             $basicSalary = (float) ($item->basic_salary ?? 0);
 
@@ -135,13 +108,14 @@ class ManpowerTemplate extends Model implements HasMedia
                 allowances: $allowances,
                 projectAreaId: $areaId,
                 year: (int) date('Y'),
-                contractTypeId: $this->contract_type_id,
                 workSchemeId: $this->work_scheme_id,
                 riskLevel: $riskLevel,
                 isLaborIntensive: $isLaborIntensive,
                 employeeType: $employeeType,
                 billThrMonthly: $billThr,
-                billCompensationMonthly: $billComp
+                billCompensationMonthly: $billComp,
+                includeNonFixedInAccruals: $includeNonFixed,
+                extraCosts: $extraCosts
             );
 
             $unitCost = $res['total_direct_cost'];

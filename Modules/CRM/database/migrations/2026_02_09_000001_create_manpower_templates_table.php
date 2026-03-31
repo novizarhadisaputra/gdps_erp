@@ -15,16 +15,10 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->nullOnDelete();
             $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->nullOnDelete();
-            $table->foreignUuid('contract_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'contract_types' : 'master_data.contract_types')->nullOnDelete();
             $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'master_data.work_schemes')->nullOnDelete();
             $table->string('code')->nullable()->unique();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('risk_level')->default('very_low');
-            $table->boolean('is_labor_intensive')->default(false);
-            $table->string('employee_type')->default('ppu');
-            $table->boolean('bill_thr_monthly')->default(true);
-            $table->boolean('bill_compensation_monthly')->default(true);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_imported')->default(false);
             $table->uuid('import_source_id')->nullable();
@@ -42,6 +36,14 @@ return new class extends Migration
             $table->decimal('basic_salary', 15, 2)->default(0);
             $table->integer('quantity')->default(1);
             $table->text('notes')->nullable();
+            $table->string('risk_level')->default('very_low');
+            $table->string('employee_type')->default('ppu');
+            $table->boolean('is_labor_intensive')->default(false);
+            $table->boolean('bill_thr_monthly')->default(true);
+            $table->boolean('bill_compensation_monthly')->default(true);
+            $table->boolean('include_non_fixed_in_accruals')->default(false);
+            $table->jsonb('allowances')->nullable();
+            $table->jsonb('extra_costs')->nullable();
             $table->timestamps();
         });
     }

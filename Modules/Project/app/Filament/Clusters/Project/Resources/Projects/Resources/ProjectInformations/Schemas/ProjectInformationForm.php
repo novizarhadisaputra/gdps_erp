@@ -3,6 +3,7 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Schemas;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -10,6 +11,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProjectType;
 
@@ -81,6 +83,58 @@ class ProjectInformationForm
                             ->columnSpanFull(),
                         TextInput::make('previous_code')
                             ->label('Previous Project Code'),
+                    ]),
+
+                Section::make('Remuneration Details')
+                    ->schema([
+                        Repeater::make('remuneration_details')
+                            ->schema([
+                                Select::make('job_position_id')
+                                    ->label('Position')
+                                    ->relationship('jobPosition', 'name')
+                                    ->options(JobPosition::all()->pluck('name', 'id'))
+                                    ->disabled()
+                                    ->dehydrated(),
+                                TextInput::make('quantity')
+                                    ->numeric()
+                                    ->disabled(),
+                                TextInput::make('unit_cost')
+                                    ->numeric()
+                                    ->prefix('IDR')
+                                    ->disabled(),
+                                TextInput::make('total_monthly_cost')
+                                    ->numeric()
+                                    ->prefix('IDR')
+                                    ->disabled(),
+                            ])
+                            ->columns(4)
+                            ->addable(false)
+                            ->deletable(false),
+                    ]),
+
+                Section::make('Operational & Analysis Details')
+                    ->schema([
+                        Repeater::make('analysis_details.operational_costs')
+                            ->label('Operational Costs')
+                            ->schema([
+                                TextInput::make('item_name')
+                                    ->label('Item')
+                                    ->disabled(),
+                                TextInput::make('quantity')
+                                    ->numeric()
+                                    ->disabled(),
+                                TextInput::make('unit_cost')
+                                    ->numeric()
+                                    ->prefix('IDR')
+                                    ->disabled(),
+                                TextInput::make('total_monthly_cost')
+                                    ->numeric()
+                                    ->prefix('IDR')
+                                    ->disabled(),
+                            ])
+                            ->columns(4)
+                            ->addable(false)
+                            ->deletable(false),
                     ]),
             ]);
     }

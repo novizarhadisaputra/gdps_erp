@@ -20,18 +20,22 @@ class ProjectInformationObserver
         if ($project->profitability_analysis_id) {
             $analysis = $project->profitabilityAnalysis;
             $info->revenue_per_month = $analysis->revenue_per_month ?? $info->revenue_per_month;
-            $info->management_fee_per_month = $analysis->management_fee_amount ?? $info->management_fee_per_month;
-            
+            $info->management_fee_per_month = $analysis->management_fee ?? $info->management_fee_per_month;
+
             if ($analysis->tax?->percentage !== null) {
                 $info->ppn_percentage = $analysis->tax->percentage;
             }
-            
+
             // Sync dates if not set
             $info->start_date = $info->start_date ?? $analysis->start_date;
             $info->end_date = $info->end_date ?? $analysis->end_date;
 
+            // Sync structural fields if not set
+            $info->payment_term_id = $info->payment_term_id ?? $analysis->payment_term_id;
+            $info->project_type_id = $info->project_type_id ?? $analysis->project_type_id;
+
             // Inherit cost details
-            $info->direct_cost = $analysis->total_monthly_cost ?? 0;
+            $info->direct_cost = $analysis->direct_cost ?? 0;
             $info->analysis_details = $analysis->financial_assumptions;
             $info->remuneration_details = $analysis->manpower_requirements;
         }
@@ -40,14 +44,14 @@ class ProjectInformationObserver
         if ($project->lead_id) {
             $lead = $project->lead;
             $info->lead_id = $lead->id;
-            
+
             // Sync employees (AMS/Oprep) if they were assigned in Lead
             $info->ams_id = $info->ams_id ?? $lead->ams_id;
             $info->oprep_id = $info->oprep_id ?? $lead->oprep_id;
         }
 
         // Sync from Contract if available (fallback)
-        if ($project->contract_id && !$info->revenue_per_month) {
+        if ($project->contract_id && ! $info->revenue_per_month) {
             $contract = $project->contract;
             $info->revenue_per_month = $contract->proposal?->amount;
             $info->start_date = $info->start_date ?? now();
@@ -75,7 +79,6 @@ class ProjectInformationObserver
         // PI = Project Information
         $info->document_number = sprintf('GDPS/UB/PI-%03d/%s', $sequence, $shortYear);
     }
-
 
     /**
      * Handle the ProjectInformation "updated" event.

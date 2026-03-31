@@ -3,11 +3,11 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits;
 
 use Filament\Actions\Action;
-use Filament\Support\Icons\Heroicon;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Enums\ProposalStatus;
@@ -160,8 +160,7 @@ trait HasProfitabilityAnalysisActions
                     ->where('signature_type', 'MarginApproval');
 
                 // Parallel Approval: User can see the button if they match ANY remaining margin rule
-                return $required->contains(fn ($rule) => 
-                    ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                return $required->contains(fn ($rule) => ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
                 );
             });
     }
@@ -295,8 +294,7 @@ trait HasProfitabilityAnalysisActions
                     ->where('signature_type', 'Approver');
 
                 // Parallel Approval: Match ANY remaining PA approval rule
-                return $required->contains(fn ($rule) => 
-                    ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                return $required->contains(fn ($rule) => ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
                 );
             });
     }
@@ -317,7 +315,7 @@ trait HasProfitabilityAnalysisActions
                     && $record->status === ProfitabilityAnalysisStatus::Approved
                     && $record->revenue_per_month !== null
                     && $record->margin_percentage !== null
-                    && (! empty($record->analysis_details) || $record->items()->exists());
+                    && ! empty($record->analysis_details);
             })
             ->schema([
                 TextInput::make('summary')
