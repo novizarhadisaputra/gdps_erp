@@ -125,10 +125,11 @@ class CostingTemplateForm
                                                         if (! $state) {
                                                             return;
                                                         }
-                                                        $item = Item::find($state);
+                                                        $item = Item::with('unitOfMeasure')->find($state);
                                                         if ($item) {
                                                             $set('name', $item->name);
                                                             $set('unit_price', $item->price);
+                                                            $set('unit', $item->unitOfMeasure?->name);
 
                                                             $depreciation = $item->depreciation_months;
                                                             if (empty($depreciation) || $depreciation <= 0) {
@@ -145,6 +146,10 @@ class CostingTemplateForm
                                                 TextInput::make('name')
                                                     ->label('Item Name (Override)')
                                                     ->required()
+                                                    ->maxLength(255),
+                                                TextInput::make('unit')
+                                                    ->label('UOM')
+                                                    ->placeholder('e.g. Unit, Pcs, Org')
                                                     ->maxLength(255),
                                             ])->columnSpan(1),
 

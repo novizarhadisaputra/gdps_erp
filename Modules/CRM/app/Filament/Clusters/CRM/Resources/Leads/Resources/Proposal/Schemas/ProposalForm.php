@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -127,6 +128,30 @@ class ProposalForm
                         ->visibility('private')
                         ->downloadable()
                         ->openable()
+                        ->hintAction(
+                            fn (?Proposal $record) => $record ? Action::make('downloadPdf')
+                                ->label('Download Draft PDF')
+                                ->icon('heroicon-o-arrow-down-tray')
+                                ->action(function () use ($record) {
+                                    $record->load([
+                                        'customer',
+                                        'profitabilityAnalysis.workScheme',
+                                        'profitabilityAnalysis.paymentTerm',
+                                        'profitabilityAnalysis.productCluster',
+                                        'lead.user',
+                                        'lead.ams',
+                                        'lead.manpowerTemplates.items.jobPosition',
+                                        'lead.costingTemplates.costingTemplateItems.item',
+                                        'lead.latestGeneralInformation',
+                                        'lead.salesPlan',
+                                    ]);
+
+                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
+                                    $filename = str_replace(['/', '\\'], '-', $record->proposal_number);
+
+                                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
+                                }) : null
+                        )
                         ->helperText('Format: PDF preferred. Size limit 10MB.'),
                     SpatieMediaLibraryFileUpload::make('signed_proposal')
                         ->collection('signed_proposal')

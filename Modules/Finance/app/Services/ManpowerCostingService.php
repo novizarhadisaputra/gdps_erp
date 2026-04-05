@@ -40,11 +40,34 @@ class ManpowerCostingService
         float $managementFeeFlat = 0.0,
         string $ptkpCode = 'TK/0'
     ): array {
+        $cacheKey = "{$projectAreaId}-{$year}";
+
+        if (isset(self::$umkCache[$cacheKey])) {
+            $umk = self::$umkCache[$cacheKey];
+        } else {
+            $umk = 0;
+            if (filled($projectAreaId) && filled($year)) {
+                $umk = RegencyMinimumWage::where('project_area_id', $projectAreaId)
+                    ->where('year', $year)
+                    ->first()?->amount ?? 0;
+            }
+            self::$umkCache[$cacheKey] = (float) $umk;
+        }
+
+        // Fallback to UMK if basic salary is not provided
+        if ($basicSalary <= 0 && $umk > 0) {
+            $basicSalary = $umk;
+        }
+
         $fixedAllowances = 0.0;
         $nonFixedAllowances = 0.0;
 
         $workScheme = $workSchemeId ? WorkScheme::find($workSchemeId) : null;
         $workingDays = $workScheme?->working_days ?? 21;
+
+        if ($riskLevel instanceof RiskLevel) {
+            $riskLevel = $riskLevel->value;
+        }
 
         foreach ($allowances as $allowance) {
             $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
@@ -63,20 +86,6 @@ class ManpowerCostingService
         $upah = $basicSalary + $fixedAllowances;
         $totalMonthlySalary = $upah + $nonFixedAllowances;
 
-        if ($riskLevel instanceof RiskLevel) {
-            $riskLevel = $riskLevel->value;
-        }
-
-        $cacheKey = "{$projectAreaId}-{$year}";
-        if (isset(self::$umkCache[$cacheKey])) {
-            $umk = self::$umkCache[$cacheKey];
-        } else {
-            $umk = RegencyMinimumWage::where('project_area_id', $projectAreaId)
-                ->where('year', $year)
-                ->first()?->amount ?? 0;
-            self::$umkCache[$cacheKey] = (float) $umk;
-        }
-
         // BPJS Calculation
         $bpjsHealth = $this->calculateBpjsHealth($upah, $umk, $employeeType);
         $bpjsEmployment = $this->calculateBpjsEmployment($upah, $riskLevel, $isLaborIntensive, $employeeType);
@@ -93,9 +102,11 @@ class ManpowerCostingService
         $pph21 = $this->calculatePph21($totalMonthlySalary + $thr + $compensation, $bpjsHealth, $bpjsEmployment, $ptkpCode);
 
         // Management Fee Calculation
-        $adminFee = ($totalMonthlySalary + $thr + $compensation + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $extraCostsTotal) * ($adminFeePercentage / 100);
+        // Management fee base usually includes all costs plus PPh 21 (if borne by company)
+        $costBaseForFee = $totalMonthlySalary + $thr + $compensation + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $pph21['total'] + $extraCostsTotal;
+        $adminFee = $costBaseForFee * ($adminFeePercentage / 100);
 
-        $totalDirectCost = $totalMonthlySalary + $thr + $compensation + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $extraCostsTotal;
+        $totalDirectCost = $costBaseForFee;
         $totalCostToCompany = $totalDirectCost + $adminFee + $managementFeeFlat;
 
         return [
@@ -128,6 +139,7 @@ class ManpowerCostingService
 
     protected function calculateBpjsHealth(float $upah, float $umk, string $employeeType): array
     {
+        /** @var HealthConfig|null $config */
         $config = HealthConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
 
         if (! $config) {
@@ -136,7 +148,12 @@ class ManpowerCostingService
 
         $base = $upah;
         if ($employeeType === 'ppu') {
-            $base = max(min($upah, (float) $config->max_income), (float) $config->min_income);
+            $cap = (float) ($config->cap_nominal ?? 999999999);
+            $floor = 0;
+            if ($config->floor_type === 'umk') {
+                $floor = $umk;
+            }
+            $base = max(min($upah, $cap), $floor);
         }
 
         $employer = $base * (float) $config->employer_rate;
@@ -159,6 +176,7 @@ class ManpowerCostingService
         $details = [];
 
         // --- 1. JKK --- //
+        /** @var JkkConfig|null $jkkConfig */
         $jkkConfig = JkkConfig::where('employee_type', $employeeType)
             ->when($employeeType === 'ppu', fn ($q) => $q->where('risk_level', $riskLevel))
             ->where('is_active', true)
@@ -198,6 +216,7 @@ class ManpowerCostingService
         }
 
         // --- 2. JKM --- //
+        /** @var JkmConfig|null $jkmConfig */
         $jkmConfig = JkmConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
         if ($jkmConfig) {
             $employer = 0;
@@ -218,6 +237,7 @@ class ManpowerCostingService
         }
 
         // --- 3. JHT --- //
+        /** @var JhtConfig|null $jhtConfig */
         $jhtConfig = JhtConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
         if ($jhtConfig) {
             $employer = 0;
@@ -247,9 +267,10 @@ class ManpowerCostingService
         }
 
         // --- 4. JP --- //
+        /** @var JpConfig|null $jpConfig */
         $jpConfig = JpConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
         if ($jpConfig) {
-            $base = min($upah, (float) $jpConfig->max_income);
+            $base = min($upah, (float) ($jpConfig->cap_nominal ?? 999999999));
             $employer = $base * (float) $jpConfig->employer_rate;
             $employee = $base * (float) $jpConfig->employee_rate;
 
@@ -268,19 +289,19 @@ class ManpowerCostingService
     protected function calculatePph21(float $taxableIncome, array $bpjsHealth, array $bpjsEmployment, string $ptkpCode = 'TK/0'): array
     {
         // 1. Get Category from PTKP Code (A, B, or C)
+        /** @var PtkpConfig|null $ptkp */
         $ptkp = PtkpConfig::where('code', $ptkpCode)->first();
         $category = $ptkp?->tax_category ?? 'A';
 
-        // 2. Calculate Gross Income for PPh21 (Salary + Taxable Benefits like BPJS Employer)
-        // JKK, JKM, and Health (Employer portion) are tax objects for the employee in Indonesia.
-        // JHT and JP (Employer portion) are generally NOT tax objects.
+        // JKK, JKM, JP, and Health (Employer portion) are tax objects for the employee in this spreadsheet template.
+        // JHT (Employer portion) is NOT a tax object.
         $jkkEmployer = (float) ($bpjsEmployment['details']['jkk']['employer'] ?? 0);
         $jkmEmployer = (float) ($bpjsEmployment['details']['jkm']['employer'] ?? 0);
+        $jpEmployer = (float) ($bpjsEmployment['details']['jp']['employer'] ?? 0);
         $healthEmployer = (float) ($bpjsHealth['employer_total'] ?? 0);
 
-        // Based on the unit test expectations, it seems we might be including more.
-        // Let's stick to the test expectation which was Bruto = Salary + ALL BPJS Employer contributions.
-        $bruto = $taxableIncome + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'];
+        // Bruto = Salary + Allowances + Accrued Benefits (smoothed) + BPJS Employer (Taxable parts)
+        $bruto = $taxableIncome + $healthEmployer + $jkkEmployer + $jkmEmployer + $jpEmployer;
 
         // 3. Find TER Rate
         $terRate = TaxRateTer::where('category', $category)

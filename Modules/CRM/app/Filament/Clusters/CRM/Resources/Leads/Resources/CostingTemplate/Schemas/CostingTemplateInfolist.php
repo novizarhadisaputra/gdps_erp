@@ -33,7 +33,7 @@ class CostingTemplateInfolist
                                 ->money('IDR')
                                 ->color('success')
                                 ->weight(FontWeight::Bold),
-                            TextEntry::make('total_price')
+                            TextEntry::make('total_amount')
                                 ->label('Overall Total')
                                 ->money('IDR')
                                 ->weight(FontWeight::Bold),

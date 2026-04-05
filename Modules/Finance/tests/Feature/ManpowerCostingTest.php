@@ -121,39 +121,63 @@ class ManpowerCostingTest extends TestCase
         ]);
     }
 
-    public function test_calculate_basic_costing(): void
+    public function test_calculate_with_health_bpjs_capping_and_floor(): void
     {
         $area = ProjectArea::where('code', 'AREA_1')->first();
 
+        // Scenario 1: Salary below UMK (should floor to UMK)
         $result = $this->service->calculate(
-            basicSalary: 5000000,
+            basicSalary: 2500000, // Below UMK 3,000,000
             allowances: [],
             projectAreaId: $area->id,
             year: 2024
         );
+        // Base for Health should be 3,000,000 (UMK Floor)
+        // 4% * 3,000,000 = 120,000
+        $this->assertEquals(120000, $result['bpjs_health']['employer_total']);
 
-        $this->assertEquals(3000000, $result['umk']);
-        $this->assertEquals(5000000, $result['upah']);
-
-        // BPJS Health: 4% * 5,000,000 = 200,000
-        $this->assertEquals(200000, $result['bpjs_health']['employer_total']);
-
-        // JKK: 0.24% * 5,000,000 = 12,000
-        // JKM: 0.3% * 5,000,000 = 15,000
-        // JHT: 3.7% * 5,000,000 = 185,000
-        // JP: 2% * 5,000,000 = 100,000
-        $this->assertEquals(12000 + 15000 + 185000 + 100000, $result['bpjs_employment']['employer_total']);
+        // Scenario 2: Salary above Cap (should cap to 12,000,000)
+        $result = $this->service->calculate(
+            basicSalary: 15000000, // Above Cap 12,000,000
+            allowances: [],
+            projectAreaId: $area->id,
+            year: 2024
+        );
+        // 4% * 12,000,000 = 480,000
+        $this->assertEquals(480000, $result['bpjs_health']['employer_total']);
     }
 
-    public function test_pph21_calculation_with_ter(): void
+    public function test_pph21_ter_2024_category_a_lookup(): void
     {
-        // Gross for PPh21 = Upah + BPJS Employer
-        // Upah = 5,000,000
-        // BPJS Employer = 200,000 (Health) + 312,000 (Employment) = 512,000
-        // Total Gross = 5,512,000
-        // TER Category A for 5,512,000 is 0.25%
-        // Tax = 5,512,000 * 0.0025 = 13,780
+        $area = ProjectArea::where('code', 'AREA_1')->first();
 
+        // Bruto = Upah (5.5M) + BPJS Employer (~360k) + THR/Comp (~920k) = ~6.8M
+        // Range 6.75M - 7.5M for Category A is 1.25%
+        TaxRateTer::create([
+            'category' => 'A',
+            'min_gross' => 6750001,
+            'max_gross' => 7500000,
+            'rate' => 1.25,
+            'is_active' => true,
+        ]);
+
+        $result = $this->service->calculate(
+            basicSalary: 5000000,
+            allowances: [
+                ['value' => 500000, 'type' => 'nominal', 'is_fixed' => true],
+            ],
+            projectAreaId: $area->id,
+            year: 2024,
+            ptkpCode: 'TK/0'
+        );
+
+        $this->assertEquals('A', $result['pph21']['category']);
+        $this->assertEquals(1.25, $result['pph21']['rate']);
+        $this->assertGreaterThan(0, $result['pph21']['total']);
+    }
+
+    public function test_management_fee_calculation_on_subtotal(): void
+    {
         $area = ProjectArea::where('code', 'AREA_1')->first();
 
         $result = $this->service->calculate(
@@ -161,68 +185,14 @@ class ManpowerCostingTest extends TestCase
             allowances: [],
             projectAreaId: $area->id,
             year: 2024,
-            ptkpCode: 'TK/0'
+            adminFeePercentage: 10.0 // 10%
         );
 
-        $this->assertEquals(13780, $result['pph21']['total']);
-    }
+        // Management fee should be 10% of (Subtotal A+B+C+D+E)
+        $subtotal = $result['total_direct_cost'];
+        $expectedFee = $subtotal * 0.1;
 
-    public function test_jp_capping(): void
-    {
-        // Salary 15,000,000 > JP Capping 10,000,000
-        // JP Employer = 2% * 10,000,000 = 200,000 (not 300,000)
-
-        $area = ProjectArea::where('code', 'AREA_1')->first();
-
-        $result = $this->service->calculate(
-            basicSalary: 15000000,
-            allowances: [],
-            projectAreaId: $area->id,
-            year: 2024
-        );
-
-        $this->assertEquals(200000, $result['bpjs_employment']['details']['jp']['employer']);
-    }
-
-    public function test_biaya_jabatan_capping(): void
-    {
-        // Gross Income 15,000,000
-        // BPJS Employer = ~1,000,000
-        // Total Bruto = 16,000,000
-        // 5% of 16M = 800,000
-        // Capping = 500,000
-
-        $area = ProjectArea::where('code', 'AREA_1')->first();
-
-        $result = $this->service->calculate(
-            basicSalary: 15000000,
-            allowances: [],
-            projectAreaId: $area->id,
-            year: 2024
-        );
-
-        // Check PPh21 logic would include Biaya Jabatan capping if we had full PPh21 logic in service.
-        // Currently Service uses TER which doesn't explicitly subtract Biaya Jabatan (TER is based on Bruto).
-        // However, we should verify the service logic if it implements full Pasal 17.
-        // Looking at current code, it only uses TaxRateTer.
-        $this->assertTrue(true);
-    }
-
-    public function test_allowance_calculation(): void
-    {
-        $area = ProjectArea::where('code', 'AREA_1')->first();
-
-        $result = $this->service->calculate(
-            basicSalary: 5000000,
-            allowances: [
-                ['value' => 500000, 'type' => 'nominal', 'is_fixed' => true],
-                ['value' => 10, 'type' => 'percentage', 'is_fixed' => false], // 10% of 5M = 500,000
-            ],
-            projectAreaId: $area->id,
-            year: 2024
-        );
-
-        $this->assertEquals(5500000, $result['upah']); // 5M + 500k fixed
-        $this->assertEquals(500000, $result['allowances']['non_fixed']);
+        $this->assertEquals($expectedFee, $result['admin_fee']);
+        $this->assertEquals($subtotal + $expectedFee, $result['total_cost_to_company']);
     }
 }

@@ -13,11 +13,11 @@ class JkkConfigSeeder extends Seeder
     public function run(): void
     {
         $configs = [
-            ['name' => 'JKK PPU - Sangat Rendah', 'employee_type' => 'ppu', 'risk_level' => 'sangat_rendah', 'employer_rate' => 0.0024, 'employee_rate' => 0, 'has_tier' => false],
-            ['name' => 'JKK PPU - Rendah', 'employee_type' => 'ppu', 'risk_level' => 'rendah', 'employer_rate' => 0.0054, 'employee_rate' => 0, 'has_tier' => false],
-            ['name' => 'JKK PPU - Sedang', 'employee_type' => 'ppu', 'risk_level' => 'sedang', 'employer_rate' => 0.0089, 'employee_rate' => 0, 'has_tier' => false],
-            ['name' => 'JKK PPU - Tinggi', 'employee_type' => 'ppu', 'risk_level' => 'tinggi', 'employer_rate' => 0.0127, 'employee_rate' => 0, 'has_tier' => false],
-            ['name' => 'JKK PPU - Sangat Tinggi', 'employee_type' => 'ppu', 'risk_level' => 'sangat_tinggi', 'employer_rate' => 0.0174, 'employee_rate' => 0, 'has_tier' => false],
+            ['name' => 'JKK PPU - Very Low', 'employee_type' => 'ppu', 'risk_level' => 'very_low', 'employer_rate' => 0.0024, 'employee_rate' => 0, 'has_tier' => false],
+            ['name' => 'JKK PPU - Low', 'employee_type' => 'ppu', 'risk_level' => 'low', 'employer_rate' => 0.0054, 'employee_rate' => 0, 'has_tier' => false],
+            ['name' => 'JKK PPU - Medium', 'employee_type' => 'ppu', 'risk_level' => 'medium', 'employer_rate' => 0.0089, 'employee_rate' => 0, 'has_tier' => false],
+            ['name' => 'JKK PPU - High', 'employee_type' => 'ppu', 'risk_level' => 'high', 'employer_rate' => 0.0127, 'employee_rate' => 0, 'has_tier' => false],
+            ['name' => 'JKK PPU - Very High', 'employee_type' => 'ppu', 'risk_level' => 'very_high', 'employer_rate' => 0.0174, 'employee_rate' => 0, 'has_tier' => false],
         ];
 
         foreach ($configs as $config) {
