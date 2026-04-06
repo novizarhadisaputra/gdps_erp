@@ -6,8 +6,9 @@ use Filament\Support\Contracts\HasLabel;
 
 enum RegencyMinimumWageType: string implements HasLabel
 {
-    case Kabupaten = 'Kabupaten';
-    case Kota = 'Kota';
+    case Regency = 'Regency';
+    case City = 'City';
+    case Province = 'Province';
 
     public function getLabel(): ?string
     {

@@ -1318,7 +1318,8 @@ class ProfitabilityAnalysisForm
                 billCompensationMonthly: (bool) ($get('bill_compensation_monthly') ?? true),
                 includeNonFixedInAccruals: (bool) ($get('include_non_fixed_in_accruals') ?? false),
                 extraCosts: $get('extra_costs') ?? [],
-                ptkpCode: filled($get('ptkp_config_id')) ? PtkpConfig::find($get('ptkp_config_id'))?->code ?? 'TK/0' : 'TK/0'
+                ptkpCode: filled($get('ptkp_config_id')) ? PtkpConfig::find($get('ptkp_config_id'))?->code ?? 'TK/0' : 'TK/0',
+                isBpjsActive: (bool) ($get('is_bpjs_active') ?? true)
             );
 
             return (float) ($result['total_direct_cost'] ?? 0) * $qty;
@@ -1401,10 +1402,14 @@ class ProfitabilityAnalysisForm
                 billThrMonthly: (bool) ($item->bill_thr_monthly ?? true),
                 billCompensationMonthly: (bool) ($item->bill_compensation_monthly ?? true),
                 includeNonFixedInAccruals: (bool) ($item->include_non_fixed_in_accruals ?? false),
-                extraCosts: $item->extra_costs ?? []
+                extraCosts: $item->extra_costs ?? [],
+                ptkpCode: $item->ptkp_status ?? 'TK/0',
+                isBpjsActive: (bool) ($item->is_bpjs_active ?? true)
             );
 
-            $unitCost = (float) ($res['total_direct_cost'] ?? 0);
+            // Apply Future Scaling Factor if defined
+            $scale = 1 + ((float) ($item->future_adjustment_rate ?? 0) / 100);
+            $unitCost = (float) ($res['total_direct_cost'] ?? 0) * $scale;
             $qty = (float) ($item->quantity ?? 1);
             $lineAmount = $unitCost * $qty;
             $totalCategoryAmount += $lineAmount;
@@ -1432,13 +1437,15 @@ class ProfitabilityAnalysisForm
         $updatedManualCosts = collect($manualCosts)->map(function ($cost) use (&$found, $manpowerCategory, $subItems, $record) {
             if ((string) ($cost['direct_cost_category_id'] ?? '') === (string) $manpowerCategory) {
                 $found = true;
+
                 return array_merge($cost, [
                     'amount' => collect($subItems)->sum('amount'),
-                    'description' => 'Manpower from Template: ' . ($record->name ?? 'Unnamed'),
+                    'description' => 'Manpower from Template: '.($record->name ?? 'Unnamed'),
                     'sub_items' => $subItems,
                     'direct_cost_category_id' => (string) $manpowerCategory,
                 ]);
             }
+
             return $cost;
         })->toArray();
 
@@ -1446,7 +1453,7 @@ class ProfitabilityAnalysisForm
             $updatedManualCosts[] = [
                 'direct_cost_category_id' => (string) $manpowerCategory,
                 'amount' => collect($subItems)->sum('amount'),
-                'description' => 'Manpower from Template: ' . ($record->name ?? 'Unnamed'),
+                'description' => 'Manpower from Template: '.($record->name ?? 'Unnamed'),
                 'sub_items' => $subItems,
             ];
         }
@@ -1513,7 +1520,7 @@ class ProfitabilityAnalysisForm
             $lineAmount = (float) ($item->monthly_cost ?? 0);
             $qty = (float) ($item->quantity ?? 1);
             $unitPrice = $qty > 0 ? ($lineAmount / $qty) : $lineAmount;
-            
+
             $totalCategoryAmount += $lineAmount;
 
             $subItems[] = [
@@ -1530,13 +1537,15 @@ class ProfitabilityAnalysisForm
         $updatedManualCosts = collect($manualCosts)->map(function ($cost) use (&$found, $opCategory, $totalCategoryAmount, $subItems, $record) {
             if ((string) ($cost['direct_cost_category_id'] ?? '') === (string) $opCategory) {
                 $found = true;
+
                 return array_merge($cost, [
                     'amount' => $totalCategoryAmount,
-                    'description' => 'Equipment from Template: ' . ($record->name ?? 'Unnamed'),
+                    'description' => 'Equipment from Template: '.($record->name ?? 'Unnamed'),
                     'sub_items' => $subItems,
                     'direct_cost_category_id' => (string) $opCategory,
                 ]);
             }
+
             return $cost;
         })->toArray();
 
@@ -1544,7 +1553,7 @@ class ProfitabilityAnalysisForm
             $updatedManualCosts[] = [
                 'direct_cost_category_id' => (string) $opCategory,
                 'amount' => $totalCategoryAmount,
-                'description' => 'Equipment from Template: ' . ($record->name ?? 'Unnamed'),
+                'description' => 'Equipment from Template: '.($record->name ?? 'Unnamed'),
                 'sub_items' => $subItems,
             ];
         }
@@ -1632,8 +1641,8 @@ class ProfitabilityAnalysisForm
                 <td style='border: 1px solid #ddd; padding: 12px; text-align: center; background: white;'>{$item->quantity}</td>
                 <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($basic, 0, ',', '.')."</td>
                 <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($bpjs, 0, ',', '.')."</td>
-                <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white; font-weight: bold; color: #059669;'>Rp ".number_format($totalMonthly, 0, ',', '.')."</td>
-            </tr>";
+                <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white; font-weight: bold; color: #059669;'>Rp ".number_format($totalMonthly, 0, ',', '.').'</td>
+            </tr>';
         }
 
         return "<div style='overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb;'>
@@ -1671,8 +1680,8 @@ class ProfitabilityAnalysisForm
                 <td style='border: 1px solid #ddd; padding: 12px; text-align: left; background: white;'>{$uom}</td>
                 <td style='border: 1px solid #ddd; padding: 12px; text-align: center; background: white;'>".($item->depreciation_months ?? 1)." Mo</td>
                 <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format((float) ($item->total_price ?? 0), 0, ',', '.')."</td>
-                <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white; font-weight: bold; color: #059669;'>Rp ".number_format((float) ($item->monthly_cost ?? 0), 0, ',', '.')."</td>
-            </tr>";
+                <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white; font-weight: bold; color: #059669;'>Rp ".number_format((float) ($item->monthly_cost ?? 0), 0, ',', '.').'</td>
+            </tr>';
         }
 
         return "<div style='overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb;'>

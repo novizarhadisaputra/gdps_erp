@@ -12,14 +12,14 @@ class MasterDataDatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            ProvincialRegencySeeder::class, // Sync official data first
+            MasterCodeSeeder::class, // Manual codes now check against synced data
+            OfficialMinimumWageSeeder::class, // Layer wage data
             RemunerationParameterSeeder::class,
-            TaxRateTerSeeder::class,
-            MasterCodeSeeder::class,
             ApprovalRuleSeeder::class,
             ContactRoleSeeder::class,
             AssetGroupSeeder::class,
             JobPositionSeeder::class,
-            RegencyMinimumWageSeeder::class,
             UnitSyncSeeder::class,
             ItemSeeder::class,
             JkkConfigSeeder::class,

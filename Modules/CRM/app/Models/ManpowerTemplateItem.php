@@ -33,6 +33,9 @@ class ManpowerTemplateItem extends Model
         'include_non_fixed_in_accruals',
         'extra_costs',
         'allowances',
+        'future_adjustment_rate',
+        'ptkp_status',
+        'is_bpjs_active',
     ];
 
     protected function casts(): array
@@ -46,6 +49,8 @@ class ManpowerTemplateItem extends Model
             'include_non_fixed_in_accruals' => 'boolean',
             'extra_costs' => 'array',
             'allowances' => 'array',
+            'future_adjustment_rate' => 'float',
+            'is_bpjs_active' => 'boolean',
         ];
     }
 

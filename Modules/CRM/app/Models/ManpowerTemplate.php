@@ -115,10 +115,14 @@ class ManpowerTemplate extends Model implements HasMedia
                 billThrMonthly: $billThr,
                 billCompensationMonthly: $billComp,
                 includeNonFixedInAccruals: $includeNonFixed,
-                extraCosts: $extraCosts
+                extraCosts: $extraCosts,
+                ptkpCode: $item->ptkp_status ?? 'TK/0',
+                isBpjsActive: (bool) ($item->is_bpjs_active ?? true)
             );
 
-            $unitCost = $res['total_direct_cost'];
+            // Apply Future Scaling Factor if defined
+            $scale = 1 + ((float) ($item->future_adjustment_rate ?? 0) / 100);
+            $unitCost = $res['total_direct_cost'] * $scale;
             $lineTotal = $unitCost * $qty;
             $totalTemplateCost += $lineTotal;
 
@@ -127,6 +131,8 @@ class ManpowerTemplate extends Model implements HasMedia
             $res['job_position_code'] = $jp->code;
             $res['qty'] = $qty;
             $res['basic_salary'] = $basicSalary;
+            $res['scaling_rate'] = (float) ($item->future_adjustment_rate ?? 0);
+            $res['ptkp_status'] = $item->ptkp_status ?? 'TK/0';
             $res['unit_cost'] = $unitCost;
             $res['line_total'] = $lineTotal;
 

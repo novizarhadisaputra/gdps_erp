@@ -2,14 +2,18 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Tables;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Services\WilayahSyncService;
 
 class ProjectAreasTable
 {
@@ -18,15 +22,36 @@ class ProjectAreasTable
         return $table
             ->columns([
                 TextColumn::make('code')
+                    ->label('Code')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('api_code')
+                    ->label('Code (Official)')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('province.name')
+                    ->label('Province')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('province.code')
+                    ->label('Province Code')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('regency.name')
+                    ->label('Regency / City')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('regency.code')
+                    ->label('Regency Code')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
+                    ->label('Area Name')
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label('Active Status'),
                 TextColumn::make('created_at')
+                    ->label('Created At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -37,6 +62,29 @@ class ProjectAreasTable
             ->recordActions([
                 EditAction::make()
                     ->schema(fn (Schema $schema) => ProjectAreaForm::configure($schema)),
+                Action::make('syncSubRegions')
+                    ->label('Sync Regencies')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('info')
+                    ->visible(fn (ProjectArea $record) => $record->province_id && ! $record->regency_id)
+                    ->action(function (ProjectArea $record, WilayahSyncService $service) {
+                        try {
+                            if ($record->province) {
+                                $service->syncRegencies($record->province);
+                                Notification::make()
+                                    ->title('Success')
+                                    ->body("Regencies in {$record->province->name} have been updated.")
+                                    ->success()
+                                    ->send();
+                            }
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Failed')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

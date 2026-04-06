@@ -5,8 +5,10 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\RegencyMinim
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\MasterData\Enums\RegencyMinimumWageType;
 use pxlrbt\FilamentExcel\Actions\ExportAction;
 
 class RegencyMinimumWagesTable
@@ -20,9 +22,10 @@ class RegencyMinimumWagesTable
                     ->sortable(),
                 TextColumn::make('type')
                     ->badge()
-                    ->color(fn (\Modules\MasterData\Enums\RegencyMinimumWageType $state): string => match ($state) {
-                        \Modules\MasterData\Enums\RegencyMinimumWageType::Kabupaten => 'info',
-                        \Modules\MasterData\Enums\RegencyMinimumWageType::Kota => 'warning',
+                    ->color(fn (RegencyMinimumWageType $state): string => match ($state) {
+                        RegencyMinimumWageType::Regency => 'info',
+                        RegencyMinimumWageType::City => 'warning',
+                        RegencyMinimumWageType::Province => 'success',
                     })
                     ->searchable()
                     ->sortable(),
@@ -36,7 +39,7 @@ class RegencyMinimumWagesTable
                     ->label('Monthly Wage (UMK)')
                     ->money('IDR', locale: 'id')
                     ->sortable(),
-                \Filament\Tables\Columns\IconColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->boolean()
                     ->sortable(),
             ])

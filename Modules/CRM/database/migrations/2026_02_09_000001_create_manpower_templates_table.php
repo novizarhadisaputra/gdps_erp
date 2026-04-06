@@ -44,6 +44,9 @@ return new class extends Migration
             $table->boolean('include_non_fixed_in_accruals')->default(false);
             $table->jsonb('allowances')->nullable();
             $table->jsonb('extra_costs')->nullable();
+            $table->decimal('future_adjustment_rate', 5, 2)->default(0);
+            $table->string('ptkp_status')->default('TK/0');
+            $table->boolean('is_bpjs_active')->default(true);
             $table->timestamps();
         });
     }

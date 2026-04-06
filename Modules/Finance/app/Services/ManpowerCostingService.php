@@ -27,7 +27,6 @@ class ManpowerCostingService
         array $allowances,
         ?string $projectAreaId,
         ?int $year,
-        ?string $contractTypeId = null,
         ?string $workSchemeId = null,
         string|RiskLevel $riskLevel = 'very_low',
         bool $isLaborIntensive = false,
@@ -38,7 +37,8 @@ class ManpowerCostingService
         array $extraCosts = [], // Monthly flat costs (Equipments/Trainings)
         float $adminFeePercentage = 0.0,
         float $managementFeeFlat = 0.0,
-        string $ptkpCode = 'TK/0'
+        string $ptkpCode = 'TK/0',
+        bool $isBpjsActive = true
     ): array {
         $cacheKey = "{$projectAreaId}-{$year}";
 
@@ -87,8 +87,13 @@ class ManpowerCostingService
         $totalMonthlySalary = $upah + $nonFixedAllowances;
 
         // BPJS Calculation
-        $bpjsHealth = $this->calculateBpjsHealth($upah, $umk, $employeeType);
-        $bpjsEmployment = $this->calculateBpjsEmployment($upah, $riskLevel, $isLaborIntensive, $employeeType);
+        if ($isBpjsActive) {
+            $bpjsHealth = $this->calculateBpjsHealth($upah, $umk, $employeeType);
+            $bpjsEmployment = $this->calculateBpjsEmployment($upah, $riskLevel, $isLaborIntensive, $employeeType);
+        } else {
+            $bpjsHealth = ['employer' => 0, 'employee' => 0, 'employer_total' => 0, 'base' => 0];
+            $bpjsEmployment = ['employer_total' => 0, 'employee_total' => 0, 'details' => []];
+        }
 
         // Accrual Basis (THR/Comp may include non-fixed depending on position logic)
         $accrualBasis = $includeNonFixedInAccruals ? $totalMonthlySalary : $upah;
