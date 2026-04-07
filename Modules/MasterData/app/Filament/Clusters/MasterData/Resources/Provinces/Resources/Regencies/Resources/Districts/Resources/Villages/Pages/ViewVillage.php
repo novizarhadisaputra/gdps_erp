@@ -2,8 +2,12 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\Resources\Villages\Pages;
 
-use Filament\Resources\Pages\ViewRecord;
+use Exception;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
+use Filament\Resources\Pages\ViewRecord;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\ProvinceResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\RegencyResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\DistrictResource;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\Resources\Villages\VillageResource;
 
 class ViewVillage extends ViewRecord
@@ -11,4 +15,56 @@ class ViewVillage extends ViewRecord
     use InteractsWithParentRecord;
 
     protected static string $resource = VillageResource::class;
+
+    public function getBreadcrumbs(): array
+    {
+        $village = $this->record;
+        $district = $village->district;
+        $regency = $district->regency;
+        $province = $regency->province;
+
+        $breadcrumbs = [
+            ProvinceResource::getUrl('index') => 'Provinces',
+            ProvinceResource::getUrl('edit', ['record' => $province->id]) => $province->name,
+            ProvinceResource::getUrl('regencies', ['record' => $province->id]) => 'Regencies',
+        ];
+
+        try {
+            $regencyUrl = RegencyResource::getUrl('view', [
+                'parent' => $province->id,
+                'record' => $regency->id,
+            ]);
+            $breadcrumbs[$regencyUrl] = $regency->name;
+
+            $districtsUrl = RegencyResource::getUrl('districts', [
+                'parent' => $province->id,
+                'record' => $regency->id,
+            ]);
+            $breadcrumbs[$districtsUrl] = 'Districts';
+        } catch (Exception $e) {
+            $breadcrumbs[] = $regency->name;
+            $breadcrumbs[] = 'Districts';
+        }
+
+        try {
+            $districtUrl = DistrictResource::getUrl('view', [
+                'parent' => $regency->id,
+                'record' => $district->id,
+            ]);
+            $breadcrumbs[$districtUrl] = $district->name;
+
+            $villagesUrl = DistrictResource::getUrl('villages', [
+                'parent' => $regency->id,
+                'record' => $district->id,
+            ]);
+            $breadcrumbs[$villagesUrl] = 'Villages';
+        } catch (Exception $e) {
+            $breadcrumbs[] = $district->name;
+            $breadcrumbs[] = 'Villages';
+        }
+
+        $breadcrumbs[] = $village->name;
+
+        return $breadcrumbs;
+    }
 }
