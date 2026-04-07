@@ -31,6 +31,7 @@ class CRMServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(module_path($this->name, 'database/migrations'));
 
         Livewire::component('crm::revision.revision-comments', RevisionComments::class);
+        Livewire::component('crm::costing-template.manage-costing-items', \Modules\CRM\Livewire\CostingTemplate\ManageCostingItems::class);
     }
 
     /**

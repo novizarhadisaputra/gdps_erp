@@ -17,7 +17,12 @@ class CostingTemplateItemForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return $schema->components(static::schema());
+    }
+
+    public static function schema(): array
+    {
+        return [
             Section::make('Item Details')
                 ->schema([
                     Grid::make(3)
@@ -149,7 +154,7 @@ class CostingTemplateItemForm
                                 }),
                         ]),
                 ])->compact(),
-        ]);
+        ];
     }
 
     protected static function calculate(Get $get, Set $set): void

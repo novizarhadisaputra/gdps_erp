@@ -9,11 +9,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Pages\EditCostingTemplate;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Pages\ManageCostingTemplateItems;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Pages\ViewCostingTemplate;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Pages\CreateCostingTemplateItem;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Pages\EditCostingTemplateItem;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Pages\ViewCostingTemplateItem;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Tables\CostingTemplatesTable;
@@ -64,7 +60,6 @@ class CostingTemplateResource extends Resource
         return $page->generateNavigationItems([
             ViewCostingTemplate::class,
             EditCostingTemplate::class,
-            ManageCostingTemplateItems::class,
         ]);
     }
 
@@ -75,10 +70,6 @@ class CostingTemplateResource extends Resource
             'create' => Pages\CreateCostingTemplate::route('/create'),
             'view' => Pages\ViewCostingTemplate::route('/{record}'),
             'edit' => Pages\EditCostingTemplate::route('/{record}/edit'),
-            'items' => ManageCostingTemplateItems::route('/{record}/items'),
-            'create-item' => CreateCostingTemplateItem::route('/{record}/items/create'),
-            'edit-item' => EditCostingTemplateItem::route('/{record}/items/{relatedRecord}/edit'),
-            'view-item' => ViewCostingTemplateItem::route('/{record}/items/{relatedRecord}'),
         ];
     }
 }

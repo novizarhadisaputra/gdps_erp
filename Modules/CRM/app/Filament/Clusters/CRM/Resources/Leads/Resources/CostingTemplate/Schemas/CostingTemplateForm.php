@@ -5,20 +5,19 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 use App\Models\User;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
-use Illuminate\Support\HtmlString;
-use Modules\CRM\Enums\CostingCategory;
 use Modules\CRM\Enums\DepreciationMethod;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Schemas\CostingTemplateItemForm;
+use Modules\CRM\Livewire\CostingTemplate\ManageCostingItems;
 use Modules\CRM\Models\Lead;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
 use Modules\MasterData\Models\Item;
 
 class CostingTemplateForm
@@ -39,7 +38,12 @@ class CostingTemplateForm
 
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return $schema->components(static::schema());
+    }
+
+    public static function schema(): array
+    {
+        return [
             Wizard::make([
                 Step::make('Core Information')
                     ->description('Basic template details')
@@ -72,148 +76,14 @@ class CostingTemplateForm
                 Step::make('Tools & Equipment Costing')
                     ->description('Manage items and calculations')
                     ->schema([
-                        TextEntry::make('items_hint')
-                            ->label('')
-                            ->state(fn () => new HtmlString('
-                                <div class="p-4 bg-primary-50 rounded-lg border border-primary-200 text-primary-900">
-                                    You are currently in <strong>Edit</strong> mode. To manage costing tools & equipment in detail and securely (to avoid memory crashes), please use the <strong>"Costing Tools & Equipment"</strong> tab in the sidebar menu.
-                                </div>
-                            '))
-                            ->html()
-                            ->visible(fn (string $operation): bool => $operation !== 'create')
-                            ->columnSpanFull(),
+                        Livewire::make(ManageCostingItems::class)
+                            ->lazy()
+                            ->visible(fn (string $operation): bool => $operation === 'edit'),
 
                         Repeater::make('costingTemplateItems')
                             ->relationship()
                             ->visible(fn (string $operation): bool => $operation === 'create')
-                            ->schema([
-                                Grid::make(2)
-                                    ->schema([
-                                        Section::make()
-                                            ->schema([
-                                                Grid::make(2)
-                                                    ->schema([
-                                                        Select::make('category')
-                                                            ->options(collect(CostingCategory::cases())
-                                                                ->filter(fn ($case) => $case !== CostingCategory::Manpower)
-                                                                ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
-                                                                ->toArray())
-                                                            ->required()
-                                                            ->live(),
-                                                        Select::make('depreciation_method')
-                                                            ->label('Depreciation Method')
-                                                            ->options(collect(DepreciationMethod::cases())
-                                                                ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
-                                                                ->toArray())
-                                                            ->default(DepreciationMethod::StraightLine)
-                                                            ->required()
-                                                            ->live()
-                                                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                                                self::calculateItem($get, $set);
-                                                            }),
-                                                    ]),
-                                                Select::make('item_id')
-                                                    ->label('Material/Asset')
-                                                    ->relationship('item', 'name')
-                                                    ->createOptionForm(ItemForm::schema())
-                                                    ->editOptionForm(ItemForm::schema())
-                                                    ->required()
-                                                    ->searchable()
-                                                    ->preload()
-                                                    ->live()
-                                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                                        if (! $state) {
-                                                            return;
-                                                        }
-                                                        $item = Item::with('unitOfMeasure')->find($state);
-                                                        if ($item) {
-                                                            $set('name', $item->name);
-                                                            $set('unit_price', $item->price);
-                                                            $set('unit', $item->unitOfMeasure?->name);
-
-                                                            $depreciation = $item->depreciation_months;
-                                                            if (empty($depreciation) || $depreciation <= 0) {
-                                                                $assetGroup = $item->assetGroup ?? $item->category?->assetGroup;
-                                                                $usefulLifeYears = $assetGroup?->useful_life_years;
-                                                                if ($usefulLifeYears && $usefulLifeYears > 0) {
-                                                                    $depreciation = $usefulLifeYears * 12;
-                                                                }
-                                                            }
-                                                            $set('depreciation_months', $depreciation ?? 1);
-                                                            self::calculateItem($get, $set);
-                                                        }
-                                                    }),
-                                                TextInput::make('name')
-                                                    ->label('Item Name (Override)')
-                                                    ->required()
-                                                    ->maxLength(255),
-                                                TextInput::make('unit')
-                                                    ->label('UOM')
-                                                    ->placeholder('e.g. Unit, Pcs, Org')
-                                                    ->maxLength(255),
-                                            ])->columnSpan(1),
-
-                                        Section::make()
-                                            ->schema([
-                                                Grid::make(2)
-                                                    ->schema([
-                                                        TextInput::make('quantity')
-                                                            ->numeric()
-                                                            ->default(1)
-                                                            ->required()
-                                                            ->live(onBlur: true)
-                                                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                                                self::calculateItem($get, $set);
-                                                            }),
-                                                        TextInput::make('unit_price')
-                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix('IDR ')
-                                                            ->required()
-                                                            ->live(onBlur: true)
-                                                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                                                self::calculateItem($get, $set);
-                                                            })
-                                                            ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state)),
-                                                        TextInput::make('markup_percent')
-                                                            ->label('Markup %')
-                                                            ->numeric()
-                                                            ->default(0)
-                                                            ->required()
-                                                            ->live(onBlur: true)
-                                                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                                                self::calculateItem($get, $set, 'markup_percent');
-                                                            }),
-                                                        TextInput::make('depreciation_months')
-                                                            ->label('Depreciation (Mo)')
-                                                            ->numeric()
-                                                            ->default(1)
-                                                            ->required()
-                                                            ->live(onBlur: true)
-                                                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                                                self::calculateItem($get, $set);
-                                                            })
-                                                            ->helperText('Use 1 for monthly recurring costs.'),
-                                                    ]),
-                                                Grid::make(2)
-                                                    ->schema([
-                                                        TextInput::make('total_price')
-                                                            ->label('Investment')
-                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix('IDR ')
-                                                            ->readOnly()
-                                                            ->dehydrated()
-                                                            ->extraAttributes(['class' => 'font-bold']),
-                                                        TextInput::make('monthly_cost')
-                                                            ->label('Monthly Impact')
-                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix('IDR ')
-                                                            ->readOnly()
-                                                            ->dehydrated()
-                                                            ->extraAttributes(['class' => 'font-bold']),
-                                                    ]),
-                                            ])->columnSpan(1),
-                                    ]),
-                            ])
+                            ->schema(CostingTemplateItemForm::schema())
                             ->itemLabel(fn (array $state): ?string => ($state['category'] ?? 'Item').': '.($state['name'] ?? 'Untitled'))
                             ->defaultItems(0)
                             ->columnSpanFull()
@@ -233,24 +103,50 @@ class CostingTemplateForm
                 Step::make('Costing Summary')
                     ->description('Review totals and submit')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
                                 TextInput::make('total_amount')
                                     ->label('Total Investment')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->readOnly()
-                                    ->dehydrated(),
+                                    ->dehydrated()
+                                    ->afterStateHydrated(function ($record, Set $set, string $operation) {
+                                        if ($operation === 'edit' && $record) {
+                                            $set('total_amount', $record->costingTemplateItems()->sum('total_price') ?? 0);
+                                        }
+                                    }),
                                 TextInput::make('total_monthly_cost')
                                     ->label('Total Monthly Cost')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->readOnly()
-                                    ->dehydrated(),
+                                    ->dehydrated()
+                                    ->afterStateHydrated(function ($record, Set $set, string $operation) {
+                                        if ($operation === 'edit' && $record) {
+                                            $set('total_monthly_cost', $record->costingTemplateItems()->sum('monthly_cost') ?? 0);
+                                        }
+                                    }),
+                                TextInput::make('margin_percentage')
+                                    ->label('Initial Margin')
+                                    ->numeric()
+                                    ->suffix('%')
+                                    ->default(0)
+                                    ->readOnly()
+                                    ->afterStateHydrated(function ($record, Set $set, string $operation) {
+                                        if ($operation === 'edit' && $record) {
+                                            $set('margin_percentage', $record->margin_percentage ?? 0);
+                                        }
+                                    })
+                                    ->extraAttributes(['class' => 'bg-gray-50']),
                             ]),
+                        Textarea::make('notes')
+                            ->label('Finance Notes')
+                            ->rows(3)
+                            ->columnSpanFull(),
                     ]),
             ])->columnSpanFull(),
-        ]);
+        ];
     }
 
     protected static function updateTotals(Get $get, Set $set): void
