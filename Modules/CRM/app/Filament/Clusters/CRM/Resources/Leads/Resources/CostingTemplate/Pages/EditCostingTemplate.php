@@ -39,9 +39,11 @@ class EditCostingTemplate extends EditRecord
     public function refreshTotals(): void
     {
         $record = $this->getRecord();
-        $this->form->fill([
-            'total_amount' => $record->costingTemplateItems()->sum('total_price') ?? 0,
-            'total_monthly_cost' => $record->costingTemplateItems()->sum('monthly_cost') ?? 0,
-        ], true);
+        $record->refresh();
+
+        // Update specific calculated fields in the form data without clobbering other fields (like name)
+        $this->data['total_amount'] = $record->total_amount;
+        $this->data['total_monthly_cost'] = $record->total_monthly_cost;
+        $this->data['margin_percentage'] = $record->margin_percentage;
     }
 }
