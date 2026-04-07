@@ -88,10 +88,14 @@ class CostingTemplateItemForm
                         ]),
                     TextInput::make('name')
                         ->required()
+                        ->live()
+                        ->dehydrated()
                         ->maxLength(255),
                     TextInput::make('unit')
                         ->label('UOM')
                         ->placeholder('e.g. Unit, Pcs, Org')
+                        ->live()
+                        ->dehydrated()
                         ->maxLength(255),
                     Grid::make(3)
                         ->schema([

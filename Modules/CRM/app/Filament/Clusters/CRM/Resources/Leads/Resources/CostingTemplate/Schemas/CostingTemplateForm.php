@@ -153,13 +153,28 @@ class CostingTemplateForm
     {
         $items = $get('costingTemplateItems') ?: [];
         $totalAmount = 0;
+        $totalCost = 0;
         $totalMonthly = 0;
+
         foreach ($items as $item) {
-            $totalAmount += self::parseCurrency($item['total_price'] ?? 0);
+            $qty = (float) ($item['quantity'] ?? 1);
+            $price = self::parseCurrency($item['unit_price'] ?? 0);
+            $totalPrice = self::parseCurrency($item['total_price'] ?? 0);
+
+            $totalAmount += $totalPrice;
+            $totalCost += ($qty * $price);
             $totalMonthly += self::parseCurrency($item['monthly_cost'] ?? 0);
         }
+
         $set('total_amount', $totalAmount);
         $set('total_monthly_cost', $totalMonthly);
+
+        if ($totalAmount > 0) {
+            $margin = (($totalAmount - $totalCost) / $totalAmount) * 100;
+            $set('margin_percentage', round($margin, 2));
+        } else {
+            $set('margin_percentage', 0);
+        }
     }
 
     protected static function calculateItem(Get $get, Set $set, ?string $trigger = null): void

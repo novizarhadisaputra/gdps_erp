@@ -48,9 +48,18 @@ class CostingTemplate extends Model implements HasMedia
 
     public function refreshTotals(): void
     {
+        $totalAmount = (float) $this->costingTemplateItems()->sum('total_price');
+        $totalCost = (float) $this->costingTemplateItems()->selectRaw('SUM(quantity * unit_price) as total_cost')->value('total_cost');
+
+        $margin = 0;
+        if ($totalAmount > 0) {
+            $margin = (($totalAmount - $totalCost) / $totalAmount) * 100;
+        }
+
         $this->update([
-            'total_amount' => (float) $this->costingTemplateItems()->sum('total_price'),
+            'total_amount' => $totalAmount,
             'total_monthly_cost' => (float) $this->costingTemplateItems()->sum('monthly_cost'),
+            'margin_percentage' => round($margin, 2),
         ]);
     }
 }
