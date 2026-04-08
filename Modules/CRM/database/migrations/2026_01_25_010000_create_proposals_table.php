@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->string('proposal_number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
+            $table->jsonb('content_config')->nullable();
             $table->string('status')->default('draft'); // draft, submitted, approved, rejected, converted
             $table->integer('revision_number')->default(0);
             $table->string('previous_code')->nullable();

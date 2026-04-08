@@ -153,6 +153,11 @@ class CustomerForm
             Repeater::make('contacts')
                 ->label('Customer Contacts')
                 ->schema([
+                    Select::make('gender')
+                        ->label('Gender')
+                        ->options(\Modules\MasterData\Enums\Gender::class)
+                        ->required()
+                        ->native(false),
                     TextInput::make('name')->required(),
                     TextInput::make('email')->email(),
                     TextInput::make('phone')->tel(),

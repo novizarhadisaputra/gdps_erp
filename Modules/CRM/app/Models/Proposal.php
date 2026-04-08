@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Models;
 
+use App\Models\Comment;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -9,8 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\CRM\Models\ProposalRevision;
-use App\Models\Comment;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
@@ -44,6 +43,7 @@ class Proposal extends Model implements HasMedia
         'year',
         'is_imported',
         'import_source_id',
+        'content_config',
     ];
 
     protected function casts(): array
@@ -53,6 +53,7 @@ class Proposal extends Model implements HasMedia
             'submission_date' => 'date',
             'revision_number' => 'integer',
             'is_manual' => 'boolean',
+            'content_config' => 'array',
         ];
     }
 

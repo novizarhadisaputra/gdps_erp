@@ -7,12 +7,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\ProductClusterFactory;
-
 // use Modules\MasterData\Database\Factories\ProductClusterFactory;
 
-class ProductCluster extends Model
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+
+class ProductCluster extends Model implements HasMedia
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, InteractsWithMedia;
     use HasModuleSchema;
 
     /**

@@ -325,7 +325,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         $manpowerCategoryId = DirectCostCategory::where('code', 'manpower')->first()?->id;
 
         $items = collect($this->analysis_details['manual_costs'] ?? [])
-            ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $manpowerCategoryId || ! empty($item['sub_items']))
+            ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $manpowerCategoryId)
             ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
 
         return $items->map(fn ($item) => [
