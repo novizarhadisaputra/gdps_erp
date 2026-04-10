@@ -57,6 +57,7 @@ class CostingTemplate extends Model implements HasMedia
         }
 
         $this->update([
+            'total_cost_amount' => $totalCost,
             'total_amount' => $totalAmount,
             'total_monthly_cost' => (float) $this->costingTemplateItems()->sum('monthly_cost'),
             'margin_percentage' => round($margin, 2),

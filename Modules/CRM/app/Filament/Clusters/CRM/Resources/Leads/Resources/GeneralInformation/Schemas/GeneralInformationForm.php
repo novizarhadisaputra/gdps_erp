@@ -150,6 +150,11 @@ class GeneralInformationForm
                 ->schema([
                     Repeater::make('pics')
                         ->schema([
+                            Select::make('gender')
+                                ->label('Sex')
+                                ->options(\Modules\MasterData\Enums\Gender::class)
+                                ->placeholder('Select')
+                                ->native(false),
                             TextInput::make('name')
                                 ->required(),
                             TextInput::make('phone'),

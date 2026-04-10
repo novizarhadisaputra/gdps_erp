@@ -31,10 +31,17 @@ class ProductClusterLogoSeeder extends Seeder
                 if (file_exists($path)) {
                     // Ensure the media collection is cleared before adding to avoid duplicates
                     $cluster->clearMediaCollection('logo');
-
                     $cluster->addMedia($path)
                         ->preservingOriginal()
-                        ->toMediaCollection('logo');
+                        ->usingFileName(\Illuminate\Support\Str::slug(pathinfo($filename, PATHINFO_FILENAME)).'.'.pathinfo($filename, PATHINFO_EXTENSION))
+                        ->storingConversionsOnDisk('s3')
+                        ->addCustomHeaders([
+                            'ContentType' => 'image/png',
+                        ])
+                        ->withCustomProperties([
+                            'visibility' => 'private',
+                        ])
+                        ->toMediaCollection('logo', 's3');
                 }
             }
         }

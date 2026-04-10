@@ -5,9 +5,9 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\S
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
@@ -19,6 +19,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
+use Illuminate\Database\Eloquent\Model;
 
 class ProposalForm
 {
@@ -31,7 +32,7 @@ class ProposalForm
     public static function schema(): array
     {
         return [
-            Grid::make(columns: 2)->schema([
+            Grid::make(columns: 1)->schema([
                 Section::make('Proposal Context')
                     ->description('Core commercial information for this proposal.')
                     ->schema([
@@ -66,16 +67,32 @@ class ProposalForm
                             ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->work_scheme_id : null)
                             ->helperText('The operational model inherited from the Lead.'),
 
-                        TextInput::make('amount')
-                            ->label('Proposed Amount')
-                            ->placeholder('0')
-                            ->prefixIcon('heroicon-o-banknotes')
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                        TextInput::make('amount_display')
+                            ->label('Proposed Amount (Monthly)')
                             ->prefix('IDR')
-                            ->disabled(fn ($record) => $record?->status !== ProposalStatus::Draft)
-                            ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->estimated_amount : 0)
-                            ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
-                            ->helperText('Total value including all service costs.'),
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                            ->afterStateHydrated(function (TextInput $component, ?Model $record) {
+                                if (! $record) {
+                                    $component->state(0);
+                                    return;
+                                }
+
+                                $pa = $record->profitabilityAnalysis ?? $record->lead?->profitabilityAnalyses()
+                                    ->whereIn('status', [
+                                        \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Approved,
+                                        \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Submitted,
+                                    ])->latest()->first();
+
+                                $component->state($pa?->revenue_per_month ?? $record->amount ?? 0);
+                            })
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->columnSpanFull()
+                            ->helperText('Automatically pulled from the latest approved Profitability Analysis.'),
+
+                        TextInput::make('amount')
+                            ->hidden()
+                            ->dehydrated(),
 
                         Select::make('lead_id')
                             ->relationship('lead', 'title')
@@ -100,7 +117,9 @@ class ProposalForm
                                 $contact = $contacts[$state] ?? null;
                                 if ($contact) {
                                     $set('content_config.recipient_name', $contact['name'] ?? '');
-                                    $set('content_config.recipient_title', $contact['position'] ?? $contact['job_position'] ?? '');
+                                    // Robust position check
+                                    $position = $contact['position'] ?? $contact['job_position'] ?? $contact['job_title'] ?? $contact['title'] ?? '';
+                                    $set('content_config.recipient_title', $position);
                                     $set('content_config.recipient_gender', $contact['gender'] ?? \Modules\MasterData\Enums\Gender::Male->value);
                                 }
                             })
@@ -140,6 +159,7 @@ class ProposalForm
                                 return count($contacts) - 1;
                             })
                             ->placeholder('Pick a contact to auto-fill...')
+                            ->dehydrated(false)
                             ->helperText('Selecting a contact will populate the fields below.'),
 
                         Grid::make(3)->schema([
@@ -152,10 +172,12 @@ class ProposalForm
                             TextInput::make('content_config.recipient_name')
                                 ->label('Recipient Name')
                                 ->placeholder('Enter full name')
+                                ->dehydrated()
                                 ->required(),
 
                             TextInput::make('content_config.recipient_title')
                                 ->label('Recipient Title/Position')
+                                ->dehydrated()
                                 ->placeholder('e.g. Director of Finance'),
                         ]),
                     ]),
@@ -164,10 +186,18 @@ class ProposalForm
                     ->description('Tailor the wording and terms for this specific proposal.')
                     ->collapsible()
                     ->schema([
-                        Textarea::make('content_config.intro_text')
+                        RichEditor::make('content_config.intro_text')
                             ->label('Introductory Text')
                             ->placeholder('Override default intro paragraph...')
-                            ->rows(3),
+                            ->toolbarButtons([
+                                'bold',
+                                'italic',
+                                'bulletList',
+                                'orderedList',
+                                'undo',
+                                'redo',
+                            ])
+                            ->columnSpanFull(),
 
                         Section::make('Service Packages Details (Bullet Points)')
                             ->description('Customize the lists of what is included, complimentary, or excluded.')
@@ -175,52 +205,65 @@ class ProposalForm
                             ->schema([
                                 Repeater::make('content_config.included_items')
                                     ->label('A. What is Included (Cakupan Layanan)')
-                                    ->simple(TextInput::make('item'))
+                                    ->schema([
+                                        RichEditor::make('item')
+                                            ->toolbarButtons(['bold', 'italic', 'undo', 'redo'])
+                                            ->columnSpanFull()
+                                    ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Add point into List A')
                                     ->helperText('If empty, the standard list will be shown.'),
 
                                 Repeater::make('content_config.complimentary_items')
                                     ->label('B. Complimentary (Layanan Tambahan Gratis)')
-                                    ->simple(TextInput::make('item'))
+                                    ->schema([
+                                        RichEditor::make('item')
+                                            ->toolbarButtons(['bold', 'italic', 'undo', 'redo'])
+                                            ->columnSpanFull()
+                                    ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Add point into List B')
                                     ->helperText('If empty, the standard list will be shown.'),
 
                                 Repeater::make('content_config.excluded_items')
                                     ->label('C. What is Excluded (Hal yang Tidak Termasuk)')
-                                    ->simple(TextInput::make('item'))
+                                    ->schema([
+                                        RichEditor::make('item')
+                                            ->toolbarButtons(['bold', 'italic', 'undo', 'redo'])
+                                            ->columnSpanFull()
+                                    ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Add point into List C')
                                     ->helperText('If empty, the standard list will be shown.'),
                             ]),
 
-                        Textarea::make('content_config.closing_text')
+                        RichEditor::make('content_config.closing_text')
                             ->label('Closing Text (Terms & Conditions Paragraph)')
-                            ->rows(3)
-                            ->placeholder('Default: Formal GDPS closing statement...'),
-
-                        Grid::make(2)->schema([
-                            TextInput::make('content_config.validity_period')
-                                ->label('Validity Period (Days)')
-                                ->numeric()
-                                ->default(30)
-                                ->suffix('Days'),
-                            TextInput::make('content_config.payment_term')
-                                ->label('Payment Term (TOP)')
-                                ->placeholder('Example: 60')
-                                ->helperText('Leave empty to use PA default.')
-                                ->suffix('Days'),
-                        ]),
+                            ->placeholder('Default: Formal GDPS closing statement...')
+                            ->toolbarButtons([
+                                'bold',
+                                'italic',
+                                'bulletList',
+                                'orderedList',
+                                'undo',
+                                'redo',
+                            ])
+                            ->columnSpanFull(),
 
                         Grid::make(2)->schema([
                             Toggle::make('content_config.show_manpower_attachment')
                                 ->label('Show Manpower Detail Attachment')
                                 ->default(true),
                             Toggle::make('content_config.show_material_attachment')
-                                ->label('Show Material Detail Attachment')
+                                ->label('Show Tools & Equipment Detail Attachment')
                                 ->default(true),
-                        ])->columns(2),
+
+                            TextInput::make('content_config.contact_phone')
+                                ->label('Contact Phone Number')
+                                ->placeholder('e.g. 021-xxxxxx')
+                                ->helperText('Phone number displayed on the cover/footer.'),
+                        ]),
+
                     ]),
 
                 Group::make()
@@ -235,6 +278,7 @@ class ProposalForm
                                     ->hiddenOn('create')
                                     ->disabled()
                                     ->dehydrated()
+                                    ->copyable()
                                     ->unique(Proposal::class, 'proposal_number', ignoreRecord: true),
 
                                 DatePicker::make('submission_date')
@@ -259,7 +303,7 @@ class ProposalForm
                                     ->color('gray'),
                             ]),
                     ])
-                    ->columnSpan(1),
+                    ->columnSpanFull(),
             ])->columnSpanFull(),
 
             Section::make('Final Documentation')
@@ -272,30 +316,6 @@ class ProposalForm
                         ->visibility('private')
                         ->downloadable()
                         ->openable()
-                        ->hintAction(
-                            fn (?Proposal $record) => $record ? Action::make('downloadPdf')
-                                ->label('Download Draft PDF')
-                                ->icon('heroicon-o-arrow-down-tray')
-                                ->action(function () use ($record) {
-                                    $record->load([
-                                        'customer',
-                                        'profitabilityAnalysis.workScheme',
-                                        'profitabilityAnalysis.paymentTerm',
-                                        'profitabilityAnalysis.productCluster',
-                                        'lead.user',
-                                        'lead.ams',
-                                        'lead.manpowerTemplates.items.jobPosition',
-                                        'lead.costingTemplates.costingTemplateItems.item',
-                                        'lead.latestGeneralInformation',
-                                        'lead.salesPlan',
-                                    ]);
-
-                                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $record]);
-                                    $filename = str_replace(['/', '\\'], '-', $record->proposal_number);
-
-                                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
-                                }) : null
-                        )
                         ->helperText('Format: PDF preferred. Size limit 10MB.'),
                     SpatieMediaLibraryFileUpload::make('signed_proposal')
                         ->collection('signed_proposal')

@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas;
 
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -26,6 +27,12 @@ class ProductClusterForm
                 ->required()
                 ->maxLength(255)
                 ->placeholder('Software Development'),
+            SpatieMediaLibraryFileUpload::make('logo')
+                ->collection('logo')
+                ->image()
+                ->imageEditor()
+                ->multiple(false)
+                ->columnSpanFull(),
             Toggle::make('is_active')
                 ->default(true)
                 ->required(),

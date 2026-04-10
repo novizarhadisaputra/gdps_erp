@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->cascadeOnDelete();
             $table->foreignUuid('pic_id')->nullable()->constrained('users');
+            $table->decimal('total_cost_amount', 15, 2)->default(0)->after('pic_id');
             $table->decimal('total_amount', 15, 2)->default(0); // Total One-Time Cost/Investment
             $table->decimal('total_monthly_cost', 15, 2)->default(0); // Total Monthly Depr/Expense
             $table->decimal('margin_percentage', 5, 2)->default(0);

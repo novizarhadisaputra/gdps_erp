@@ -14,11 +14,9 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
-use Modules\CRM\Enums\DepreciationMethod;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Schemas\CostingTemplateItemForm;
 use Modules\CRM\Livewire\CostingTemplate\ManageCostingItems;
 use Modules\CRM\Models\Lead;
-use Modules\MasterData\Models\Item;
 
 class CostingTemplateForm
 {
@@ -103,18 +101,26 @@ class CostingTemplateForm
                 Step::make('Costing Summary')
                     ->description('Review totals and submit')
                     ->schema([
-                        Grid::make(3)
+                        Grid::make(4)
                             ->schema([
+                                TextInput::make('total_cost_amount')
+                                    ->label('Total Cost (Modal)')
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                    ->prefix('IDR ')
+                                    ->readOnly()
+                                    ->dehydrated()
+                                    ->afterStateHydrated(function (Get $get, Set $set) {
+                                        self::updateTotals($get, $set);
+                                    })
+                                    ->extraAttributes(['class' => 'bg-gray-50']),
                                 TextInput::make('total_amount')
                                     ->label('Total Investment')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->readOnly()
                                     ->dehydrated()
-                                    ->afterStateHydrated(function ($record, Set $set, string $operation) {
-                                        if ($operation === 'edit' && $record) {
-                                            $set('total_amount', $record->costingTemplateItems()->sum('total_price') ?? 0);
-                                        }
+                                    ->afterStateHydrated(function (Get $get, Set $set) {
+                                        self::updateTotals($get, $set);
                                     }),
                                 TextInput::make('total_monthly_cost')
                                     ->label('Total Monthly Cost')
@@ -122,10 +128,8 @@ class CostingTemplateForm
                                     ->prefix('IDR ')
                                     ->readOnly()
                                     ->dehydrated()
-                                    ->afterStateHydrated(function ($record, Set $set, string $operation) {
-                                        if ($operation === 'edit' && $record) {
-                                            $set('total_monthly_cost', $record->costingTemplateItems()->sum('monthly_cost') ?? 0);
-                                        }
+                                    ->afterStateHydrated(function (Get $get, Set $set) {
+                                        self::updateTotals($get, $set);
                                     }),
                                 TextInput::make('margin_percentage')
                                     ->label('Initial Margin')
@@ -133,12 +137,10 @@ class CostingTemplateForm
                                     ->suffix('%')
                                     ->default(0)
                                     ->readOnly()
-                                    ->afterStateHydrated(function ($record, Set $set, string $operation) {
-                                        if ($operation === 'edit' && $record) {
-                                            $set('margin_percentage', $record->margin_percentage ?? 0);
-                                        }
+                                    ->afterStateHydrated(function (Get $get, Set $set) {
+                                        self::updateTotals($get, $set);
                                     })
-                                    ->extraAttributes(['class' => 'bg-gray-50']),
+                                    ->extraAttributes(['class' => 'bg-gray-50 font-bold text-primary-600']),
                             ]),
                         Textarea::make('notes')
                             ->label('Finance Notes')
@@ -149,25 +151,37 @@ class CostingTemplateForm
         ];
     }
 
-    protected static function updateTotals(Get $get, Set $set): void
+    public static function updateTotals(Get $get, Set $set): void
     {
-        $items = $get('costingTemplateItems') ?: [];
+        $items = $get('costingTemplateItems') ?? [];
         $totalAmount = 0;
         $totalCost = 0;
         $totalMonthly = 0;
 
         foreach ($items as $item) {
             $qty = (float) ($item['quantity'] ?? 1);
-            $price = self::parseCurrency($item['unit_price'] ?? 0);
-            $totalPrice = self::parseCurrency($item['total_price'] ?? 0);
+            $costPrice = self::parseCurrency($item['unit_price'] ?? 0);
+            $markupPercent = (float) ($item['markup_percent'] ?? 0);
+            $deprMonths = (float) ($item['depreciation_months'] ?? 1);
+            $deprMonths = $deprMonths > 0 ? $deprMonths : 1;
 
-            $totalAmount += $totalPrice;
-            $totalCost += ($qty * $price);
-            $totalMonthly += self::parseCurrency($item['monthly_cost'] ?? 0);
+            // Recalculate based on cost and markup to be 100% sure
+            $sellingPrice = $costPrice * (1 + ($markupPercent / 100));
+            $subtotalCost = $qty * $costPrice;
+            $subtotalSelling = $qty * $sellingPrice;
+
+            // Calculate monthly cost (simplified SL for summary)
+            $monthly = $subtotalSelling / $deprMonths;
+
+            $totalCost += $subtotalCost;
+            $totalAmount += $subtotalSelling;
+            $totalMonthly += $monthly;
         }
 
-        $set('total_amount', $totalAmount);
-        $set('total_monthly_cost', $totalMonthly);
+        // Apply rounded values to the summary fields
+        $set('total_cost_amount', round($totalCost, 0));
+        $set('total_amount', round($totalAmount, 0));
+        $set('total_monthly_cost', round($totalMonthly, 0));
 
         if ($totalAmount > 0) {
             $margin = (($totalAmount - $totalCost) / $totalAmount) * 100;
@@ -175,71 +189,6 @@ class CostingTemplateForm
         } else {
             $set('margin_percentage', 0);
         }
-    }
-
-    protected static function calculateItem(Get $get, Set $set, ?string $trigger = null): void
-    {
-        $qty = $get('quantity');
-        $price = $get('unit_price');
-        $markupPercent = $get('markup_percent');
-        $priceAfterMarkup = $get('unit_price_markup');
-        $deprMonths = $get('depreciation_months');
-        $method = $get('depreciation_method');
-
-        $qty = is_numeric($qty) ? (float) $qty : 0;
-        $price = self::parseCurrency($price);
-        $markupPercent = is_numeric($markupPercent) ? (float) $markupPercent : 0;
-        $priceAfterMarkup = self::parseCurrency($priceAfterMarkup);
-        $deprMonths = is_numeric($deprMonths) ? (float) $deprMonths : 1;
-
-        if ($trigger === 'unit_price_markup') {
-            if ($price > 0) {
-                $markupPercent = (($priceAfterMarkup / $price) - 1) * 100;
-                $set('markup_percent', round($markupPercent, 2));
-            }
-        } elseif ($trigger === 'markup_percent' || empty($priceAfterMarkup)) {
-            $priceAfterMarkup = $price * (1 + ($markupPercent / 100));
-            $set('unit_price_markup', $priceAfterMarkup);
-        } else {
-            // Default: recalculate based on markup percent if both exist
-            $priceAfterMarkup = $price * (1 + ($markupPercent / 100));
-            $set('unit_price_markup', $priceAfterMarkup);
-        }
-
-        $total = $qty * $priceAfterMarkup;
-
-        $monthly = 0;
-        if ($deprMonths > 0) {
-            $methodValue = $method instanceof \BackedEnum ? $method->value : $method;
-
-            $itemId = $get('item_id');
-            $item = $itemId ? Item::find($itemId) : null;
-            $ag = $item?->assetGroup ?? $item?->category?->assetGroup;
-
-            if ($methodValue === DepreciationMethod::DecliningBalance->value) {
-                $rate = (float) ($ag?->rate_declining_balance ?? 0);
-
-                if ($rate > 0) {
-                    $monthly = ($total * $rate / 100) / 12;
-                } else {
-                    $monthly = $total / $deprMonths;
-                }
-            } else {
-                // Straight Line
-                $rate = (float) ($ag?->rate_straight_line ?? 0);
-
-                if ($rate > 0) {
-                    $monthly = ($total * $rate / 100) / 12;
-                } else {
-                    $monthly = $total / $deprMonths;
-                }
-            }
-        } else {
-            $monthly = $total;
-        }
-
-        $set('total_price', $total);
-        $set('monthly_cost', $monthly);
     }
 
     protected static function parseCurrency($value): float

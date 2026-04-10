@@ -43,6 +43,16 @@ class ProposalObserver
     }
 
     /**
+     * Handle the Proposal "saving" event.
+     */
+    public function saving(Proposal $proposal): void
+    {
+        if ($proposal->profitability_analysis_id && $proposal->profitabilityAnalysis) {
+            $proposal->amount = $proposal->profitabilityAnalysis->revenue_per_month;
+        }
+    }
+
+    /**
      * Handle the Proposal "created" event.
      */
     public function created(Proposal $proposal): void

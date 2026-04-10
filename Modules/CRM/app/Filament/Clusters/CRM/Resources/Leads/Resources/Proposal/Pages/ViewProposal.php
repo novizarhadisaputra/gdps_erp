@@ -33,39 +33,39 @@ class ViewProposal extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            ActionGroup::make([
-                Action::make('pdf')
-                    ->label('Export PDF')
-                    ->color('gray')
-                    ->icon(Heroicon::OutlinedArrowDownTray)
-                    ->action(function () {
-                        if ($this->record->is_manual && $media = $this->record->getFirstMedia('final_proposal')) {
-                            return $media;
-                        }
-
-                        $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
-                        $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
-
-                        return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
-                    }),
-
-                Action::make('excel')
-                    ->label('Export Excel')
-                    ->color('success')
-                    ->icon(Heroicon::OutlinedTableCells)
-                    ->action(function () {
-                        $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
-
-                        return Excel::download(
-                            new ProposalExport($this->record),
-                            "proposal-{$filename}.xlsx"
-                        );
-                    }),
-            ])
-                ->label('Export')
-                ->icon('heroicon-o-arrow-down-tray')
+            Action::make('downloadPdf')
+                ->label('Download Draft PDF')
+                ->icon(Heroicon::OutlinedArrowDownTray)
                 ->color('gray')
-                ->button(),
+                ->action(function () {
+                    $this->record->load([
+                        'customer',
+                        'profitabilityAnalysis.workScheme',
+                        'profitabilityAnalysis.paymentTerm',
+                        'profitabilityAnalysis.productCluster',
+                        'lead.user',
+                        'lead.ams',
+                        'lead.manpowerTemplates.items.jobPosition',
+                        'lead.costingTemplates.costingTemplateItems.item',
+                        'lead.latestGeneralInformation',
+                        'lead.salesPlan',
+                    ]);
+
+                    if ($this->record->is_manual && $media = $this->record->getFirstMedia('final_proposal')) {
+                        return $media;
+                    }
+
+                    $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $this->record])
+                        ->setPaper('a4', 'portrait')
+                        ->setOptions([
+                            'isRemoteEnabled' => true,
+                            'isHtml5ParserEnabled' => true,
+                            'defaultFont' => 'sans-serif',
+                        ]);
+                    $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
+
+                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
+                }),
 
             Action::make('incompleteWarning')
                 ->label('Submit')

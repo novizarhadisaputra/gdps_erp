@@ -54,7 +54,10 @@ class CostingTemplateItemForm
 
                                     return "SL Rate: {$ag->rate_straight_line}% | DB Rate: ".($ag->rate_declining_balance ?? 'N/A').'%';
                                 })
-                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculate($get, $set)),
+                                ->afterStateUpdated(function (Get $get, Set $set) {
+                                    self::calculate($get, $set);
+                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                }),
                             Select::make('item_id')
                                 ->label('Material/Asset')
                                 ->relationship('item', 'name')
@@ -83,6 +86,7 @@ class CostingTemplateItemForm
                                         }
                                         $set('depreciation_months', $depreciation ?? 1);
                                         self::calculate($get, $set);
+                                        \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
                                     }
                                 }),
                         ]),
@@ -104,60 +108,65 @@ class CostingTemplateItemForm
                                 ->default(1)
                                 ->required()
                                 ->live(onBlur: true)
-                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculate($get, $set)),
+                                ->afterStateUpdated(function (Get $get, Set $set) {
+                                    self::calculate($get, $set);
+                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                }),
                             TextInput::make('unit_price')
                                 ->numeric()
                                 ->prefix('IDR')
                                 ->required()
                                 ->live(onBlur: true)
-                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculate($get, $set)),
+                                ->afterStateUpdated(function (Get $get, Set $set) {
+                                    self::calculate($get, $set);
+                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                }),
                             TextInput::make('depreciation_months')
                                 ->label('Depreciation (Months)')
                                 ->numeric()
                                 ->default(1)
                                 ->required()
                                 ->live(onBlur: true)
-                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculate($get, $set)),
+                                ->afterStateUpdated(function (Get $get, Set $set) {
+                                    self::calculate($get, $set);
+                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                }),
                             TextInput::make('markup_percent')
                                 ->label('Markup %')
                                 ->numeric()
                                 ->default(0)
                                 ->required()
                                 ->live(onBlur: true)
-                                ->afterStateUpdated(fn (Get $get, Set $set) => self::calculate($get, $set)),
+                                ->afterStateUpdated(function (Get $get, Set $set) {
+                                    self::calculate($get, $set);
+                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                }),
                         ]),
-                ]),
-            Section::make('Calculation Result')
-                ->schema([
                     Grid::make(3)
                         ->schema([
                             TextInput::make('unit_price_markup')
-                                ->label('Price (After Markup)')
-                                ->numeric()
-                                ->prefix('IDR')
-                                ->readOnly()
-                                ->dehydrated(),
-                            TextInput::make('total_price')
-                                ->label('Total Investment')
-                                ->numeric()
-                                ->prefix('IDR')
-                                ->readOnly()
-                                ->dehydrated(),
-                            TextInput::make('monthly_cost')
-                                ->label('Monthly Cost')
-                                ->numeric()
+                                ->label('Price (Markup)')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR')
                                 ->readOnly()
                                 ->dehydrated()
-                                ->hint(function (Get $get) {
-                                    if ($get('depreciation_method') === DepreciationMethod::DecliningBalance->value) {
-                                        return 'Accelerated rate applied.';
-                                    }
-
-                                    return 'Standard linear distribution.';
-                                }),
+                                ->extraAttributes(['class' => 'bg-gray-50']),
+                            TextInput::make('total_price')
+                                ->label('Subtotal Investment')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR')
+                                ->readOnly()
+                                ->dehydrated()
+                                ->extraAttributes(['class' => 'bg-gray-50']),
+                            TextInput::make('monthly_cost')
+                                ->label('Monthly Cost')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR')
+                                ->readOnly()
+                                ->dehydrated()
+                                ->extraAttributes(['class' => 'bg-gray-50']),
                         ]),
-                ])->compact(),
+                ]),
         ];
     }
 
@@ -196,8 +205,8 @@ class CostingTemplateItemForm
             $monthly = $total;
         }
 
-        $set('unit_price_markup', $priceAfterMarkup);
-        $set('total_price', $total);
-        $set('monthly_cost', $monthly);
+        $set('unit_price_markup', round($priceAfterMarkup, 0));
+        $set('total_price', round($total, 0));
+        $set('monthly_cost', round($monthly, 0));
     }
 }
