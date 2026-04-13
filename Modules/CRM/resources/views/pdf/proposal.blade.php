@@ -71,7 +71,7 @@
             $recipientSalutation = match (strtolower($genderValue)) {
                 'male' => 'Bapak ',
                 'female' => 'Ibu ',
-                default => ''
+                default => '',
             };
         }
     }
@@ -82,6 +82,8 @@
     $ams = $record->lead->ams ?? ($record->lead->user ?? null);
     $amsName = $ams->name ?? 'Account Manager';
     $amsEmail = $ams->email ?? '';
+    $amsPhone = $ams->phone_number ?? ($ams->phone ?? '');
+    $contactPhone = $config['contact_phone'] ?? null;
 
     // Management fee
     $managementFee = $pa->management_fee_rate ?? 0;
@@ -304,16 +306,17 @@
             </div>
             <table>
                 <tr>
-                    <td style="width: 100px;">Nomor</td>
-                    <td>: {{ $record->proposal_number }}</td>
+                    <td style="width: 80px; padding-bottom: 5px;"><strong>Nomor</strong></td>
+                    <td style="padding-bottom: 5px;">: {{ $record->proposal_number }}</td>
                 </tr>
                 <tr>
-                    <td>Lampiran</td>
-                    <td>: 1 (Satu) Berkas</td>
+                    <td style="padding-bottom: 5px;"><strong>Lampiran</strong></td>
+                    <td style="padding-bottom: 5px;">: 1 (Satu) Berkas</td>
                 </tr>
                 <tr>
-                    <td>Perihal</td>
-                    <td>: Proposal Penawaran Harga Layanan {{ $productClusterName }}</td>
+                    <td style="vertical-align: top;"><strong>Perihal</strong></td>
+                    <td style="vertical-align: top;">: <strong>Proposal Penawaran Harga Layanan
+                            {{ $productClusterName }}</strong></td>
                 </tr>
             </table>
         </div>
@@ -328,19 +331,18 @@
             @endif
             <strong>PT {{ $customerName }}</strong><br>
             {{ $record->customer->address ?? 'Di Tempat' }}
-            @if ($contactPhone)
-                <br>Telp: {{ $contactPhone }}
-            @endif
         </div>
 
 
         <p>Dengan hormat,</p>
-        <p>Semoga {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} dalam keadaan sehat dan sukses dalam menjalankan aktivitas sehari-hari.</p>
+        <p>Semoga {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} dalam keadaan sehat dan sukses dalam menjalankan
+            aktivitas sehari-hari.</p>
 
         @if ($introText)
             <div style="margin-bottom: 10px;">{!! $introText !!}</div>
         @else
-            <p>Memenuhi kebutuhan operasional pada perusahaan yang {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} pimpin, bersama ini kami PT Garuda Daya
+            <p>Memenuhi kebutuhan operasional pada perusahaan yang {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }}
+                pimpin, bersama ini kami PT Garuda Daya
                 Pratama
                 Sejahtera (GDPS) menyampaikan penghargaan dan terima kasih atas kesempatan yang diberikan untuk
                 berpartisipasi dalam memberikan solusi layanan <strong>{{ $productClusterName }}</strong> di PT
@@ -360,7 +362,8 @@
 
         <div class="signature-section">
             <div class="signature-box" style="text-align: left; width: 60%;">
-                <p>Atas perhatian dan kerja sama {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }}, kami ucapkan terima kasih.</p>
+                <p>Atas perhatian dan kerja sama {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }}, kami ucapkan terima
+                    kasih.</p>
                 <br>
                 <div>Hormat kami,</div>
                 <div><strong>PT Garuda Daya Pratama Sejahtera</strong></div>
@@ -369,6 +372,14 @@
                 <div>Account Manager & Sales</div>
                 @if ($amsEmail)
                     <div style="font-size: 10px;">{{ $amsEmail }}</div>
+                @endif
+                @if ($amsPhone)
+                    <div style="font-size: 10px;">{{ $amsPhone }}</div>
+                @endif
+                @if ($contactPhone)
+                    <div style="font-size: 10px; color: #1e293b; margin-top: 2px;">
+                        {{ $contactPhone }}
+                    </div>
                 @endif
             </div>
         </div>
@@ -567,94 +578,165 @@
             <div class="page-break"></div>
             <h1>LAMPIRAN: RINCIAN KOMPONEN (RAB / COGS)</h1>
 
-            @if ($showManpower && !empty($manpower))
-                <h2 style="margin-top: 20px;">I. RINCIAN MANPOWER (KOMPENSASI TENAGA KERJA)</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 5%;">No</th>
-                            <th style="width: 35%;">Jabatan & Spesialisasi Profesi</th>
-                            <th style="width: 7%;">Qty</th>
-                            <th style="width: 13%;">Satuan</th>
-                            <th style="width: 15%;">UMK Basis / Bln (Rp)</th>
-                            <th style="width: 25%;">Total Direct Cost / Bln (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($manpower as $index => $item)
+            @if ($pa->is_manual_cost)
+                @php
+                    $cogsMedia = $pa->getFirstMedia('cogs_source');
+                    $expiringUrl = $cogsMedia ? $cogsMedia->getTemporaryUrl(now()->addDays(7)) : '#';
+                @endphp
+                <div
+                    style="margin-top: 30px; text-align: center; border: 1px solid #cbd5e1; padding: 40px; border-radius: 8px; background-color: #f8fafc;">
+                    <h3 style="margin-bottom: 15px;">Dokumen Rincian RAB/COGS dilampirkan secara terpisah (Manual
+                        Upload)</h3>
+                    @if ($cogsMedia)
+                        <p style="margin-bottom: 20px; font-size: 11px;">Silakan akses dokumen rincian biaya
+                            komprehensif melalui tautan aman di bawah ini.<br>Tautan enkripsi ini berlaku selama
+                            <strong>7 hari kalender</strong> sejak proposal diterbitkan demi keamanan data.</p>
+                        <a href="{{ $expiringUrl }}"
+                            style="display: inline-block; padding: 10px 20px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+                            Unduh Lampiran COGS / RAB
+                        </a>
+                        <p
+                            style="font-size: 8px; color: #94a3b8; font-style: italic; margin-top: 20px; word-wrap: break-word;">
+                            URL Akses Raw: <br>
+                            <a href="{{ $expiringUrl }}"
+                                style="color: #64748b;">{{ \Illuminate\Support\Str::limit($expiringUrl, 80) }}</a>
+                        </p>
+                    @else
+                        <p style="color: #ef4444; font-style: italic; margin-top: 20px;">[Lampiran Dokumen COGS Belum
+                            Tersedia di Sistem]</p>
+                    @endif
+                </div>
+            @else
+                @if ($showManpower && !empty($manpower))
+                    <h2 style="margin-top: 20px;">I. RINCIAN MANPOWER (KOMPENSASI TENAGA KERJA)</h2>
+                    <table>
+                        <thead>
                             <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td>{{ $item['job_position_name'] ?? '-' }}</td>
-                                <td class="text-center">{{ $item['quantity'] ?? 1 }}</td>
-                                <td class="text-center">{{ $item['uom'] ?? 'Orang' }}</td>
-                                <td class="text-right">{{ number_format($item['unit_cost'] ?? 0, 0, ',', '.') }}</td>
+                                <th style="width: 5%;">No</th>
+                                <th style="width: 35%;">Jabatan & Spesialisasi Profesi</th>
+                                <th style="width: 7%;">Qty</th>
+                                <th style="width: 13%;">Satuan</th>
+                                <th style="width: 15%;">UMK Basis / Bln (Rp)</th>
+                                <th style="width: 25%;">Total Direct Cost / Bln (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($manpower as $index => $item)
+                                <tr>
+                                    <td class="text-center">{{ $index + 1 }}</td>
+                                    <td>{{ $item['job_position_name'] ?? '-' }}</td>
+                                    <td class="text-center">{{ $item['quantity'] ?? 1 }}</td>
+                                    <td class="text-center">{{ $item['uom'] ?? 'Orang' }}</td>
+                                    <td class="text-right">{{ number_format($item['unit_cost'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td class="text-right">
+                                        {{ number_format($item['total_monthly_cost'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            <tr class="bg-gray">
+                                <td colspan="5" class="text-right">Subtotal Biaya Dasar Operasional Manpower /
+                                    Bulan</td>
                                 <td class="text-right">
-                                    {{ number_format($item['total_monthly_cost'] ?? 0, 0, ',', '.') }}
+                                    {{ number_format(collect($manpower)->sum('total_monthly_cost'), 0, ',', '.') }}
                                 </td>
                             </tr>
-                        @endforeach
-                        <tr class="bg-gray">
-                            <td colspan="5" class="text-right">Subtotal Biaya Dasar Operasional Manpower / Bulan</td>
-                            <td class="text-right">
-                                {{ number_format(collect($manpower)->sum('total_monthly_cost'), 0, ',', '.') }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p style="font-size: 9px; font-style: italic; color: #64748b; margin-top: -5px;">*Disclaimer: Komponen
-                    Cost
-                    di atas adalah proyeksi harga riil yang disiapkan untuk menampung hak-hak hukum tenaga kerja,
-                    termasuk
-                    perlindungan dasar asuransi wajib jamsostek (BPJS Kesehatan, BPJS Ketenagakerjaan JHT, JP, JKM,
-                    JKK),
-                    proporsional THR (1 bulan upah per tahun kerja), cadangan Cuti Tahunan, kompensasi akhir kontrak (PP
-                    No.35/2021) jika relevan, hingga pembinaan sumber daya pelatihan secara berkelanjutan yang
-                    diselenggarakan oleh vendor manajemen alih-daya.</p>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 9px; font-style: italic; color: #64748b; margin-top: -5px;">*Disclaimer:
+                        Komponen
+                        Cost
+                        di atas adalah proyeksi harga riil yang disiapkan untuk menampung hak-hak hukum tenaga kerja,
+                        termasuk
+                        perlindungan dasar asuransi wajib jamsostek (BPJS Kesehatan, BPJS Ketenagakerjaan JHT, JP, JKM,
+                        JKK),
+                        proporsional THR (1 bulan upah per tahun kerja), cadangan Cuti Tahunan, kompensasi akhir kontrak
+                        (PP
+                        No.35/2021) jika relevan, hingga pembinaan sumber daya pelatihan secara berkelanjutan yang
+                        diselenggarakan oleh vendor manajemen alih-daya.</p>
+                @endif
+
+                @if ($showMaterial && !empty($operationalCosts))
+                    <h2 style="margin-top: 30px;">II. RINCIAN SEWA PERALATAN & MATERIAL KERJA (TOOLS/CONSUMABLE)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 5%;">No</th>
+                                <th style="width: 35%;">Spesifikasi Item / Mesin / Chemical</th>
+                                <th style="width: 7%;">Qty</th>
+                                <th style="width: 13%;">Satuan</th>
+                                <th style="width: 15%;">Nominal Unit (Rp)</th>
+                                <th style="width: 25%;">Total Tarif/Bulan (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($operationalCosts as $index => $item)
+                                <tr>
+                                    <td class="text-center">{{ $index + 1 }}</td>
+                                    <td>{{ $item['item_name'] ?? '-' }}</td>
+                                    <td class="text-center">{{ $item['quantity'] ?? 1 }}</td>
+                                    <td class="text-center">{{ $item['uom'] ?? 'Unit' }}</td>
+                                    <td class="text-right">{{ number_format($item['unit_cost'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td class="text-right">
+                                        {{ number_format($item['total_monthly_cost'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            <tr class="bg-gray">
+                                <td colspan="5" class="text-right">Subtotal Estimasi Pendanaan Peralatan Pendukung
+                                    /
+                                    Bulan
+                                </td>
+                                <td class="text-right">
+                                    {{ number_format(collect($operationalCosts)->sum('total_monthly_cost'), 0, ',', '.') }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 9px; font-style: italic; margin-top: -5px; color: #64748b;">*Disclaimer:
+                        Peralatan
+                        alat kerja di atas mengikat disiapkan di titik-titik (Site/Pool) proyek yang disepakati untuk
+                        menjamin
+                        standardisasi mutu SLA pekerjaan. Seluruh nilai penyusutan alat berat maupun kelengkapan habis
+                        pakai
+                        (consumable chemical) sudah terverifikasi dari prinsip operasional pabrikan dan akan dikelola
+                        secara
+                        penuh oleh Tim Pemeliharaan Aset PT Garuda Daya Pratama Sejahtera.</p>
+                @endif
+
             @endif
 
-            @if ($showMaterial && !empty($operationalCosts))
-                <h2 style="margin-top: 30px;">II. RINCIAN SEWA PERALATAN & MATERIAL KERJA (TOOLS/CONSUMABLE)</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 5%;">No</th>
-                            <th style="width: 35%;">Spesifikasi Item / Mesin / Chemical</th>
-                            <th style="width: 7%;">Qty</th>
-                            <th style="width: 13%;">Satuan</th>
-                            <th style="width: 15%;">Nominal Unit (Rp)</th>
-                            <th style="width: 25%;">Total Tarif/Bulan (Rp)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($operationalCosts as $index => $item)
-                            <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
-                                <td>{{ $item['item_name'] ?? '-' }}</td>
-                                <td class="text-center">{{ $item['quantity'] ?? 1 }}</td>
-                                <td class="text-center">{{ $item['uom'] ?? 'Unit' }}</td>
-                                <td class="text-right">{{ number_format($item['unit_cost'] ?? 0, 0, ',', '.') }}</td>
-                                <td class="text-right">
-                                    {{ number_format($item['total_monthly_cost'] ?? 0, 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        @endforeach
-                        <tr class="bg-gray">
-                            <td colspan="5" class="text-right">Subtotal Estimasi Pendanaan Peralatan Pendukung /
-                                Bulan
-                            </td>
-                            <td class="text-right">
-                                {{ number_format(collect($operationalCosts)->sum('total_monthly_cost'), 0, ',', '.') }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <p style="font-size: 9px; font-style: italic; margin-top: -5px; color: #64748b;">*Disclaimer: Peralatan
-                    alat kerja di atas mengikat disiapkan di titik-titik (Site/Pool) proyek yang disepakati untuk
-                    menjamin
-                    standardisasi mutu SLA pekerjaan. Seluruh nilai penyusutan alat berat maupun kelengkapan habis pakai
-                    (consumable chemical) sudah terverifikasi dari prinsip operasional pabrikan dan akan dikelola secara
-                    penuh oleh Tim Pemeliharaan Aset PT Garuda Daya Pratama Sejahtera.</p>
-            @endif
+            {{-- Summary of Component Recap --}}
+            <h2 style="margin-top: 30px;">III. REKAPITULASI KOMPONEN BIAYA (SUMMARY COST)</h2>
+            @php
+                if ($pa->is_manual_cost) {
+                    $totalBaseCost = $pa->direct_cost;
+                } else {
+                    $totalBaseCost =
+                        collect($manpower)->sum('total_monthly_cost') +
+                        collect($operationalCosts)->sum('total_monthly_cost');
+                }
+                $feeAmount = $revenue - $totalBaseCost;
+            @endphp
+            <table style="width: 100%;">
+                <tr class="bg-gray">
+                    <th style="width: 75%; text-align: left;">Deskripsi Komponen (Cost Description)</th>
+                    <th style="width: 25%; text-align: right;">Total Nilai / Bulan (Rp)</th>
+                </tr>
+                <tr>
+                    <td>Total Direct Cost (Personil & Material)</td>
+                    <td class="text-right">{{ number_format($totalBaseCost, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td>Management Fee GDPS ({{ number_format($managementFee, 0) }}%)</td>
+                    <td class="text-right">{{ number_format($feeAmount, 0, ',', '.') }}</td>
+                </tr>
+                <tr class="bg-dark" style="color: white; font-weight: bold;">
+                    <td class="text-right">ESTIMASI TOTAL HARGA PENAWARAN (DPP)</td>
+                    <td class="text-right">{{ number_format($revenue, 0, ',', '.') }}</td>
+                </tr>
+            </table>
         @endif
     </div>
 </body>
