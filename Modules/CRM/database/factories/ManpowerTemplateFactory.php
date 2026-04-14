@@ -25,13 +25,16 @@ class ManpowerTemplateFactory extends Factory
             'description' => $this->faker->sentence(),
             'is_active' => true,
             'project_area_id' => ProjectArea::factory(),
-            'contract_type_id' => ContractType::factory(),
             'work_scheme_id' => WorkScheme::factory(),
-            'risk_level' => 'very_low',
-            'employee_type' => 'ppu',
-            'is_labor_intensive' => false,
-            'bill_thr_monthly' => true,
-            'bill_compensation_monthly' => true,
         ];
+    }
+
+    public function forLead(\Modules\CRM\Models\Lead $lead): self
+    {
+        return $this->state([
+            'lead_id' => $lead->id,
+            'project_area_id' => $lead->project_area_id,
+            'work_scheme_id' => $lead->work_scheme_id,
+        ]);
     }
 }

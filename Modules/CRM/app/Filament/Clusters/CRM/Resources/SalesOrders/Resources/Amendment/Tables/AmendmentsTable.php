@@ -2,9 +2,13 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Tables;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\CRM\Models\SalesOrderAmendment;
 
 class AmendmentsTable
 {
@@ -27,6 +31,17 @@ class AmendmentsTable
             ->defaultSort('created_at', 'desc')
             ->recordActions([
                 ViewAction::make(),
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
+                    ->action(function (SalesOrderAmendment $record) {
+                        $pdf = Pdf::loadView('crm::pdf.sales-order-amendment', ['record' => $record]);
+                        $filename = "soa-{$record->salesOrder->so_number}-rev{$record->amendment_number}";
+                        $filename = str_replace(['/', '\\'], '-', $filename);
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), "{$filename}.pdf");
+                    }),
             ]);
     }
 }

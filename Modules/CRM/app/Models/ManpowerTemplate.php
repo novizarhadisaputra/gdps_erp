@@ -20,6 +20,22 @@ class ManpowerTemplate extends Model implements HasMedia
     use HasFactory, HasUuids;
     use HasModuleSchema;
     use InteractsWithMedia;
+    
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('source_file')
+            ->useDisk('s3')
+            ->singleFile()
+            ->acceptsMimeTypes([
+                'application/pdf',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'image/jpeg',
+                'image/png',
+            ]);
+    }
 
     protected static function newFactory(): \Modules\CRM\Database\Factories\ManpowerTemplateFactory
     {

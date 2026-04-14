@@ -30,6 +30,7 @@ class SalesOrderAmendment extends Model
         'status',
         'sequence_number',
         'year',
+        'content_config',
     ];
 
     protected function casts(): array
@@ -38,6 +39,7 @@ class SalesOrderAmendment extends Model
             'amendment_date' => 'date',
             'before_snapshot' => 'array',
             'after_snapshot' => 'array',
+            'content_config' => 'array',
             'status' => SalesOrderAmendmentStatus::class,
         ];
     }

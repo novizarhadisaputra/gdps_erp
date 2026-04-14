@@ -8,6 +8,9 @@ use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
+use Modules\CRM\Models\ManpowerTemplate;
+use Modules\CRM\Models\CostingTemplate;
+use Modules\CRM\Models\Lead;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses;
 use Modules\MasterData\Enums\AssetGroupType;
 use Modules\MasterData\Models\AssetGroup;
@@ -53,15 +56,20 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
 
         // 2. Setup PA Dependencies
         $customer = Customer::factory()->create();
-        $gi = GeneralInformation::create([
+        $lead = Lead::factory()->create(['customer_id' => $customer->id]);
+        $gi = GeneralInformation::factory()->create([
             'document_number' => 'GI/TEST/001',
             'customer_id' => $customer->id,
+            'lead_id' => $lead->id,
             'status' => 'draft',
         ]);
         $workScheme = WorkScheme::factory()->create();
         $productCluster = ProductCluster::factory()->create();
         $tax = Tax::factory()->create();
         $projectArea = ProjectArea::factory()->create();
+
+        $manpowerTemplate = ManpowerTemplate::factory()->create(['lead_id' => $lead->id]);
+        $costingTemplate = CostingTemplate::factory()->create(['lead_id' => $lead->id]);
 
         // 3. Test Interaction
         $uuid = Str::uuid()->toString();
@@ -77,20 +85,10 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
                 'product_cluster_id' => $productCluster->id,
                 'tax_id' => $tax->id,
                 'project_area_id' => $projectArea->id,
-                'operationalItems' => [
-                    $uuid => [
-                        'costable_type' => Item::class,
-                        'costable_id' => null,
-                    ],
-                ],
+                'lead_id' => $lead->id,
+                'analysis_details.manpower_template_id' => $manpowerTemplate->id,
+                'analysis_details.costing_template_id' => $costingTemplate->id,
             ])
-            ->fillForm([
-                "operationalItems.{$uuid}.costable_id" => $item->id,
-            ])
-            ->assertActionDataSet([
-                "operationalItems.{$uuid}.unit_cost_price" => 5000000,         // Base Price
-                "operationalItems.{$uuid}.unit_of_measure" => 'Unit',          // UOM Name
-                "operationalItems.{$uuid}.depreciation_months" => 60,          // 5 years * 12
-            ]);
+            ->assertHasNoFormErrors();
     }
 }

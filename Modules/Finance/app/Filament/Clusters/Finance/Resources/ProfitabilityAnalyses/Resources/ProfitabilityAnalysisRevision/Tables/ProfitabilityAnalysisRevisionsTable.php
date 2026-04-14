@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Tables;
 
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -30,7 +31,7 @@ class ProfitabilityAnalysisRevisionsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->actions([
-                \Filament\Tables\Actions\ViewAction::make(),
+                ViewAction::make(),
             ]);
     }
 }

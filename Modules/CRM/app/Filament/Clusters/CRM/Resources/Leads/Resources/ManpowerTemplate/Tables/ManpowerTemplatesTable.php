@@ -20,6 +20,9 @@ class ManpowerTemplatesTable
     {
         return $table
             ->columns([
+                TextColumn::make('code')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('projectArea.name')

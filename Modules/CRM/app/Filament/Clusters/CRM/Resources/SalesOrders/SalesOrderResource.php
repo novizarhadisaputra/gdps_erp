@@ -37,9 +37,15 @@ class SalesOrderResource extends Resource
         return SalesOrdersTable::configure($table);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return \Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas\SalesOrderInfolist::configure($schema);
+    }
+
     public static function getRecordSubNavigation(Page $page): array
     {
         return $page->generateNavigationItems([
+            \Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ViewSalesOrder::class,
             EditSalesOrder::class,
             ManageAmendments::class,
         ]);
@@ -57,6 +63,7 @@ class SalesOrderResource extends Resource
         return [
             'index' => ListSalesOrders::route('/'),
             'create' => CreateSalesOrder::route('/create'),
+            'view' => \Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ViewSalesOrder::route('/{record}'),
             'edit' => EditSalesOrder::route('/{record}/edit'),
             'amendments' => ManageAmendments::route('/{record}/amendments'),
             'view-amendment' => ViewAmendment::route('/{record}/amendments/{relatedRecord}'),

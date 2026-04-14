@@ -49,6 +49,7 @@ class SalesOrder extends Model implements HasMedia
         'reporting_schedule',
         'sequence_number',
         'year',
+        'content_config',
     ];
 
     protected function casts(): array
@@ -62,6 +63,7 @@ class SalesOrder extends Model implements HasMedia
             'tax_percentage' => 'decimal:2',
             'manpower_initial_qty' => 'integer',
             'manpower_composition' => 'array',
+            'content_config' => 'array',
         ];
     }
 

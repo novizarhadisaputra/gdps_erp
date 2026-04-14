@@ -6,7 +6,7 @@
     <title>Sales Order - {{ $record->so_number }}</title>
     <style>
         @page {
-            margin: 0;
+            margin: 30px;
         }
 
         body {
@@ -14,228 +14,305 @@
             margin: 0;
             padding: 0;
             background-color: #ffffff;
-            color: #1e293b;
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        .container {
-            width: 100%;
-            background: #ffffff;
+            color: #1a202c;
+            font-size: 10px;
+            line-height: 1.4;
         }
 
         .header {
-            padding: 40px 50px 20px 50px;
-            border-bottom: 2px solid #f1f5f9;
-            background-color: #fcfcfc;
-        }
-
-        .logo {
-            height: 40px;
-            margin-bottom: 10px;
-        }
-
-        .document-type {
-            float: right;
-            text-align: right;
-        }
-
-        .document-type h1 {
-            font-size: 24px;
-            margin: 0;
-            color: #0f172a;
-            font-weight: bold;
-            letter-spacing: -0.5px;
-        }
-
-        .document-type p {
-            font-size: 11px;
-            color: #2563eb;
-            margin: 2px 0 0 0;
-            font-weight: bold;
-        }
-
-        .content {
-            padding: 30px 50px;
-        }
-
-        .section-title {
-            font-size: 10px;
-            font-weight: bold;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 5px;
-            margin-top: 20px;
-        }
-
-        table {
             width: 100%;
-            border-collapse: collapse;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 10px;
             margin-bottom: 20px;
         }
 
-        th {
-            text-align: left;
-            font-size: 9px;
-            font-weight: bold;
-            color: #64748b;
-            text-transform: uppercase;
-            padding: 10px 15px;
-            background-color: #f8fafc;
-            border: 1px solid #f1f5f9;
-            width: 30%;
+        .logo {
+            height: 45px;
         }
 
-        td {
-            padding: 10px 15px;
-            border: 1px solid #f1f5f9;
+        .title-box {
+            text-align: right;
             vertical-align: top;
-            color: #334155;
+        }
+
+        .title-box h1 {
+            font-size: 20px;
+            margin: 0;
+            color: #1a365d;
+            text-transform: uppercase;
+        }
+
+        .title-box p {
+            margin: 5px 0 0 0;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .section-title {
+            background-color: #f8fafc;
+            padding: 5px 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-left: 3px solid #2563eb;
+            margin: 15px 0 10px 0;
             font-size: 11px;
         }
 
-        .info-value {
-            font-weight: bold;
-            color: #0f172a;
-        }
-
-        .signatures {
-            margin-top: 40px;
+        .info-grid {
             width: 100%;
-        }
-
-        .signature-box {
-            width: 33%;
-            text-align: center;
-            padding: 15px;
-            vertical-align: top;
-        }
-
-        .signature-role {
-            font-size: 10px;
-            font-weight: bold;
-            color: #64748b;
-            text-transform: uppercase;
             margin-bottom: 15px;
         }
 
-        .signature-name {
+        .info-grid td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .label {
+            width: 30%;
+            color: #64748b;
+        }
+
+        .value {
+            width: 70%;
+            font-weight: bold;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        table.data-table th {
+            background-color: #2563eb;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #e2e8f0;
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        table.data-table td {
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .total-section {
+            margin-top: 10px;
+            float: right;
+            width: 40%;
+        }
+
+        .total-row {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 5px 0;
+        }
+
+        .grand-total {
             font-size: 12px;
             font-weight: bold;
-            color: #0f172a;
-            margin-top: 10px;
+            color: #1a365d;
+            background-color: #eff6ff;
+            padding: 8px;
+            margin-top: 5px;
         }
 
-        .footer {
-            position: fixed;
-            bottom: 0;
+        .terms-box {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            background-color: #fdfdfd;
+        }
+
+        .signature-section {
+            margin-top: 50px;
             width: 100%;
-            padding: 20px 50px;
-            font-size: 9px;
-            color: #94a3b8;
-            border-top: 1px solid #f1f5f9;
-            text-align: center;
         }
 
-        .amount-highlight {
-            font-size: 14px;
-            color: #1e293b;
+        .sig-block {
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .sig-space {
+            height: 80px;
+        }
+
+        .sig-name {
+            font-weight: bold;
+            text-decoration: underline;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <div style="float: left; width: 50%;">
-                <img src="{{ public_path('images/logo.png') }}" class="logo">
-                <div style="font-size: 9px; font-weight: bold; color: #64748b;">PT GARUDA DAYA PRATAMA SEJAHTERA</div>
-            </div>
-            <div class="document-type" style="float: right; width: 50%;">
-                <h1>SALES ORDER</h1>
-                <p>{{ $record->so_number }}</p>
-                <div style="font-size: 9px; color: #94a3b8; margin-top: 5px;">Date: {{ $record->order_date->format('d M Y') }}</div>
-            </div>
-            <div style="clear: both;"></div>
-        </div>
-
-        <div class="content">
-            <div class="section-title">General Information</div>
-            <table>
-                <tr>
-                    <th>Customer</th>
-                    <td class="info-value">{{ $record->customer->name ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Project Code</th>
-                    <td>{{ $record->project->code ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Service Type</th>
-                    <td>{{ $record->service_type ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Job Location</th>
-                    <td>{{ $record->job_location ?? '-' }}</td>
-                </tr>
-            </table>
-
-            <div class="section-title">Order Details</div>
-            <table>
-                <tr>
-                    <th>Total Amount</th>
-                    <td class="info-value amount-highlight">IDR {{ number_format($record->amount, 0, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <th>Management Fee</th>
-                    <td>{{ $record->management_fee_percentage ?? 0 }}%</td>
-                </tr>
-                <tr>
-                    <th>Tax</th>
-                    <td>{{ $record->tax_percentage ?? 0 }}%</td>
-                </tr>
-            </table>
-
-            <div class="section-title">Operations & Manpower</div>
-            <table>
-                <tr>
-                    <th>Initial Quantity</th>
-                    <td>{{ $record->manpower_initial_qty ?? 0 }} Persons</td>
-                </tr>
-                <tr>
-                    <th>Payment Terms</th>
-                    <td>{{ $record->payment_terms ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Reporting Schedule</th>
-                    <td>{{ $record->reporting_schedule ?? '-' }}</td>
-                </tr>
-            </table>
-
-            <div class="section-title">Management</div>
-            <table>
-                <tr>
-                    <th>Sales PIC</th>
-                    <td>{{ $record->salesPic->name ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Project Manager</th>
-                    <td>{{ $record->projectManager->name ?? '-' }}</td>
-                </tr>
-                <tr>
-                    <th>Status</th>
-                    <td style="text-transform: uppercase; font-weight: bold;">{{ $record->status->getLabel() }}</td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="footer">
-            PT Garuda Daya Pratama Sejahtera &nbsp;&bull;&nbsp; Digital Document System
-        </div>
+    <div class="header">
+        <table style="width: 100%;">
+            <tr>
+                <td>
+                    <img src="{{ public_path('images/logo.png') }}" class="logo">
+                    <div style="font-size: 8px; color: #64748b; margin-top: 5px;">PT GARUDA DAYA PRATAMA SEJAHTERA</div>
+                </td>
+                <td class="title-box">
+                    <h1>SALES ORDER</h1>
+                    <p>{{ $record->so_number }}</p>
+                    <div style="font-size: 9px; color: #64748b;">Date: {{ $record->order_date->format('d M Y') }}</div>
+                </td>
+            </tr>
+        </table>
     </div>
+
+    <table class="info-grid">
+        <tr>
+            <td class="label">Customer Name</td>
+            <td class="value">: {{ $record->customer->name ?? '-' }}</td>
+            <td class="label">Project Code</td>
+            <td class="value">: {{ $record->project->code ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Service Type</td>
+            <td class="value">: {{ $record->service_type ?? '-' }}</td>
+            <td class="label">Sales PIC</td>
+            <td class="value">: {{ $record->salesPic->name ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Work Scheme</td>
+            <td class="value">: {{ $record->productCluster?->name ?? '-' }}</td>
+            <td class="label">Project Manager</td>
+            <td class="value">: {{ $record->projectManager->name ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Location</td>
+            <td class="value">: {{ $record->job_location ?? '-' }}</td>
+            <td class="label">Manpower Qty</td>
+            <td class="value">: {{ $record->manpower_initial_qty ?? 0 }} Person(s)</td>
+        </tr>
+    </table>
+
+    <div class="section-title">I. HARGA & DETAIL LAYANAN (ESTIMASI)</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Item Description</th>
+                <th>UoM</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Total / Month</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $items = $record->content_config['items'] ?? []; @endphp
+            @forelse($items as $index => $item)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $item['description'] ?? '-' }}</td>
+                    <td class="text-center">{{ $item['uom'] ?? 'Unit' }}</td>
+                    <td class="text-right">{{ number_format($item['quantity'] ?? 0) }}</td>
+                    <td class="text-right">IDR {{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">IDR {{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="text-center italic">No items found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <table style="width: 100%;">
+            <tr class="total-row">
+                <td style="color: #64748b;">Subtotal</td>
+                <td class="text-right">IDR {{ number_format($record->amount / (1 + ($record->tax_percentage/100) + ($record->management_fee_percentage/100)), 0, ',', '.') }}</td>
+            </tr>
+            <tr class="total-row">
+                <td style="color: #64748b;">Management Fee ({{ $record->management_fee_percentage }}%)</td>
+                <td class="text-right">IDR {{ number_format($record->amount * ($record->management_fee_percentage/100), 0, ',', '.') }}</td>
+            </tr>
+            <tr class="total-row">
+                <td style="color: #64748b;">VAT ({{ $record->tax_percentage }}%)</td>
+                <td class="text-right">IDR {{ number_format($record->amount * ($record->tax_percentage/100), 0, ',', '.') }}</td>
+            </tr>
+            <tr class="grand-total">
+                <td>GRAND TOTAL / MONTH</td>
+                <td class="text-right">IDR {{ number_format($record->amount, 0, ',', '.') }}</td>
+            </tr>
+        </table>
+    </div>
+    <div style="clear: both;"></div>
+
+    <div class="section-title">II. KOMPOSISI PERSONIL</div>
+    <table class="data-table" style="width: 50%;">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Jabatan / Posisi</th>
+                <th class="text-right">Qty</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $manpower = $record->content_config['manpower_details'] ?? []; @endphp
+            @forelse($manpower as $index => $mp)
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>{{ $mp['job_position_name'] ?? '-' }}</td>
+                    <td class="text-right">{{ number_format($mp['quantity'] ?? 0) }} Org</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="3" class="text-center italic">No manpower details found.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <div class="section-title">III. KETENTUAN UMUM</div>
+    <div class="terms-box">
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 30%;">Term of Payment</td>
+                <td>: {{ $record->payment_terms ?? 'Atau sesuai kebijakan perusahaan.' }}</td>
+            </tr>
+            <tr>
+                <td>Probation Period</td>
+                <td>: {{ $record->probation_period ?? '3 Months' }}</td>
+            </tr>
+            <tr>
+                <td>Replacement SLA</td>
+                <td>: {{ $record->replacement_sla ?? '3 Working Days' }}</td>
+            </tr>
+            <tr>
+                <td>Monthly Report</td>
+                <td>: {{ $record->reporting_schedule ?? 'Last Friday of the month' }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="signature-section">
+        <tr>
+            <td class="sig-block">
+                <p>Disetujui Oleh Customer,</p>
+                <div class="sig-space"></div>
+                <p class="sig-name">( ........................................ )</p>
+                <p>Nama & Jabatan</p>
+            </td>
+            <td class="sig-block">
+                <p>PT Garuda Daya Pratama Sejahtera,</p>
+                <div class="sig-space"></div>
+                <p class="sig-name">{{ $record->salesPic->name ?? 'Account Manager' }}</p>
+                <p>Account Manager / PIC Sales</p>
+            </td>
+        </tr>
+    </table>
+
 </body>
 
 </html>

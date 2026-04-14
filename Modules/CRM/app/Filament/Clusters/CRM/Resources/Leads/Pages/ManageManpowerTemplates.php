@@ -4,7 +4,9 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -46,11 +48,13 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->schema([
-                        SpatieMediaLibraryFileUpload::make('file')
-                            ->collection('source_file')
+                        TextEntry::make('code')
+                            ->state('Auto-generated'),
+                        FileUpload::make('file')
                             ->disk('s3')
                             ->visibility('private')
                             ->required()
+                            ->columnSpanFull()
                             ->helperText('Upload the original document as a valid data reference.'),
                     ])
                     ->action(function (array $data) {
@@ -63,12 +67,32 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                             'description' => $latestGi?->scope_of_work,
                             'project_area_id' => $latestGi?->project_area_id ?? $lead->project_area_id,
                             'work_scheme_id' => $latestGi?->work_scheme_id ?? $lead->work_scheme_id,
-                            'contract_type_id' => $latestGi?->contract_type_id,
                             'is_active' => true,
                         ]);
 
-                        if (isset($data['file'])) {
-                            $record->addMediaFromDisk($data['file'], 's3')->toMediaCollection('source_file');
+                        if ($filePath = $data['file'] ?? null) {
+                            try {
+                                // Robustly handle string or array from Filament
+                                $path = is_array($filePath) ? (array_key_first($filePath) ?: reset($filePath)) : $filePath;
+
+                                if ($path) {
+                                    \Illuminate\Support\Facades\Log::info('Attaching ManpowerTemplate media from S3', [
+                                        'template_id' => $record->id,
+                                        'path' => $path,
+                                    ]);
+
+                                    $record->addMediaFromDisk($path, 's3')
+                                        ->toMediaCollection('source_file');
+
+                                    \Illuminate\Support\Facades\Log::info('Successfully attached ManpowerTemplate media.');
+                                }
+                            } catch (\Exception $e) {
+                                \Illuminate\Support\Facades\Log::error('MEDIA_ATTACHMENT_ERROR: ManpowerTemplate', [
+                                    'template_id' => $record->id,
+                                    'error' => $e->getMessage(),
+                                    'trace' => $e->getTraceAsString(),
+                                ]);
+                            }
                         }
 
                         $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $lead->id, 'record' => $record->id]));

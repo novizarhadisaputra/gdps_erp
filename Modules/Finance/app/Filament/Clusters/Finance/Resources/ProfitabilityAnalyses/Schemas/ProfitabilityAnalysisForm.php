@@ -332,8 +332,6 @@ class ProfitabilityAnalysisForm
                                         if ($state) {
                                             $set('require_manpower_costing', false);
                                             $set('require_operational_costing', false);
-                                            $set('manpower_template_id', null);
-                                            $set('costing_template_id', null);
                                         } else {
                                             // Auto-enable detail costing when manual mode is turned off
                                             $set('require_manpower_costing', true);
@@ -400,9 +398,9 @@ class ProfitabilityAnalysisForm
                     ->description('Determine personnel needs based on job positions or manpower packets.')
                     ->icon(Heroicon::UserGroup)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
-                    ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && (bool) $get('require_manpower_costing'))
+                    ->visible(fn (Get $get) => (bool) $get('is_manual_cost') || (bool) $get('require_manpower_costing'))
                     ->schema([
-                        Select::make('manpower_template_id')
+                        Select::make('analysis_details.manpower_template_id')
                             ->label('Manpower Template')
                             ->options(function (Get $get) {
                                 $leadId = $get('lead_id');
@@ -419,14 +417,19 @@ class ProfitabilityAnalysisForm
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->hidden(fn (Get $get) => (bool) $get('/is_manual_cost'))
                             ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleManpowerTemplateSelection($state, $set, $get)),
+
+                        TextEntry::make('manpower_link')
+                            ->label('Manpower Costing Attachment')
+                            ->state(fn (Get $get) => new HtmlString(self::getTemplateAttachmentLinkHtml($get('analysis_details.manpower_template_id'), 'manpower')))
+                            ->html()
+                            ->visible(fn (Get $get) => (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'))),
 
                         TextEntry::make('manpower_preview')
                             ->label('Personnel Summary')
-                            ->state(fn (Get $get) => new HtmlString(self::getManpowerPreviewHtml($get('manpower_template_id'))))
+                            ->state(fn (Get $get) => new HtmlString(self::getManpowerPreviewHtml($get('analysis_details.manpower_template_id'))))
                             ->html()
-                            ->visible(fn (Get $get) => filled($get('manpower_template_id'))),
+                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'))),
 
                         Repeater::make('manpowerItems')
                             ->schema([
@@ -444,9 +447,9 @@ class ProfitabilityAnalysisForm
                     ->description('Determine material, equipment, services, and other cost requirements.')
                     ->icon(Heroicon::ShoppingCart)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
-                    ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && (bool) $get('require_operational_costing'))
+                    ->visible(fn (Get $get) => (bool) $get('is_manual_cost') || (bool) $get('require_operational_costing'))
                     ->schema([
-                        Select::make('costing_template_id')
+                        Select::make('analysis_details.costing_template_id')
                             ->label('Operational Template')
                             ->options(function (Get $get) {
                                 $leadId = $get('lead_id');
@@ -463,14 +466,19 @@ class ProfitabilityAnalysisForm
                             ->searchable()
                             ->preload()
                             ->live()
-                            ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
                             ->afterStateUpdated(fn ($state, Set $set, Get $get) => self::handleCostingTemplateSelection($state, $set, $get)),
+
+                        TextEntry::make('operational_link')
+                            ->label('Operational Costing Attachment')
+                            ->state(fn (Get $get) => new HtmlString(self::getTemplateAttachmentLinkHtml($get('analysis_details.costing_template_id'), 'costing')))
+                            ->html()
+                            ->visible(fn (Get $get) => (bool) $get('is_manual_cost') && filled($get('analysis_details.costing_template_id'))),
 
                         TextEntry::make('operational_preview')
                             ->label('Equipment & Material Summary')
-                            ->state(fn (Get $get) => new HtmlString(self::getOperationalPreviewHtml($get('costing_template_id'))))
+                            ->state(fn (Get $get) => new HtmlString(self::getOperationalPreviewHtml($get('analysis_details.costing_template_id'))))
                             ->html()
-                            ->visible(fn (Get $get) => filled($get('costing_template_id'))),
+                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && filled($get('analysis_details.costing_template_id'))),
                     ]),
 
                 Step::make('Manual Costing')
@@ -504,6 +512,7 @@ class ProfitabilityAnalysisForm
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
                                     ->columnSpan(1)
                                     ->dehydrated(),
+
                                 TextEntry::make('lead_documents')
                                     ->label('Existing Lead/GI Documents')
                                     ->columnSpanFull()
@@ -1297,222 +1306,149 @@ class ProfitabilityAnalysisForm
         return $monthlyCost * (1.0 + ($markup / 100));
     }
 
-    protected static function handleManpowerTemplateSelection($state, Set $set, Get $get): void
+    public static function handleManpowerTemplateSelection($state, Set $set, Get $get): void
     {
         if (! $state) {
+            $set('manpowerItems', []);
+            $set('analysis_details.manpower_template_id', null);
+
             return;
         }
 
-        $record = ManpowerTemplate::with(['items.jobPosition'])->find($state);
-        if (! $record) {
-            return;
+        $template = ManpowerTemplate::with(['items.jobPosition'])->find($state);
+
+        if ($template) {
+            $set('analysis_details.manpower_template_id', $state);
+
+            $items = $template->items->map(function ($item) {
+                return [
+                    'job_position_id' => $item->job_position_id,
+                    'count' => $item->count,
+                    'salary' => $item->salary,
+                    'total_salary' => $item->total_salary,
+                ];
+            })->toArray();
+
+            $set('manpowerItems', $items);
         }
-
-        $service = app(ManpowerCostingService::class);
-        $areaId = $get('project_area_id');
-        $year = (int) ($get('year') ?? date('Y'));
-
-        $manualCosts = $get('analysis_details.manual_costs') ?? [];
-        $manpowerCategory = DirectCostCategory::where('code', 'manpower')->value('id');
-
-        if (! $manpowerCategory) {
-            return;
-        }
-
-        $subItems = [];
-        $totalCategoryAmount = 0;
-
-        foreach ($record->items as $item) {
-            $jp = $item->jobPosition;
-            if (! $jp) {
-                continue;
-            }
-
-            $allowances = $item->allowances ?? [];
-
-            $res = $service->calculate(
-                basicSalary: (float) $item->basic_salary,
-                allowances: $allowances,
-                projectAreaId: $areaId,
-                year: $year,
-                riskLevel: $item->risk_level ?? 'very_low',
-                isLaborIntensive: (bool) ($item->is_labor_intensive ?? false),
-                employeeType: $item->employee_type ?? 'ppu',
-                billThrMonthly: (bool) ($item->bill_thr_monthly ?? true),
-                billCompensationMonthly: (bool) ($item->bill_compensation_monthly ?? true),
-                includeNonFixedInAccruals: (bool) ($item->include_non_fixed_in_accruals ?? false),
-                extraCosts: $item->extra_costs ?? [],
-                ptkpCode: $item->ptkp_status ?? 'TK/0',
-                isBpjsActive: (bool) ($item->is_bpjs_active ?? true)
-            );
-
-            // Apply Future Scaling Factor if defined
-            $scale = 1 + ((float) ($item->future_adjustment_rate ?? 0) / 100);
-            $unitCost = (float) ($res['total_direct_cost'] ?? 0) * $scale;
-            $qty = (float) ($item->quantity ?? 1);
-            $lineAmount = $unitCost * $qty;
-            $totalCategoryAmount += $lineAmount;
-
-            $subItems[] = [
-                'name' => $jp->name,
-                'job_position_id' => $jp->id,
-                'quantity' => $qty,
-                'unit_of_measure' => 'Org',
-                'unit_amount' => $unitCost,
-                'amount' => $lineAmount,
-                'risk_level' => $item->risk_level ?? 'very_low',
-                'employee_type' => $item->employee_type ?? 'ppu',
-                'is_labor_intensive' => (bool) ($item->is_labor_intensive ?? false),
-                'bill_thr_monthly' => (bool) ($item->bill_thr_monthly ?? true),
-                'bill_compensation_monthly' => (bool) ($item->bill_compensation_monthly ?? true),
-                'include_non_fixed_in_accruals' => (bool) ($item->include_non_fixed_in_accruals ?? false),
-                'extra_costs' => $item->extra_costs ?? [],
-                'cost_breakdown' => $res,
-            ];
-        }
-
-        // Robust Update Logic: Map existing items and append if not found
-        $found = false;
-        $updatedManualCosts = collect($manualCosts)->map(function ($cost) use (&$found, $manpowerCategory, $subItems, $record) {
-            if ((string) ($cost['direct_cost_category_id'] ?? '') === (string) $manpowerCategory) {
-                $found = true;
-
-                return array_merge($cost, [
-                    'amount' => collect($subItems)->sum('amount'),
-                    'description' => 'Manpower from Template: '.($record->name ?? 'Unnamed'),
-                    'sub_items' => $subItems,
-                    'direct_cost_category_id' => (string) $manpowerCategory,
-                ]);
-            }
-
-            return $cost;
-        })->toArray();
-
-        if (! $found) {
-            $updatedManualCosts[] = [
-                'direct_cost_category_id' => (string) $manpowerCategory,
-                'amount' => collect($subItems)->sum('amount'),
-                'description' => 'Manpower from Template: '.($record->name ?? 'Unnamed'),
-                'sub_items' => $subItems,
-            ];
-        }
-
-        // Final Deduplication by Category ID
-        $manualCosts = collect($updatedManualCosts)
-            ->groupBy('direct_cost_category_id')
-            ->map(fn ($group) => $group->last())
-            ->values()
-            ->toArray();
-
-        $set('analysis_details.manual_costs', $manualCosts);
-        $set('/analysis_details.manual_costs', $manualCosts);
-
-        // Also populate the table relationship state for granular persistence
-        $manpowerCategoryId = (string) $manpowerCategory;
-        $tableItems = collect($subItems)->map(function ($item) use ($manpowerCategoryId) {
-            return [
-                'costable_type' => JobPosition::class,
-                'costable_id' => $item['job_position_id'],
-                'quantity' => $item['quantity'],
-                'unit_cost_price' => $item['unit_amount'],
-                'total_monthly_cost' => $item['amount'],
-                'direct_cost_category_id' => $manpowerCategoryId,
-                'risk_level' => $item['risk_level'],
-                'employee_type' => $item['employee_type'],
-                'is_labor_intensive' => $item['is_labor_intensive'],
-                'bill_thr_monthly' => $item['bill_thr_monthly'],
-                'bill_compensation_monthly' => $item['bill_compensation_monthly'],
-                'include_non_fixed_in_accruals' => $item['include_non_fixed_in_accruals'],
-                'extra_costs' => $item['extra_costs'],
-                'cost_breakdown' => $item['cost_breakdown'],
-                'ptkp_config_id' => PtkpConfig::where('code', 'TK/0')->first()?->id, // Default
-            ];
-        })->toArray();
-
-        $set('manpowerItems', $tableItems);
 
         self::calculateDirectCost($get, $set);
     }
 
-    protected static function handleCostingTemplateSelection($state, Set $set, Get $get): void
+    public static function handleCostingTemplateSelection($state, Set $set, Get $get): void
     {
         if (! $state) {
+            $set('analysis_details.manual_costs', []);
+            $set('analysis_details.costing_template_id', null);
+
             return;
         }
 
-        $record = CostingTemplate::with('costingTemplateItems.item')->find($state);
-        if (! $record) {
-            return;
-        }
+        $template = CostingTemplate::with(['costingTemplateItems.item'])->find($state);
 
-        $manualCosts = $get('analysis_details.manual_costs') ?? [];
-        $opCategory = DirectCostCategory::where('code', 'tools_equipment')->value('id');
+        if ($template) {
+            $set('analysis_details.costing_template_id', $state);
 
-        if (! $opCategory) {
-            return;
-        }
+            $manualCosts = $get('analysis_details.manual_costs') ?: [];
+            $updatedManualCosts = $manualCosts;
 
-        $subItems = [];
-        $totalCategoryAmount = 0;
+            foreach ($template->costingTemplateItems as $templateItem) {
+                $item = $templateItem->item;
+                if (! $item) {
+                    continue;
+                }
 
-        foreach ($record->costingTemplateItems as $item) {
-            // monthly_cost in template IS already the total monthly amount for ALL specified units (including depreciation)
-            $lineAmount = (float) ($item->monthly_cost ?? 0);
-            $totalQty = (float) ($item->quantity ?? 1);
-            $deprMonths = (float) ($item->depreciation_months ?? 1);
-            $realUnitPrice = (float) ($item->unit_price_markup ?? $item->unit_price ?? 0);
+                $directCostCategoryId = $item->direct_cost_category_id;
+                if (! $directCostCategoryId) {
+                    continue;
+                }
 
-            // Monthly Qty Equivalent = (Total Qty / Depreciation Months)
-            $monthlyQty = $deprMonths > 0 ? (round($totalQty / $deprMonths, 4)) : $totalQty;
+                $existingIndex = -1;
+                foreach ($updatedManualCosts as $index => $mc) {
+                    if (($mc['direct_cost_category_id'] ?? null) == $directCostCategoryId) {
+                        $existingIndex = $index;
+                        break;
+                    }
+                }
 
-            $totalCategoryAmount += $lineAmount;
+                $subItems = $item->subItems->map(fn ($si) => [
+                    'name' => $si->name,
+                    'amount' => 0,
+                ])->toArray();
 
-            $subItems[] = [
-                'name' => $item->item?->name ?? 'Equipment Item',
-                'quantity' => $monthlyQty, // Monthly equivalent quantity
-                'unit_of_measure' => $item->unit ?? $item->item?->unitOfMeasure?->name ?? 'Unit',
-                'unit_amount' => $realUnitPrice, // Real unit price (usually with markup)
-                'amount' => $lineAmount, // Still keeps the same monthly impact
-            ];
-        }
-
-        // Robust Update Logic: Map existing items and append if not found
-        $found = false;
-        $updatedManualCosts = collect($manualCosts)->map(function ($cost) use (&$found, $opCategory, $totalCategoryAmount, $subItems, $record) {
-            if ((string) ($cost['direct_cost_category_id'] ?? '') === (string) $opCategory) {
-                $found = true;
-
-                return array_merge($cost, [
-                    'amount' => $totalCategoryAmount,
-                    'description' => 'Equipment from Template: '.($record->name ?? 'Unnamed'),
-                    'sub_items' => $subItems,
-                    'direct_cost_category_id' => (string) $opCategory,
-                ]);
+                if ($existingIndex >= 0) {
+                    $updatedManualCosts[$existingIndex]['total_amount'] = 0;
+                    $updatedManualCosts[$existingIndex]['description'] = 'Auto-filled from template: '.$template->name;
+                    $updatedManualCosts[$existingIndex]['sub_items'] = $subItems;
+                } else {
+                    $updatedManualCosts[] = [
+                        'direct_cost_category_id' => $directCostCategoryId,
+                        'total_amount' => 0,
+                        'description' => 'Auto-filled from template: '.$template->name,
+                        'sub_items' => $subItems,
+                    ];
+                }
             }
 
-            return $cost;
-        })->toArray();
+            // Final Deduplication by Category ID
+            $manualCosts = collect($updatedManualCosts)
+                ->groupBy('direct_cost_category_id')
+                ->map(fn ($group) => $group->last())
+                ->values()
+                ->toArray();
 
-        if (! $found) {
-            $updatedManualCosts[] = [
-                'direct_cost_category_id' => (string) $opCategory,
-                'amount' => $totalCategoryAmount,
-                'description' => 'Equipment from Template: '.($record->name ?? 'Unnamed'),
-                'sub_items' => $subItems,
-            ];
+            $set('analysis_details.manual_costs', $manualCosts);
         }
 
-        // Final Deduplication by Category ID
-        $manualCosts = collect($updatedManualCosts)
-            ->groupBy('direct_cost_category_id')
-            ->map(fn ($group) => $group->last())
-            ->values()
-            ->toArray();
-
-        $set('analysis_details.manual_costs', $manualCosts);
-        $set('/analysis_details.manual_costs', $manualCosts);
-
         self::calculateDirectCost($get, $set);
+    }
+
+    protected static function getTemplateAttachmentLinkHtml($templateId, $type): string
+    {
+        if (! $templateId) {
+            return '<div class="text-sm text-gray-500 italic">No template selected.</div>';
+        }
+
+        $template = $type === 'manpower'
+            ? \Modules\CRM\Models\ManpowerTemplate::find($templateId)
+            : \Modules\CRM\Models\CostingTemplate::find($templateId);
+
+        if (! $template) {
+            return '<div class="text-sm text-red-500 italic">Template record not found.</div>';
+        }
+
+        $media = $template->getFirstMedia('source_file');
+
+        if (! $media) {
+            return '<div class="text-sm text-amber-500 italic p-3 border border-dashed rounded-lg border-amber-200 bg-amber-50 dark:bg-amber-900/10">No attachment found in this template. Please re-upload the reference file in the CRM module if needed.</div>';
+        }
+
+        $url = $media->disk === 's3'
+            ? $media->getTemporaryUrl(now()->addMinutes(60))
+            : $media->getUrl();
+
+        $icon = '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M5.625 1.5c-1.036 0-1.875.84-1.875 1.875v17.25c0 1.035.84 1.875 1.875 1.875h12.75c1.035 0 1.875-.84 1.875-1.875V12.75A3.75 3.75 0 0 0 16.5 9h-1.875a1.875 1.875 0 0 1-1.875-1.875V5.25A3.75 3.75 0 0 0 9 1.5H5.625Z" /><path d="M12.971 1.816A5.23 5.23 0 0 1 14.25 5.25v1.875c0 .207.168.375.375.375H16.5a5.23 5.23 0 0 1 3.434 1.279 9.768 9.768 0 0 0-6.963-6.963Z" /></svg>';
+
+        return sprintf(
+            '<div class="flex items-center gap-4 p-4 border rounded-xl bg-white dark:bg-gray-900 border-primary-100 dark:border-primary-900 shadow-sm">
+                <div class="p-2 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600">
+                    %s
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Reference Attachment</p>
+                    <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">%s</p>
+                </div>
+                <a href="%s" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-500 shadow-sm transition-all">
+                    <span>Download</span>
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 12m0 0l4.5-4.5M12 12V3" />
+                    </svg>
+                </a>
+            </div>',
+            $icon,
+            $media->file_name,
+            $url
+        );
     }
 
     protected static function calculateMargin($revenue, $cost, $set): void

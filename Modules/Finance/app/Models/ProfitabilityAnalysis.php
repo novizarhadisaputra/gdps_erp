@@ -132,6 +132,14 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         $this->addMediaCollection('cogs_source')
             ->useDisk('s3')
             ->singleFile();
+
+        $this->addMediaCollection('manpower_costing_backup')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('operational_costing_backup')
+            ->useDisk('s3')
+            ->singleFile();
     }
 
     public function proposal(): HasOne

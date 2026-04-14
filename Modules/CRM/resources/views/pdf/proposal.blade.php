@@ -44,6 +44,7 @@
     // Branding Assets
     $logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
     $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
+    $logoSquare = imageToBase64(null, public_path('images/logo.png'));
     $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
     $clusterLogoBase64 = null;
 
@@ -98,6 +99,19 @@
 
     $showManpower = $config['show_manpower_attachment'] ?? false;
     $showMaterial = $config['show_material_attachment'] ?? false;
+
+    // Resolve template attachments from PA analysis_details
+    $manpowerTemplateId = $pa->analysis_details['manpower_template_id'] ?? null;
+    $costingTemplateId = $pa->analysis_details['costing_template_id'] ?? null;
+
+    $manpowerTemplate = $manpowerTemplateId ? \Modules\CRM\Models\ManpowerTemplate::find($manpowerTemplateId) : null;
+    $costingTemplate = $costingTemplateId ? \Modules\CRM\Models\CostingTemplate::find($costingTemplateId) : null;
+
+    $manmanMedia = $manpowerTemplate?->getFirstMedia('source_file');
+    $costMedia = $costingTemplate?->getFirstMedia('source_file');
+
+    $manpowerSourceUrl = $manmanMedia ? $manmanMedia->getTemporaryUrl(now()->addDays(7)) : null;
+    $costingSourceUrl = $costMedia ? $costMedia->getTemporaryUrl(now()->addDays(7)) : null;
 @endphp
 <!DOCTYPE html>
 <html>
@@ -402,17 +416,10 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>
+                    <td style="vertical-align: middle; text-align: center;">
                         @if ($clusterLogoBase64)
-                            <img src="{{ $clusterLogoBase64 }}"
-                                style="height: 35px; margin-bottom: 8px; display: block;">
+                            <img src="{{ $clusterLogoBase64 }}" style="height: 45px; display: block; margin: 0 auto;">
                         @endif
-                        <strong>Paket Layanan {{ $productClusterName }}</strong>
-                        <div style="font-size: 9px; color: #475569; margin-top: 5px;">
-                            Layanan operasional hulu ke hilir yang dikelola secara profesional sesuai standar aviasi
-                            Garuda
-                            Indonesia Group.
-                        </div>
                     </td>
                     <td class="text-center">{{ $location }}</td>
                     <td class="text-right">{{ number_format($revenue, 0, ',', '.') }}</td>
@@ -434,6 +441,72 @@
                 </tr>
             </tbody>
         </table>
+
+        @php
+            $hasDetailedLists = $pa && !$pa->is_manual_cost && (!empty($manpower) || !empty($operationalCosts));
+            $totalBaseCost = 0;
+            $feeAmount = 0;
+
+            if ($hasDetailedLists) {
+                $totalBaseCost =
+                    collect($manpower)->sum('total_monthly_cost') +
+                    collect($operationalCosts)->sum('total_monthly_cost');
+                $feeAmount = $revenue - $totalBaseCost;
+            }
+        @endphp
+
+        @if ($hasDetailedLists && $totalBaseCost > 0)
+            <h2 style="margin-top: 15px; margin-bottom: 10px;">Rincian Komponen Layanan:</h2>
+            <table style="font-size: 9px; table-layout: auto;">
+                <thead>
+                    <tr>
+                        <th style="width: 3%;">No</th>
+                        <th style="width: 25%;">Item Layanan</th>
+                        <th style="width: 14%;">Harga Satuan (Rp)</th>
+                        <th style="width: 5%;">Qty</th>
+                        <th style="width: 8%;">UoM</th>
+                        <th style="width: 15%;">Total Biaya (Rp)</th>
+                        <th style="width: 13%;">Mgmt. Fee {{ number_format($managementFee, 0) }}% (Rp)</th>
+                        <th style="width: 17%;">Subtotal (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $sumGrandTotal = 0;
+                        $idx = 1;
+                        $allItems = array_merge($manpower, $operationalCosts);
+                    @endphp
+                    @foreach ($allItems as $item)
+                        @php
+                            $name = $item['job_position_name'] ?? ($item['item_name'] ?? '-');
+                            $price = $item['unit_cost'] ?? 0;
+                            $qty = $item['quantity'] ?? 1;
+                            $uom = isset($item['job_position_name']) ? $item['uom'] ?? 'Orang' : $item['uom'] ?? 'Unit';
+                            $totalCost = $item['total_monthly_cost'] ?? 0;
+                            $proportionalFee = $totalBaseCost > 0 ? ($totalCost / $totalBaseCost) * $feeAmount : 0;
+                            $subtotal = $totalCost + $proportionalFee;
+                            $sumGrandTotal += $subtotal;
+                        @endphp
+                        <tr>
+                            <td class="text-center">{{ $idx++ }}</td>
+                            <td>{{ $name }}</td>
+                            <td class="text-right">{{ number_format($price, 0, ',', '.') }}</td>
+                            <td class="text-center">{{ $qty }}</td>
+                            <td class="text-center">{{ $uom }}</td>
+                            <td class="text-right">{{ number_format($totalCost, 0, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format($proportionalFee, 0, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format($subtotal, 0, ',', '.') }}</td>
+                        </tr>
+                    @endforeach
+                    <tr class="bg-gray">
+                        <td colspan="7" class="text-right font-bold" style="padding: 6px;">TOTAL HARGA PENAWARAN
+                            (DPP)</td>
+                        <td class="text-right font-bold" style="padding: 6px;">
+                            {{ number_format($sumGrandTotal, 0, ',', '.') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        @endif
 
         <div class="no-break">
             <h2>A. Ketentuan harga paket di atas mencakup:</h2>
@@ -524,84 +597,122 @@
 
         <div class="page-break"></div>
 
-        <h1>2. SYARAT DAN KETENTUAN (TERMS & CONDITIONS)</h1>
-        <ol>
-            <li style="margin-bottom: 15px;">
-                <strong>Masa Berlaku Proposal</strong><br>
-                Proposal penawaran ini berlaku selama <strong>{{ $validityPeriod }}
-                    ({{ $validityPeriod == 30 ? 'tiga puluh' : $validityPeriod }}) hari kalender</strong> terhitung
-                sejak
-                tanggal dokumen ini diterbitkan.
-            </li>
-            <li style="margin-bottom: 15px;">
-                <strong>Termin Pembayaran (TOP)</strong><br>
-                Pembayaran dilakukan dalam waktu <strong>{{ $paymentTerm }} hari kalender</strong> setelah invoice
-                diterima secara lengkap dan benar (<i>back-to-back</i>).
-            </li>
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">2. Lain-lain</div>
+        <ol type="a" style="margin-top: 0; margin-bottom: 15px;">
+            @if (!empty($config['miscellaneous_items']))
+                @foreach ($config['miscellaneous_items'] as $item)
+                    <li style="margin-bottom: 4px;">{!! $item['item'] ?? '' !!}</li>
+                @endforeach
+            @else
+                <li style="margin-bottom: 4px;"><i>Machinery, Equipment, Chemicals, & Consumable</i> terlampir. Jika ada
+                    pengadaan <i>Machinery, Equipment, Chemicals, & Consumable</i> selain yang ada di daftar tersebut, maka
+                    akan dilakukan <i>reimbursement</i> ke PT {{ $customerName }}.</li>
+                <li style="margin-bottom: 4px;">PT {{ $customerName }} menyediakan tempat kerja dan tempat penyimpanan
+                    <i>Machinery, Equipment, Chemicals, & Consumable</i> tersebut.
+                </li>
+                <li style="margin-bottom: 4px;">Untuk dilakukan diskusi dan evaluasi lebih lanjut.</li>
+            @endif
         </ol>
 
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">3. Term of Payment</div>
+        <p style="margin-left: 20px; margin-bottom: 15px;"><i>Term of Payment</i> (TOP) <strong>{{ $paymentTerm }}
+                hari</strong> setelah diterimanya Invoice.</p>
+
+        @php
+            $startDate = $pa?->start_date
+                ? \Carbon\Carbon::parse($pa->start_date)->translatedFormat('d F Y')
+                : '..................';
+            $endDate = $pa?->end_date
+                ? \Carbon\Carbon::parse($pa->end_date)->translatedFormat('d F Y')
+                : '..................';
+        @endphp
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">4. Periode Pekerjaan</div>
+        <p style="margin-left: 20px; margin-bottom: 15px;">Periode Pekerjaan <strong>{{ $startDate }} –
+                {{ $endDate }}</strong>.</p>
+
+        <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px;">5. Masa Berlaku Proposal</div>
+        <p style="margin-left: 20px; margin-bottom: 30px;">Proposal ini berlaku <strong>{{ $validityPeriod }}
+                ({{ $validityPeriod == 30 ? 'tiga puluh' : $validityPeriod }}) hari</strong> sejak ditandatangani oleh
+            GDPS.</p>
+
         @if ($closingText)
-            <div style="margin-top: 10px;">{!! $closingText !!}</div>
+            <div style="margin-top: 10px; margin-bottom: 30px;">{!! $closingText !!}</div>
         @endif
 
-        <div class="no-break" style="margin-top: 40px;">
-            <p
-                style="text-align: center; font-style: italic; color: #475569; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 5px;">
-                "Dengan ditandatanganinya lembar persetujuan ini, PT {{ $customerName }} menyatakan sepakat atas draf
-                harga
-                dan ketentuan operasional yang tercantum dalam Proposal ini."
-            </p>
-
-            <div class="signature-section">
-                <div class="signature-box">
-                    <div style="margin-bottom: 10px;">Diajukan Oleh,<br><strong>PT Garuda Daya Pratama
-                            Sejahtera</strong>
-                    </div>
-                    <div class="signature-space"></div>
-                    <div><strong style="text-decoration: underline;">{{ $amsName }}</strong></div>
-                    <div>Account Manager & Sales</div>
-                </div>
-                <div class="signature-box" style="float: right;">
-                    <div style="margin-bottom: 10px;">Disetujui Oleh,<br><strong>PT {{ $customerName }}</strong></div>
-                    <div class="signature-space"></div>
-                    <div><strong
-                            style="text-decoration: underline;">(............................................)</strong>
-                    </div>
-                    <div>Jabatan: ............................</div>
-                    <div style="font-size: 10px; margin-top: 5px;">Tgl: ....................</div>
-                </div>
-                <div style="clear: both"></div>
-            </div>
+        <div class="no-break" style="margin-top: 20px; padding-left: 20px; padding-right: 20px;">
+            <table style="width: 100%; border: none; margin: 0; table-layout: fixed;">
+                <tr>
+                    <td style="border: none; width: 50%; padding: 0; text-align: left;">Diajukan oleh,</td>
+                    <td style="border: none; width: 50%; padding: 0; text-align: left;">Disetujui oleh,</td>
+                </tr>
+                <tr>
+                    <td
+                        style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: bottom;">
+                        @if ($logoSquare)
+                            <img src="{{ $logoSquare }}"
+                                style="height: 45px; margin-bottom: 15px; display: block;">
+                        @else
+                            <div style="height: 50px;"></div>
+                        @endif
+                        <strong>{{ $amsName }}</strong><br>
+                        Account Manager & Sales<br>
+                        PT Garuda Daya Pratama Sejahtera
+                    </td>
+                    <td
+                        style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: bottom;">
+                        <div style="height: 50px;"></div>
+                        <strong>{{ $recipientName ?? '....................................' }}</strong><br>
+                        {{ $recipientTitle ?? 'Jabatan' }}<br>
+                        PT {{ $customerName ?? '........................' }}
+                    </td>
+                </tr>
+            </table>
         </div>
 
         @if ($pa && ($showManpower || $showMaterial))
             <div class="page-break"></div>
             <h1>LAMPIRAN: RINCIAN KOMPONEN (RAB / COGS)</h1>
-
-            @if ($pa->is_manual_cost)
-                @php
-                    $cogsMedia = $pa->getFirstMedia('cogs_source');
-                    $expiringUrl = $cogsMedia ? $cogsMedia->getTemporaryUrl(now()->addDays(7)) : '#';
-                @endphp
+            @if ($pa->is_manual_cost || $manpowerSourceUrl || $costingSourceUrl)
                 <div
                     style="margin-top: 30px; text-align: center; border: 1px solid #cbd5e1; padding: 40px; border-radius: 8px; background-color: #f8fafc;">
-                    <h3 style="margin-bottom: 15px;">Dokumen Rincian RAB/COGS dilampirkan secara terpisah (Manual
+                    <h3 style="margin-bottom: 25px;">Dokumen Rincian RAB/COGS dilampirkan secara terpisah (Manual
                         Upload)</h3>
-                    @if ($cogsMedia)
-                        <p style="margin-bottom: 20px; font-size: 11px;">Silakan akses dokumen rincian biaya
-                            komprehensif melalui tautan aman di bawah ini.<br>Tautan enkripsi ini berlaku selama
-                            <strong>7 hari kalender</strong> sejak proposal diterbitkan demi keamanan data.</p>
-                        <a href="{{ $expiringUrl }}"
-                            style="display: inline-block; padding: 10px 20px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
-                            Unduh Lampiran COGS / RAB
-                        </a>
-                        <p
-                            style="font-size: 8px; color: #94a3b8; font-style: italic; margin-top: 20px; word-wrap: break-word;">
-                            URL Akses Raw: <br>
-                            <a href="{{ $expiringUrl }}"
-                                style="color: #64748b;">{{ \Illuminate\Support\Str::limit($expiringUrl, 80) }}</a>
-                        </p>
-                    @else
+                    <p style="margin-bottom: 25px; font-size: 11px;">Silakan akses dokumen rincian biaya komprehensif
+                        melalui tautan aman di bawah ini.<br>Tautan enkripsi ini berlaku selama <strong>7 hari
+                            kalender</strong> sejak proposal diterbitkan demi keamanan data.</p>
+
+                    <div style="margin-top: 20px;">
+                        @if ($manpowerSourceUrl)
+                            <div style="margin-bottom: 20px; display: inline-block; margin-right: 15px;">
+                                <a href="{{ $manpowerSourceUrl }}"
+                                    style="display: inline-block; padding: 12px 24px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 11px;">
+                                    Unduh Rincian Manpower Costing
+                                </a>
+                            </div>
+                        @endif
+
+                        @if ($costingSourceUrl)
+                            <div style="margin-bottom: 20px; display: inline-block;">
+                                <a href="{{ $costingSourceUrl }}"
+                                    style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 11px;">
+                                    Unduh Rincian Tools & Material Costing
+                                </a>
+                            </div>
+                        @endif
+
+                        @if (!$manpowerSourceUrl && !$costingSourceUrl && $pa->getFirstMedia('cogs_source'))
+                            @php
+                                $fallbackMedia = $pa->getFirstMedia('cogs_source');
+                                $fallbackUrl = $fallbackMedia->getTemporaryUrl(now()->addDays(7));
+                            @endphp
+                            <a href="{{ $fallbackUrl }}"
+                                style="display: inline-block; padding: 12px 24px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 11px;">
+                                Unduh Lampiran COGS / RAB
+                            </a>
+                        @endif
+                    </div>
+
+                    @if (!$manpowerSourceUrl && !$costingSourceUrl && !$pa->getFirstMedia('cogs_source'))
                         <p style="color: #ef4444; font-style: italic; margin-top: 20px;">[Lampiran Dokumen COGS Belum
                             Tersedia di Sistem]</p>
                     @endif
@@ -643,17 +754,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <p style="font-size: 9px; font-style: italic; color: #64748b; margin-top: -5px;">*Disclaimer:
-                        Komponen
-                        Cost
-                        di atas adalah proyeksi harga riil yang disiapkan untuk menampung hak-hak hukum tenaga kerja,
-                        termasuk
-                        perlindungan dasar asuransi wajib jamsostek (BPJS Kesehatan, BPJS Ketenagakerjaan JHT, JP, JKM,
-                        JKK),
-                        proporsional THR (1 bulan upah per tahun kerja), cadangan Cuti Tahunan, kompensasi akhir kontrak
-                        (PP
-                        No.35/2021) jika relevan, hingga pembinaan sumber daya pelatihan secara berkelanjutan yang
-                        diselenggarakan oleh vendor manajemen alih-daya.</p>
+                    </table>
                 @endif
 
                 @if ($showMaterial && !empty($operationalCosts))
@@ -694,15 +795,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <p style="font-size: 9px; font-style: italic; margin-top: -5px; color: #64748b;">*Disclaimer:
-                        Peralatan
-                        alat kerja di atas mengikat disiapkan di titik-titik (Site/Pool) proyek yang disepakati untuk
-                        menjamin
-                        standardisasi mutu SLA pekerjaan. Seluruh nilai penyusutan alat berat maupun kelengkapan habis
-                        pakai
-                        (consumable chemical) sudah terverifikasi dari prinsip operasional pabrikan dan akan dikelola
-                        secara
-                        penuh oleh Tim Pemeliharaan Aset PT Garuda Daya Pratama Sejahtera.</p>
+                    </table>
                 @endif
 
             @endif

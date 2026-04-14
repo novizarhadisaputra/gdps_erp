@@ -251,18 +251,49 @@ class ProposalForm
                             ->columnSpanFull(),
 
                         Grid::make(2)->schema([
+                            TextInput::make('content_config.validity_period')
+                                ->label('Validity Period (Days)')
+                                ->numeric()
+                                ->default(30)
+                                ->suffix('Days')
+                                ->placeholder('e.g. 30'),
+
+                            TextInput::make('content_config.contact_phone')
+                                ->label('Contact Phone Number')
+                                ->placeholder('e.g. 021-xxxxxx')
+                                ->helperText('Phone number displayed on the cover/footer.'),
+
+                            TextInput::make('content_config.payment_term')
+                                ->label('Payment Term Override (Days)')
+                                ->numeric()
+                                ->suffix('Days')
+                                ->placeholder('e.g. 60')
+                                ->helperText('If empty, defaults to the payment term specified in the PA/Lead.'),
+
                             Toggle::make('content_config.show_manpower_attachment')
                                 ->label('Show Manpower Detail Attachment')
                                 ->default(true),
                             Toggle::make('content_config.show_material_attachment')
                                 ->label('Show Tools & Equipment Detail Attachment')
                                 ->default(true),
-
-                            TextInput::make('content_config.contact_phone')
-                                ->label('Contact Phone Number')
-                                ->placeholder('e.g. 021-xxxxxx')
-                                ->helperText('Phone number displayed on the cover/footer.'),
                         ]),
+
+                        Section::make('Miscellaneous (Lain-lain)')
+                            ->description('Additional terms or notes for the proposal.')
+                            ->collapsed()
+                            ->schema([
+                                Repeater::make('content_config.miscellaneous_items')
+                                    ->label('Lain-lain Points')
+                                    ->schema([
+                                        TextInput::make('item')
+                                            ->placeholder('e.g. PT Customer menyediakan tempat penyimpanan...')
+                                            ->required()
+                                            ->columnSpanFull()
+                                    ])
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Add Miscellaneous Point')
+                                    ->helperText('If empty, the standard items (a, b, c) from the template will be shown.'),
+                            ]),
 
                     ]),
 

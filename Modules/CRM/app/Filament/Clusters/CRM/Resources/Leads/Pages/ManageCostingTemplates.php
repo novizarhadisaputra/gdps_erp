@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
@@ -47,12 +48,12 @@ class ManageCostingTemplates extends ManageRelatedRecords
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->schema([
-                        SpatieMediaLibraryFileUpload::make('file')
-                            ->collection('source_file')
+                        FileUpload::make('file')
                             ->disk('s3')
                             ->visibility('private')
                             ->required()
-                            ->helperText('Upload the original document as a valid data reference.'),
+                            ->columnSpanFull()
+                            ->helperText('Upload the original costing document as a valid data reference.'),
                     ])
                     ->action(function (array $data) {
                         $lead = $this->getOwnerRecord();
@@ -60,13 +61,36 @@ class ManageCostingTemplates extends ManageRelatedRecords
 
                         $record = CostingTemplate::create([
                             'lead_id' => $lead->id,
-                            'name' => ($lead->customer?->name ?? 'Lead').' Tools & Equipment',
-                            'description' => $latestGi?->scope_of_work,
+                            'name' => ($lead->customer?->name ?? 'Lead').' Costing',
+                            'description' => $latestGi?->scope_of_work ?? ($lead->customer?->name ?? 'Lead').' Lead',
                             'pic_id' => $lead->pic_costing_id ?? auth()->id(),
+                            'total_monthly_cost' => 0,
+                            'total_amount' => 0,
                         ]);
 
-                        if (isset($data['file'])) {
-                            $record->addMediaFromDisk($data['file'], 's3')->toMediaCollection('source_file');
+                        if ($filePath = $data['file'] ?? null) {
+                            try {
+                                // Robustly handle string or array from Filament
+                                $path = is_array($filePath) ? (array_key_first($filePath) ?: reset($filePath)) : $filePath;
+
+                                if ($path) {
+                                    \Illuminate\Support\Facades\Log::info('Attaching CostingTemplate media from S3', [
+                                        'template_id' => $record->id,
+                                        'path' => $path,
+                                    ]);
+
+                                    $record->addMediaFromDisk($path, 's3')
+                                        ->toMediaCollection('source_file');
+
+                                    \Illuminate\Support\Facades\Log::info('Successfully attached CostingTemplate media.');
+                                }
+                            } catch (\Exception $e) {
+                                \Illuminate\Support\Facades\Log::error('MEDIA_ATTACHMENT_ERROR: CostingTemplate', [
+                                    'template_id' => $record->id,
+                                    'error' => $e->getMessage(),
+                                    'trace' => $e->getTraceAsString(),
+                                ]);
+                            }
                         }
 
                         $this->redirect(CostingTemplateResource::getUrl('view', ['lead' => $lead->id, 'record' => $record->id]));

@@ -8,6 +8,9 @@ use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityAnalysisRevision;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Services\ProjectService;
+use Modules\CRM\Services\SalesOrderService;
+use Modules\CRM\Models\ManpowerTemplate;
+use Modules\CRM\Models\CostingTemplate;
 
 class ProfitabilityAnalysisObserver
 {
@@ -61,6 +64,9 @@ class ProfitabilityAnalysisObserver
                 }
             }
         }
+
+        // Auto-copy media from selected templates if IDs are present in analysis_details
+        $this->syncTemplateMedia($analysis);
     }
 
     /**
@@ -141,9 +147,15 @@ class ProfitabilityAnalysisObserver
             }
         }
 
-        // 5. When PA is Approved, attempt to create a Project
+        // 5. When PA is Approved, attempt to create a Project and a Draft Sales Order
         if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Approved) {
             app(ProjectService::class)->attemptProjectCreation($analysis);
+            app(SalesOrderService::class)->createDraftFromAnalysis($analysis);
+        }
+
+        // Sync template media if IDs in analysis_details changed
+        if ($analysis->wasChanged('analysis_details')) {
+            $this->syncTemplateMedia($analysis);
         }
     }
 
@@ -207,6 +219,51 @@ class ProfitabilityAnalysisObserver
 
             if (! empty($salesPlanData)) {
                 $salesPlan->updateQuietly($salesPlanData);
+            }
+        }
+    }
+
+    /**
+     * Synchronize media from Manpower and Costing templates to the Analysis record.
+     */
+    protected function syncTemplateMedia(ProfitabilityAnalysis $analysis): void
+    {
+        $details = $analysis->analysis_details;
+        if (! $details) {
+            return;
+        }
+
+        // 1. Manpower Template Media
+        $manpowerId = $details['manpower_template_id'] ?? null;
+        if ($manpowerId) {
+            $template = ManpowerTemplate::find($manpowerId);
+            if ($template) {
+                // Copy the first media (usually the main costing file)
+                $media = $template->getFirstMedia('source_file');
+                if ($media) {
+                    // Only copy if it's different or doesn't exist to avoid duplicates
+                    $existing = $analysis->getFirstMedia('manpower_costing_backup');
+                    if (! $existing || $existing->file_name !== $media->file_name) {
+                        $analysis->clearMediaCollection('manpower_costing_backup');
+                        $media->copy($analysis, 'manpower_costing_backup');
+                    }
+                }
+            }
+        }
+
+        // 2. Costing Template Media
+        $costingId = $details['costing_template_id'] ?? null;
+        if ($costingId) {
+            $template = CostingTemplate::find($costingId);
+            if ($template) {
+                $media = $template->getFirstMedia('source_file');
+                if ($media) {
+                    $existing = $analysis->getFirstMedia('operational_costing_backup');
+                    if (! $existing || $existing->file_name !== $media->file_name) {
+                        $analysis->clearMediaCollection('operational_costing_backup');
+                        $media->copy($analysis, 'operational_costing_backup');
+                    }
+                }
             }
         }
     }
