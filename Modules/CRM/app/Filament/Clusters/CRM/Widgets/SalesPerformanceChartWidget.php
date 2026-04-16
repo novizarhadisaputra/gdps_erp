@@ -5,7 +5,10 @@ namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 use App\Services\AnalyticsCacheService;
 use Carbon\Carbon;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
-use Modules\CRM\Models\SalesPlanMonthly;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Finance\Models\ProfitabilityAnalysisWeekly;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use Illuminate\Support\Facades\DB;
 
 class SalesPerformanceChartWidget extends ApexChartWidget
 {
@@ -33,25 +36,50 @@ class SalesPerformanceChartWidget extends ApexChartWidget
             $cumulativeActual = 0;
 
             for ($m = 1; $m <= 12; $m++) {
-                $date = Carbon::create($year, $m, 1)->startOfDay();
-                $months[] = $date->format('M');
+                $monthStart = Carbon::create($year, $m, 1)->startOfDay();
+                $monthEnd = $monthStart->copy()->endOfMonth();
+                $months[] = $monthStart->format('M');
 
-                $totals = SalesPlanMonthly::query()
+                // 1. Target (RKAP) - From PA revenue_per_month where active in this month
+                $monthlyBudget = ProfitabilityAnalysis::query()
+                    ->where(function ($query) use ($monthStart, $monthEnd) {
+                        $query->where('start_date', '<=', $monthEnd)
+                            ->where('end_date', '>=', $monthStart);
+                    })
+                    ->sum('revenue_per_month');
+
+                // 2. Forecast (RoFo) - Latest projections for this month
+                $latestForecastIds = ProfitabilityAnalysisWeekly::query()
+                    ->select('id')
                     ->where('year', $year)
-                    ->where('month', $m)
-                    ->selectRaw('SUM(budget_amount) as budget, SUM(forecast_amount) as forecast, SUM(actual_amount) as actual')
-                    ->first();
+                    ->where('month', $monthStart->format('F'))
+                    ->whereIn('created_at', function ($query) use ($year, $monthStart) {
+                        $query->select(DB::raw('MAX(finance.profitability_analysis_weeklies.created_at)'))
+                            ->from('finance.profitability_analysis_weeklies')
+                            ->join('finance.profitability_analysis_monthlies', 'finance.profitability_analysis_weeklies.profitability_analysis_monthly_id', '=', 'finance.profitability_analysis_monthlies.id')
+                            ->where('finance.profitability_analysis_weeklies.year', $year)
+                            ->where('finance.profitability_analysis_weeklies.month', $monthStart->format('F'))
+                            ->groupBy('finance.profitability_analysis_monthlies.profitability_analysis_id');
+                    })
+                    ->pluck('id');
 
-                $cumulativeBudget += (float) ($totals->budget ?? 0);
-                $cumulativeForecast += (float) ($totals->forecast ?? 0);
-                $cumulativeActual += (float) ($totals->actual ?? 0);
+                $monthlyForecast = ProfitabilityAnalysisWeekly::whereIn('id', $latestForecastIds)->sum('projected_revenue');
 
-                $budgetData[] = round($cumulativeBudget / 1000000, 2);
-                $forecastData[] = round($cumulativeForecast / 1000000, 2);
+                // 3. Actual - From Realized Monthly data
+                $monthlyActual = ProfitabilityAnalysisMonthly::query()
+                    ->where('year', $year)
+                    ->where('month', $monthStart->format('F'))
+                    ->sum('actual_revenue');
 
-                // For actual data, show only up to current month
-                if ($date->lte(now()->startOfMonth())) {
-                    $actualData[] = round($cumulativeActual / 1000000, 2);
+                $cumulativeBudget += (float) $monthlyBudget;
+                $cumulativeForecast += (float) $monthlyForecast;
+                $cumulativeActual += (float) $monthlyActual;
+
+                $budgetData[] = round($cumulativeBudget / 1000000000, 3); // Billion IDR
+                $forecastData[] = round($cumulativeForecast / 1000000000, 3);
+
+                if ($monthStart->lte(now()->startOfMonth())) {
+                    $actualData[] = round($cumulativeActual / 1000000000, 3);
                 } else {
                     $actualData[] = null;
                 }
@@ -82,7 +110,7 @@ class SalesPerformanceChartWidget extends ApexChartWidget
                     'data' => $data['actualData'],
                 ],
             ],
-            'colors' => ['#3b82f6', '#ef4444', '#f59e0b'], // Blue, Red, Yellow/Orange
+            'colors' => ['#3b82f6', '#ef4444', '#10b981'], // Blue, Red, Green
             'stroke' => [
                 'curve' => 'smooth',
                 'width' => 3,
@@ -97,10 +125,13 @@ class SalesPerformanceChartWidget extends ApexChartWidget
                 'title' => [
                     'text' => 'Billion IDR',
                 ],
+                'labels' => [
+                    'formatter' => 'function (val) { return val.toFixed(1) + " B" }',
+                ],
             ],
             'tooltip' => [
                 'y' => [
-                    'formatter' => 'function (val) { return val + " M" }',
+                    'formatter' => 'function (val) { return val.toFixed(3) + " B" }',
                 ],
             ],
             'legend' => [

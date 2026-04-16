@@ -128,9 +128,14 @@ class Lead extends Model implements HasMedia
         return $this->hasMany(ProfitabilityAnalysis::class);
     }
 
-    public function latestProfitabilityAnalysis(): HasOne
+    public function profitabilityMonthlies(): HasMany
     {
-        return $this->hasOne(ProfitabilityAnalysis::class)->latest('created_at');
+        return $this->hasMany(ProfitabilityAnalysisMonthly::class, 'profitability_analysis_id', 'id');
+    }
+
+    public function latestProfitabilityMonthly(): HasOne
+    {
+        return $this->hasOne(ProfitabilityAnalysisMonthly::class, 'profitability_analysis_id', 'id')->latest('created_at');
     }
 
     public function latestGeneralInformation(): HasOne

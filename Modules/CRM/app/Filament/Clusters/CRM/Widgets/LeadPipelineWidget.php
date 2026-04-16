@@ -22,17 +22,31 @@ class LeadPipelineWidget extends ApexChartWidget
         $cache = app(AnalyticsCacheService::class);
 
         $data = $cache->rememberRealtime('crm.lead_pipeline_levels', function () {
-            return [
-                'level_1_count' => Lead::whereIn('status', [LeadStatus::Lead, LeadStatus::Approach])->count(),
-                'level_2_count' => Lead::where('status', LeadStatus::Proposal)->count(),
-                'level_3_count' => Lead::where('status', LeadStatus::Negotiation)->count(),
-                'level_4_count' => Lead::where('status', LeadStatus::Contract)->count(),
-
-                'level_1_value' => Lead::whereIn('status', [LeadStatus::Lead, LeadStatus::Approach])->sum('estimated_amount'),
-                'level_2_value' => Lead::where('status', LeadStatus::Proposal)->sum('estimated_amount'),
-                'level_3_value' => Lead::where('status', LeadStatus::Negotiation)->sum('estimated_amount'),
-                'level_4_value' => Lead::where('status', LeadStatus::Contract)->sum('estimated_amount'),
+            $levels = [
+                'level_1' => [LeadStatus::Lead, LeadStatus::Approach],
+                'level_2' => [LeadStatus::Proposal],
+                'level_3' => [LeadStatus::Negotiation],
+                'level_4' => [LeadStatus::Contract],
             ];
+
+            $results = [];
+
+            foreach ($levels as $key => $statuses) {
+                $leads = Lead::whereIn('status', $statuses)
+                    ->with('profitabilityAnalyses')
+                    ->get();
+
+                $results[$key . '_count'] = $leads->count();
+                $results[$key . '_value'] = $leads->sum(function ($lead) {
+                    $pa = $lead->profitabilityAnalyses->sortByDesc('created_at')->first();
+                    
+                    return $pa 
+                        ? (float) $pa->revenue_per_month 
+                        : (float) $lead->estimated_amount;
+                });
+            }
+
+            return $results;
         });
 
         $stages = ['Prospecting (Level 1)', 'Proposal (Level 2)', 'Negotiation (Level 3)', 'Finalization (Level 4)'];

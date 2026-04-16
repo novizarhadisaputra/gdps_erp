@@ -55,20 +55,36 @@ class RevenueForecastWidget extends ApexChartWidget
                 $leads = Lead::whereNotIn('status', [LeadStatus::Won, LeadStatus::ClosedLost])
                     ->whereDate('expected_closing_date', '>=', $date->copy()->startOfMonth())
                     ->whereDate('expected_closing_date', '<=', $date->copy()->endOfMonth())
-                    ->with('profitabilityAnalysis.weeklyUpdates')
+                    ->with(['profitabilityAnalysis.monthlies' => function ($query) use ($date) {
+                        $query->where('month', $date->format('F'))
+                              ->where('year', $date->year)
+                              ->with(['weeklies' => function ($q) {
+                                  $q->latest();
+                              }]);
+                    }])
                     ->get();
 
-                $weighted = $leads->sum(function ($lead) {
-                    // Prefer Weekly Update projection if available
-                    $latestUpdate = $lead->profitabilityAnalysis?->weeklyUpdates()->latest()->first();
+                $weighted = $leads->sum(function ($lead) use ($date) {
+                    // Try to get latest update from the specific monthly record
+                    $monthly = $lead->profitabilityAnalysis?->monthlies
+                        ->where('month', $date->format('F'))
+                        ->where('year', $date->year)
+                        ->first();
+                    
+                    $latestUpdate = $monthly?->weeklies->first();
                     $amount = $latestUpdate ? $latestUpdate->projected_revenue : $lead->estimated_amount;
 
                     return ($amount * ($lead->probability ?? 50)) / 100;
                 });
 
                 // Optimistic forecast
-                $optimistic = $leads->sum(function ($lead) {
-                    $latestUpdate = $lead->profitabilityAnalysis?->weeklyUpdates()->latest()->first();
+                $optimistic = $leads->sum(function ($lead) use ($date) {
+                    $monthly = $lead->profitabilityAnalysis?->monthlies
+                        ->where('month', $date->format('F'))
+                        ->where('year', $date->year)
+                        ->first();
+                        
+                    $latestUpdate = $monthly?->weeklies->first();
 
                     return ($latestUpdate ? $latestUpdate->projected_revenue : $lead->estimated_amount) * 0.9;
                 });

@@ -9,7 +9,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisActuals;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisMonthlies;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisRevisions;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\SummaryProfitabilityAnalysis;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
@@ -59,28 +59,17 @@ class ProfitabilityAnalysisResource extends Resource
     {
         return $page->generateNavigationItems([
             SummaryProfitabilityAnalysis::class,
-            ManageProfitabilityAnalysisActuals::class,
+            ManageProfitabilityAnalysisMonthlies::class,
             ManageProfitabilityAnalysisRevisions::class,
         ]);
     }
 
-    /*
-    public static function getPages(): array
-    {
-        return [
-            'index' => ListProfitabilityAnalyses::route('/'),
-            'create' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\CreateProfitabilityAnalysis::route('/create'),
-            'edit' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\EditProfitabilityAnalysis::route('/{record}/edit'),
-            'view' => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ViewProfitabilityAnalysis::route('/{record}'),
-        ];
-    }
-    */
     public static function getPages(): array
     {
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
             'view' => SummaryProfitabilityAnalysis::route('/{record}'),
-            'actuals' => ManageProfitabilityAnalysisActuals::route('/{record}/actuals'),
+            'monthlies' => ManageProfitabilityAnalysisMonthlies::route('/{record}/monthly-performance'),
             'revisions' => ManageProfitabilityAnalysisRevisions::route('/{record}/revisions'),
             'view-revision' => ViewProfitabilityAnalysisRevision::route('/{record}/revisions/{relatedRecord}'),
         ];

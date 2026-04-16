@@ -207,14 +207,14 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         return $this->hasOne(Project::class);
     }
 
-    public function weeklyUpdates(): HasMany
+    public function weeklies(): HasMany
     {
-        return $this->hasMany(ProfitabilityAnalysisUpdate::class);
+        return $this->hasMany(ProfitabilityAnalysisWeekly::class);
     }
 
-    public function actuals(): HasMany
+    public function monthlies(): HasMany
     {
-        return $this->hasMany(ProfitabilityAnalysisActual::class);
+        return $this->hasMany(ProfitabilityAnalysisMonthly::class);
     }
 
     public function getDirectItems(): \Illuminate\Support\Collection

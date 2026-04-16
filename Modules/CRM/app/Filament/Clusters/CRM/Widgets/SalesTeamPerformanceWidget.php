@@ -21,7 +21,7 @@ class SalesTeamPerformanceWidget extends ApexChartWidget
         $cache = app(AnalyticsCacheService::class);
 
         $data = $cache->rememberHourly('crm.team_performance', function () {
-            $users = Lead::with('user:id,name')
+            $users = Lead::with(['user:id,name', 'profitabilityAnalyses.monthlies'])
                 ->whereNotNull('user_id')
                 ->get()
                 ->groupBy('user_id');
@@ -35,8 +35,31 @@ class SalesTeamPerformanceWidget extends ApexChartWidget
                 $userName = $leads->first()->user->name ?? 'Unknown';
                 $names[] = $userName;
                 $createdCounts[] = $leads->count();
-                $convertedCounts[] = $leads->where('status', \Modules\CRM\Enums\LeadStatus::Won)->count();
-                $revenues[] = round($leads->where('status', \Modules\CRM\Enums\LeadStatus::Won)->sum('estimated_amount') / 1000000, 2);
+                
+                $wonLeads = $leads->where('status', \Modules\CRM\Enums\LeadStatus::Won);
+                $convertedCounts[] = $wonLeads->count();
+                
+                $totalRevenue = $wonLeads->sum(function ($lead) {
+                    // Pick latest PA
+                    $pa = $lead->profitabilityAnalyses->sortByDesc('created_at')->first();
+
+                    // 1. Try to get Actual Revenue from Monthly data
+                    $actualRev = $pa?->monthlies->sum('actual_revenue') ?? 0;
+                    
+                    if ($actualRev > 0) {
+                        return (float) $actualRev;
+                    }
+                    
+                    // 2. Fallback to PA Monthly Revenue
+                    if ($pa?->revenue_per_month > 0) {
+                        return (float) $pa->revenue_per_month;
+                    }
+                    
+                    // 3. Last fallback to original estimate
+                    return (float) ($lead->estimated_amount ?? 0);
+                });
+
+                $revenues[] = round($totalRevenue / 1000000, 2);
             }
 
             return compact('names', 'createdCounts', 'convertedCounts', 'revenues');
