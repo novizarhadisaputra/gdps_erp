@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
 use Modules\Finance\Observers\ProfitabilityAnalysisMonthlyObserver;
 
 #[ObservedBy(ProfitabilityAnalysisMonthlyObserver::class)]
@@ -39,6 +40,7 @@ class ProfitabilityAnalysisMonthly extends Model
             'forecast_revenue' => 'decimal:2',
             'actual_revenue' => 'decimal:2',
             'year' => 'integer',
+            'status' => ProfitabilityAnalysisMonthlyStatus::class,
         ];
     }
 

@@ -18,37 +18,9 @@ class ProfitabilityAnalysisMonthlyForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->schema([
-            Section::make('Monthly Performance Summary')
-                ->description('Financial performance snapshot comparing targets, forecasts, and actuals.')
+            Section::make('Identitas Periode')
                 ->schema([
-                    Grid::make(3)
-                        ->schema([
-                            TextInput::make('target_revenue')
-                                ->label('Budget (RKAP)')
-                                ->numeric()
-                                ->prefix('IDR ')
-                                ->readOnly()
-                                ->helperText('Initial revenue target from PA.'),
-
-                            TextInput::make('forecast_revenue')
-                                ->label('Rolling Forecast (RoFo)')
-                                ->numeric()
-                                ->prefix('IDR ')
-                                ->readOnly()
-                                ->helperText('Last expected revenue from weekly updates.'),
-
-                            TextInput::make('actual_revenue')
-                                ->label('Realized Revenue (Actual)')
-                                ->numeric()
-                                ->prefix('IDR ')
-                                ->readOnly()
-                                ->helperText('Achieved revenue summed from weekly records.'),
-                        ]),
-                ]),
-
-            Section::make('Status & Timeframe')
-                ->schema([
-                    Grid::make(3)
+                    Grid::make(2)
                         ->schema([
                             Select::make('month')
                                 ->options([
@@ -62,18 +34,56 @@ class ProfitabilityAnalysisMonthlyForm
                                 ->numeric()
                                 ->default(now()->year)
                                 ->required(),
-                            Select::make('status')
-                                ->options([
-                                    'draft' => 'Draft',
-                                    'finalized' => 'Finalized',
-                                ])
-                                ->default('draft')
-                                ->required(),
                         ]),
+                ]),
+
+            Section::make('Monthly Performance Summary')
+                ->description('Financial performance snapshot comparing targets, forecasts, and actuals.')
+                ->schema([
+                    Grid::make(2)
+                        ->schema([
+                            TextInput::make('target_revenue')
+                                ->label('Budget (RKAP)')
+                                ->numeric()
+                                ->prefix('IDR ')
+                                ->required()
+                                ->readOnly()
+                                ->default(fn (Get $get, ?\Modules\Finance\Models\ProfitabilityAnalysisMonthly $record) => $record?->profitabilityAnalysis?->revenue_per_month)
+                                ->helperText('Target revenue from Sales Plan (read-only).'),
+
+                            TextInput::make('actual_revenue')
+                                ->label('Realized Revenue (Actual)')
+                                ->numeric()
+                                ->prefix('IDR ')
+                                ->readOnly()
+                                ->visible(fn (string $operation): bool => $operation !== 'create')
+                                ->helperText('Achieved revenue summed from weekly records.'),
+                        ]),
+                    
+                    Grid::make(1)
+                        ->schema([
+                            TextInput::make('forecast_revenue')
+                                ->label('Latest Forecast (RoFo)')
+                                ->numeric()
+                                ->prefix('IDR ')
+                                ->readOnly()
+                                ->visible(fn (string $operation): bool => $operation !== 'create')
+                                ->helperText('Last expected revenue from weekly updates.'),
+                        ])
+                        ->visible(fn (string $operation): bool => $operation !== 'create'),
+                ]),
+
+            Section::make('Status')
+                ->visible(fn (string $operation): bool => $operation !== 'create')
+                ->schema([
+                    TextInput::make('status')
+                        ->readOnly()
+                        ->formatStateUsing(fn ($state) => $state?->getLabel()),
                 ]),
 
             Section::make('Actual Monthly Costs')
                 ->description('Provide actual totals for monthly expenses.')
+                ->visible(fn (string $operation): bool => $operation !== 'create')
                 ->schema([
                     TextInput::make('actual_cost')
                         ->label('Total Actual Cost')
@@ -90,26 +100,23 @@ class ProfitabilityAnalysisMonthlyForm
                                     Select::make('direct_cost_category_id')
                                         ->label('Category')
                                         ->options(fn () => DirectCostCategory::where('type', 'direct')->whereNull('parent_id')->pluck('name', 'id'))
-                                        ->required()
-                                        ->distinct()
-                                        ->live()
-                                        ->createOptionForm(DirectCostCategoryForm::schema(type: 'direct'))
+                                        ->disabled() // Make it read-only effectively
                                         ->columnSpan(2),
                                     TextInput::make('amount')
                                         ->label('Amount')
                                         ->numeric()
                                         ->prefix('IDR ')
-                                        ->required()
-                                        ->live(onBlur: true)
-                                        ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateTotals($get, $set))
+                                        ->readOnly() // Make it read-only
                                         ->columnSpan(1),
                                 ]),
                             TextInput::make('description')
-                                ->label('Description/Notes'),
+                                ->label('Description/Notes')
+                                ->readOnly(),
                         ])
-                        ->columnSpanFull()
-                        ->live()
-                        ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateTotals($get, $set)),
+                        ->addable(false)
+                        ->deletable(false)
+                        ->reorderable(false)
+                        ->columnSpanFull(),
                 ]),
         ]);
     }

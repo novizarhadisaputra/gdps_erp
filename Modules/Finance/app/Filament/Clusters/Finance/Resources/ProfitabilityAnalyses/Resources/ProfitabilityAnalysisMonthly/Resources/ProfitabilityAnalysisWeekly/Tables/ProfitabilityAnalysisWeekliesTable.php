@@ -2,14 +2,12 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Resources\ProfitabilityAnalysisWeekly\Tables;
 
-use Filament\Actions\ActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Schemas\Schema;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Resources\ProfitabilityAnalysisWeekly\Schemas\ProfitabilityAnalysisWeeklyForm;
+use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 
 class ProfitabilityAnalysisWeekliesTable
 {
@@ -43,13 +41,15 @@ class ProfitabilityAnalysisWeekliesTable
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->recordActions([
+            ->actions([
                 ActionGroup::make([
                     ViewAction::make()
                         ->form(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema)),
                     EditAction::make()
-                        ->form(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema)),
-                    DeleteAction::make(),
+                        ->form(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema))
+                        ->visible(fn ($record) => $record->monthly->status === ProfitabilityAnalysisMonthlyStatus::Draft),
+                    DeleteAction::make()
+                        ->visible(fn ($record) => $record->monthly->status === ProfitabilityAnalysisMonthlyStatus::Draft),
                 ]),
             ]);
     }

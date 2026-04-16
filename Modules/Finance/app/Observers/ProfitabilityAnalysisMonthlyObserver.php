@@ -7,6 +7,38 @@ use Modules\CRM\Models\SalesPlanMonthly;
 
 class ProfitabilityAnalysisMonthlyObserver
 {
+    public function creating(ProfitabilityAnalysisMonthly $monthly): void
+    {
+        $monthly->loadMissing('profitabilityAnalysis.lead.salesPlan.monthlyBreakdowns');
+        $lead = $monthly->profitabilityAnalysis?->lead;
+        
+        if ($lead && $lead->salesPlan) {
+            // Convert month name (e.g. "January") to integer (1-12)
+            try {
+                $monthInt = \Carbon\Carbon::parse($monthly->month)->month;
+            } catch (\Exception $e) {
+                $monthInt = 0;
+            }
+
+            $budget = $lead->salesPlan->monthlyBreakdowns()
+                ->where('year', $monthly->year)
+                ->where('month', $monthInt)
+                ->first();
+                
+            if ($budget) {
+                $monthly->target_revenue = $budget->budget_amount;
+            }
+        }
+
+        if (! $monthly->target_revenue && $monthly->profitabilityAnalysis) {
+            $monthly->target_revenue = $monthly->profitabilityAnalysis->revenue_per_month;
+        }
+
+        if (! $monthly->status) {
+            $monthly->status = \Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus::Draft;
+        }
+    }
+
     public function saved(ProfitabilityAnalysisMonthly $monthly): void
     {
         $this->syncToSalesPlan($monthly);

@@ -16,6 +16,10 @@ class ProfitabilityAnalysisWeeklyResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::DocumentText;
 
+    protected static bool $isNested = true;
+
+    protected static ?string $parentResource = \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisMonthly\ProfitabilityAnalysisMonthlyResource::class;
+
     protected static bool $isScopedToParentResource = true;
 
     protected static ?string $slug = 'weekly-updates';

@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisMonthly\ProfitabilityAnalysisMonthlyResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisMonthly\Resources\ProfitabilityAnalysisWeekly\ProfitabilityAnalysisWeeklyResource;
+use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
 
 class ManageWeeklyUpdates extends ManageRelatedRecords
 {
@@ -31,7 +32,8 @@ class ManageWeeklyUpdates extends ManageRelatedRecords
         return ProfitabilityAnalysisWeeklyResource::table($table)
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add Weekly Record'),
+                    ->label('Add Weekly Record')
+                    ->visible(fn () => $this->getOwnerRecord()->status === ProfitabilityAnalysisMonthlyStatus::Draft),
             ]);
     }
 }

@@ -2,12 +2,14 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Tables;
 
-use Filament\Actions\ActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
 
 class ProfitabilityAnalysisMonthliesTable
 {
@@ -37,17 +39,32 @@ class ProfitabilityAnalysisMonthliesTable
                     ->color('success'),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'draft' => 'gray',
-                        'finalized' => 'success',
-                        default => 'gray',
-                    }),
+                    ->sortable(),
             ])
-            ->recordActions([
+            ->actions([
                 ActionGroup::make([
                     ViewAction::make(),
-                    EditAction::make(),
-                    DeleteAction::make(),
+                    EditAction::make()
+                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft),
+                    
+                    Action::make('finalize')
+                        ->label('Finalize Performance')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft)
+                        ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisMonthlyStatus::Finalized])),
+
+                    Action::make('reopen')
+                        ->label('Re-open for Edit')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Finalized)
+                        ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisMonthlyStatus::Draft])),
+
+                    DeleteAction::make()
+                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft),
                 ]),
             ]);
     }
