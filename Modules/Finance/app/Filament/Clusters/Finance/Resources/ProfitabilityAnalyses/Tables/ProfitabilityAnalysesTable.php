@@ -8,11 +8,11 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Filament\Support\Icons\Heroicon;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
 
@@ -112,6 +112,7 @@ class ProfitabilityAnalysesTable
                     ->color('info')
                     ->button(),
                 $instance->getDuplicateAction(),
+                $instance->getWeeklyRevenueUpdateAction(),
                 $instance->getCreateProposalAction(),
                 DeleteAction::make(),
             ])

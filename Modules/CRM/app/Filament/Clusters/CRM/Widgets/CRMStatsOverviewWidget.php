@@ -4,11 +4,13 @@ namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 
 use App\Services\AnalyticsCacheService;
 use Carbon\Carbon;
+use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
+use Modules\Finance\Models\ProfitabilityAnalysisUpdate;
 
 class CRMStatsOverviewWidget extends BaseWidget
 {
@@ -67,6 +69,21 @@ class CRMStatsOverviewWidget extends BaseWidget
                 ? round((($leadsThisMonth - $leadsLastMonth) / $leadsLastMonth) * 100, 1)
                 : 0;
 
+            // Projected Revenue from Weekly Updates
+            $projectedRevenue = ProfitabilityAnalysisUpdate::whereIn('id', function ($query) {
+                $query->select(DB::raw('MAX(id)'))
+                    ->from('profitability_analysis_updates')
+                    ->groupBy('profitability_analysis_id');
+            })->sum('projected_revenue');
+
+            $lastWeekProjected = ProfitabilityAnalysisUpdate::where('created_at', '<', Carbon::now()->startOfWeek())
+                ->where('created_at', '>=', Carbon::now()->subWeek()->startOfWeek())
+                ->sum('projected_revenue');
+
+            $projTrend = $lastWeekProjected > 0
+                ? round((($projectedRevenue - $lastWeekProjected) / $lastWeekProjected) * 100, 1)
+                : 0;
+
             return [
                 Stat::make('Active Leads', number_format($activeLeads))
                     ->description('Leads in pipeline')
@@ -87,6 +104,11 @@ class CRMStatsOverviewWidget extends BaseWidget
                     ->description('Total estimated value')
                     ->descriptionIcon(Heroicon::CurrencyDollar)
                     ->color('warning'),
+
+                Stat::make('Projected Revenue (Weekly)', 'Rp '.number_format($projectedRevenue, 0, ',', '.'))
+                    ->description($projTrend >= 0 ? '+'.number_format($projTrend, 1).'% from last week' : number_format($projTrend, 1).'% from last week')
+                    ->descriptionIcon($projTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
+                    ->color($projTrend >= 0 ? 'success' : 'warning'),
 
                 Stat::make('Avg Deal Size', 'Rp '.number_format($avgDealSize, 0, ',', '.'))
                     ->description('From won deals')

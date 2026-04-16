@@ -21,51 +21,34 @@ class LeadPipelineWidget extends ApexChartWidget
     {
         $cache = app(AnalyticsCacheService::class);
 
-        $data = $cache->rememberRealtime('crm.lead_pipeline', function () {
+        $data = $cache->rememberRealtime('crm.lead_pipeline_levels', function () {
             return [
-                'leads' => Lead::where('status', LeadStatus::Lead)->count(),
-                'approach' => Lead::where('status', LeadStatus::Approach)->count(),
-                'proposal' => Lead::where('status', LeadStatus::Proposal)->count(),
-                'negotiation' => Lead::where('status', LeadStatus::Negotiation)->count(),
-                'won' => Lead::where('status', LeadStatus::Won)->count(),
+                'level_1_count' => Lead::whereIn('status', [LeadStatus::Lead, LeadStatus::Approach])->count(),
+                'level_2_count' => Lead::where('status', LeadStatus::Proposal)->count(),
+                'level_3_count' => Lead::where('status', LeadStatus::Negotiation)->count(),
+                'level_4_count' => Lead::where('status', LeadStatus::Contract)->count(),
 
-                'leads_value' => Lead::where('status', LeadStatus::Lead)->sum('estimated_amount'),
-                'approach_value' => Lead::where('status', LeadStatus::Approach)->sum('estimated_amount'),
-                'proposal_value' => Lead::where('status', LeadStatus::Proposal)->sum('estimated_amount'),
-                'negotiation_value' => Lead::where('status', LeadStatus::Negotiation)->sum('estimated_amount'),
-                'won_value' => Lead::where('status', LeadStatus::Won)->sum('estimated_amount'),
+                'level_1_value' => Lead::whereIn('status', [LeadStatus::Lead, LeadStatus::Approach])->sum('estimated_amount'),
+                'level_2_value' => Lead::where('status', LeadStatus::Proposal)->sum('estimated_amount'),
+                'level_3_value' => Lead::where('status', LeadStatus::Negotiation)->sum('estimated_amount'),
+                'level_4_value' => Lead::where('status', LeadStatus::Contract)->sum('estimated_amount'),
             ];
         });
 
-        $stages = ['Lead', 'Approach', 'Proposal', 'Negotiation', 'Won'];
+        $stages = ['Prospecting (Level 1)', 'Proposal (Level 2)', 'Negotiation (Level 3)', 'Finalization (Level 4)'];
         $counts = [
-            $data['leads'],
-            $data['approach'],
-            $data['proposal'],
-            $data['negotiation'],
-            $data['won'],
+            $data['level_1_count'],
+            $data['level_2_count'],
+            $data['level_3_count'],
+            $data['level_4_count'],
         ];
 
         $values = [
-            $data['leads_value'],
-            $data['approach_value'],
-            $data['proposal_value'],
-            $data['negotiation_value'],
-            $data['won_value'],
+            $data['level_1_value'],
+            $data['level_2_value'],
+            $data['level_3_value'],
+            $data['level_4_value'],
         ];
-
-        // Calculate conversion rates
-        $total = array_sum(array_slice($counts, 0, 4)); // Exclude Won from denominator
-        $conversionRates = [];
-        foreach ($counts as $index => $count) {
-            if ($index === 0) {
-                $conversionRates[] = 100;
-            } else {
-                $conversionRates[] = $counts[$index - 1] > 0
-                    ? round(($count / $counts[$index - 1]) * 100, 1)
-                    : 0;
-            }
-        }
 
         return [
             'chart' => [

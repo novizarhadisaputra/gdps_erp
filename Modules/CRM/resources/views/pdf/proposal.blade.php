@@ -80,6 +80,9 @@
     $introText = $config['intro_text'] ?? null;
     $closingText = $config['closing_text'] ?? null;
 
+    $hasIntroText = !empty(trim(strip_tags($introText)));
+    $hasClosingText = !empty(trim(strip_tags($closingText)));
+
     $ams = $record->lead->ams ?? ($record->lead->user ?? null);
     $amsName = $ams->name ?? 'Account Manager';
     $amsEmail = $ams->email ?? '';
@@ -336,12 +339,15 @@
         </div>
 
         <div style="margin-bottom: 20px;">
-            Kepada Yth.,<br>
+            Yth.<br>
             @if ($recipientName)
-                <strong>{{ $recipientSalutation }}{{ $recipientName }}</strong><br>
+                <strong>{{ $recipientSalutation }}{{ $recipientName }}</strong>
                 @if ($recipientTitle)
-                    <span>{{ $recipientTitle }}</span><br>
+                    <span>({{ $recipientTitle }})</span>
                 @endif
+                <br>
+            @elseif ($recipientTitle)
+                <strong>{{ $recipientTitle }}</strong><br>
             @endif
             <strong>PT {{ $customerName }}</strong><br>
             {{ $record->customer->address ?? 'Di Tempat' }}
@@ -352,22 +358,19 @@
         <p>Semoga {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} dalam keadaan sehat dan sukses dalam menjalankan
             aktivitas sehari-hari.</p>
 
-        @if ($introText)
+        @if ($hasIntroText)
             <div style="margin-bottom: 10px;">{!! $introText !!}</div>
         @else
-            <p>Memenuhi kebutuhan operasional pada perusahaan yang {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }}
-                pimpin, bersama ini kami PT Garuda Daya
-                Pratama
-                Sejahtera (GDPS) menyampaikan penghargaan dan terima kasih atas kesempatan yang diberikan untuk
-                berpartisipasi dalam memberikan solusi layanan <strong>{{ $productClusterName }}</strong> di PT
-                {{ $customerName }}.</p>
-            <p>GDPS merupakan perusahaan afiliasi dari PT Garuda Indonesia (Persero) Tbk, yang fokus pada penyediaan
-                solusi
-                operasional layanan gedung, facility management, serta penyediaan sumber daya manusia yang berkualitas
-                berbasis teknologi terdepan.</p>
-            <p>Melalui proposal ini, kami mengajukan rancangan rincian biaya yang telah disesuaikan dengan prosedur,
-                kebutuhan, serta kesepakatan bersama, dengan harapan dapat berkontribusi positif bagi efisiensi dan
-                peningkatan kualitas pelayanan di lingkungan bisnis PT {{ $customerName }}.</p>
+            <p>Kami dari PT Garuda Daya Pratama Sejahtera (PT GDPS) mengucapkan terima kasih atas kesempatan yang
+                diberikan sehingga dapat menyampaikan Proposal Penawaran Harga Paket Layanan
+                <strong>{{ $productClusterName }}</strong> dengan nomor
+                <strong>{{ $record->proposal_number }}</strong>
+                sebagai tindak lanjut atas permintaan {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} melalui
+                email/telepon/online meeting/offline meeting/chat pada tanggal [...................].
+            </p>
+            <p>Besar harapan kami supaya dapat menyampaikan klarifikasi secara langsung atas penawaran kami ini untuk
+                memastikan bahwa kebutuhan perusahaan {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} terpenuhi dengan
+                baik.</p>
         @endif
 
         <p>Untuk penjelasan lebih rinci terkait spesifikasi teknis dan komersial, bersama surat pengantar ini kami
@@ -605,7 +608,8 @@
                 @endforeach
             @else
                 <li style="margin-bottom: 4px;"><i>Machinery, Equipment, Chemicals, & Consumable</i> terlampir. Jika ada
-                    pengadaan <i>Machinery, Equipment, Chemicals, & Consumable</i> selain yang ada di daftar tersebut, maka
+                    pengadaan <i>Machinery, Equipment, Chemicals, & Consumable</i> selain yang ada di daftar tersebut,
+                    maka
                     akan dilakukan <i>reimbursement</i> ke PT {{ $customerName }}.</li>
                 <li style="margin-bottom: 4px;">PT {{ $customerName }} menyediakan tempat kerja dan tempat penyimpanan
                     <i>Machinery, Equipment, Chemicals, & Consumable</i> tersebut.
@@ -635,8 +639,11 @@
                 ({{ $validityPeriod == 30 ? 'tiga puluh' : $validityPeriod }}) hari</strong> sejak ditandatangani oleh
             GDPS.</p>
 
-        @if ($closingText)
+        @if ($hasClosingText)
             <div style="margin-top: 10px; margin-bottom: 30px;">{!! $closingText !!}</div>
+        @else
+            <p style="margin-top: 10px; margin-bottom: 30px;">Demikian proposal penawaran ini kami sampaikan. Atas
+                perhatian dan kerja samanya kami ucapkan terima kasih.</p>
         @endif
 
         <div class="no-break" style="margin-top: 20px; padding-left: 20px; padding-right: 20px;">

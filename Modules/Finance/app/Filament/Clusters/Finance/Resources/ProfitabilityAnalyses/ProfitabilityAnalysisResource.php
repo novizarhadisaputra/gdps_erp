@@ -9,6 +9,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisActuals;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisRevisions;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\SummaryProfitabilityAnalysis;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
@@ -58,6 +59,7 @@ class ProfitabilityAnalysisResource extends Resource
     {
         return $page->generateNavigationItems([
             SummaryProfitabilityAnalysis::class,
+            ManageProfitabilityAnalysisActuals::class,
             ManageProfitabilityAnalysisRevisions::class,
         ]);
     }
@@ -78,6 +80,7 @@ class ProfitabilityAnalysisResource extends Resource
         return [
             'index' => ListProfitabilityAnalyses::route('/'),
             'view' => SummaryProfitabilityAnalysis::route('/{record}'),
+            'actuals' => ManageProfitabilityAnalysisActuals::route('/{record}/actuals'),
             'revisions' => ManageProfitabilityAnalysisRevisions::route('/{record}/revisions'),
             'view-revision' => ViewProfitabilityAnalysisRevision::route('/{record}/revisions/{relatedRecord}'),
         ];

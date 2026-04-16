@@ -11,6 +11,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\CreateProfitabilityAnalysis;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\EditProfitabilityAnalysis;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\ListProfitabilityAnalyses;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\ManageProfitabilityAnalysisActuals;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\ManageProfitabilityAnalysisRevisions;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Pages\SummaryProfitabilityAnalysis;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
@@ -57,6 +58,7 @@ class ProfitabilityAnalysisResource extends Resource
         return $page->generateNavigationItems([
             SummaryProfitabilityAnalysis::class,
             EditProfitabilityAnalysis::class,
+            ManageProfitabilityAnalysisActuals::class,
             ManageProfitabilityAnalysisRevisions::class,
         ]);
     }
@@ -68,6 +70,7 @@ class ProfitabilityAnalysisResource extends Resource
             'create' => CreateProfitabilityAnalysis::route('/create'),
             'view' => SummaryProfitabilityAnalysis::route('/{record}'),
             'edit' => EditProfitabilityAnalysis::route('/{record}/edit'),
+            'actuals' => ManageProfitabilityAnalysisActuals::route('/{record}/actuals'),
             'revisions' => ManageProfitabilityAnalysisRevisions::route('/{record}/revisions'),
             'view-revision' => ViewProfitabilityAnalysisRevision::route('/{record}/revisions/{relatedRecord}'),
         ];

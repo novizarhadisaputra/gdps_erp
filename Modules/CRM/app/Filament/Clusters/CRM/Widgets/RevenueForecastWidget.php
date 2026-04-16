@@ -51,20 +51,27 @@ class RevenueForecastWidget extends ApexChartWidget
                 $date = Carbon::now()->addMonths($i);
                 $months[] = $date->format('M Y');
 
-                // Weighted forecast based on probability
-                $weighted = Lead::whereNotIn('status', [LeadStatus::Won, LeadStatus::ClosedLost])
+                // Get all active prospects for this period
+                $leads = Lead::whereNotIn('status', [LeadStatus::Won, LeadStatus::ClosedLost])
                     ->whereDate('expected_closing_date', '>=', $date->copy()->startOfMonth())
                     ->whereDate('expected_closing_date', '<=', $date->copy()->endOfMonth())
-                    ->get()
-                    ->sum(function ($lead) {
-                        return ($lead->estimated_amount * $lead->probability) / 100;
-                    });
+                    ->with('profitabilityAnalysis.weeklyUpdates')
+                    ->get();
 
-                // Optimistic forecast (assuming 80% probability on all)
-                $optimistic = Lead::whereNotIn('status', [LeadStatus::Won, LeadStatus::ClosedLost])
-                    ->whereDate('expected_closing_date', '>=', $date->copy()->startOfMonth())
-                    ->whereDate('expected_closing_date', '<=', $date->copy()->endOfMonth())
-                    ->sum('estimated_amount') * 0.8;
+                $weighted = $leads->sum(function ($lead) {
+                    // Prefer Weekly Update projection if available
+                    $latestUpdate = $lead->profitabilityAnalysis?->weeklyUpdates()->latest()->first();
+                    $amount = $latestUpdate ? $latestUpdate->projected_revenue : $lead->estimated_amount;
+
+                    return ($amount * ($lead->probability ?? 50)) / 100;
+                });
+
+                // Optimistic forecast
+                $optimistic = $leads->sum(function ($lead) {
+                    $latestUpdate = $lead->profitabilityAnalysis?->weeklyUpdates()->latest()->first();
+
+                    return ($latestUpdate ? $latestUpdate->projected_revenue : $lead->estimated_amount) * 0.9;
+                });
 
                 $actualRevenue[] = null;
                 $forecastedRevenue[] = round($weighted / 1000000, 2);
