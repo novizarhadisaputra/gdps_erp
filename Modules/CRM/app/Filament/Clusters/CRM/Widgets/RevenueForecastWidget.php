@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 
 class RevenueForecastWidget extends ApexChartWidget
 {
@@ -57,22 +58,17 @@ class RevenueForecastWidget extends ApexChartWidget
                     ->whereDate('expected_closing_date', '<=', $date->copy()->endOfMonth())
                     ->with(['profitabilityAnalysis.monthlies' => function ($query) use ($date) {
                         $query->where('month', $date->format('F'))
-                              ->where('year', $date->year)
-                              ->with(['weeklies' => function ($q) {
-                                  $q->latest();
-                              }]);
+                              ->where('year', $date->year);
                     }])
                     ->get();
 
                 $weighted = $leads->sum(function ($lead) use ($date) {
-                    // Try to get latest update from the specific monthly record
                     $monthly = $lead->profitabilityAnalysis?->monthlies
                         ->where('month', $date->format('F'))
                         ->where('year', $date->year)
                         ->first();
                     
-                    $latestUpdate = $monthly?->weeklies->first();
-                    $amount = $latestUpdate ? $latestUpdate->projected_revenue : $lead->estimated_amount;
+                    $amount = $monthly ? $monthly->forecast_revenue : $lead->estimated_amount;
 
                     return ($amount * ($lead->probability ?? 50)) / 100;
                 });
@@ -84,9 +80,9 @@ class RevenueForecastWidget extends ApexChartWidget
                         ->where('year', $date->year)
                         ->first();
                         
-                    $latestUpdate = $monthly?->weeklies->first();
+                    $amount = $monthly ? $monthly->forecast_revenue : $lead->estimated_amount;
 
-                    return ($latestUpdate ? $latestUpdate->projected_revenue : $lead->estimated_amount) * 0.9;
+                    return $amount * 0.9;
                 });
 
                 $actualRevenue[] = null;

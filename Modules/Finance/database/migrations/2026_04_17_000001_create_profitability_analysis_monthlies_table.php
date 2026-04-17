@@ -19,15 +19,19 @@ return new class extends Migration
                 ->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')
                 ->onDelete('cascade');
             
-            $table->decimal('target_revenue', 20, 2)->nullable();
-            $table->decimal('forecast_revenue', 20, 2)->nullable();
-            $table->decimal('actual_revenue', 20, 2)->default(0);
-            $table->decimal('actual_cost', 20, 2)->default(0);
+            $table->decimal('target_revenue', 20, 2)->nullable()->comment('Original target revenue from Sales Plan');
+            $table->decimal('forecast_revenue', 20, 2)->nullable()->comment('Rolling forecast revenue from weekly updates');
+            $table->decimal('actual_revenue', 20, 2)->default(0)->comment('Actual revenue recognized');
+            $table->decimal('actual_cost', 20, 2)->default(0)->comment('Actual costs incurred from implementation');
+            $table->decimal('actual_net_profit', 20, 2)->default(0)->comment('Actual net profit calculated as (Revenue - Cost)');
+            $table->decimal('actual_margin_percentage', 10, 2)->default(0)->comment('Actual profit margin percentage');
+            $table->decimal('variance_revenue', 20, 2)->default(0)->comment('Difference between actual revenue and target revenue');
+            $table->decimal('variance_profit', 20, 2)->default(0)->comment('Difference between actual net profit and expected profit');
             
             $table->string('month');
             $table->integer('year');
             $table->string('status')->default('draft'); // draft, finalized
-            $table->json('actual_details')->nullable();
+            $table->json('actual_details')->nullable()->comment('Detailed breakdown of actual costs incurred');
             
             $table->timestamps();
         });

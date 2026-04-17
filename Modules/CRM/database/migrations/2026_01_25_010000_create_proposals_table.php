@@ -28,6 +28,7 @@ return new class extends Migration
             $table->boolean('is_imported')->default(false);
             $table->uuid('import_source_id')->nullable();
             $table->date('submission_date')->nullable();
+            $table->date('meeting_date')->nullable()->comment('Date of the final meeting or negotiation');
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();
             $table->timestamps();

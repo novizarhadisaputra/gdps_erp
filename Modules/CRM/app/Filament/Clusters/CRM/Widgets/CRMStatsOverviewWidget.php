@@ -10,6 +10,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 use Modules\Finance\Models\ProfitabilityAnalysisWeekly;
 
 class CRMStatsOverviewWidget extends BaseWidget
@@ -69,19 +70,15 @@ class CRMStatsOverviewWidget extends BaseWidget
                 ? round((($leadsThisMonth - $leadsLastMonth) / $leadsLastMonth) * 100, 1)
                 : 0;
 
-            // Projected Revenue from Weekly Updates
-            // Fix PostgreSQL MAX(uuid) error: Find latest ID per project using a compatible subquery
-            $latestIds = ProfitabilityAnalysisWeekly::query()
-                ->select('id')
-                ->whereIn('created_at', function ($query) {
-                    $query->select(DB::raw('MAX(created_at)'))
-                        ->from('profitability_analysis_weeklies')
-                        ->groupBy('profitability_analysis_id');
-                })
-                ->pluck('id');
+            // 1. PROJECTED REVENUE (Now using Monthlies instead of complex Weekly queries)
+            $thisMonthName = Carbon::now()->format('F');
+            $thisYear = Carbon::now()->year;
 
-            $projectedRevenue = ProfitabilityAnalysisWeekly::whereIn('id', $latestIds)->sum('projected_revenue');
+            $projectedRevenue = \Modules\Finance\Models\ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
+                ->where('year', $thisYear)
+                ->sum('forecast_revenue');
 
+            // Find last week projected for trend (Optional: keep using weeklies for grain, or just use monthlies)
             $lastWeekProjected = ProfitabilityAnalysisWeekly::where('created_at', '<', Carbon::now()->startOfWeek())
                 ->where('created_at', '>=', Carbon::now()->subWeek()->startOfWeek())
                 ->sum('projected_revenue');
@@ -89,6 +86,16 @@ class CRMStatsOverviewWidget extends BaseWidget
             $projTrend = $lastWeekProjected > 0
                 ? round((($projectedRevenue - $lastWeekProjected) / $lastWeekProjected) * 100, 1)
                 : 0;
+
+            // 2. NEW: MONTHLY NET PROFIT & MARGIN
+            $actualNetProfit = \Modules\Finance\Models\ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
+                ->where('year', $thisYear)
+                ->sum('actual_net_profit');
+
+            $avgMargin = \Modules\Finance\Models\ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
+                ->where('year', $thisYear)
+                ->where('actual_revenue', '>', 0)
+                ->avg('actual_margin_percentage') ?? 0;
 
             return [
                 Stat::make('Active Leads', number_format($activeLeads))
@@ -111,10 +118,20 @@ class CRMStatsOverviewWidget extends BaseWidget
                     ->descriptionIcon(Heroicon::CurrencyDollar)
                     ->color('warning'),
 
-                Stat::make('Projected Revenue (Weekly)', 'Rp '.number_format($projectedRevenue, 0, ',', '.'))
+                Stat::make('Projected Revenue (Monthly)', 'Rp '.number_format($projectedRevenue, 0, ',', '.'))
                     ->description($projTrend >= 0 ? '+'.number_format($projTrend, 1).'% from last week' : number_format($projTrend, 1).'% from last week')
                     ->descriptionIcon($projTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
                     ->color($projTrend >= 0 ? 'success' : 'warning'),
+
+                Stat::make('Net Profit (MTD)', 'Rp '.number_format($actualNetProfit, 0, ',', '.'))
+                    ->description('Total realized net profit')
+                    ->descriptionIcon(Heroicon::Banknotes)
+                    ->color('success'),
+
+                Stat::make('Avg Actual Margin', round($avgMargin, 2).'%')
+                    ->description('Realized profitability rate')
+                    ->descriptionIcon(Heroicon::PresentationChartBar)
+                    ->color($avgMargin >= 10 ? 'success' : 'warning'), // Threshold 10% example
 
                 Stat::make('Avg Deal Size', 'Rp '.number_format($avgDealSize, 0, ',', '.'))
                     ->description('From won deals')
