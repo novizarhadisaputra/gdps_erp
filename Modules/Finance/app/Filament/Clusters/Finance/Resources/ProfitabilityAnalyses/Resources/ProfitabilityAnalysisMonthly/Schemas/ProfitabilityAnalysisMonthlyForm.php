@@ -13,6 +13,8 @@ use Filament\Schemas\Schema;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
 use Modules\MasterData\Models\DirectCostCategory;
 
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+
 class ProfitabilityAnalysisMonthlyForm
 {
     public static function configure(Schema $schema): Schema
@@ -48,7 +50,8 @@ class ProfitabilityAnalysisMonthlyForm
                                 ->prefix('IDR ')
                                 ->required()
                                 ->readOnly()
-                                ->default(fn (Get $get, ?\Modules\Finance\Models\ProfitabilityAnalysisMonthly $record) => $record?->profitabilityAnalysis?->revenue_per_month)
+                                ->visible(fn (string $operation): bool => $operation !== 'create')
+                                ->default(fn (Get $get, ?ProfitabilityAnalysisMonthly $record) => $record?->profitabilityAnalysis?->revenue_per_month)
                                 ->helperText('Target revenue from Sales Plan (read-only).'),
 
                             TextInput::make('actual_revenue')

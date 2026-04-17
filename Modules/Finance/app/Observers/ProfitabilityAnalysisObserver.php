@@ -2,15 +2,17 @@
 
 namespace Modules\Finance\Observers;
 
+use Illuminate\Support\Carbon;
 use Modules\CRM\Enums\LeadStatus;
+use Modules\CRM\Models\CostingTemplate;
+use Modules\CRM\Models\ManpowerTemplate;
+use Modules\CRM\Services\SalesOrderService;
+use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityAnalysisRevision;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Services\ProjectService;
-use Modules\CRM\Services\SalesOrderService;
-use Modules\CRM\Models\ManpowerTemplate;
-use Modules\CRM\Models\CostingTemplate;
 
 class ProfitabilityAnalysisObserver
 {
@@ -67,6 +69,34 @@ class ProfitabilityAnalysisObserver
 
         // Auto-copy media from selected templates if IDs are present in analysis_details
         $this->syncTemplateMedia($analysis);
+
+        // Auto-generate monthly records from Sales Plan
+        $this->generateMonthlyRecords($analysis);
+    }
+
+    /**
+     * Automatically generate monthly performance records based on Sales Plan distribution.
+     */
+    protected function generateMonthlyRecords(ProfitabilityAnalysis $analysis): void
+    {
+        $analysis->loadMissing('lead.salesPlan.monthlyBreakdowns');
+        $salesPlan = $analysis->lead?->salesPlan;
+
+        if (! $salesPlan || $salesPlan->monthlyBreakdowns->isEmpty()) {
+            return;
+        }
+
+        foreach ($salesPlan->monthlyBreakdowns as $breakdown) {
+            // Convert month integer (1-12) to month name (e.g., "January")
+            $monthName = Carbon::create()->month($breakdown->month)->format('F');
+
+            $analysis->monthlies()->create([
+                'year' => $breakdown->year,
+                'month' => $monthName,
+                'target_revenue' => $breakdown->budget_amount,
+                'status' => ProfitabilityAnalysisMonthlyStatus::Draft,
+            ]);
+        }
     }
 
     /**

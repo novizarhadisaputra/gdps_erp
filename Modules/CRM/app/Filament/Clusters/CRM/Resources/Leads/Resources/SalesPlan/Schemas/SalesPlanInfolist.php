@@ -9,6 +9,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\MasterData\Models\JobPosition;
 
 class SalesPlanInfolist
 {
@@ -31,6 +33,35 @@ class SalesPlanInfolist
                                     ->label('Project Code')
                                     ->copyable()
                                     ->placeholder('Pending...'),
+                            ]),
+                    ]),
+
+                Section::make('Profitability Analysis Status')
+                    ->description('Overview of financial feasibility as calculated by the Finance team.')
+                    ->icon(Heroicon::OutlinedPresentationChartBar)
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('pa_status')
+                                    ->label('PA Hub Status')
+                                    ->badge()
+                                    ->state(fn (Model $record) => $record->lead?->profitabilityAnalyses()->latest()->first()?->status)
+                                    ->formatStateUsing(fn ($state) => $state?->getLabel() ?? 'No Analysis Linked')
+                                    ->color(fn ($state) => $state instanceof ProfitabilityAnalysisStatus ? $state->getColor() : 'gray')
+                                    ->icon(fn ($state) => $state instanceof ProfitabilityAnalysisStatus ? $state->getIcon() : Heroicon::OutlinedQuestionMarkCircle),
+
+                                TextEntry::make('npm_percentage')
+                                    ->label('Net Profit Margin (NPM)')
+                                    ->suffix('%')
+                                    ->weight(FontWeight::Bold)
+                                    ->color('success')
+                                    ->helperText('Approved NPM target.'),
+
+                                TextEntry::make('management_fee_percentage')
+                                    ->label('Management Fee')
+                                    ->suffix('%')
+                                    ->color('info')
+                                    ->helperText('Agreed management fee.'),
                             ]),
                     ]),
 
@@ -106,7 +137,7 @@ class SalesPlanInfolist
                             ->state(function (Model $record) {
                                 $ids = $record->job_positions ?? [];
 
-                                return \Modules\MasterData\Models\JobPosition::whereIn('id', $ids)->pluck('name')->toArray();
+                                return JobPosition::whereIn('id', $ids)->pluck('name')->toArray();
                             }),
 
                         Grid::make(1)

@@ -4,6 +4,8 @@ namespace Modules\Finance\Observers;
 
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 use Modules\CRM\Models\SalesPlanMonthly;
+use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
+use Illuminate\Support\Carbon;
 
 class ProfitabilityAnalysisMonthlyObserver
 {
@@ -15,7 +17,7 @@ class ProfitabilityAnalysisMonthlyObserver
         if ($lead && $lead->salesPlan) {
             // Convert month name (e.g. "January") to integer (1-12)
             try {
-                $monthInt = \Carbon\Carbon::parse($monthly->month)->month;
+                $monthInt = Carbon::parse($monthly->month)->month;
             } catch (\Exception $e) {
                 $monthInt = 0;
             }
@@ -35,7 +37,7 @@ class ProfitabilityAnalysisMonthlyObserver
         }
 
         if (! $monthly->status) {
-            $monthly->status = \Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus::Draft;
+            $monthly->status = ProfitabilityAnalysisMonthlyStatus::Draft;
         }
     }
 
@@ -63,11 +65,18 @@ class ProfitabilityAnalysisMonthlyObserver
 
         $salesPlan = $lead->salesPlan;
 
+        // Convert month name (e.g. "January") to integer (1-12) for CRM
+        try {
+            $monthInt = Carbon::parse($monthly->month)->month;
+        } catch (\Exception $e) {
+            $monthInt = 0;
+        }
+
         // Find or create the corresponding Sales Plan Monthly record
         $crmMonthly = SalesPlanMonthly::firstOrNew([
             'sales_plan_id' => $salesPlan->id,
             'year' => $monthly->year,
-            'month' => $monthly->month,
+            'month' => $monthInt,
         ]);
 
         if ($isDeleted) {
