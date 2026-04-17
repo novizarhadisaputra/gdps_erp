@@ -15,8 +15,18 @@ return new class extends Migration
 
         Schema::create($schema, function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->foreignUuid('profitability_analysis_id')
+                ->constrained(
+                    table: (config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses'),
+                    indexName: 'pa_w_pa_id_fk'
+                )
+                ->onDelete('cascade');
+
             $table->foreignUuid('profitability_analysis_monthly_id')
-                ->constrained(config('database.default') === 'sqlite' ? 'profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies')
+                ->constrained(
+                    table: (config('database.default') === 'sqlite' ? 'profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies'),
+                    indexName: 'pa_w_pm_id_fk'
+                )
                 ->onDelete('cascade');
             
             $table->integer('week_number');
@@ -26,7 +36,7 @@ return new class extends Migration
             $table->string('month')->nullable();
             $table->integer('year')->nullable();
             
-            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignUuid('user_id')->nullable()->constrained('users');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

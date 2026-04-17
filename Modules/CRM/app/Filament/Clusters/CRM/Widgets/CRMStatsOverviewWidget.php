@@ -10,7 +10,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
-use Modules\Finance\Models\ProfitabilityAnalysisUpdate;
+use Modules\Finance\Models\ProfitabilityAnalysisWeekly;
 
 class CRMStatsOverviewWidget extends BaseWidget
 {
@@ -71,18 +71,18 @@ class CRMStatsOverviewWidget extends BaseWidget
 
             // Projected Revenue from Weekly Updates
             // Fix PostgreSQL MAX(uuid) error: Find latest ID per project using a compatible subquery
-            $latestIds = ProfitabilityAnalysisUpdate::query()
+            $latestIds = ProfitabilityAnalysisWeekly::query()
                 ->select('id')
                 ->whereIn('created_at', function ($query) {
                     $query->select(DB::raw('MAX(created_at)'))
-                        ->from('profitability_analysis_updates')
+                        ->from('profitability_analysis_weeklies')
                         ->groupBy('profitability_analysis_id');
                 })
                 ->pluck('id');
 
-            $projectedRevenue = ProfitabilityAnalysisUpdate::whereIn('id', $latestIds)->sum('projected_revenue');
+            $projectedRevenue = ProfitabilityAnalysisWeekly::whereIn('id', $latestIds)->sum('projected_revenue');
 
-            $lastWeekProjected = ProfitabilityAnalysisUpdate::where('created_at', '<', Carbon::now()->startOfWeek())
+            $lastWeekProjected = ProfitabilityAnalysisWeekly::where('created_at', '<', Carbon::now()->startOfWeek())
                 ->where('created_at', '>=', Carbon::now()->subWeek()->startOfWeek())
                 ->sum('projected_revenue');
 

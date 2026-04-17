@@ -5,8 +5,6 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -48,8 +46,6 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->schema([
-                        TextEntry::make('code')
-                            ->state('Auto-generated'),
                         FileUpload::make('file')
                             ->disk('s3')
                             ->visibility('private')

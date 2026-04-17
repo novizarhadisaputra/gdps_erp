@@ -2,11 +2,11 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Tables;
 
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ViewAction;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
@@ -41,7 +41,7 @@ class ProfitabilityAnalysisMonthliesTable
                     ->badge()
                     ->sortable(),
             ])
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make()

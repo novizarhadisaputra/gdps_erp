@@ -83,8 +83,8 @@ class ProfitabilityAnalysisMonthlyObserver
             $crmMonthly->actual_amount = 0;
             $crmMonthly->forecast_amount = 0;
         } else {
-            $crmMonthly->actual_amount = $monthly->actual_revenue;
-            $crmMonthly->forecast_amount = $monthly->forecast_revenue;
+            $crmMonthly->actual_amount = $monthly->actual_revenue ?? 0;
+            $crmMonthly->forecast_amount = $monthly->forecast_revenue ?? 0;
         }
 
         $crmMonthly->save();

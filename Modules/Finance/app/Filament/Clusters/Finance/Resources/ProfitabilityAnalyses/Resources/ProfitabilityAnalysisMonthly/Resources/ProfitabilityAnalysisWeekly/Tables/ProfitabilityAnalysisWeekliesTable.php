@@ -4,10 +4,13 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Resources\ProfitabilityAnalysisWeekly\Schemas\ProfitabilityAnalysisWeeklyForm;
 use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ViewAction;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Schemas\Schema;
 
 class ProfitabilityAnalysisWeekliesTable
 {
@@ -41,7 +44,7 @@ class ProfitabilityAnalysisWeekliesTable
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->actions([
+            ->recordActions([
                 ActionGroup::make([
                     ViewAction::make()
                         ->form(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema)),
