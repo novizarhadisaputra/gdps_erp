@@ -44,6 +44,7 @@ class Proposal extends Model implements HasMedia
         'is_imported',
         'import_source_id',
         'content_config',
+        'meeting_date',
     ];
 
     protected function casts(): array
@@ -54,6 +55,7 @@ class Proposal extends Model implements HasMedia
             'revision_number' => 'integer',
             'is_manual' => 'boolean',
             'content_config' => 'array',
+            'meeting_date' => 'date',
         ];
     }
 

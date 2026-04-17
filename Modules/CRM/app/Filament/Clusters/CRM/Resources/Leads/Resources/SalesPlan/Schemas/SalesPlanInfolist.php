@@ -46,7 +46,7 @@ class SalesPlanInfolist
                                     ->label('PA Hub Status')
                                     ->badge()
                                     ->state(fn (Model $record) => $record->lead?->profitabilityAnalyses()->latest()->first()?->status)
-                                    ->formatStateUsing(fn ($state) => $state?->getLabel() ?? 'No Analysis Linked')
+                                    ->formatStateUsing(fn ($state) => $state instanceof \Filament\Support\Contracts\HasLabel ? $state->getLabel() : ($state ?? 'No Analysis Linked'))
                                     ->color(fn ($state) => $state instanceof ProfitabilityAnalysisStatus ? $state->getColor() : 'gray')
                                     ->icon(fn ($state) => $state instanceof ProfitabilityAnalysisStatus ? $state->getIcon() : Heroicon::OutlinedQuestionMarkCircle),
 

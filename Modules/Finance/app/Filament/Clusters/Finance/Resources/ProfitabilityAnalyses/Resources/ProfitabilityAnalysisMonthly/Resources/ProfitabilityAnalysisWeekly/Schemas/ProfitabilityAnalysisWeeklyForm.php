@@ -20,14 +20,14 @@ class ProfitabilityAnalysisWeeklyForm
                         ->schema([
                             TextInput::make('achieved_revenue')
                                 ->label('Weekly Achievement (Real)')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->required()
                                 ->helperText('Input the actual revenue earned THIS WEEK.'),
 
                             TextInput::make('projected_revenue')
                                 ->label('Monthly Outlook (Forecast)')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->required()
                                 ->helperText('Update the total expected revenue by end of month.'),

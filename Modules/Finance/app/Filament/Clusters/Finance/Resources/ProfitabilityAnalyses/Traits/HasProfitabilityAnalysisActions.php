@@ -172,7 +172,7 @@ trait HasProfitabilityAnalysisActions
             ->icon(Heroicon::OutlinedXMark)
             ->requiresConfirmation()
             ->modalHeading(fn ($record) => 'Reject '.class_basename($record))
-            ->form([
+            ->schema([
                 TextInput::make('reason')
                     ->label('Reason for Rejection')
                     ->required(),
@@ -200,6 +200,7 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('Approve PA')
             ->color('primary')
+            ->label('Approve PA')
             ->icon(Heroicon::OutlinedPencilSquare)
             ->schema([
                 TextInput::make('pin')
@@ -588,8 +589,15 @@ trait HasProfitabilityAnalysisActions
     protected function getProfitabilityAnalysisActions(): array
     {
         return [
-            $this->getApproveMarginAction(),
-            $this->getApprovePAAction(),
+            ActionGroup::make([
+                $this->getApproveMarginAction(),
+                $this->getApprovePAAction(),
+            ])
+                ->label('Approval')
+                ->icon(Heroicon::OutlinedCheckBadge)
+                ->color('success')
+                ->button(),
+
             $this->getSubmitAction(),
             $this->getIncompleteSubmitWarningAction(),
             $this->getGenerateProjectAction(),
@@ -645,7 +653,7 @@ trait HasProfitabilityAnalysisActions
             ->icon(Heroicon::OutlinedPresentationChartLine)
             ->color('warning')
             ->visible(fn ($record) => $record->project()->exists())
-            ->form([
+            ->schema([
                 TextInput::make('projected_revenue')
                     ->label('Projected Revenue (IDR)')
                     ->numeric()

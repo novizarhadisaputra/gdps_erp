@@ -219,20 +219,40 @@ class ProfitabilityAnalysis extends Model implements HasMedia
 
     public function getDirectItems(): \Illuminate\Support\Collection
     {
-        $items = collect($this->analysis_details['manual_costs'] ?? []);
+        $topLevelItems = collect($this->analysis_details['manual_costs'] ?? []);
 
-        return $items->map(function ($item) {
-            return (object) [
-                'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
-                'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
-                'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? $item['total_monthly_cost'] ?? 0),
-                'unit_cost_price' => self::parseNumericValue($item['unit_amount'] ?? $item['unit_cost_price'] ?? 0),
-                'quantity' => self::parseNumericValue($item['quantity'] ?? 1),
-                'is_manpower' => ($item['costable_type'] ?? null) === JobPosition::class || ($item['job_position_id'] ?? null) !== null,
-                'costable_type' => $item['costable_type'] ?? (\Modules\MasterData\Models\JobPosition::class),
-                'costable' => null, // We could load it if needed, but usually ID is enough
-                'name' => $item['name'] ?? null,
-            ];
+        return $topLevelItems->flatMap(function ($group) {
+            $categoryId = $group['direct_cost_category_id'] ?? null;
+            $category = $categoryId ? DirectCostCategory::find($categoryId) : null;
+            $subItems = collect($group['sub_items'] ?? []);
+
+            if ($subItems->isEmpty()) {
+                return [
+                    (object) [
+                        'direct_cost_category_id' => $categoryId,
+                        'category' => $category,
+                        'total_monthly_cost' => self::parseNumericValue($group['amount'] ?? $group['total_monthly_cost'] ?? 0),
+                        'unit_cost_price' => self::parseNumericValue($group['unit_amount'] ?? $group['unit_cost_price'] ?? 0),
+                        'quantity' => self::parseNumericValue($group['quantity'] ?? 1),
+                        'uom' => $group['uom'] ?? $group['unit_of_measure'] ?? 'Unit',
+                        'is_manpower' => ($group['costable_type'] ?? null) === JobPosition::class || ($group['job_position_id'] ?? null) !== null,
+                        'name' => $group['name'] ?? $group['job_position_name'] ?? $group['item_name'] ?? ($category?->name ?? 'Unnamed Item'),
+                    ],
+                ];
+            }
+
+            return $subItems->map(function ($item) use ($category, $categoryId) {
+                return (object) [
+                    'direct_cost_category_id' => $categoryId,
+                    'category' => $category,
+                    'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? $item['total_monthly_cost'] ?? 0),
+                    'unit_cost_price' => self::parseNumericValue($item['unit_amount'] ?? $item['unit_cost_price'] ?? 0),
+                    'quantity' => self::parseNumericValue($item['quantity'] ?? 1),
+                    'uom' => $item['uom'] ?? $item['unit_of_measure'] ?? (isset($item['job_position_name']) || isset($item['job_position_id']) ? 'Orang' : 'Unit'),
+                    'is_manpower' => ($item['costable_type'] ?? null) === JobPosition::class || ($item['job_position_id'] ?? null) !== null,
+                    'name' => $item['name'] ?? $item['job_position_name'] ?? $item['item_name'] ?? 'Unnamed Sub-Item',
+                ];
+            });
         });
     }
 

@@ -115,6 +115,15 @@
 
     $manpowerSourceUrl = $manmanMedia ? $manmanMedia->getTemporaryUrl(now()->addDays(7)) : null;
     $costingSourceUrl = $costMedia ? $costMedia->getTemporaryUrl(now()->addDays(7)) : null;
+
+    // Professional Case Formatting (Pascal/Title Case)
+    $amsNameFormatted = \Illuminate\Support\Str::title($amsName);
+    $recipientNameFormatted = \Illuminate\Support\Str::title($recipientName ?? '');
+    $customerNameFormatted = \Illuminate\Support\Str::title($customerName);
+    $productClusterNameFormatted = \Illuminate\Support\Str::title($productClusterName);
+
+    // Meeting Date Handling
+    $meetingDateText = $record->meeting_date ? $record->meeting_date->translatedFormat('d F Y') : '...................';
 @endphp
 <!DOCTYPE html>
 <html>
@@ -315,25 +324,24 @@
     </footer>
 
     <div class="content">
-
         <div class="letter-info">
             <div style="text-align: right; margin-bottom: 20px;">
                 Tangerang,
                 {{ $record->submission_date ? $record->submission_date->format('d F Y') : now()->format('d F Y') }}
             </div>
-            <table>
+            <table style="width: auto; border: none; margin-bottom: 0;">
                 <tr>
-                    <td style="width: 80px; padding-bottom: 5px;"><strong>Nomor</strong></td>
-                    <td style="padding-bottom: 5px;">: {{ $record->proposal_number }}</td>
+                    <td style="width: 70px; padding-bottom: 5px; border: none;"><strong>Nomor</strong></td>
+                    <td style="padding-bottom: 5px; border: none;">: {{ $record->proposal_number }}</td>
                 </tr>
                 <tr>
-                    <td style="padding-bottom: 5px;"><strong>Lampiran</strong></td>
-                    <td style="padding-bottom: 5px;">: 1 (Satu) Berkas</td>
+                    <td style="padding-bottom: 5px; border: none;"><strong>Lampiran</strong></td>
+                    <td style="padding-bottom: 5px; border: none;">: 1 (Satu) Berkas</td>
                 </tr>
                 <tr>
-                    <td style="vertical-align: top;"><strong>Perihal</strong></td>
-                    <td style="vertical-align: top;">: <strong>Proposal Penawaran Harga Layanan
-                            {{ $productClusterName }}</strong></td>
+                    <td style="vertical-align: top; border: none;"><strong>Perihal</strong></td>
+                    <td style="vertical-align: top; border: none;">: <strong>Proposal Penawaran Harga Layanan
+                            {{ $productClusterNameFormatted }}</strong></td>
                 </tr>
             </table>
         </div>
@@ -341,7 +349,7 @@
         <div style="margin-bottom: 20px;">
             Yth.<br>
             @if ($recipientName)
-                <strong>{{ $recipientSalutation }}{{ $recipientName }}</strong>
+                <strong>{{ $recipientSalutation }}{{ $recipientNameFormatted }}</strong>
                 @if ($recipientTitle)
                     <span>({{ $recipientTitle }})</span>
                 @endif
@@ -349,7 +357,7 @@
             @elseif ($recipientTitle)
                 <strong>{{ $recipientTitle }}</strong><br>
             @endif
-            <strong>PT {{ $customerName }}</strong><br>
+            <strong>PT {{ $customerNameFormatted }}</strong><br>
             {{ $record->customer->address ?? 'Di Tempat' }}
         </div>
 
@@ -363,10 +371,10 @@
         @else
             <p>Kami dari PT Garuda Daya Pratama Sejahtera (PT GDPS) mengucapkan terima kasih atas kesempatan yang
                 diberikan sehingga dapat menyampaikan Proposal Penawaran Harga Paket Layanan
-                <strong>{{ $productClusterName }}</strong> dengan nomor
+                <strong>{{ $productClusterNameFormatted }}</strong> dengan nomor
                 <strong>{{ $record->proposal_number }}</strong>
                 sebagai tindak lanjut atas permintaan {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} melalui
-                email/telepon/online meeting/offline meeting/chat pada tanggal [...................].
+                email/telepon/online meeting/offline meeting/chat pada tanggal {{ $meetingDateText }}.
             </p>
             <p>Besar harapan kami supaya dapat menyampaikan klarifikasi secara langsung atas penawaran kami ini untuk
                 memastikan bahwa kebutuhan perusahaan {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} terpenuhi dengan
@@ -385,7 +393,7 @@
                 <div>Hormat kami,</div>
                 <div><strong>PT Garuda Daya Pratama Sejahtera</strong></div>
                 <div class="signature-space"></div>
-                <div><strong style="text-decoration: underline;">{{ $amsName }}</strong></div>
+                <div><strong style="text-decoration: underline;">{{ $amsNameFormatted }}</strong></div>
                 <div>Account Manager & Sales</div>
                 @if ($amsEmail)
                     <div style="font-size: 10px;">{{ $amsEmail }}</div>
@@ -402,64 +410,25 @@
         </div>
 
         <div class="page-break"></div>
-        <h1>1. HARGA & DETAIL LAYANAN</h1>
+        {{-- Section 1 Summary Table removed per layout optimization --}}
 
         @php
-            $cluster = $pa->productCluster ?? ($gi->productCluster ?? ($record->lead?->productCluster ?? null));
-            $clusterLogoBase64 = $cluster ? imageToBase64($cluster->getFirstMedia('logo')) : null;
-        @endphp
+            $directItems = $pa ? $pa->getDirectItems() : collect();
+            // Show detailed list if it's NOT manual cost OR if it IS manual cost but has items
+$hasDetailedLists = $pa && $directItems->isNotEmpty();
+$totalBaseCost = 0;
+$feeAmount = 0;
 
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 55%;">Deskripsi Layanan (Service Description)</th>
-                    <th style="width: 15%;">Lokasi (Site)</th>
-                    <th style="width: 30%;">Total Harga / Bulan (Price IDR)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td style="vertical-align: middle; text-align: center;">
-                        @if ($clusterLogoBase64)
-                            <img src="{{ $clusterLogoBase64 }}" style="height: 45px; display: block; margin: 0 auto;">
-                        @endif
-                    </td>
-                    <td class="text-center">{{ $location }}</td>
-                    <td class="text-right">{{ number_format($revenue, 0, ',', '.') }}</td>
-                </tr>
-                <tr class="bg-gray">
-                    <td colspan="2" class="text-right">Subtotal (DPP)</td>
-                    <td class="text-right">{{ number_format($revenue, 0, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <td colspan="2" class="text-right">PPN (11%)</td>
-                    <td class="text-right">{{ number_format($revenue * 0.11, 0, ',', '.') }}</td>
-                </tr>
-                <tr class="bg-dark font-bold border-dark">
-                    <td colspan="2" class="text-right"
-                        style="color: white; background-color: #0f172a; padding: 10px;">
-                        GRAND TOTAL PER BULAN (INCL. PPN)</td>
-                    <td class="text-right" style="color: white; background-color: #0f172a; padding: 10px;">
-                        {{ number_format($revenue * 1.11, 0, ',', '.') }}</td>
-                </tr>
-            </tbody>
-        </table>
-
-        @php
-            $hasDetailedLists = $pa && !$pa->is_manual_cost && (!empty($manpower) || !empty($operationalCosts));
-            $totalBaseCost = 0;
-            $feeAmount = 0;
-
-            if ($hasDetailedLists) {
-                $totalBaseCost =
-                    collect($manpower)->sum('total_monthly_cost') +
-                    collect($operationalCosts)->sum('total_monthly_cost');
-                $feeAmount = $revenue - $totalBaseCost;
+if ($hasDetailedLists) {
+    $totalBaseCost = $directItems->sum('total_monthly_cost');
+                $feeAmount = max(0, $revenue - $totalBaseCost);
             }
         @endphp
 
         @if ($hasDetailedLists && $totalBaseCost > 0)
-            <h2 style="margin-top: 15px; margin-bottom: 10px;">Rincian Komponen Layanan:</h2>
+            <h2 style="margin-top: 20px; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px;">
+                I. DETAIL PENAWARAN HARGA (ITEMIZED COST)
+            </h2>
             <table style="font-size: 9px; table-layout: auto;">
                 <thead>
                     <tr>
@@ -477,18 +446,17 @@
                     @php
                         $sumGrandTotal = 0;
                         $idx = 1;
-                        $allItems = array_merge($manpower, $operationalCosts);
                     @endphp
-                    @foreach ($allItems as $item)
+                    @foreach ($directItems as $item)
                         @php
-                            $name = $item['job_position_name'] ?? ($item['item_name'] ?? '-');
-                            $price = $item['unit_cost'] ?? 0;
-                            $qty = $item['quantity'] ?? 1;
-                            $uom = isset($item['job_position_name']) ? $item['uom'] ?? 'Orang' : $item['uom'] ?? 'Unit';
-                            $totalCost = $item['total_monthly_cost'] ?? 0;
+                            $name = $item->name ?? 'Layanan Pendukung';
+                            $price = $item->unit_cost_price ?? 0;
+                            $qty = $item->quantity ?? 1;
+                            $uom = $item->uom ?? 'Unit';
+                            $totalCost = $item->total_monthly_cost ?? 0;
                             $proportionalFee = $totalBaseCost > 0 ? ($totalCost / $totalBaseCost) * $feeAmount : 0;
-                            $subtotal = $totalCost + $proportionalFee;
-                            $sumGrandTotal += $subtotal;
+                            $subtotalItem = $totalCost + $proportionalFee;
+                            $sumGrandTotal += $subtotalItem;
                         @endphp
                         <tr>
                             <td class="text-center">{{ $idx++ }}</td>
@@ -498,14 +466,25 @@
                             <td class="text-center">{{ $uom }}</td>
                             <td class="text-right">{{ number_format($totalCost, 0, ',', '.') }}</td>
                             <td class="text-right">{{ number_format($proportionalFee, 0, ',', '.') }}</td>
-                            <td class="text-right">{{ number_format($subtotal, 0, ',', '.') }}</td>
+                            <td class="text-right">{{ number_format($subtotalItem, 0, ',', '.') }}</td>
                         </tr>
                     @endforeach
                     <tr class="bg-gray">
-                        <td colspan="7" class="text-right font-bold" style="padding: 6px;">TOTAL HARGA PENAWARAN
-                            (DPP)</td>
+                        <td colspan="7" class="text-right font-bold" style="padding: 6px;">SUBTOTAL (DPP)</td>
                         <td class="text-right font-bold" style="padding: 6px;">
                             {{ number_format($sumGrandTotal, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="7" class="text-right" style="padding: 6px;">PPN (11%)</td>
+                        <td class="text-right" style="padding: 6px;">
+                            {{ number_format($sumGrandTotal * 0.11, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr class="bg-dark font-bold border-dark">
+                        <td colspan="7" class="text-right"
+                            style="color: white; background-color: #0f172a; padding: 10px;">
+                            GRAND TOTAL PER BULAN (INCL. PPN)</td>
+                        <td class="text-right" style="color: white; background-color: #0f172a; padding: 10px;">
+                            {{ number_format($sumGrandTotal * 1.11, 0, ',', '.') }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -653,24 +632,24 @@
                     <td style="border: none; width: 50%; padding: 0; text-align: left;">Disetujui oleh,</td>
                 </tr>
                 <tr>
-                    <td
-                        style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: bottom;">
-                        @if ($logoSquare)
-                            <img src="{{ $logoSquare }}"
-                                style="height: 45px; margin-bottom: 15px; display: block;">
-                        @else
+                    <td style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: top;">
+                        <div style="margin-bottom: 30px;">
                             <div style="height: 50px;"></div>
-                        @endif
-                        <strong>{{ $amsName }}</strong><br>
-                        Account Manager & Sales<br>
-                        PT Garuda Daya Pratama Sejahtera
+                        </div>
+                        <div style="line-height: 1.4;">
+                            <strong style="font-size: 12px;">{{ $amsNameFormatted }}</strong><br>
+                            Account Manager & Sales<br>
+                            PT Garuda Daya Pratama Sejahtera
+                        </div>
                     </td>
-                    <td
-                        style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: bottom;">
-                        <div style="height: 50px;"></div>
-                        <strong>{{ $recipientName ?? '....................................' }}</strong><br>
-                        {{ $recipientTitle ?? 'Jabatan' }}<br>
-                        PT {{ $customerName ?? '........................' }}
+                    <td style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: top;">
+                        <div style="height: 50px; margin-bottom: 30px;"></div>
+                        <div style="line-height: 1.4;">
+                            <strong
+                                style="font-size: 12px; border-bottom: 1px solid #1e293b;">{{ $recipientNameFormatted ?: '....................................' }}</strong><br>
+                            {{ $recipientTitle ?? 'Jabatan' }}<br>
+                            PT {{ $customerNameFormatted ?: '........................' }}
+                        </div>
                     </td>
                 </tr>
             </table>
@@ -807,36 +786,7 @@
 
             @endif
 
-            {{-- Summary of Component Recap --}}
-            <h2 style="margin-top: 30px;">III. REKAPITULASI KOMPONEN BIAYA (SUMMARY COST)</h2>
-            @php
-                if ($pa->is_manual_cost) {
-                    $totalBaseCost = $pa->direct_cost;
-                } else {
-                    $totalBaseCost =
-                        collect($manpower)->sum('total_monthly_cost') +
-                        collect($operationalCosts)->sum('total_monthly_cost');
-                }
-                $feeAmount = $revenue - $totalBaseCost;
-            @endphp
-            <table style="width: 100%;">
-                <tr class="bg-gray">
-                    <th style="width: 75%; text-align: left;">Deskripsi Komponen (Cost Description)</th>
-                    <th style="width: 25%; text-align: right;">Total Nilai / Bulan (Rp)</th>
-                </tr>
-                <tr>
-                    <td>Total Direct Cost (Personil & Material)</td>
-                    <td class="text-right">{{ number_format($totalBaseCost, 0, ',', '.') }}</td>
-                </tr>
-                <tr>
-                    <td>Management Fee GDPS ({{ number_format($managementFee, 0) }}%)</td>
-                    <td class="text-right">{{ number_format($feeAmount, 0, ',', '.') }}</td>
-                </tr>
-                <tr class="bg-dark" style="color: white; font-weight: bold;">
-                    <td class="text-right">ESTIMASI TOTAL HARGA PENAWARAN (DPP)</td>
-                    <td class="text-right">{{ number_format($revenue, 0, ',', '.') }}</td>
-                </tr>
-            </table>
+            {{-- Section III removed per professional aesthetics requirement --}}
         @endif
     </div>
 </body>

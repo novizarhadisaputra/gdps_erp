@@ -74,7 +74,7 @@ class ContractForm
                         ->placeholder('Select expiry date')
                         ->helperText('Contract expiration date.'),
                     \Filament\Forms\Components\Placeholder::make('status')
-                        ->content(fn ($record) => $record?->status?->getLabel() ?? '-'),
+                        ->content(fn ($record) => $record?->status instanceof \Filament\Support\Contracts\HasLabel ? $record->status->getLabel() : ($record?->status ?? '-')),
                     Select::make('reminder_status')
                         ->options(ReminderStatus::class)
                         ->placeholder('Reminder status'),

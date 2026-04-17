@@ -47,9 +47,9 @@ class ProfitabilityAnalysisWeekliesTable
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make()
-                        ->form(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema)),
+                        ->schema(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema)),
                     EditAction::make()
-                        ->form(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema))
+                        ->schema(fn (Schema $schema) => ProfitabilityAnalysisWeeklyForm::configure($schema))
                         ->visible(fn ($record) => $record->monthly->status === ProfitabilityAnalysisMonthlyStatus::Draft),
                     DeleteAction::make()
                         ->visible(fn ($record) => $record->monthly->status === ProfitabilityAnalysisMonthlyStatus::Draft),

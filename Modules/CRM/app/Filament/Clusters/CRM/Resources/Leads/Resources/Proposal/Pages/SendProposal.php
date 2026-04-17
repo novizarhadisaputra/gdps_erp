@@ -186,25 +186,40 @@ class SendProposal extends Page
 
 
             // 4. Send via External API
-            $response = Http::withHeaders([
-                'content-type' => 'application/json',
-                'x-requester-app' => 'GDPS-ERP', // Custom identifier
-            ])->post('https://machine.garudapratama.com/api/v1/email/send', [
-                'to' => [
-                    $formData['recipient_email']
-                ],
-                'subject' => $formData['subject'],
-                'body' => $messageBody,
-                'attachments' => [
-                    [
-                        'name' => $attachmentName,
-                        'url' => $attachmentUrl,
-                    ]
-                ]
+            \Illuminate\Support\Facades\Log::info('Proposal Email Sending Attempt', [
+                'proposal_id' => $this->record->id,
+                'proposal_number' => $this->record->proposal_number,
+                'recipient' => $formData['recipient_email'],
             ]);
 
+            $response = Http::timeout(60) // Add 60s timeout
+                ->withHeaders([
+                    'content-type' => 'application/json',
+                    'x-requester-app' => 'GDPS-ERP',
+                ])->post('https://machine.garudapratama.com/api/v1/email/send', [
+                    'to' => [
+                        $formData['recipient_email']
+                    ],
+                    'subject' => $formData['subject'],
+                    'body' => $messageBody,
+                    'attachments' => [
+                        [
+                            'name' => $attachmentName,
+                            'url' => $attachmentUrl,
+                        ]
+                    ]
+                ]);
+
             if (!$response->successful()) {
-                throw new \Exception("External API Error: " . ($response->json('message') ?? $response->status()));
+                $errorMsg = $response->json('message') ?? $response->status();
+                
+                \Illuminate\Support\Facades\Log::error('Proposal Email Sending Failed', [
+                    'proposal_id' => $this->record->id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                throw new \Exception("External API Error: " . $errorMsg);
             }
 
             // 5. Update Proposal status to Sent

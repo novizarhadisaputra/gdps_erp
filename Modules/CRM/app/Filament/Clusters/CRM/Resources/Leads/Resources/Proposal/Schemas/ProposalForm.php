@@ -319,6 +319,13 @@ class ProposalForm
                                     ->disabled(fn ($record) => $record?->status !== ProposalStatus::Draft)
                                     ->placeholder('Select date')
                                     ->helperText('When this proposal was sent to the client.'),
+
+                                DatePicker::make('meeting_date')
+                                    ->label('Meeting Date')
+                                    ->prefixIcon('heroicon-o-users')
+                                    ->native(false)
+                                    ->placeholder('Select date')
+                                    ->helperText('The date when the proposal meeting took place.'),
                             ]),
 
                         Section::make('Status')

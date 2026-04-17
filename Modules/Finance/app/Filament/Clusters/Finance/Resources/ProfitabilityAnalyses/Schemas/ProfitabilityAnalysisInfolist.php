@@ -30,7 +30,7 @@ class ProfitabilityAnalysisInfolist
                             ->modalHeading('Edit General Information'),
                     ])
                     ->schema([
-                        Grid::make(3)
+                        Grid::make(['default' => 1, 'md' => 3])
                             ->schema([
                                 TextEntry::make('proposal.proposal_number')
                                     ->label('Proposal Number')
@@ -40,7 +40,7 @@ class ProfitabilityAnalysisInfolist
                                 TextEntry::make('workScheme.name')
                                     ->label('Work Scheme'),
                             ]),
-                        Grid::make(3)
+                        Grid::make(['default' => 1, 'md' => 3])
                             ->schema([
                                 TextEntry::make('tor_document')
                                     ->label('ToR Document')
@@ -90,12 +90,12 @@ class ProfitabilityAnalysisInfolist
                             ->icon(Heroicon::OutlinedPencil)
                             ->color('gray')
                             ->size('sm')
-                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 2))
+                            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 2))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Project Parameters'),
                     ])
                     ->schema([
-                        Grid::make(4)
+                        Grid::make(['default' => 1, 'sm' => 2, 'lg' => 4])
                             ->schema([
                                 TextEntry::make('productCluster.name')
                                     ->label('Product Cluster'),
@@ -114,7 +114,7 @@ class ProfitabilityAnalysisInfolist
                             ->icon(Heroicon::OutlinedUsers)
                             ->color('gray')
                             ->size('sm')
-                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
+                            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Manpower Costing')
                             ->visible(fn ($record) => $record && ! $record->is_manual_cost),
@@ -123,7 +123,7 @@ class ProfitabilityAnalysisInfolist
                             ->icon(Heroicon::OutlinedWrenchScrewdriver)
                             ->color('gray')
                             ->size('sm')
-                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
+                            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Operational Costing')
                             ->visible(fn ($record) => $record && ! $record->is_manual_cost),
@@ -132,7 +132,7 @@ class ProfitabilityAnalysisInfolist
                             ->icon(Heroicon::OutlinedBanknotes)
                             ->color('gray')
                             ->size('sm')
-                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
+                            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Manual Cost Breakdown')
                             ->visible(fn ($record) => $record?->is_manual_cost),
@@ -141,13 +141,13 @@ class ProfitabilityAnalysisInfolist
                             ->icon(Heroicon::OutlinedPresentationChartLine)
                             ->color('gray')
                             ->size('sm')
-                            ->form(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
+                            ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 6))
                             ->action(fn ($record, array $data) => $record->update($data))
                             ->modalHeading('Edit Indirect Costing'),
                     ])
                     ->columnSpanFull()
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(['default' => 1, 'sm' => 2])
                             ->schema([
                                 TextEntry::make('revenue_per_month')
                                     ->label('1. TOTAL REVENUE (EXCL. PPN)')
@@ -159,7 +159,7 @@ class ProfitabilityAnalysisInfolist
                                     ->weight(FontWeight::Bold),
                             ]),
 
-                        Grid::make(3)
+                        Grid::make(['default' => 1, 'md' => 3])
                             ->schema([
                                 TextEntry::make('direct_cost_manpower')
                                     ->label(' - Manpower')
@@ -175,7 +175,7 @@ class ProfitabilityAnalysisInfolist
                                     ->money('IDR'),
                             ])->columnSpanFull(),
 
-                        Grid::make(2)
+                        Grid::make(['default' => 1, 'sm' => 2])
                             ->schema([
                                 TextEntry::make('gross_profit')
                                     ->label('3. GROSS PROFIT')
@@ -219,7 +219,7 @@ class ProfitabilityAnalysisInfolist
                                     ->listWithLineBreaks(),
                             ])->visible(fn ($record) => $record?->getIndirectItems()->isNotEmpty()),
 
-                        Grid::make(4)
+                        Grid::make(['default' => 1, 'sm' => 2, 'lg' => 4])
                             ->schema([
                                 TextEntry::make('ebitda')
                                     ->label('5. EBITDA')

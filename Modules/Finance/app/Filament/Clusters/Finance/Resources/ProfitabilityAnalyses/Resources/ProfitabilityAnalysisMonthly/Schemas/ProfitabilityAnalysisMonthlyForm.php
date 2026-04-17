@@ -5,15 +5,13 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
-use Modules\MasterData\Models\DirectCostCategory;
-
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use Modules\MasterData\Models\DirectCostCategory;
 
 class ProfitabilityAnalysisMonthlyForm
 {
@@ -41,12 +39,14 @@ class ProfitabilityAnalysisMonthlyForm
 
             Section::make('Monthly Performance Summary')
                 ->description('Financial performance snapshot comparing targets, forecasts, and actuals.')
+                ->visible(fn (string $operation): bool => $operation !== 'create')
+
                 ->schema([
                     Grid::make(2)
                         ->schema([
                             TextInput::make('target_revenue')
                                 ->label('Budget (RKAP)')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->required()
                                 ->readOnly()
@@ -56,18 +56,17 @@ class ProfitabilityAnalysisMonthlyForm
 
                             TextInput::make('actual_revenue')
                                 ->label('Realized Revenue (Actual)')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->readOnly()
                                 ->visible(fn (string $operation): bool => $operation !== 'create')
                                 ->helperText('Achieved revenue summed from weekly records.'),
                         ]),
-                    
                     Grid::make(1)
                         ->schema([
                             TextInput::make('forecast_revenue')
                                 ->label('Latest Forecast (RoFo)')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->readOnly()
                                 ->visible(fn (string $operation): bool => $operation !== 'create')
@@ -81,7 +80,7 @@ class ProfitabilityAnalysisMonthlyForm
                 ->schema([
                     TextInput::make('status')
                         ->readOnly()
-                        ->formatStateUsing(fn ($state) => $state?->getLabel()),
+                        ->formatStateUsing(fn ($state) => $state instanceof \Filament\Support\Contracts\HasLabel ? $state->getLabel() : $state),
                 ]),
 
             Section::make('Actual Monthly Costs')
@@ -90,7 +89,7 @@ class ProfitabilityAnalysisMonthlyForm
                 ->schema([
                     TextInput::make('actual_cost')
                         ->label('Total Actual Cost')
-                        ->numeric()
+                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                         ->prefix('IDR ')
                         ->readOnly(),
 
@@ -107,7 +106,7 @@ class ProfitabilityAnalysisMonthlyForm
                                         ->columnSpan(2),
                                     TextInput::make('amount')
                                         ->label('Amount')
-                                        ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR ')
                                         ->readOnly() // Make it read-only
                                         ->columnSpan(1),

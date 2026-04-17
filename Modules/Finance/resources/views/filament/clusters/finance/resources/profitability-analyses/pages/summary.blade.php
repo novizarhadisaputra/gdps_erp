@@ -10,7 +10,7 @@
         {{-- Top Branding Bar --}}
         <div class="h-1.5 bg-primary-600 w-full"></div>
 
-        <div class="p-12">
+        <div class="p-6 md:p-12">
             {{-- Header Section --}}
             <table style="width: 100%; border: none; margin-bottom: 20px; border-bottom: 2px solid #000;">
                 <tr>
@@ -34,7 +34,7 @@
                 </tr>
             </table>
 
-            <div class="grid grid-cols-2 gap-x-16 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-x-16 mb-12">
                 <div class="space-y-2">
                     <div class="flex justify-between items-baseline border-b border-gray-100 dark:border-gray-800 pb-1">
                         <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Customer</span>
@@ -76,7 +76,7 @@
             </div>
 
             {{-- Main Statement Table --}}
-            <div class="border border-gray-200 dark:border-gray-700">
+            <div class="border border-gray-200 dark:border-gray-700 overflow-x-auto">
                 <table class="w-full text-sm text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
@@ -502,7 +502,7 @@
                             <div class="h-px bg-slate-200 dark:bg-slate-800 w-full"></div>
                         </div>
 
-                        <div class="grid grid-cols-4 gap-8">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                             @foreach ($stage['items'] as $item)
                                 <div class="flex flex-col items-center">
                                     {{-- Role Title --}}

@@ -34,6 +34,10 @@ class ProposalInfolist
                                     ->money('IDR'),
                                 TextEntry::make('submission_date')
                                     ->date(),
+                                TextEntry::make('meeting_date')
+                                    ->date()
+                                    ->color('info')
+                                    ->visible(fn ($record) => filled($record?->meeting_date)),
                                 TextEntry::make('revision_number')
                                     ->label('Revision #')
                                     ->badge()
