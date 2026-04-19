@@ -3,48 +3,39 @@
 namespace Modules\Finance\Models;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Modules\Finance\Observers\ProfitabilityAnalysisWeeklyObserver;
 
-#[ObservedBy(ProfitabilityAnalysisWeeklyObserver::class)]
-class ProfitabilityAnalysisWeekly extends Model
+class ProfitabilityAnalysisMonthlyLog extends Model
 {
     use HasFactory, HasUuids;
+    use HasModuleSchema;
 
-    protected $table = 'profitability_analysis_weeklies';
+    protected $table = 'profitability_analysis_monthly_logs';
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'profitability_analysis_id',
         'profitability_analysis_monthly_id',
-        'projected_revenue',
-        'achieved_revenue',
-        'notes',
-        'week_number',
-        'month',
-        'year',
         'user_id',
+        'field_name',
+        'old_value',
+        'new_value',
+        'delta',
+        'notes',
     ];
 
     protected function casts(): array
     {
         return [
-            'projected_revenue' => 'decimal:2',
-            'achieved_revenue' => 'decimal:2',
-            'week_number' => 'integer',
-            'year' => 'integer',
+            'old_value' => 'decimal:2',
+            'new_value' => 'decimal:2',
+            'delta' => 'decimal:2',
         ];
-    }
-
-    public function profitabilityAnalysis(): BelongsTo
-    {
-        return $this->belongsTo(ProfitabilityAnalysis::class);
     }
 
     public function monthly(): BelongsTo

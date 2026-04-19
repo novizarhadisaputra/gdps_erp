@@ -601,7 +601,6 @@ trait HasProfitabilityAnalysisActions
             $this->getSubmitAction(),
             $this->getIncompleteSubmitWarningAction(),
             $this->getGenerateProjectAction(),
-            $this->getWeeklyRevenueUpdateAction(),
 
             ActionGroup::make([
                 $this->getDuplicateAction(),
@@ -645,38 +644,4 @@ trait HasProfitabilityAnalysisActions
         return true;
     }
 
-    protected function getWeeklyRevenueUpdateAction(): Action
-    {
-        return Action::make('weeklyRevenueUpdate')
-            ->label('Weekly Update')
-            ->modalHeading('Weekly Revenue Projection Update')
-            ->icon(Heroicon::OutlinedPresentationChartLine)
-            ->color('warning')
-            ->visible(fn ($record) => $record->project()->exists())
-            ->schema([
-                TextInput::make('projected_revenue')
-                    ->label('Projected Revenue (IDR)')
-                    ->numeric()
-                    ->required()
-                    ->default(fn ($record) => $record->weeklyUpdates()->latest()?->projected_revenue ?? $record->revenue_per_month),
-                TextInput::make('notes')
-                    ->label('Notes')
-                    ->placeholder('Explain reasons for the projection change...')
-                    ->required(),
-            ])
-            ->action(function ($record, array $data) {
-                $record->weeklyUpdates()->create([
-                    'projected_revenue' => $data['projected_revenue'],
-                    'notes' => $data['notes'],
-                    'week_number' => now()->weekOfYear,
-                    'year' => now()->year,
-                    'user_id' => auth()->id(),
-                ]);
-
-                Notification::make()
-                    ->title('Revenue Projection Updated')
-                    ->success()
-                    ->send();
-            });
-    }
 }

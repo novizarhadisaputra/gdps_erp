@@ -45,32 +45,55 @@ class ProfitabilityAnalysisMonthlyForm
                     Grid::make(2)
                         ->schema([
                             TextInput::make('target_revenue')
-                                ->label('Budget (RKAP)')
+                                ->label('Baseline (Sales Plan)')
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->required()
                                 ->readOnly()
+                                ->hidden() // Hidden as per user request
                                 ->visible(fn (string $operation): bool => $operation !== 'create')
                                 ->default(fn (Get $get, ?ProfitabilityAnalysisMonthly $record) => $record?->profitabilityAnalysis?->revenue_per_month)
-                                ->helperText('Target revenue from Sales Plan (read-only).'),
+                                ->helperText('Initial target revenue from Sales Plan.'),
 
                             TextInput::make('actual_revenue')
-                                ->label('Realized Revenue (Actual)')
+                                ->label('Actual Revenue (Realized)')
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->readOnly()
                                 ->visible(fn (string $operation): bool => $operation !== 'create')
-                                ->helperText('Achieved revenue summed from weekly records.'),
+                                ->helperText('Realized revenue recorded by Finance.'),
+
+                            TextInput::make('actual_cost')
+                                ->label('Actual Cost (Realized)')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR ')
+                                ->readOnly()
+                                ->visible(fn (string $operation): bool => $operation !== 'create')
+                                ->helperText('Realized costs recorded by Finance.'),
                         ]),
-                    Grid::make(1)
+                    Grid::make(3)
                         ->schema([
                             TextInput::make('forecast_revenue')
-                                ->label('Latest Forecast (RoFo)')
+                                ->label('Latest RoFo')
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->readOnly()
                                 ->visible(fn (string $operation): bool => $operation !== 'create')
-                                ->helperText('Last expected revenue from weekly updates.'),
+                                ->helperText('Rolling forecast updated weekly.'),
+
+                            TextInput::make('gross_profit')
+                                ->label('Gross Profit')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR ')
+                                ->readOnly()
+                                ->visible(fn (string $operation): bool => $operation !== 'create'),
+
+                            TextInput::make('ebit')
+                                ->label('EBIT')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR ')
+                                ->readOnly()
+                                ->visible(fn (string $operation): bool => $operation !== 'create'),
                         ])
                         ->visible(fn (string $operation): bool => $operation !== 'create'),
                 ]),
@@ -114,6 +137,58 @@ class ProfitabilityAnalysisMonthlyForm
                             TextInput::make('description')
                                 ->label('Description/Notes')
                                 ->readOnly(),
+                        ])
+                        ->addable(false)
+                        ->deletable(false)
+                        ->reorderable(false)
+                        ->columnSpanFull(),
+                ]),
+
+            Section::make('Update History')
+                ->description('Timeline of RoFo and Actual revenue adjustments.')
+                ->visible(fn (string $operation): bool => $operation !== 'create')
+                ->collapsible()
+                ->schema([
+                    Repeater::make('logs')
+                        ->relationship('logs')
+                        ->label(false)
+                        ->itemLabel(fn (array $state): ?string => 
+                            ($state['field_name'] === 'forecast_revenue' ? 'RoFo' : 'Actual') . 
+                            ' adjustment recorded'
+                        )
+                        ->schema([
+                            Grid::make(3)
+                                ->schema([
+                                    TextInput::make('created_at')
+                                        ->label('Timestamp')
+                                        ->readOnly(),
+                                    TextInput::make('field_name')
+                                        ->label('Component')
+                                        ->formatStateUsing(fn ($state) => $state === 'forecast_revenue' ? 'RoFo' : 'Actual')
+                                        ->readOnly(),
+                                    TextInput::make('user_name')
+                                        ->label('Updated By')
+                                        ->state(fn ($record) => $record?->user?->name)
+                                        ->readOnly(),
+                                ]),
+                            Grid::make(3)
+                                ->schema([
+                                    TextInput::make('old_value')
+                                        ->label('Previous Value')
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                        ->prefix('IDR ')
+                                        ->readOnly(),
+                                    TextInput::make('new_value')
+                                        ->label('New Value')
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                        ->prefix('IDR ')
+                                        ->readOnly(),
+                                    TextInput::make('delta')
+                                        ->label('Delta Amount')
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                        ->prefix('IDR ')
+                                        ->readOnly(),
+                                ]),
                         ])
                         ->addable(false)
                         ->deletable(false)

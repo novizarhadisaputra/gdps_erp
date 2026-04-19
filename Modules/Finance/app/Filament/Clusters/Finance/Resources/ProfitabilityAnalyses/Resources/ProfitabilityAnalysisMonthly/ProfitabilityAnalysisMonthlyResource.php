@@ -10,6 +10,7 @@ use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Re
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Pages;
+use App\Filament\RelationManagers\MeetingRelationManager;
 
 class ProfitabilityAnalysisMonthlyResource extends Resource
 {
@@ -46,14 +47,13 @@ class ProfitabilityAnalysisMonthlyResource extends Resource
             'create' => Pages\CreateProfitabilityAnalysisMonthly::route('/create'),
             'edit' => Pages\EditProfitabilityAnalysisMonthly::route('/{record}/edit'),
             'view' => Pages\ViewProfitabilityAnalysisMonthly::route('/{record}'),
-            'weeklies' => Pages\ManageWeeklyUpdates::route('/{record}/weeklies'),
         ];
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            MeetingRelationManager::class,
         ];
     }
 
@@ -62,7 +62,6 @@ class ProfitabilityAnalysisMonthlyResource extends Resource
         return $page->generateNavigationItems([
             Pages\ViewProfitabilityAnalysisMonthly::class,
             Pages\EditProfitabilityAnalysisMonthly::class,
-            Pages\ManageWeeklyUpdates::class,
         ]);
     }
 }

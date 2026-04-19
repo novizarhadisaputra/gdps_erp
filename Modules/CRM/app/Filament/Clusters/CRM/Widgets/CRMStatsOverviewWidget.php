@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
-use Modules\Finance\Models\ProfitabilityAnalysisWeekly;
 
 class CRMStatsOverviewWidget extends BaseWidget
 {
@@ -70,29 +69,30 @@ class CRMStatsOverviewWidget extends BaseWidget
                 ? round((($leadsThisMonth - $leadsLastMonth) / $leadsLastMonth) * 100, 1)
                 : 0;
 
-            // 1. PROJECTED REVENUE (Now using Monthlies instead of complex Weekly queries)
+            // 1. PROJECTED REVENUE (Now using Monthly comparison for trend)
             $thisMonthName = Carbon::now()->format('F');
             $thisYear = Carbon::now()->year;
+            $lastMonthName = Carbon::now()->subMonth()->format('F');
+            $lastMonthYear = Carbon::now()->subMonth()->year;
 
-            $projectedRevenue = \Modules\Finance\Models\ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
+            $projectedRevenue = ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
                 ->where('year', $thisYear)
                 ->sum('forecast_revenue');
 
-            // Find last week projected for trend (Optional: keep using weeklies for grain, or just use monthlies)
-            $lastWeekProjected = ProfitabilityAnalysisWeekly::where('created_at', '<', Carbon::now()->startOfWeek())
-                ->where('created_at', '>=', Carbon::now()->subWeek()->startOfWeek())
-                ->sum('projected_revenue');
+            $lastMonthProjected = ProfitabilityAnalysisMonthly::where('month', $lastMonthName)
+                ->where('year', $lastMonthYear)
+                ->sum('forecast_revenue');
 
-            $projTrend = $lastWeekProjected > 0
-                ? round((($projectedRevenue - $lastWeekProjected) / $lastWeekProjected) * 100, 1)
+            $projTrend = $lastMonthProjected > 0
+                ? round((($projectedRevenue - $lastMonthProjected) / $lastMonthProjected) * 100, 1)
                 : 0;
 
             // 2. NEW: MONTHLY NET PROFIT & MARGIN
-            $actualNetProfit = \Modules\Finance\Models\ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
+            $actualNetProfit = ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
                 ->where('year', $thisYear)
                 ->sum('actual_net_profit');
 
-            $avgMargin = \Modules\Finance\Models\ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
+            $avgMargin = ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
                 ->where('year', $thisYear)
                 ->where('actual_revenue', '>', 0)
                 ->avg('actual_margin_percentage') ?? 0;
@@ -119,7 +119,7 @@ class CRMStatsOverviewWidget extends BaseWidget
                     ->color('warning'),
 
                 Stat::make('Projected Revenue (Monthly)', 'Rp '.number_format($projectedRevenue, 0, ',', '.'))
-                    ->description($projTrend >= 0 ? '+'.number_format($projTrend, 1).'% from last week' : number_format($projTrend, 1).'% from last week')
+                    ->description($projTrend >= 0 ? '+'.number_format($projTrend, 1).'% from last month' : number_format($projTrend, 1).'% from last month')
                     ->descriptionIcon($projTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
                     ->color($projTrend >= 0 ? 'success' : 'warning'),
 

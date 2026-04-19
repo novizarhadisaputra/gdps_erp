@@ -6,7 +6,6 @@ use App\Services\AnalyticsCacheService;
 use Carbon\Carbon;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\Finance\Models\ProfitabilityAnalysisWeekly;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 use Illuminate\Support\Facades\DB;
  

@@ -207,11 +207,6 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         return $this->hasOne(Project::class);
     }
 
-    public function weeklies(): HasMany
-    {
-        return $this->hasMany(ProfitabilityAnalysisWeekly::class);
-    }
-
     public function monthlies(): HasMany
     {
         return $this->hasMany(ProfitabilityAnalysisMonthly::class);

@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Models;
 
+use App\Traits\HasMeetings;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,7 +17,7 @@ use Modules\Finance\Observers\ProfitabilityAnalysisMonthlyObserver;
 class ProfitabilityAnalysisMonthly extends Model
 {
     use HasFactory, HasUuids;
-    use HasModuleSchema;
+    use HasModuleSchema, HasMeetings;
 
     protected $table = 'profitability_analysis_monthlies';
 
@@ -61,8 +62,8 @@ class ProfitabilityAnalysisMonthly extends Model
         return $this->belongsTo(ProfitabilityAnalysis::class);
     }
 
-    public function weeklies(): HasMany
+    public function logs(): HasMany
     {
-        return $this->hasMany(ProfitabilityAnalysisWeekly::class, 'profitability_analysis_monthly_id');
+        return $this->hasMany(ProfitabilityAnalysisMonthlyLog::class, 'profitability_analysis_monthly_id');
     }
 }

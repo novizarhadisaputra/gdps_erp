@@ -94,6 +94,7 @@ class ProfitabilityAnalysisObserver
                 'year' => $breakdown->year,
                 'month' => $monthName,
                 'target_revenue' => $breakdown->budget_amount,
+                'forecast_revenue' => $breakdown->budget_amount,
                 'status' => ProfitabilityAnalysisMonthlyStatus::Draft,
             ]);
         }

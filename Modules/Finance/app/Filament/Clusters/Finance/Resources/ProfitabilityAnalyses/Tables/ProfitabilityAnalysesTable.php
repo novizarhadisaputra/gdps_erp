@@ -112,7 +112,6 @@ class ProfitabilityAnalysesTable
                     ->color('info')
                     ->button(),
                 $instance->getDuplicateAction(),
-                $instance->getWeeklyRevenueUpdateAction(),
                 $instance->getCreateProposalAction(),
                 DeleteAction::make(),
             ])
