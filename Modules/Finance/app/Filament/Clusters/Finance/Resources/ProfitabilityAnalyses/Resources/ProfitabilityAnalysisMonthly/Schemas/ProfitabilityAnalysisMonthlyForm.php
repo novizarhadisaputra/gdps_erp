@@ -10,6 +10,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Contracts\HasLabel;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 use Modules\MasterData\Models\DirectCostCategory;
 
@@ -45,7 +46,7 @@ class ProfitabilityAnalysisMonthlyForm
                     Grid::make(2)
                         ->schema([
                             TextInput::make('target_revenue')
-                                ->label('Baseline (Sales Plan)')
+                                ->label('Target RoFo')
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR ')
                                 ->required()
@@ -53,7 +54,7 @@ class ProfitabilityAnalysisMonthlyForm
                                 ->hidden() // Hidden as per user request
                                 ->visible(fn (string $operation): bool => $operation !== 'create')
                                 ->default(fn (Get $get, ?ProfitabilityAnalysisMonthly $record) => $record?->profitabilityAnalysis?->revenue_per_month)
-                                ->helperText('Initial target revenue from Sales Plan.'),
+                                ->helperText('Initial performance target from Sales Plan monthly breakdown.'),
 
                             TextInput::make('actual_revenue')
                                 ->label('Actual Revenue (Realized)')
@@ -103,7 +104,7 @@ class ProfitabilityAnalysisMonthlyForm
                 ->schema([
                     TextInput::make('status')
                         ->readOnly()
-                        ->formatStateUsing(fn ($state) => $state instanceof \Filament\Support\Contracts\HasLabel ? $state->getLabel() : $state),
+                        ->formatStateUsing(fn ($state) => $state instanceof HasLabel ? $state->getLabel() : $state),
                 ]),
 
             Section::make('Actual Monthly Costs')

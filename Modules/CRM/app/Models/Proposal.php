@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Database\Factories\ProposalFactory;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Observers\ProposalObserver;
@@ -23,7 +24,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 #[ObservedBy(ProposalObserver::class)]
 class Proposal extends Model implements HasMedia
 {
-    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
+    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
     use HasModuleSchema;
 
     protected $fillable = [

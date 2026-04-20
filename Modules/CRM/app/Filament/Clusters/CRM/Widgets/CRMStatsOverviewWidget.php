@@ -10,7 +10,6 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
-use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 
 class CRMStatsOverviewWidget extends BaseWidget
 {
@@ -69,34 +68,6 @@ class CRMStatsOverviewWidget extends BaseWidget
                 ? round((($leadsThisMonth - $leadsLastMonth) / $leadsLastMonth) * 100, 1)
                 : 0;
 
-            // 1. PROJECTED REVENUE (Now using Monthly comparison for trend)
-            $thisMonthName = Carbon::now()->format('F');
-            $thisYear = Carbon::now()->year;
-            $lastMonthName = Carbon::now()->subMonth()->format('F');
-            $lastMonthYear = Carbon::now()->subMonth()->year;
-
-            $projectedRevenue = ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
-                ->where('year', $thisYear)
-                ->sum('forecast_revenue');
-
-            $lastMonthProjected = ProfitabilityAnalysisMonthly::where('month', $lastMonthName)
-                ->where('year', $lastMonthYear)
-                ->sum('forecast_revenue');
-
-            $projTrend = $lastMonthProjected > 0
-                ? round((($projectedRevenue - $lastMonthProjected) / $lastMonthProjected) * 100, 1)
-                : 0;
-
-            // 2. NEW: MONTHLY NET PROFIT & MARGIN
-            $actualNetProfit = ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
-                ->where('year', $thisYear)
-                ->sum('actual_net_profit');
-
-            $avgMargin = ProfitabilityAnalysisMonthly::where('month', $thisMonthName)
-                ->where('year', $thisYear)
-                ->where('actual_revenue', '>', 0)
-                ->avg('actual_margin_percentage') ?? 0;
-
             return [
                 Stat::make('Active Leads', number_format($activeLeads))
                     ->description('Leads in pipeline')
@@ -117,21 +88,6 @@ class CRMStatsOverviewWidget extends BaseWidget
                     ->description('Total estimated value')
                     ->descriptionIcon(Heroicon::CurrencyDollar)
                     ->color('warning'),
-
-                Stat::make('Projected Revenue (Monthly)', 'Rp '.number_format($projectedRevenue, 0, ',', '.'))
-                    ->description($projTrend >= 0 ? '+'.number_format($projTrend, 1).'% from last month' : number_format($projTrend, 1).'% from last month')
-                    ->descriptionIcon($projTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
-                    ->color($projTrend >= 0 ? 'success' : 'warning'),
-
-                Stat::make('Net Profit (MTD)', 'Rp '.number_format($actualNetProfit, 0, ',', '.'))
-                    ->description('Total realized net profit')
-                    ->descriptionIcon(Heroicon::Banknotes)
-                    ->color('success'),
-
-                Stat::make('Avg Actual Margin', round($avgMargin, 2).'%')
-                    ->description('Realized profitability rate')
-                    ->descriptionIcon(Heroicon::PresentationChartBar)
-                    ->color($avgMargin >= 10 ? 'success' : 'warning'), // Threshold 10% example
 
                 Stat::make('Avg Deal Size', 'Rp '.number_format($avgDealSize, 0, ',', '.'))
                     ->description('From won deals')

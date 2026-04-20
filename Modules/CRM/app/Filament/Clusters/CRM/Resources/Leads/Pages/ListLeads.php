@@ -6,6 +6,7 @@ use Filament\Actions;
 use Filament\Support\Icons\Heroicon;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Schema;
+use Filament\Schemas\Components\Tabs\Tab;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 
@@ -27,6 +28,21 @@ class ListLeads extends ListRecords
                 ->url(LeadResource::getUrl('index')),
             Actions\CreateAction::make()
                 ->form(fn (Schema $schema) => LeadForm::configure($schema)),
+        ];
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            'all' => Tab::make()
+                ->icon(Heroicon::OutlinedListBullet),
+            'active' => Tab::make()
+                ->icon(Heroicon::OutlinedFunnel)
+                ->modifyQueryUsing(fn ($query) => $query->withoutTrashed()),
+            'archived' => Tab::make()
+                ->label('Trash / Archived')
+                ->icon(Heroicon::OutlinedTrash)
+                ->modifyQueryUsing(fn ($query) => $query->onlyTrashed()),
         ];
     }
 }

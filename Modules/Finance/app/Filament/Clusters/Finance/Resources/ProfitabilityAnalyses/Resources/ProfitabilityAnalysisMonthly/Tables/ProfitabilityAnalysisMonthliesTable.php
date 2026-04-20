@@ -14,6 +14,8 @@ use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Grid;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Set;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use App\Services\AnalyticsCacheService;
 
 class ProfitabilityAnalysisMonthliesTable
 {
@@ -28,23 +30,27 @@ class ProfitabilityAnalysisMonthliesTable
                     ->label('Year')
                     ->sortable(),
                 TextColumn::make('target_revenue')
-                    ->label('Baseline (Sales Plan)')
+                    ->label('Target RoFo')
                     ->money('IDR')
                     ->sortable()
+                    ->tooltip('Monthly target baseline automatically pulled from Sales Plan.')
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('forecast_revenue')
                     ->label('Latest RoFo')
                     ->money('IDR')
                     ->sortable()
+                    ->tooltip('The most recent Rolling Forecast (RoFo) figure.')
                     ->color('warning'),
                 TextColumn::make('actual_revenue')
                     ->label('Actual')
                     ->money('IDR')
                     ->sortable()
+                    ->tooltip('Realized revenue figure as confirmed by Finance.')
                     ->color('success'),
                 TextColumn::make('status')
                     ->badge()
-                    ->sortable(),
+                    ->sortable()
+                    ->tooltip('Current status of the monthly profitability analysis.'),
             ])
             ->recordActions([
                 ActionGroup::make([
@@ -96,13 +102,13 @@ class ProfitabilityAnalysisMonthliesTable
                                         ->dehydrated(false),
                                 ]),
                         ])
-                        ->mountUsing(fn (Schema $form, \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record) => $form->fill([
+                        ->mountUsing(fn (Schema $form, ProfitabilityAnalysisMonthly $record) => $form->fill([
                             'forecast_revenue' => $record->forecast_revenue,
                             'actual_revenue' => $record->actual_revenue,
                             'forecast_delta' => 0,
                             'actual_delta' => 0,
                         ]))
-                        ->action(function (array $data, \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record): void {
+                        ->action(function (array $data, ProfitabilityAnalysisMonthly $record): void {
                             $oldForecast = (float) $record->forecast_revenue;
                             $newForecast = (float) $data['forecast_revenue'];
                             
@@ -138,7 +144,7 @@ class ProfitabilityAnalysisMonthliesTable
                             }
 
                             // Invalidate analytics caches
-                            $cache = app(\App\Services\AnalyticsCacheService::class);
+                            $cache = app(AnalyticsCacheService::class);
                             $cache->forget('crm.stats_overview');
                             $cache->forget('crm.sales_performance_cumulative');
                             $cache->forget('crm.lead_pipeline_levels');

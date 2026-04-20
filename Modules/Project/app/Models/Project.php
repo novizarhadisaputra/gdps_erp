@@ -30,12 +30,14 @@ use Modules\Project\Observers\ProjectObserver;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 // use Modules\Project\Database\Factories\ProjectFactory;
 
 #[ObservedBy(ProjectObserver::class)]
 class Project extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, InteractsWithMedia;
+    use HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
     use HasModuleSchema;
 
     /**

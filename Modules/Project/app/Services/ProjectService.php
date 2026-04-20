@@ -20,13 +20,7 @@ class ProjectService
             return null;
         }
 
-        // Check if a Project already exists for this Lead
-        $existingProject = Project::where('lead_id', $lead->id)->first();
-        if ($existingProject) {
-            return $existingProject;
-        }
-
-        // Find the Winning Proposal (signed)
+        // 1. Find the Winning Proposal (signed)
         $signedProposal = $lead->proposals()
             ->whereHas('media', function ($query) {
                 $query->where('collection_name', 'signed_proposal');
@@ -37,7 +31,7 @@ class ProjectService
             return null;
         }
 
-        // Find the associated PA
+        // 2. Find the associated PA
         $analysis = $signedProposal->profitabilityAnalysis;
 
         // If no PA linked to proposal, maybe it's the one that triggered this (if $source is PA)
@@ -49,32 +43,34 @@ class ProjectService
             return null;
         }
 
-        // Both ready! Create Project.
+        // 3. Resolve Project Type
         $projectTypeId = $analysis->project_type_id;
         if (! $projectTypeId && $analysis->work_scheme_id) {
             $projectTypeId = $analysis->workScheme?->project_type_id;
         }
         $projectTypeId = $projectTypeId ?? $lead->project_type_id;
 
-        return Project::create([
-            'lead_id' => $lead->id,
-            'proposal_id' => $signedProposal->id,
-            'profitability_analysis_id' => $analysis->id,
-            'customer_id' => $lead->customer_id,
-            'work_scheme_id' => $analysis->work_scheme_id,
-            'project_type_id' => $projectTypeId,
-            'product_cluster_id' => $analysis->product_cluster_id ?? $lead->product_cluster_id,
-            'project_area_id' => $analysis->project_area_id ?? $lead->project_area_id,
-            'tax_id' => $analysis->tax_id ?? $lead->tax_id,
-            'payment_term_id' => $analysis->payment_term_id ?? $lead->payment_term_id,
-            'oprep_id' => $this->getEmployeeIdFromUser($lead->pic_costing_id),
-            'ams_id' => $this->getEmployeeIdFromUser($lead->user_id),
-            'name' => $lead->title ?? $lead->name ?? $signedProposal->proposal_number,
-            'start_date' => $analysis->start_date ?? now(),
-            'end_date' => $analysis->end_date ?? now()->addYear(),
-            'status' => ProjectStatus::Planning,
-            // Project Code and ProjectInformation will be handled by ProjectObserver
-        ]);
+        // 4. Create or Update Project (Atomic)
+        return Project::updateOrCreate(
+            ['lead_id' => $lead->id],
+            [
+                'proposal_id' => $signedProposal->id,
+                'profitability_analysis_id' => $analysis->id,
+                'customer_id' => $lead->customer_id,
+                'work_scheme_id' => $analysis->work_scheme_id,
+                'project_type_id' => $projectTypeId,
+                'product_cluster_id' => $analysis->product_cluster_id ?? $lead->product_cluster_id,
+                'project_area_id' => $analysis->project_area_id ?? $lead->project_area_id,
+                'tax_id' => $analysis->tax_id ?? $lead->tax_id,
+                'payment_term_id' => $analysis->payment_term_id ?? $lead->payment_term_id,
+                'oprep_id' => $this->getEmployeeIdFromUser($lead->pic_costing_id),
+                'ams_id' => $this->getEmployeeIdFromUser($lead->user_id),
+                'name' => $lead->title ?? $lead->name ?? $signedProposal->proposal_number,
+                'start_date' => $analysis->start_date ?? now(),
+                'end_date' => $analysis->end_date ?? now()->addYear(),
+                'status' => ProjectStatus::Planning,
+            ]
+        );
     }
 
     protected function getEmployeeIdFromUser(?string $userId): ?string

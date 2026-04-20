@@ -13,10 +13,8 @@ use Filament\Resources\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
-use Modules\CRM\Emails\ProposalMail;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
@@ -170,11 +168,11 @@ class SendProposal extends Page
                 // Generate PDF on the fly
                 $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
                 $filename = 'proposal-'.str_replace(['/', '\\'], '-', $this->record->proposal_number).'.pdf';
-                
+
                 // Store temporarily on S3 to get a URL
                 $tempPath = "temp/proposals/{$filename}";
                 Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
-                
+
                 /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
                 $disk = Storage::disk('s3');
                 $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
@@ -183,7 +181,6 @@ class SendProposal extends Page
 
             // 3. Prepare Message
             $messageBody = $formData['message'] ?? '';
-
 
             // 4. Send via External API
             \Illuminate\Support\Facades\Log::info('Proposal Email Sending Attempt', [
@@ -198,7 +195,7 @@ class SendProposal extends Page
                     'x-requester-app' => 'GDPS-ERP',
                 ])->post('https://machine.garudapratama.com/api/v1/email/send', [
                     'to' => [
-                        $formData['recipient_email']
+                        $formData['recipient_email'],
                     ],
                     'subject' => $formData['subject'],
                     'body' => $messageBody,
@@ -206,20 +203,20 @@ class SendProposal extends Page
                         [
                             'name' => $attachmentName,
                             'url' => $attachmentUrl,
-                        ]
-                    ]
+                        ],
+                    ],
                 ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $errorMsg = $response->json('message') ?? $response->status();
-                
+
                 \Illuminate\Support\Facades\Log::error('Proposal Email Sending Failed', [
                     'proposal_id' => $this->record->id,
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
 
-                throw new \Exception("External API Error: " . $errorMsg);
+                throw new \Exception('External API Error: '.$errorMsg);
             }
 
             // 5. Update Proposal status to Sent

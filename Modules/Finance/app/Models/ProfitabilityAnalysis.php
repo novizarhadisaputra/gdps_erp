@@ -12,30 +12,31 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
-use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
-use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
+use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[ObservedBy(ProfitabilityAnalysisObserver::class)]
 class ProfitabilityAnalysis extends Model implements HasMedia
 {
-    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
+    use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
     use HasModuleSchema;
 
     protected static function newFactory()

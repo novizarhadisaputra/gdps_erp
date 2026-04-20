@@ -16,6 +16,8 @@ use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 use Modules\CRM\Models\Lead;
+use Modules\CRM\Models\Customer;
+use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
@@ -50,7 +52,7 @@ class LeadForm
                         ->live()
                         ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
                             if ($state && empty($get('title'))) {
-                                $customer = \Modules\CRM\Models\Customer::find($state);
+                                $customer = Customer::find($state);
                                 if ($customer) {
                                     $set('title', $customer->name.' Lead');
                                 }
@@ -59,7 +61,7 @@ class LeadForm
                         ->placeholder('Select customer')
                         ->createOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->createOptionUsing(fn (array $data) => \Modules\CRM\Models\Customer::create($data)->id)
+                        ->createOptionUsing(fn (array $data) => Customer::create($data)->id)
                         ->editOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Textarea::make('description')
@@ -72,7 +74,7 @@ class LeadForm
                             Select::make('job_positions')
                                 ->label('Job Positions')
                                 ->multiple()
-                                ->options(\Modules\MasterData\Models\JobPosition::where('is_active', true)->pluck('name', 'id'))
+                                ->options(JobPosition::where('is_active', true)->pluck('name', 'id'))
                                 ->searchable()
                                 ->preload()
                                 ->placeholder('Select required positions')

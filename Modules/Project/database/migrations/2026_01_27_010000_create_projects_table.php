@@ -34,6 +34,7 @@ return new class extends Migration
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->nullOnDelete();
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->softDeletes();
             $table->timestamps();
             $table->flowforgePositionColumn('position');
 

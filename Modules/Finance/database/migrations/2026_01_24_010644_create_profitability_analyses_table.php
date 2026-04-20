@@ -57,6 +57,7 @@ return new class extends Migration
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();
 
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['year', 'sequence_number']);

@@ -40,8 +40,8 @@ return new class extends Migration
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignUuid('pic_costing_id')->nullable()->constrained('users')->nullOnDelete();
 
-            $table->timestamps();
             $table->softDeletes();
+            $table->timestamps();
 
             $table->index(['status', 'created_at'], 'idx_leads_status_created');
             $table->index(['user_id', 'status'], 'idx_leads_user_status');

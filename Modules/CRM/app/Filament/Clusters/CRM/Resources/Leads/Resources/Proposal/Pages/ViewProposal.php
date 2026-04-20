@@ -20,8 +20,6 @@ use Modules\CRM\Exports\ProposalExport;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 use Modules\CRM\Models\MinutesOfAgreement;
-use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\MasterData\Services\SignatureService;
 
 class ViewProposal extends ViewRecord
@@ -90,19 +88,6 @@ class ViewProposal extends ViewRecord
                 
 
             ActionGroup::make([
-                Action::make('approvePa')
-                    ->label('Approve Profitability Analysis')
-                    ->color('warning')
-                    ->icon(Heroicon::OutlinedCurrencyDollar)
-                    ->url(fn () => $this->record->profitabilityAnalysis
-                        ? ProfitabilityAnalysisResource::getUrl('view', ['record' => $this->record->profitabilityAnalysis->id])
-                        : null
-                    )
-                    ->visible(fn () => $this->record->status === ProposalStatus::Approved &&
-                        $this->record->profitabilityAnalysis !== null &&
-                        $this->record->profitabilityAnalysis->status !== ProfitabilityAnalysisStatus::Approved
-                    ),
-
                 Action::make('convertToMoA')
                     ->label('Convert to MoA (BA)')
                     ->icon(Heroicon::OutlinedDocumentDuplicate)

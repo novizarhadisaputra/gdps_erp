@@ -7,9 +7,14 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ProposalStatus;
 
@@ -47,6 +52,7 @@ class ProposalsTable
                     ->preload(),
                 SelectFilter::make('status')
                     ->options(ProposalStatus::class),
+                TrashedFilter::make(),
             ])
             ->recordActions([
                 ViewAction::make()
@@ -62,10 +68,14 @@ class ProposalsTable
                     ->modalDescription('Are you sure you want to revise this proposal? This will reset the status to Draft and allow you to modify the Profitability Analysis costing.')
                     ->action(fn ($record) => $record->update(['status' => \Modules\CRM\Enums\ProposalStatus::Draft]))
                     ->visible(fn ($record) => $record->status === \Modules\CRM\Enums\ProposalStatus::Submitted || $record->status === 'submitted'),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
                 DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

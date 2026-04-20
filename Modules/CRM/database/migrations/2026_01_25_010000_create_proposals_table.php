@@ -31,6 +31,7 @@ return new class extends Migration
             $table->date('meeting_date')->nullable()->comment('Date of the final meeting or negotiation');
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['year', 'sequence_number']);

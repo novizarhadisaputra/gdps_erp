@@ -27,14 +27,13 @@ class SalesOrderService
         // 2. Resolve Proposal ID
         $proposalId = $this->resolveProposalId($analysis);
 
-        // 3. Check if SO already exists
+        // 3. Resolve Amendment Logic
+        // We still check if an amendment is needed if the PA revision has increased
         $existing = SalesOrder::where('proposal_id', $proposalId)
             ->where('project_id', $project->id)
             ->first();
-            
+
         if ($existing) {
-            // If the PA revision is newer than what's in the SO, create an Amendment
-            // This is a simple version check or we can check if there's an active amendment already
             $latestAmendment = $existing->amendments()->orderBy('amendment_number', 'desc')->first();
             $currentRevision = $latestAmendment ? $latestAmendment->after_snapshot['pa_revision_number'] ?? 0 : ($existing->content_config['pa_revision_number'] ?? 0);
 
@@ -42,7 +41,7 @@ class SalesOrderService
                 return $this->createAmendment($existing, $analysis);
             }
 
-            return $existing;
+            // If it exists and no amendment needed, we'll continue to updateOrCreate which will just refresh the data
         }
 
         // 4. Prepare Snapshot Data (content_config)
@@ -65,38 +64,47 @@ class SalesOrderService
         $sequence = $latest ? $latest->sequence_number + 1 : 1;
         $soNumber = sprintf('GDPS/UB/SO-%03d/%s', $sequence, $shortYear);
 
-        // 6. Create the Sales Order
-        return SalesOrder::create([
-            'so_number' => $soNumber,
-            'order_date' => now(),
-            'project_id' => $project->id,
+        // 6. Create or Update the Sales Order (Atomic approach)
+        \Illuminate\Support\Facades\Log::info('Attempting to create/update Sales Order from PA', [
+            'pa_id' => $analysis->id,
             'proposal_id' => $proposalId,
-            'customer_id' => $analysis->customer_id,
-            'type' => SalesOrderType::Internal, // Default to internal as per flowchart if BAK exists? 
-                                               // Or determined by business rules. Defaulting to Internal for now.
-            'status' => SalesOrderStatus::Draft,
-            'amount' => $analysis->revenue_per_month,
-            'management_fee_percentage' => $analysis->management_fee_rate,
-            'tax_percentage' => $analysis->tax_rate ?? 11,
-            'sales_pic_id' => $analysis->lead?->ams_id,
-            'project_manager_id' => $analysis->lead?->oprep_id,
-            'service_type' => $analysis->productCluster?->name,
-            'job_location' => $analysis->projectArea?->name,
-            'manpower_initial_qty' => collect($manpower)->sum('quantity'),
-            'manpower_composition' => $manpower,
-            'sequence_number' => $sequence,
-            'year' => $year,
-            'content_config' => [
-                'items' => $items,
-                'manpower_details' => $manpower,
-                'payment_terms' => $analysis->paymentTerm?->name,
-                // Default placeholders for contractual terms from spreadsheet
-                'probation_period' => '3 Months',
-                'replacement_sla' => '3 Working Days',
-                'reporting_schedule' => '5th of each month',
-                'pa_revision_number' => $analysis->revision_number ?? 0,
-            ]
+            'project_id' => $project->id,
+            'caller' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]['class'] ?? 'unknown'
         ]);
+
+        return SalesOrder::updateOrCreate(
+            [
+                'project_id' => $project->id,
+                'proposal_id' => $proposalId,
+            ],
+            [
+                'so_number' => $soNumber,
+                'order_date' => now(),
+                'customer_id' => $analysis->customer_id,
+                'type' => SalesOrderType::Internal,
+                'status' => SalesOrderStatus::Draft,
+                'amount' => $analysis->revenue_per_month,
+                'management_fee_percentage' => $analysis->management_fee_rate,
+                'tax_percentage' => $analysis->tax_rate ?? 11,
+                'sales_pic_id' => $analysis->lead?->ams_id,
+                'project_manager_id' => $analysis->lead?->oprep_id,
+                'service_type' => $analysis->productCluster?->name,
+                'job_location' => $analysis->projectArea?->name,
+                'manpower_initial_qty' => collect($manpower)->sum('quantity'),
+                'manpower_composition' => $manpower,
+                'sequence_number' => $sequence,
+                'year' => $year,
+                'content_config' => [
+                    'items' => $items,
+                    'manpower_details' => $manpower,
+                    'payment_terms' => $analysis->paymentTerm?->name,
+                    'probation_period' => '3 Months',
+                    'replacement_sla' => '3 Working Days',
+                    'reporting_schedule' => '5th of each month',
+                    'pa_revision_number' => $analysis->revision_number ?? 0,
+                ]
+            ]
+        );
     }
 
     /**

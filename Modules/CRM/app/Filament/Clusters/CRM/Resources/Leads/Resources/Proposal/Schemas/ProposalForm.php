@@ -19,6 +19,8 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\MasterData\Enums\Gender;
 use Illuminate\Database\Eloquent\Model;
 
 class ProposalForm
@@ -79,8 +81,8 @@ class ProposalForm
 
                                 $pa = $record->profitabilityAnalysis ?? $record->lead?->profitabilityAnalyses()
                                     ->whereIn('status', [
-                                        \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Approved,
-                                        \Modules\Finance\Enums\ProfitabilityAnalysisStatus::Submitted,
+                                        ProfitabilityAnalysisStatus::Approved,
+                                        ProfitabilityAnalysisStatus::Submitted,
                                     ])->latest()->first();
 
                                 $component->state($pa?->revenue_per_month ?? $record->amount ?? 0);
@@ -120,13 +122,13 @@ class ProposalForm
                                     // Robust position check
                                     $position = $contact['position'] ?? $contact['job_position'] ?? $contact['job_title'] ?? $contact['title'] ?? '';
                                     $set('content_config.recipient_title', $position);
-                                    $set('content_config.recipient_gender', $contact['gender'] ?? \Modules\MasterData\Enums\Gender::Male->value);
+                                    $set('content_config.recipient_gender', $contact['gender'] ?? Gender::Male->value);
                                 }
                             })
                             ->createOptionForm([
                                 Grid::make(3)->schema([
                                     Select::make('gender')
-                                        ->options(\Modules\MasterData\Enums\Gender::class)
+                                        ->options(Gender::class)
                                         ->required()
                                         ->native(false),
                                     TextInput::make('name')->required(),
@@ -165,7 +167,7 @@ class ProposalForm
                         Grid::make(3)->schema([
                             Select::make('content_config.recipient_gender')
                                 ->label('Gender (Salutation)')
-                                ->options(\Modules\MasterData\Enums\Gender::class)
+                                ->options(Gender::class)
                                 ->required()
                                 ->native(false),
 
