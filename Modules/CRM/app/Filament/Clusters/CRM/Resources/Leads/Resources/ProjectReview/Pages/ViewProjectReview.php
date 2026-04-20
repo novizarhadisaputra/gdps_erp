@@ -8,9 +8,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
+use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\Schemas\GeneralInformationInfolist;
@@ -82,12 +82,15 @@ class ViewProjectReview extends ViewRecord
     public function approveProjectAction(): Action
     {
         return Action::make('approveProject')
-            ->label('Approve Project')
+            ->label('Authorize Margin')
             ->icon(Heroicon::CheckBadge)
             ->color('success')
             ->size('xs')
             ->extraAttributes(['class' => 'flex-1'])
             ->record($this->record)
+            ->modalHeading('Authorize Margin')
+            ->modalDescription('Please verify the project profitability before authorizing the margin. Your digital signature will be recorded.')
+            ->modalSubmitActionLabel('Authorize')
             ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
@@ -170,37 +173,92 @@ class ViewProjectReview extends ViewRecord
                 }
 
                 // Parallel Approval: Check if user is eligible for ANY of the unsatisfied rules
-                return $required->contains(fn ($rule) => 
-                    ! $pa->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                return $required->contains(fn ($rule) => ! $pa->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                );
+            });
+    }
+
+    public function rejectProjectAction(): Action
+    {
+        return Action::make('rejectProject')
+            ->label('Reject Margin')
+            ->outlined()
+            ->icon(Heroicon::XCircle)
+            ->color('danger')
+            ->size('xs')
+            ->extraAttributes(['class' => 'flex-1'])
+            ->record($this->record)
+            ->requiresConfirmation()
+            ->modalHeading('Reject Margin Authorization')
+            ->modalDescription('Are you sure you want to reject the margin for this project? This will notify the project owner for revision.')
+            ->modalSubmitActionLabel('Reject Margin')
+            ->schema([
+                TextInput::make('reason')
+                    ->label('Reason for Rejection')
+                    ->required(),
+            ])
+            ->action(function (array $data, $record) {
+                $pa = $record->profitabilityAnalysis;
+                if (! $pa) {
+                    Notification::make()->title('Profitability Analysis not found')->danger()->send();
+
+                    return;
+                }
+
+                $pa->update(['status' => ProfitabilityAnalysisStatus::Rejected]);
+
+                app(SignatureService::class)->notifyOwnerOnRejection($pa, $data['reason']);
+
+                Notification::make()->title('Project (Margin) Rejected')->success()->send();
+            })
+            ->visible(function ($record) {
+                $pa = $record->profitabilityAnalysis;
+                if (! $pa || $pa->isMarginApproved()) {
+                    return false;
+                }
+
+                if (! in_array($pa->status->value, [ProfitabilityAnalysisStatus::Submitted->value, 'submitted'])) {
+                    return false;
+                }
+
+                $service = app(SignatureService::class);
+                $required = $service->getRequiredApprovers($pa)
+                    ->where('signature_type', ApprovalSignatureType::MarginApproval->value);
+
+                if ($required->isEmpty()) {
+                    return false;
+                }
+
+                // Only eligible margin approvers can reject
+                return $required->contains(fn ($rule) => ! $pa->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
                 );
             });
     }
 
     public function approveGIAction(): Action
     {
-        return $this->getApprovalAction('generalInformation', 'GI')
-            ->label('Approve GI')
+        return $this->getApprovalAction('generalInformation', 'General Info')
+            ->label('Verify General Info')
             ->extraAttributes(['class' => 'flex-1']);
     }
 
     public function rejectGIAction(): Action
     {
-        return $this->getRejectionAction('generalInformation', 'GI')
-            ->label('Reject GI');
+        return $this->getRejectionAction('generalInformation', 'General Info')
+            ->label('Reject General Info');
     }
-
 
     public function approvePAAction(): Action
     {
-        return $this->getApprovalAction('profitabilityAnalysis', 'PA')
-            ->label('Approve PA')
+        return $this->getApprovalAction('profitabilityAnalysis', 'Profitability')
+            ->label('Approve Profitability')
             ->extraAttributes(['class' => 'flex-1']);
     }
 
     public function rejectPAAction(): Action
     {
-        return $this->getRejectionAction('profitabilityAnalysis', 'PA')
-            ->label('Reject PA');
+        return $this->getRejectionAction('profitabilityAnalysis', 'Profitability')
+            ->label('Reject Profitability');
     }
 
     public function approveProposalAction(): Action
@@ -223,6 +281,9 @@ class ViewProjectReview extends ViewRecord
             ->size('xs')
             ->extraAttributes(['class' => 'flex-1'])
             ->record($this->record)
+            ->modalHeading(fn () => "Approve {$label}")
+            ->modalDescription(fn () => "You are about to approve the {$label} document. Please enter your PIN to sign.")
+            ->modalSubmitActionLabel('Approve & Sign')
             ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
@@ -346,8 +407,7 @@ class ViewProjectReview extends ViewRecord
                 }
 
                 // Parallel Approval: User can see the button if they are eligible for ANY unsatisfied rule
-                return $required->contains(fn ($rule) => 
-                    ! $subRecord->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                return $required->contains(fn ($rule) => ! $subRecord->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
                 );
             });
     }
@@ -362,7 +422,9 @@ class ViewProjectReview extends ViewRecord
             ->extraAttributes(['class' => 'flex-1'])
             ->record($this->record)
             ->requiresConfirmation()
-            ->modalHeading("Reject {$label}")
+            ->modalHeading(fn () => "Reject {$label}")
+            ->modalDescription(fn () => "Are you sure you want to reject the {$label}? A notification will be sent to the owner for further revision.")
+            ->modalSubmitActionLabel('Reject Document')
             ->schema([
                 TextInput::make('reason')
                     ->label('Reason for Rejection')
@@ -403,7 +465,28 @@ class ViewProjectReview extends ViewRecord
                     default => null,
                 };
 
-                return $subRecord->status->value === $submittedStatus->value;
+                if ($subRecord->status->value !== $submittedStatus->value) {
+                    return false;
+                }
+
+                $service = app(SignatureService::class);
+                $signatureType = match ($relation) {
+                    'profitabilityAnalysis' => ApprovalSignatureType::Approver,
+                    'generalInformation' => ApprovalSignatureType::Approver,
+                    'proposal' => ApprovalSignatureType::Approver,
+                    default => ApprovalSignatureType::Approver,
+                };
+
+                $required = $service->getRequiredApprovers($subRecord)
+                    ->where('signature_type', $signatureType->value);
+
+                if ($required->isEmpty()) {
+                    return false;
+                }
+
+                // Only eligible approvers who haven't signed yet (or in parallel) can reject
+                return $required->contains(fn ($rule) => ! $subRecord->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
+                );
             });
     }
 }

@@ -4,6 +4,8 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amen
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -30,18 +32,25 @@ class AmendmentsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([
-                ViewAction::make(),
-                Action::make('pdf')
-                    ->label('Export PDF')
-                    ->color('gray')
-                    ->icon(Heroicon::OutlinedArrowDownTray)
-                    ->action(function (SalesOrderAmendment $record) {
-                        $pdf = Pdf::loadView('crm::pdf.sales-order-amendment', ['record' => $record]);
-                        $filename = "soa-{$record->salesOrder->so_number}-rev{$record->amendment_number}";
-                        $filename = str_replace(['/', '\\'], '-', $filename);
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    Action::make('pdf')
+                        ->label('Export PDF')
+                        ->icon(Heroicon::OutlinedArrowDownTray)
+                        ->color('gray')
+                        ->action(function (SalesOrderAmendment $record) {
+                            $pdf = Pdf::loadView('crm::pdf.sales-order-amendment', ['record' => $record]);
+                            $filename = "soa-{$record->salesOrder->so_number}-rev{$record->amendment_number}";
+                            $filename = str_replace(['/', '\\'], '-', $filename);
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "{$filename}.pdf");
-                    }),
+                            return response()->streamDownload(fn () => print ($pdf->output()), "{$filename}.pdf");
+                        }),
+                ])
+                ->icon(Heroicon::EllipsisVertical)
+                ->color('gray')
+                ->button()
+                ->label('Actions'),
             ]);
     }
 }

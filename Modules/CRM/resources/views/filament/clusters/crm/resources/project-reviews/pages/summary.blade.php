@@ -16,10 +16,6 @@
                 </div>
             </div>
             <div class="flex flex-col items-center md:items-end">
-                <div
-                    class="px-4 py-1.5 bg-gray-950 dark:bg-white text-white dark:text-gray-950 text-[10px] font-black uppercase rounded-full shadow-lg">
-                    {{ $record->status?->getLabel() ?? 'Status Unknown' }}
-                </div>
                 <p class="text-[9px] text-gray-400 uppercase font-bold tracking-widest mt-2 whitespace-nowrap">Revision
                     No. {{ $record->revision_number ?? 0 }} | {{ $record->updated_at?->format('d M Y') ?? 'N/A' }}</p>
             </div>
@@ -130,7 +126,7 @@
                             <div class="flex flex-col gap-2 mb-2">
                                 <button type="button" @click="$dispatch('open-modal', { id: 'preview-gi' })"
                                     class="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
-                                    <x-heroicon-m-magnifying-glass-circle class="w-4 h-4" />
+                                    <x-heroicon-m-eye class="w-4 h-4" />
                                     Preview Detail
                                 </button>
 
@@ -263,14 +259,19 @@
                             <div class="flex flex-col gap-2 mb-2">
                                 <button type="button" @click="$dispatch('open-modal', { id: 'preview-pa' })"
                                     class="w-full flex items-center justify-center gap-2 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
-                                    <x-heroicon-m-magnifying-glass-circle class="w-4 h-4" />
+                                    <x-heroicon-m-eye class="w-4 h-4" />
                                     Preview Detail
                                 </button>
 
-                                <div class="grid grid-cols-2 gap-2">
-                                    {{ $this->getAction('approveProject') }}
-                                    {{ $this->getAction('approvePA') }}
-                                    {{ $this->getAction('rejectPA') }}
+                                <div class="flex flex-col gap-2">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        {{ $this->getAction('approveProject') }}
+                                        {{ $this->getAction('rejectProject') }}
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        {{ $this->getAction('approvePA') }}
+                                        {{ $this->getAction('rejectPA') }}
+                                    </div>
                                 </div>
                             </div>
                             <a href="{{ route('filament.admin.crm.resources.leads.profitability-analyses.view', ['lead' => $record->lead_id, 'record' => $record->profitability_analysis_id]) }}"
@@ -376,7 +377,7 @@
                             <div class="flex flex-col gap-2 mb-2">
                                 <button type="button" @click="$dispatch('open-modal', { id: 'preview-proposal' })"
                                     class="w-full flex items-center justify-center gap-2 py-2 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:shadow transition-all duration-300">
-                                    <x-heroicon-m-magnifying-glass-circle class="w-4 h-4" />
+                                    <x-heroicon-m-eye class="w-4 h-4" />
                                     Preview Detail
                                 </button>
 

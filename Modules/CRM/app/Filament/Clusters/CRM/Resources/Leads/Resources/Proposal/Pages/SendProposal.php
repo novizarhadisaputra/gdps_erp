@@ -216,7 +216,19 @@ class SendProposal extends Page
                     'body' => $response->body(),
                 ]);
 
-                throw new \Exception('External API Error: '.$errorMsg);
+                throw new \Exception('Email system error: ' . $errorMsg);
+            }
+
+            // Record Activity Log
+            if (function_exists('activity')) {
+                activity()
+                    ->performedOn($this->record)
+                    ->causedBy(auth()->user())
+                    ->withProperties([
+                        'to' => $formData['recipient_email'],
+                        'subject' => $formData['subject'],
+                    ])
+                    ->log('Proposal email sent to ' . $formData['recipient_email']);
             }
 
             // 5. Update Proposal status to Sent

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Observers;
 
+use Modules\CRM\Enums\SalesOrderAmendmentStatus;
 use Modules\CRM\Models\SalesOrderAmendment;
 
 class SalesOrderAmendmentObserver
@@ -51,6 +52,37 @@ class SalesOrderAmendmentObserver
         } else {
             // Fallback
             $amendment->amendment_number = sprintf('%s/AMAND/%02d/%s', $salesOrder->so_number, $sequence, $shortYear);
+        }
+    }
+    /**
+     * Handle the SalesOrderAmendment "updated" event.
+     */
+    public function updated(SalesOrderAmendment $amendment): void
+    {
+        // When an amendment is approved, sync its "After" state back to the Sales Order
+        if ($amendment->isDirty('status') && $amendment->status === SalesOrderAmendmentStatus::Approved) {
+            $so = $amendment->salesOrder;
+            if ($so) {
+                $after = $amendment->after_snapshot;
+                
+                // 1. Calculate new service total amount (monthly)
+                $totalServiceMonth = collect($after['items'] ?? [])->sum('total_price');
+                
+                // 2. Add Management Fee and Tax (following original SO percentages)
+                $mgtFeeVal = $totalServiceMonth * ($so->management_fee_percentage / 100);
+                $taxVal = ($totalServiceMonth + $mgtFeeVal) * ($so->tax_percentage / 100);
+                $newGrandTotal = $totalServiceMonth + $mgtFeeVal + $taxVal;
+
+                $so->update([
+                    'content_config' => array_merge($so->content_config ?? [], [
+                        'items' => $after['items'] ?? [],
+                        'manpower_details' => $after['manpower_details'] ?? [],
+                        'pa_revision_number' => $after['pa_revision_number'] ?? ($so->content_config['pa_revision_number'] ?? 0),
+                    ]),
+                    'amount' => $newGrandTotal,
+                    'manpower_initial_qty' => collect($after['manpower_details'] ?? [])->sum('quantity'),
+                ]);
+            }
         }
     }
 }

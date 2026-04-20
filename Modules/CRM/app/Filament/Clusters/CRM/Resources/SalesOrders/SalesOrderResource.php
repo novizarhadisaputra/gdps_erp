@@ -12,6 +12,7 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\CreateSalesOrd
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\EditSalesOrder;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ListSalesOrders;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ManageAmendments;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\SendSalesOrder;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\ViewAmendment;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas\SalesOrderForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Tables\SalesOrdersTable;
@@ -65,6 +66,7 @@ class SalesOrderResource extends Resource
             'create' => CreateSalesOrder::route('/create'),
             'view' => \Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ViewSalesOrder::route('/{record}'),
             'edit' => EditSalesOrder::route('/{record}/edit'),
+            'send' => SendSalesOrder::route('/{record}/send'),
             'amendments' => ManageAmendments::route('/{record}/amendments'),
             'view-amendment' => ViewAmendment::route('/{record}/amendments/{relatedRecord}'),
         ];

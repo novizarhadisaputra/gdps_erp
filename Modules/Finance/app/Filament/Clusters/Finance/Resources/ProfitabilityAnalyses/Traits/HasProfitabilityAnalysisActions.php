@@ -29,6 +29,9 @@ trait HasProfitabilityAnalysisActions
             ->color('info')
             ->icon(Heroicon::OutlinedPaperAirplane)
             ->requiresConfirmation()
+            ->modalHeading('Submit for Approval')
+            ->modalDescription('Are you sure you want to submit this Profitability Analysis for approval? This will notify the first set of approvers.')
+            ->modalSubmitActionLabel('Submit Document')
             ->action(function ($record) {
                 $record->update(['status' => ProfitabilityAnalysisStatus::Submitted]);
                 app(SignatureService::class)->notifyNextApprovers($record);
@@ -52,7 +55,7 @@ trait HasProfitabilityAnalysisActions
             ->color('gray')
             ->icon(Heroicon::OutlinedExclamationTriangle)
             ->disabled()
-            ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 item costing untuk dapat melakukan Submit.')
+            ->tooltip('Please complete all required data and add at least one costing item to submit.')
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
                 if ($status instanceof \BackedEnum) {
@@ -70,6 +73,9 @@ trait HasProfitabilityAnalysisActions
         return Action::make('Approve Margin')
             ->color('success')
             ->icon(Heroicon::OutlinedCheckBadge)
+            ->modalHeading('Authorize Margin')
+            ->modalDescription('Please verify the project profitability margins. Entering your PIN will record your digital signature for this step.')
+            ->modalSubmitActionLabel('Authorize Margin')
             ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
@@ -201,8 +207,11 @@ trait HasProfitabilityAnalysisActions
     {
         return Action::make('Approve PA')
             ->color('primary')
-            ->label('Approve PA')
+            ->label('Approve Profitability')
             ->icon(Heroicon::OutlinedPencilSquare)
+            ->modalHeading('Approve Profitability Analysis')
+            ->modalDescription('You are about to give final approval for this analysis. Please enter your PIN to sign the document.')
+            ->modalSubmitActionLabel('Approve & Sign')
             ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
@@ -644,11 +653,11 @@ trait HasProfitabilityAnalysisActions
     protected function getRegenerateSalesOrderAction(): Action
     {
         return Action::make('regenerateSalesOrder')
-            ->label('Sync Sales Order')
+            ->label('Generate Sales Order')
             ->icon(Heroicon::OutlinedArrowPath)
             ->color('warning')
             ->requiresConfirmation()
-            ->modalHeading('Sync Sales Order')
+            ->modalHeading('Generate Sales Order')
             ->modalDescription('This will recreate or update the Sales Order draft based on the current Profitability Analysis data. Use this if the Sales Order was deleted or needs to be refreshed.')
             ->action(function (ProfitabilityAnalysis $record) {
                 // Ensure project exists first
@@ -666,7 +675,7 @@ trait HasProfitabilityAnalysisActions
 
                 if ($result instanceof \Modules\CRM\Models\SalesOrder) {
                     Notification::make()
-                        ->title('Sales Order Synced')
+                        ->title('Sales Order Generated')
                         ->body("Sales Order: {$result->so_number}")
                         ->success()
                         ->actions([
@@ -690,8 +699,8 @@ trait HasProfitabilityAnalysisActions
                         ->send();
                 } else {
                     Notification::make()
-                        ->title('Sync Failed')
-                        ->body('Could not sync Sales Order. Please check if Proposal is approved.')
+                        ->title('Generation Failed')
+                        ->body('Could not generate Sales Order. Please check if Proposal is approved.')
                         ->danger()
                         ->send();
                 }

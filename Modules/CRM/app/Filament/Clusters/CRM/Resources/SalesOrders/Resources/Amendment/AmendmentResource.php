@@ -8,6 +8,8 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\AuditAmendment;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\EditAmendment;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\SendAmendment;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\ViewAmendment;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Schemas\AmendmentForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Tables\AmendmentsTable;
@@ -62,6 +64,8 @@ class AmendmentResource extends Resource
     {
         return [
             'view' => ViewAmendment::route('/{record}'),
+            'edit' => EditAmendment::route('/{record}/edit'),
+            'send' => SendAmendment::route('/{record}/send'),
             'audit' => AuditAmendment::route('/{record}/audit'),
         ];
     }

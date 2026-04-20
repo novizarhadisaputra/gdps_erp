@@ -4,16 +4,12 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\URL;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 use Modules\CRM\Models\SalesOrder;
-use Modules\CRM\Models\SalesOrderAmendment;
 
 class ViewSalesOrder extends ViewRecord
 {
@@ -29,46 +25,8 @@ class ViewSalesOrder extends ViewRecord
                 Action::make('sendEmail')
                     ->label('Send Email')
                     ->icon(Heroicon::OutlinedPaperAirplane)
-                    ->requiresConfirmation()
                     ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft)
-                    ->action(function (SalesOrder $record) {
-                        try {
-                            $signatureUrl = URL::temporarySignedRoute(
-                                'sales_orders.public.sign',
-                                now()->addDays(7),
-                                ['sales_order' => $record->id]
-                            );
-
-                            $messageBody = "Please review and sign Sales Order #{$record->so_number} by clicking the link below:<br><br>";
-                            $messageBody .= "<a href='{$signatureUrl}' style='display: inline-block; padding: 10px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 5px;'>Sign Sales Order Online</a>";
-
-                            $response = Http::withHeaders([
-                                'content-type' => 'application/json',
-                                'x-requester-app' => 'GDPS-ERP',
-                            ])->post('https://machine.garudapratama.com/api/v1/email/send', [
-                                'to' => [$record->customer?->email],
-                                'subject' => "Sales Order - {$record->so_number}",
-                                'body' => $messageBody,
-                            ]);
-
-                            if (! $response->successful()) {
-                                throw new \Exception('External API Error: '.$response->status());
-                            }
-
-                            $record->update(['status' => SalesOrderStatus::Sent]);
-
-                            Notification::make()
-                                ->title('Email Sent')
-                                ->success()
-                                ->send();
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->title('Failed to Send Email')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
+                    ->url(fn (SalesOrder $record) => SalesOrderResource::getUrl('send', ['record' => $record])),
 
                 Action::make('approve')
                     ->label('Approve Order')
@@ -82,33 +40,28 @@ class ViewSalesOrder extends ViewRecord
                     }),
 
                 Action::make('revisi')
-                    ->label('Revisi')
+                    ->label('Request Revision')
                     ->color('warning')
                     ->icon(Heroicon::OutlinedArrowPath)
-                    ->form([
-                        Textarea::make('reason')
-                            ->label('Alasan Revisi')
-                            ->required()
-                            ->placeholder('Contoh: Koreksi jumlah manpower atau perubahan term pembayaran.'),
-                    ])
                     ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Sent, SalesOrderStatus::Approved]))
-                    ->action(function (SalesOrder $record, array $data) {
+                    ->action(function (SalesOrder $record) {
                         if ($record->status === SalesOrderStatus::Approved) {
-                            // Create Amendment Snapshot
-                            SalesOrderAmendment::create([
-                                'sales_order_id' => $record->id,
-                                'amendment_date' => now(),
-                                'reason' => $data['reason'],
-                                'before_snapshot' => [
-                                    'items' => $record->content_config['items'] ?? [],
-                                    'manpower_details' => $record->content_config['manpower_details'] ?? [],
-                                ],
-                                'status' => 'approved',
-                            ]);
+                            Notification::make()
+                                ->title('Redirecting to Amendments')
+                                ->body('For approved orders, revisions must be managed via Amendments. If this is a financial change, please revise the Profitability Analysis first.')
+                                ->info()
+                                ->send();
+
+                            return redirect()->to(SalesOrderResource::getUrl('amendments', ['record' => $record]));
                         }
 
+                        // For Sent status, we can still revert to Draft for simple fixes
                         $record->update(['status' => SalesOrderStatus::Draft]);
-                        Notification::make()->title('Order returned to Draft for Revision')->warning()->send();
+                        Notification::make()
+                            ->title('Order Reverted to Draft')
+                            ->body('This document is now editable for revision.')
+                            ->warning()
+                            ->send();
                     }),
 
                 Action::make('cancel')

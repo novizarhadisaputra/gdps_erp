@@ -38,10 +38,11 @@ class AmendmentForm
                                     ->disabled(),
                             ]),
                         Textarea::make('reason')
-                            ->label('Alasan Perubahan')
-                            ->placeholder('Jelaskan alasan dilakukannya amandemen ini...')
-                            ->helperText('Alasan yang dimasukkan saat pengajuan revisi PA.')
-                            ->disabled(),
+                            ->label('Reason for Change')
+                            ->placeholder('Describe why this amendment is being made...')
+                            ->helperText('This justification will appear in the amendment document.')
+                            ->disabled(fn ($record) => $record?->status !== SalesOrderAmendmentStatus::Draft)
+                            ->required(),
                     ]),
                 
                 Section::make('Comparison: Manpower & Pricing')
@@ -49,46 +50,84 @@ class AmendmentForm
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                Section::make('BEFORE (Original)')
-                                    ->description('Data dari Sales Order atau amandemen sebelumnya.')
+                                Section::make('Before (Original)')
+                                    ->description('Data from the active Sales Order or previous amendment.')
                                     ->schema([
                                         Repeater::make('before_snapshot.items')
                                             ->label('Original Items')
                                             ->schema([
-                                                TextInput::make('description')->placeholder('Item description'),
+                                                TextInput::make('description')->label('Service Description'),
                                                 TextInput::make('total_price')
-                                                    ->label('Total/Month')
+                                                    ->label('Total / Month')
                                                     ->numeric()
                                                     ->prefix('IDR'),
                                             ])->disabled()->dehydrated(false),
                                         
                                         Repeater::make('before_snapshot.manpower_details')
-                                            ->label('Original Manpower')
+                                            ->label('Original Personnel Composition')
                                             ->schema([
-                                                TextInput::make('job_position_name')->label('Position'),
+                                                TextInput::make('job_position_name')->label('Job Position / Rank'),
                                                 TextInput::make('quantity')->label('Qty')->numeric(),
                                             ])->disabled()->dehydrated(false),
                                     ]),
                                 
-                                Section::make('AFTER (Revised)')
-                                    ->description('Data baru yang ditarik dari Profitability Analysis hasil revisi.')
+                                Section::make('After (Revised)')
+                                    ->description('Enter the new/revised data for this amendment. This will update the parent Sales Order once approved.')
                                     ->schema([
                                         Repeater::make('after_snapshot.items')
                                             ->label('Revised Items')
                                             ->schema([
-                                                TextInput::make('description')->placeholder('New item description'),
-                                                TextInput::make('total_price')
-                                                    ->label('Total/Month')
-                                                    ->numeric()
-                                                    ->prefix('IDR'),
-                                            ])->disabled()->dehydrated(false),
+                                                Grid::make(3)
+                                                    ->schema([
+                                                        TextInput::make('description')
+                                                            ->label('Service Description')
+                                                            ->required()
+                                                            ->columnSpan(1),
+                                                        TextInput::make('uom')
+                                                            ->label('Unit')
+                                                            ->default('Unit')
+                                                            ->required(),
+                                                        TextInput::make('quantity')
+                                                            ->label('Qty')
+                                                            ->numeric()
+                                                            ->required(),
+                                                        TextInput::make('unit_price')
+                                                            ->label('Unit Price')
+                                                            ->numeric()
+                                                            ->prefix('IDR')
+                                                            ->required()
+                                                            ->live()
+                                                            ->afterStateUpdated(function ($state, $get, $set) {
+                                                                $qty = $get('quantity') ?? 0;
+                                                                $set('total_price', $qty * $state);
+                                                            }),
+                                                        TextInput::make('total_price')
+                                                            ->label('Total / Month')
+                                                            ->numeric()
+                                                            ->prefix('IDR')
+                                                            ->required()
+                                                            ->readOnly(),
+                                                        TextInput::make('note')
+                                                            ->label('Notes / Remark')
+                                                            ->placeholder('Reason for change...')
+                                                            ->columnSpan(1),
+                                                    ]),
+                                            ]),
                                         
                                         Repeater::make('after_snapshot.manpower_details')
-                                            ->label('Revised Manpower')
+                                            ->label('Revised Personnel Composition')
                                             ->schema([
-                                                TextInput::make('job_position_name')->label('Position'),
-                                                TextInput::make('quantity')->label('Qty')->numeric(),
-                                            ])->disabled()->dehydrated(false),
+                                                Grid::make(2)
+                                                    ->schema([
+                                                        TextInput::make('job_position_name')
+                                                            ->label('Job Position / Rank')
+                                                            ->required(),
+                                                        TextInput::make('quantity')
+                                                            ->label('Quantity')
+                                                            ->numeric()
+                                                            ->required(),
+                                                    ]),
+                                            ]),
                                     ]),
                             ]),
                     ]),
