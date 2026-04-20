@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -27,7 +28,7 @@ class ManageProjectInformations extends ManageRelatedRecords
 
     protected static string $relationship = 'projectInformations';
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedInformationCircle;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedInformationCircle;
 
     protected static ?string $title = 'Project Information';
 
@@ -84,8 +85,12 @@ class ManageProjectInformations extends ManageRelatedRecords
                     }),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('primary'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

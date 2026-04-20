@@ -109,19 +109,24 @@ class ProfitabilityAnalysesTable
                 //
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->modalFooterActions($instance->getProfitabilityAnalysisActions()),
-                EditAction::make(),
-                ActionGroup::make($instance->getStepActions())
-                    ->label('Steps')
-                    ->icon(Heroicon::ListBullet)
-                    ->color('info')
-                    ->button(),
-                $instance->getDuplicateAction(),
-                $instance->getCreateProposalAction(),
-                RestoreAction::make(),
-                ForceDeleteAction::make(),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->modalFooterActions($instance->getProfitabilityAnalysisActions()),
+                    EditAction::make(),
+                    ActionGroup::make($instance->getStepActions())
+                        ->label('Edit Steps')
+                        ->icon(Heroicon::OutlinedPencilSquare)
+                        ->color('info')
+                        ->dropdown(false), // Show inline within parent group
+                    $instance->getDuplicateAction(),
+                    $instance->getCreateProposalAction(),
+                    RestoreAction::make(),
+                    DeleteAction::make(),
+                    ForceDeleteAction::make(),
+                ])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

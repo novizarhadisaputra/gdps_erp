@@ -40,13 +40,18 @@ class LeadsTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                MoveToApproachAction::make(),
-                ViewAction::make()
-                    ->schema(fn ($schema) => LeadInfolist::configure($schema)),
-                EditAction::make(),
-                RestoreAction::make(),
-                ForceDeleteAction::make(),
-                DeleteAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    MoveToApproachAction::make(),
+                    ViewAction::make()
+                        ->schema(fn($schema) => LeadInfolist::configure($schema)),
+                    EditAction::make(),
+                    RestoreAction::make(),
+                    DeleteAction::make(),
+                    ForceDeleteAction::make(),
+                ])
+                ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

@@ -31,11 +31,26 @@ class SummaryProfitabilityAnalysis extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            // 1. Workflow Actions (The most important ones)
+            \Filament\Actions\ActionGroup::make([
+                $this->getSubmitAction(),
+                $this->getApproveMarginAction(),
+                $this->getApprovePAAction(),
+                $this->getGenerateProjectAction(),
+            ])
+            ->label('Workflow')
+            ->icon(Heroicon::OutlinedPlay)
+            ->color('primary')
+            ->button(),
+
+            // 2. Document Data Actions
             \Filament\Actions\ActionGroup::make($this->getStepActions())
-                ->label('Edit Steps')
+                ->label('Edit Details')
                 ->icon(Heroicon::PencilSquare)
                 ->color('info')
                 ->button(),
+
+            // 3. Output & Export
             \Filament\Actions\ActionGroup::make([
                 Action::make('exportExcel')
                     ->label('Excel')
@@ -73,12 +88,23 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                             'Content-Type' => 'application/pdf',
                         ]);
                     }),
+                $this->getDuplicateAction(),
             ])
-                ->label('Export')
+                ->label('Export & Tools')
                 ->icon(Heroicon::ArrowDownTray)
                 ->color('success')
                 ->button(),
-            ...$this->getProfitabilityAnalysisActions(),
+
+            // 4. Other Options
+            \Filament\Actions\ActionGroup::make([
+                $this->getRejectAction(),
+                $this->getCreateProposalAction(),
+                $this->getRegenerateSalesOrderAction(),
+            ])
+                ->label('Settings')
+                ->icon(Heroicon::OutlinedCog6Tooth)
+                ->color('gray')
+                ->button(),
         ];
     }
 }

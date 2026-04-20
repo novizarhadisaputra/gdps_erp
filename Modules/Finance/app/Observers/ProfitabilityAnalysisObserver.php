@@ -180,8 +180,11 @@ class ProfitabilityAnalysisObserver
 
         // 5. When PA is Approved, attempt to create a Project and a Draft Sales Order
         if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Approved) {
-            app(ProjectService::class)->attemptProjectCreation($analysis);
-            app(SalesOrderService::class)->createDraftFromAnalysis($analysis);
+            $project = app(ProjectService::class)->attemptProjectCreation($analysis);
+            
+            // Ensure the relationship is refreshed and we pass the project to the SO service
+            $analysis->loadMissing('project');
+            app(SalesOrderService::class)->createDraftFromAnalysis($analysis, $project);
         }
 
         // Sync template media if IDs in analysis_details changed

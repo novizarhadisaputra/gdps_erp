@@ -43,49 +43,54 @@ class ContractsTable
                 //
             ])
             ->recordActions([
-                ViewAction::make(),
-                Action::make('renew')
-                    ->label('Renew')
-                    ->icon(Heroicon::OutlinedArrowPath)
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->action(function (Contract $record) {
-                        $renewal = $record->replicate();
-                        $renewal->status = ContractStatus::Draft;
-                        $renewal->contract_number = $renewal->contract_number.'-RENEW';
-                        $renewal->save();
+                \Filament\Actions\ActionGroup::make([
+                    ViewAction::make(),
+                    Action::make('renew')
+                        ->label('Renew')
+                        ->icon(Heroicon::OutlinedArrowPath)
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->action(function (Contract $record) {
+                            $renewal = $record->replicate();
+                            $renewal->status = ContractStatus::Draft;
+                            $renewal->contract_number = $renewal->contract_number . '-RENEW';
+                            $renewal->save();
 
-                        Notification::make()
-                            ->title('Contract Renewed')
-                            ->body('A project sequence increment will apply when you generate a project for this new contract.')
-                            ->success()
-                            ->send();
-                    })
-                    ->visible(fn (Contract $record) => $record->status === ContractStatus::Active || $record->status === ContractStatus::Expired),
-                Action::make('handoverToProject')
-                    ->label('Handover to Project')
-                    ->icon(Heroicon::OutlinedRocketLaunch)
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->action(function (Contract $record, ProjectService $service) {
-                        $project = $service->attemptProjectCreation($record->proposal);
-
-                        if ($project) {
                             Notification::make()
-                                ->title('Project Created Successfully')
-                                ->body("Project {$project->code} has been created and initialized.")
+                                ->title('Contract Renewed')
+                                ->body('A project sequence increment will apply when you generate a project for this new contract.')
                                 ->success()
                                 ->send();
-                        } else {
-                            Notification::make()
-                                ->title('Project Creation Failed')
-                                ->body('Unable to create project. Please ensure: 1. A signed proposal file is uploaded. 2. Profitability Analysis is fully approved.')
-                                ->danger()
-                                ->send();
-                        }
-                    })
-                    ->visible(fn (Contract $record) => $record->project()->doesntExist() && $record->proposal_id !== null),
-                DeleteAction::make(),
+                        })
+                        ->visible(fn(Contract $record) => $record->status === ContractStatus::Active || $record->status === ContractStatus::Expired),
+                    Action::make('handoverToProject')
+                        ->label('Handover to Project')
+                        ->icon(Heroicon::OutlinedRocketLaunch)
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(function (Contract $record, ProjectService $service) {
+                            $project = $service->attemptProjectCreation($record->proposal);
+
+                            if ($project) {
+                                Notification::make()
+                                    ->title('Project Created Successfully')
+                                    ->body("Project {$project->code} has been created and initialized.")
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Project Creation Failed')
+                                    ->body('Unable to create project. Please ensure: 1. A signed proposal file is uploaded. 2. Profitability Analysis is fully approved.')
+                                    ->danger()
+                                    ->send();
+                            }
+                        })
+                        ->visible(fn(Contract $record) => $record->project()->doesntExist() && $record->proposal_id !== null),
+                    DeleteAction::make(),
+                ])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

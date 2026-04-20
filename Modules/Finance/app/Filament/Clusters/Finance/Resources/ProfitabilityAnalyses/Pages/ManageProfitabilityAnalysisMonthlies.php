@@ -2,6 +2,8 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages;
 
+use BackedEnum;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Table;
@@ -18,7 +20,7 @@ class ManageProfitabilityAnalysisMonthlies extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ProfitabilityAnalysisMonthlyResource::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
     protected static ?string $title = 'Monthly Performance Records';
 

@@ -48,6 +48,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['year', 'sequence_number']);
+            $table->unique(['project_id', 'proposal_id']);
         });
     }
 

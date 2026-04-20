@@ -20,10 +20,16 @@ class ViewLead extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            MoveToApproachAction::make(),
-            Actions\EditAction::make(),
-            Actions\DeleteAction::make(),
-            ConvertToProjectAction::make(),
+            \Filament\Actions\ActionGroup::make([
+                MoveToApproachAction::make(),
+                Actions\EditAction::make(),
+                ConvertToProjectAction::make(),
+                Actions\DeleteAction::make(),
+            ])
+            ->label('Actions')
+            ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
+            ->color('primary')
+            ->button(),
         ];
     }
 }

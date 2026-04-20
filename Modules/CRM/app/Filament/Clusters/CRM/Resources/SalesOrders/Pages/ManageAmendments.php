@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages;
 
+use BackedEnum;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\AmendmentResource;
@@ -16,7 +17,7 @@ class ManageAmendments extends ManageRelatedRecords
 
     protected static ?string $relatedResource = AmendmentResource::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clock';
+    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-clock';
 
     protected static ?string $title = 'Amendment History';
 

@@ -36,24 +36,6 @@ class ProjectObserver
                 'status' => \Modules\CRM\Enums\LeadStatus::Won,
             ]);
         }
-
-        // Auto-create Sales Order
-        \Modules\CRM\Models\SalesOrder::create([
-            'project_id' => $project->id,
-            'proposal_id' => $project->proposal_id,
-            'customer_id' => $project->customer_id,
-            'order_date' => now(),
-            'type' => \Modules\CRM\Enums\SalesOrderType::External,
-            'status' => \Modules\CRM\Enums\SalesOrderStatus::Draft,
-            'amount' => $project->amount,
-            'management_fee_percentage' => $project->profitabilityAnalysis?->management_fee_percentage ?? 0,
-            'tax_percentage' => $project->tax?->rate ?? 0,
-            'sales_pic_id' => $project->ams_id,
-            'project_manager_id' => $project->oprep_id,
-            'service_type' => $project->projectType?->name,
-            'job_location' => $project->projectArea?->name,
-            'payment_terms' => $project->paymentTerm?->name,
-        ]);
     }
 
     /**

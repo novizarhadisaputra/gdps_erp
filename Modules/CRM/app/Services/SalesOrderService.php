@@ -16,12 +16,17 @@ class SalesOrderService
     /**
      * Create a Draft Sales Order automatically from an approved PA.
      */
-    public function createDraftFromAnalysis(ProfitabilityAnalysis $analysis): ?SalesOrder
+    public function createDraftFromAnalysis(ProfitabilityAnalysis $analysis, ?Project $project = null): SalesOrder|SalesOrderAmendment|null
     {
-        // 1. Determine Project (assuming it was just created)
-        $project = $analysis->project;
+        // 1. Determine Project
+        $project = $project ?? $analysis->project;
         if (! $project) {
-            return null;
+            // Last resort: Try to find by lead_id
+            $project = Project::where('lead_id', $analysis->lead_id)->first();
+            
+            if (! $project) {
+                return null;
+            }
         }
 
         // 2. Resolve Proposal ID

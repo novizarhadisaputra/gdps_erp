@@ -58,38 +58,43 @@ class SalesPlanTable
                     ->sortable(),
             ])
             ->recordActions([
-                ViewAction::make(),
-                Action::make('convertToGI')
-                    ->label('Convert to GI')
-                    ->icon(Heroicon::OutlinedDocumentPlus)
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (SalesPlan $record) => $record->lead?->generalInformations()->doesntExist())
-                    ->action(function (SalesPlan $record) {
-                        $lead = $record->lead;
+                \Filament\Actions\ActionGroup::make([
+                    ViewAction::make(),
+                    Action::make('convertToGI')
+                        ->label('Convert to GI')
+                        ->icon(Heroicon::OutlinedDocumentPlus)
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->visible(fn (SalesPlan $record) => $record->lead?->generalInformations()->doesntExist())
+                        ->action(function (SalesPlan $record) {
+                            $lead = $record->lead;
 
-                        if (! $lead) {
+                            if (! $lead) {
+                                Notification::make()
+                                    ->title('Error')
+                                    ->body('Lead not found for this Sales Plan.')
+                                    ->danger()
+                                    ->send();
+
+                                return;
+                            }
+
+                            $record->toGeneralInformation();
+
                             Notification::make()
-                                ->title('Error')
-                                ->body('Lead not found for this Sales Plan.')
-                                ->danger()
+                                ->title('General Information Created')
+                                ->body('Data has been synced from Sales Plan.')
+                                ->success()
                                 ->send();
 
-                            return;
-                        }
-
-                        $record->toGeneralInformation();
-
-                        Notification::make()
-                            ->title('General Information Created')
-                            ->body('Data has been synced from Sales Plan.')
-                            ->success()
-                            ->send();
-
-                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
-                    }),
-                EditAction::make(),
-                DeleteAction::make(),
+                            return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $lead]));
+                        }),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

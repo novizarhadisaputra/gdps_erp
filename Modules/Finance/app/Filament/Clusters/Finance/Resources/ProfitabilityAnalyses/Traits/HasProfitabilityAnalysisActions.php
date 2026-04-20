@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Proposal;
+use Modules\CRM\Models\SalesOrderAmendment;
 use Modules\Finance\Classes\ProjectGenerationService;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
@@ -211,6 +212,31 @@ trait HasProfitabilityAnalysisActions
             ])
             ->action(function ($record, array $data) {
                 $service = app(SignatureService::class);
+
+                // Validation: Linked Proposal must be Approved before PA Final Approval
+                $proposal = $record->proposal;
+                if (! $proposal || $proposal->status !== ProposalStatus::Approved) {
+                    $notification = Notification::make()
+                        ->title('Proposal Not Approved')
+                        ->body('Final PA approval signature can only be performed after the Proposal is signed (Approved) by the client.')
+                        ->warning();
+
+                    if ($proposal) {
+                        $notification->actions([
+                            Action::make('view_proposal')
+                                ->label('View Proposal')
+                                ->url(route('filament.admin.crm.resources.leads.proposals.view', [
+                                    'record' => $proposal->id,
+                                    'lead' => $proposal->lead_id,
+                                ]))
+                                ->button(),
+                        ]);
+                    }
+
+                    $notification->send();
+
+                    return;
+                }
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
                     Notification::make()
@@ -606,12 +632,77 @@ trait HasProfitabilityAnalysisActions
                 $this->getDuplicateAction(),
                 $this->getRejectAction(),
                 $this->getCreateProposalAction(),
+                $this->getRegenerateSalesOrderAction(),
             ])
                 ->label('Options')
                 ->icon(Heroicon::OutlinedEllipsisVertical)
                 ->color('gray')
                 ->button(),
         ];
+    }
+
+    protected function getRegenerateSalesOrderAction(): Action
+    {
+        return Action::make('regenerateSalesOrder')
+            ->label('Sync Sales Order')
+            ->icon(Heroicon::OutlinedArrowPath)
+            ->color('warning')
+            ->requiresConfirmation()
+            ->modalHeading('Sync Sales Order')
+            ->modalDescription('This will recreate or update the Sales Order draft based on the current Profitability Analysis data. Use this if the Sales Order was deleted or needs to be refreshed.')
+            ->action(function (ProfitabilityAnalysis $record) {
+                // Ensure project exists first
+                if (! $record->project()->exists()) {
+                    Notification::make()
+                        ->title('Project Missing')
+                        ->body('A Project must be generated before a Sales Order can be created.')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                $result = app(\Modules\CRM\Services\SalesOrderService::class)->createDraftFromAnalysis($record);
+
+                if ($result instanceof \Modules\CRM\Models\SalesOrder) {
+                    Notification::make()
+                        ->title('Sales Order Synced')
+                        ->body("Sales Order: {$result->so_number}")
+                        ->success()
+                        ->actions([
+                            Action::make('view_so')
+                                ->label('View Sales Order')
+                                ->url(route('filament.admin.crm.resources.sales-orders.view', ['record' => $result->id]))
+                                ->button(),
+                        ])
+                        ->send();
+                } elseif ($result instanceof SalesOrderAmendment) {
+                    Notification::make()
+                        ->title('Sales Order Amendment Created')
+                        ->body("Amendment No: {$result->amendment_number}")
+                        ->success()
+                        ->actions([
+                            Action::make('view_so')
+                                ->label('View Sales Order')
+                                ->url(route('filament.admin.crm.resources.sales-orders.view', ['record' => $result->sales_order_id]))
+                                ->button(),
+                        ])
+                        ->send();
+                } else {
+                    Notification::make()
+                        ->title('Sync Failed')
+                        ->body('Could not sync Sales Order. Please check if Proposal is approved.')
+                        ->danger()
+                        ->send();
+                }
+            })
+            ->visible(function ($record) {
+                $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
+
+                return $rec
+                    && $rec->status === ProfitabilityAnalysisStatus::Approved
+                    && $rec->project()->exists();
+            });
     }
 
     protected function validateProfitability(ProfitabilityAnalysis $record): bool
@@ -643,5 +734,4 @@ trait HasProfitabilityAnalysisActions
 
         return true;
     }
-
 }

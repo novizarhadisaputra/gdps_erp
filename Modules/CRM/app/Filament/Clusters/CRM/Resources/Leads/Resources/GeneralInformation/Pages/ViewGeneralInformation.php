@@ -191,24 +191,30 @@ class ViewGeneralInformation extends ViewRecord
                 ->color('gray')
                 ->button(),
 
-            Action::make('incompleteWarning')
-                ->label('Submit')
-                ->color('gray')
-                ->icon(Heroicon::OutlinedExclamationTriangle)
-                ->disabled()
-                ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 PIC untuk dapat melakukan Submit.')
-                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && ! $this->getRecord()->isComplete()),
+            \Filament\Actions\ActionGroup::make([
+                Action::make('Submit')
+                    ->color('info')
+                    ->icon(Heroicon::OutlinedPaperAirplane)
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $this->getRecord()->update(['status' => GeneralInformationStatus::Submitted]);
+                        app(SignatureService::class)->notifyNextApprovers($this->getRecord());
+                        $this->refreshFormData(['status']);
+                    })
+                    ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && $this->getRecord()->isComplete()),
 
-            Action::make('Submit')
-                ->color('info')
-                ->icon(Heroicon::OutlinedPaperAirplane)
-                ->requiresConfirmation()
-                ->action(function () {
-                    $this->getRecord()->update(['status' => GeneralInformationStatus::Submitted]);
-                    app(SignatureService::class)->notifyNextApprovers($this->getRecord());
-                    $this->refreshFormData(['status']);
-                })
-                ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && $this->getRecord()->isComplete()),
+                Action::make('incompleteWarning')
+                    ->label('Submit')
+                    ->color('gray')
+                    ->icon(Heroicon::OutlinedExclamationTriangle)
+                    ->disabled()
+                    ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 PIC untuk dapat melakukan Submit.')
+                    ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && ! $this->getRecord()->isComplete()),
+            ])
+            ->label('Workflow')
+            ->icon(Heroicon::OutlinedPlay)
+            ->color('primary')
+            ->button(),
 
         ];
     }

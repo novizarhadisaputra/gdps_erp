@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages;
 
+use BackedEnum;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Support\Icons\Heroicon;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
@@ -15,7 +16,7 @@ class ManageDailyReports extends ManageRelatedRecords
 
     protected static string $relationship = 'dailyReports';
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentText;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
     protected static ?string $navigationLabel = 'Daily Reports';
 

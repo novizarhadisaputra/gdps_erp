@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
@@ -24,7 +25,7 @@ class ManageContracts extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ContractResource::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
 
     protected static ?string $title = 'Contracts';
 
@@ -57,7 +58,7 @@ class ManageContracts extends ManageRelatedRecords
         return ContractResource::table($table)
             ->headerActions([
                 CreateAction::make()
-                    ->schema(fn (Schema $schema) => ContractResource::form($schema))
+                    ->schema(fn(Schema $schema) => ContractResource::form($schema))
                     ->fillForm(function (): array {
                         $record = $this->getOwnerRecord();
                         // Try to find the latest proposal linked to this lead

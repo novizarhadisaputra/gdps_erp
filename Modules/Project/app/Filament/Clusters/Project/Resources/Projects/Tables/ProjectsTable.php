@@ -112,11 +112,16 @@ class ProjectsTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                RestoreAction::make(),
-                ForceDeleteAction::make(),
-                DeleteAction::make(),
+                \Filament\Actions\ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    RestoreAction::make(),
+                    DeleteAction::make(),
+                    ForceDeleteAction::make(),
+                ])
+                ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

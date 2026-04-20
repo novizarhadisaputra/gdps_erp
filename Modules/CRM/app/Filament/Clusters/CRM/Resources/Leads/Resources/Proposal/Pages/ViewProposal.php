@@ -74,7 +74,7 @@ class ViewProposal extends ViewRecord
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft && ! $this->record->isComplete()),
 
             Action::make('Submit')
-                ->label('Send Proposal')
+                ->label('Submit')
                 ->color('info')
                 ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
@@ -82,7 +82,7 @@ class ViewProposal extends ViewRecord
                     $this->record->update(['status' => ProposalStatus::Submitted]);
                     app(SignatureService::class)->notifyNextApprovers($this->record);
                     
-                    Notification::make()->title('Proposal Sent Successfully')->success()->send();
+                    Notification::make()->title('Proposal Submitted Successfully')->success()->send();
                 })
                 ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->record->isComplete()),
                 

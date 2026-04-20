@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
+use BackedEnum;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -17,7 +18,7 @@ class ManageProjectReviews extends ManageRelatedRecords
 
     protected static ?string $relatedResource = ProjectReviewResource::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
+    protected static BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
     protected static ?string $title = 'Project Reviews';
 
