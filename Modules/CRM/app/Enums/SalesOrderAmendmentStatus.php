@@ -12,6 +12,7 @@ use Illuminate\Contracts\Support\Htmlable;
 enum SalesOrderAmendmentStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Draft = 'draft';
+    case Submitted = 'submitted';
     case Approved = 'approved';
     case Cancelled = 'cancelled';
 
@@ -19,6 +20,7 @@ enum SalesOrderAmendmentStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'Draft',
+            self::Submitted => 'Submitted',
             self::Approved => 'Approved',
             self::Cancelled => 'Cancelled',
         };
@@ -28,6 +30,7 @@ enum SalesOrderAmendmentStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'gray',
+            self::Submitted => 'info',
             self::Approved => 'success',
             self::Cancelled => 'danger',
         };
@@ -37,6 +40,7 @@ enum SalesOrderAmendmentStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => Heroicon::Document,
+            self::Submitted => Heroicon::PaperAirplane,
             self::Approved => Heroicon::CheckCircle,
             self::Cancelled => Heroicon::NoSymbol,
         };

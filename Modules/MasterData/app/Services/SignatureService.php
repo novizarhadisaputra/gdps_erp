@@ -10,6 +10,8 @@ use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
+use Modules\CRM\Models\SalesOrder;
 use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Notifications\ApprovalRequiredNotification;
@@ -180,7 +182,7 @@ class SignatureService
     public function notifyNextApprovers(Model $model): void
     {
         $required = $this->getRequiredApprovers($model);
-        
+
         // Find if we are in Margin stage or PA stage (hierarchical stages but parallel within stages)
         $isMarginStage = method_exists($model, 'isMarginApproved') && ! $model->isMarginApproved();
         $targetType = $isMarginStage ? 'MarginApproval' : 'Approver';
@@ -188,6 +190,7 @@ class SignatureService
         // Find all rules of the current stage that are NOT yet satisfied
         $unsatisfiedRules = $required->filter(function ($rule) use ($model, $targetType) {
             $ruleType = $rule->signature_type instanceof \BackedEnum ? $rule->signature_type->value : (string) $rule->signature_type;
+
             return $ruleType === $targetType && ! $model->isRuleSatisfied($rule);
         });
 
@@ -279,6 +282,8 @@ class SignatureService
             \Modules\CRM\Models\GeneralInformation::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::class,
             \Modules\Project\Models\ProjectInformation::class => \Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\ProjectInformationResource::class,
             \Modules\Project\Models\WorkCompletionReport::class => \Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\WorkCompletionReportResource::class,
+            SalesOrder::class => SalesOrderResource::class,
+            \Modules\CRM\Models\SalesOrderAmendment::class => \Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\AmendmentResource::class,
             default => null,
         };
 

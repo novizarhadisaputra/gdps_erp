@@ -66,6 +66,14 @@ class WorkCompletionReport extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
+        $this->addMediaCollection('draft_report')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('signed_report')
+            ->useDisk('s3')
+            ->singleFile();
+
         $this->addMediaCollection('completion_documents')
             ->useDisk('s3')
             ->singleFile();

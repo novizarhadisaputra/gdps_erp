@@ -174,7 +174,7 @@ class SendSalesOrder extends Page
 
             // 5. Update Sales Order status to Sent
             $this->record->update([
-                'status' => SalesOrderStatus::Sent,
+                'status' => SalesOrderStatus::Submitted,
             ]);
 
             Notification::make()

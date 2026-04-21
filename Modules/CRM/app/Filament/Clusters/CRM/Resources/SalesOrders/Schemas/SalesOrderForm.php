@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
@@ -126,12 +127,6 @@ class SalesOrderForm
                                         ->default(SalesOrderType::External)
                                         ->required()
                                         ->live(),
-                                    Select::make('status')
-                                        ->options(SalesOrderStatus::class)
-                                        ->required()
-                                        ->default(SalesOrderStatus::Draft)
-                                        ->disabled()
-                                        ->dehydrated(),
                                 ]),
                         ]),
                     Step::make('Execution & Staffing')
@@ -162,9 +157,9 @@ class SalesOrderForm
                                         ->helperText('Total initial manpower as per contract.')
                                         ->default(0),
 
-                                    \Filament\Forms\Components\Hidden::make('manpower_composition')
+                                    Hidden::make('manpower_composition')
                                         ->live(),
-                                    \Filament\Forms\Components\Hidden::make('content_config')
+                                    Hidden::make('content_config')
                                         ->live(),
 
                                     TextEntry::make('manpower_composition_preview')
@@ -400,17 +395,26 @@ class SalesOrderForm
                                         ]),
                                 ]),
                             Section::make('Official Document Upload')
-                                ->description('Upload the signed physical SO document.')
+                                ->description('Upload the reference draf and signed physical documents.')
                                 ->schema([
-                                    SpatieMediaLibraryFileUpload::make('signed_so')
-                                        ->collection('signed_so')
-                                        ->label(fn (Get $get) => $get('type') === SalesOrderType::Internal->value
-                                            ? 'Approved Internal Memo / ST / PO (Scan)'
-                                            : 'Signed SO (Scan)'
-                                        )
-                                        ->placeholder('Click or drag file here...')
-                                        ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal->value)
-                                        ->helperText('PDF or Image format (Max 10MB).'),
+                                    Grid::make(2)
+                                        ->schema([
+                                            SpatieMediaLibraryFileUpload::make('draft_so')
+                                                ->collection('draft_so')
+                                                ->label('Draft SO / Proposal Document')
+                                                ->placeholder('Click or drag file here...')
+                                                ->helperText('Internal review version (Max 10MB).'),
+
+                                            SpatieMediaLibraryFileUpload::make('signed_so')
+                                                ->collection('signed_so')
+                                                ->label(fn (Get $get) => $get('type') === SalesOrderType::Internal->value
+                                                    ? 'Approved Internal Memo / ST / PO (Scan)'
+                                                    : 'Signed SO / SPK / PO (Scan)'
+                                                )
+                                                ->placeholder('Click or drag file here...')
+                                                ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal->value)
+                                                ->helperText('Final legal document (Max 10MB).'),
+                                        ]),
                                 ]),
                         ]),
                 ])

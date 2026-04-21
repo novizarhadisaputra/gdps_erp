@@ -6,6 +6,8 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
@@ -19,6 +21,30 @@ class WorkCompletionReportForm
     {
         return $schema
             ->components([
+                Section::make('Documents')
+                    ->description('Unduh draft BAPP untuk ditandatangani, lalu unggah kembali hasil pindaian (Scan) dokumen yang telah ditandatangani untuk memproses persetujuan.')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                SpatieMediaLibraryFileUpload::make('draft_report')
+                                    ->label('Draft BAPP (Unsigned)')
+                                    ->collection('draft_report')
+                                    ->disk('s3')
+                                    ->downloadable()
+                                    ->openable()
+                                    ->helperText('Dokumen draf hasil sistem yang belum ditandatangani.'),
+
+                                SpatieMediaLibraryFileUpload::make('signed_report')
+                                    ->label('Signed BAPP (Final Scan)')
+                                    ->collection('signed_report')
+                                    ->disk('s3')
+                                    ->downloadable()
+                                    ->openable()
+                                    ->helperText('Unggah pindaian dokumen yang telah ditandatangani oleh kedua belah pihak.')
+                                    ->required(fn ($get) => $get('status') === WorkCompletionStatus::Submitted->value),
+                            ]),
+                    ])->columnSpanFull(),
+
                 Section::make('Report Details')
                     ->schema([
                         TextInput::make('report_number')

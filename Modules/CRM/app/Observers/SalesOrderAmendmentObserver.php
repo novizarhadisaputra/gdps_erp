@@ -43,31 +43,52 @@ class SalesOrderAmendmentObserver
         // The user example matches: [SO_PART]/AMAND/[SEQ]/[YY]
 
         $soNumberParts = explode('/', $salesOrder->so_number);
-        // Assuming format is GDPS/UB/SO-001/25
-        // Parts: [GDPS, UB, SO-001, 25]
-
-        if (count($soNumberParts) >= 3) {
+        // SO Format: GDPS/UB/SO-001/25
+        // Parts: [0=>GDPS, 1=>UB, 2=>SO-001, 3=>25]
+        
+        if (count($soNumberParts) >= 4) {
             $basePart = implode('/', array_slice($soNumberParts, 0, 3)); // GDPS/UB/SO-001
-            $amendment->amendment_number = sprintf('%s/AMAND/%02d/%s', $basePart, $sequence, $shortYear);
+            $soYear = $soNumberParts[3]; // 25
+            $amendment->amendment_number = sprintf('%s/AMAND/%02d/%s', $basePart, $sequence, $soYear);
         } else {
-            // Fallback
+            // Fallback: If SO number is shorter or different format
             $amendment->amendment_number = sprintf('%s/AMAND/%02d/%s', $salesOrder->so_number, $sequence, $shortYear);
         }
     }
+
     /**
      * Handle the SalesOrderAmendment "updated" event.
      */
     public function updated(SalesOrderAmendment $amendment): void
     {
+        // Auto-approve if signed SOA is uploaded
+        if ($amendment->hasMedia('signed_soa') && $amendment->status !== SalesOrderAmendmentStatus::Approved) {
+            $amendment->update(['status' => SalesOrderAmendmentStatus::Approved]);
+
+            return; // updateStatus will trigger another updated event
+        }
+
         // When an amendment is approved, sync its "After" state back to the Sales Order
         if ($amendment->isDirty('status') && $amendment->status === SalesOrderAmendmentStatus::Approved) {
             $so = $amendment->salesOrder;
             if ($so) {
                 $after = $amendment->after_snapshot;
-                
+
+                $items = collect($after['items'] ?? []);
+
+                // Flatten and group manpower for Sales Order level tracking
+                $allManpower = $items->flatMap(fn ($item) => $item['manpower'] ?? [])
+                    ->groupBy('job_position_name')
+                    ->map(fn ($group) => [
+                        'job_position_name' => $group->first()['job_position_name'],
+                        'quantity' => $group->sum('quantity'),
+                    ])
+                    ->values()
+                    ->toArray();
+
                 // 1. Calculate new service total amount (monthly)
-                $totalServiceMonth = collect($after['items'] ?? [])->sum('total_price');
-                
+                $totalServiceMonth = $items->sum('total_price');
+
                 // 2. Add Management Fee and Tax (following original SO percentages)
                 $mgtFeeVal = $totalServiceMonth * ($so->management_fee_percentage / 100);
                 $taxVal = ($totalServiceMonth + $mgtFeeVal) * ($so->tax_percentage / 100);
@@ -76,11 +97,11 @@ class SalesOrderAmendmentObserver
                 $so->update([
                     'content_config' => array_merge($so->content_config ?? [], [
                         'items' => $after['items'] ?? [],
-                        'manpower_details' => $after['manpower_details'] ?? [],
+                        'manpower_details' => $allManpower,
                         'pa_revision_number' => $after['pa_revision_number'] ?? ($so->content_config['pa_revision_number'] ?? 0),
                     ]),
                     'amount' => $newGrandTotal,
-                    'manpower_initial_qty' => collect($after['manpower_details'] ?? [])->sum('quantity'),
+                    'manpower_initial_qty' => collect($allManpower)->sum('quantity'),
                 ]);
             }
         }

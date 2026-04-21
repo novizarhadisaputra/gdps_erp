@@ -69,6 +69,10 @@ class SalesOrder extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
+        $this->addMediaCollection('draft_so')
+            ->useDisk('s3')
+            ->singleFile();
+
         $this->addMediaCollection('signed_so')
             ->useDisk('s3')
             ->singleFile();

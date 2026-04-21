@@ -3,9 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components\RichEditor;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\{RichEditor, Select, TextInput};
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
@@ -108,7 +106,7 @@ class SendAmendment extends Page
             Action::make('back')
                 ->label('Back to Amendment')
                 ->color('gray')
-                ->url(fn () => $this->getResource()::getUrl('view', ['record' => $this->record, 'parent' => $this->record->sales_order_id])),
+                ->url(fn () => $this->getResource()::getUrl('view', ['record' => $this->record, 'sales_order' => $this->record->sales_order_id])),
         ];
     }
 
@@ -171,7 +169,7 @@ class SendAmendment extends Page
                 ->success()
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record, 'parent' => $this->record->sales_order_id]));
+            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record, 'sales_order' => $this->record->sales_order_id]));
         } catch (\Exception $e) {
              Log::error('Amendment Email Sending Failed', [
                 'amendment_id' => $this->record->id,

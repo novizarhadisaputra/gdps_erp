@@ -67,34 +67,12 @@ class SalesOrderInfolist
                 Section::make('Service Details (Snapshot)')
                     ->description('Rincian komponen biaya dan personil pada saat Sales Order ini dibuat/diamandemen.')
                     ->schema([
-                        RepeatableEntry::make('content_config.items')
-                            ->label('Items & Pricing')
-                            ->schema([
-                                Grid::make(4)
-                                    ->schema([
-                                        TextEntry::make('description')->columnSpan(1),
-                                        TextEntry::make('quantity')->numeric()->columnSpan(1),
-                                        TextEntry::make('uom')->label('UoM')->columnSpan(1),
-                                        TextEntry::make('total_price')
-                                            ->money('IDR')
-                                            ->label('Total/Month')
-                                            ->weight(FontWeight::Bold)
-                                            ->columnSpan(1),
-                                    ]),
-                            ])
-                            ->columnSpanFull(),
-
-                        RepeatableEntry::make('content_config.manpower_details')
-                            ->label('Staffing Composition')
-                            ->schema([
-                                Grid::make(3)
-                                    ->schema([
-                                        TextEntry::make('job_position_name')->label('Position'),
-                                        TextEntry::make('quantity')->numeric()->label('Qty'),
-                                        TextEntry::make('total_monthly_cost')->money('IDR')->label('Est. Monthly Cost'),
-                                    ]),
-                            ])
-                            ->columnSpanFull(),
+                        TextEntry::make('service_details_unified')
+                            ->label('')
+                            ->view('crm::filament.components.combined-snapshot-table', fn (SalesOrder $record) => [
+                                'items' => $record->content_config['items'] ?? [],
+                                'manpower' => $record->content_config['manpower_details'] ?? [],
+                            ]),
                     ])->columnSpanFull(),
 
                 Section::make('Financials & Terms')
@@ -124,17 +102,31 @@ class SalesOrderInfolist
 
                 Section::make('Attachments')
                     ->schema([
-                        TextEntry::make('signed_so')
-                            ->label('Signed Sales Order Document')
-                            ->state(function (SalesOrder $record) {
-                                $media = $record->getFirstMedia('signed_so');
-                                if (! $media) {
-                                    return 'No document uploaded.';
-                                }
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('draft_so')
+                                    ->label('Draft SO / Proposal Document')
+                                    ->state(function (SalesOrder $record) {
+                                        $media = $record->getFirstMedia('draft_so');
+                                        if (! $media) {
+                                            return 'No draft document uploaded.';
+                                        }
 
-                                return new HtmlString("<a href='{$media->getUrl()}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-1'>Download Signed SO ({$media->file_name})</a>");
-                            })
-                            ->html(),
+                                        return new HtmlString("<a href='{$media->getUrl()}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-1'>Download Draft ({$media->file_name})</a>");
+                                    })
+                                    ->html(),
+                                TextEntry::make('signed_so')
+                                    ->label('Signed Sales Order Document')
+                                    ->state(function (SalesOrder $record) {
+                                        $media = $record->getFirstMedia('signed_so');
+                                        if (! $media) {
+                                            return 'No signed document uploaded.';
+                                        }
+
+                                        return new HtmlString("<a href='{$media->getUrl()}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-1'>Download Signed SO ({$media->file_name})</a>");
+                                    })
+                                    ->html(),
+                            ]),
                     ])->columnSpanFull(),
             ]);
     }

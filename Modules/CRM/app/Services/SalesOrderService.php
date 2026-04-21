@@ -57,7 +57,7 @@ class SalesOrderService
         // Map PA items to SO Table items
         $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
             'description' => $item['item_name'],
-            'uom' => 'Unit', // Default or from cat
+            'uom' => $item['uom'] ?? 'Unit',
             'quantity' => $item['quantity'],
             'unit_price' => $item['unit_cost'],
             'total_price' => $item['total_monthly_cost'],
@@ -136,7 +136,7 @@ class SalesOrderService
         $financials = $analysis->financial_assumptions;
         $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
             'description' => $item['item_name'],
-            'uom' => 'Unit',
+            'uom' => $item['uom'] ?? 'Unit',
             'quantity' => $item['quantity'],
             'unit_price' => $item['unit_cost'],
             'total_price' => $item['total_monthly_cost'],

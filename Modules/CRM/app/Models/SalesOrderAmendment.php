@@ -2,23 +2,26 @@
 
 namespace Modules\CRM\Models;
 
+use App\Models\Comment;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Comment;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Database\Factories\SalesOrderAmendmentFactory;
 use Modules\CRM\Enums\SalesOrderAmendmentStatus;
 use Modules\CRM\Observers\SalesOrderAmendmentObserver;
+use Modules\MasterData\Traits\HasDigitalSignatures;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[ObservedBy(SalesOrderAmendmentObserver::class)]
-class SalesOrderAmendment extends Model
+class SalesOrderAmendment extends Model implements HasMedia
 {
-    use HasFactory, HasModuleSchema, HasUuids, SoftDeletes;
+    use HasDigitalSignatures, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
         'sales_order_id',
@@ -42,6 +45,17 @@ class SalesOrderAmendment extends Model
             'content_config' => 'array',
             'status' => SalesOrderAmendmentStatus::class,
         ];
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('draft_soa')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('signed_soa')
+            ->useDisk('s3')
+            ->singleFile();
     }
 
     protected static function newFactory(): SalesOrderAmendmentFactory

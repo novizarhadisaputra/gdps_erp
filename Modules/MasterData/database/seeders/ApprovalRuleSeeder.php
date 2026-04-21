@@ -4,6 +4,10 @@ namespace Modules\MasterData\Database\Seeders;
 
 use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\Proposal;
+use Modules\CRM\Models\SalesOrder;
+use Modules\CRM\Models\SalesOrderAmendment;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Models\ProductCluster;
 
@@ -214,6 +218,63 @@ class ApprovalRuleSeeder extends Seeder
                 'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
                 'signature_type' => 'Approver',
                 'order' => 14,
+                'is_active' => true,
+            ],
+            // Sales Order Rules - Mirroring Proposal & PA Final Step
+            [
+                'resource_type' => SalesOrder::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => SalesOrder::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'signature_type' => 'Approver',
+                'order' => 2,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => SalesOrder::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
+                'signature_type' => 'Approver',
+                'order' => 3,
+                'is_active' => true,
+            ],
+
+            // Sales Order Amendment Rules
+            [
+                'resource_type' => SalesOrderAmendment::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => SalesOrderAmendment::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'signature_type' => 'Approver',
+                'order' => 2,
+                'is_active' => true,
+            ],
+            [
+                'resource_type' => SalesOrderAmendment::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
+                'signature_type' => 'Approver',
+                'order' => 3,
                 'is_active' => true,
             ],
         ];

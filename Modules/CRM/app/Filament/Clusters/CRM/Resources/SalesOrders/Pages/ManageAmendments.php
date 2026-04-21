@@ -7,8 +7,7 @@ use Filament\Actions\Action;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\SalesOrderAmendmentStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\AmendmentResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Tables\AmendmentsTable;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\{AmendmentResource, Tables\AmendmentsTable};
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 
 class ManageAmendments extends ManageRelatedRecords
@@ -46,22 +45,17 @@ class ManageAmendments extends ManageRelatedRecords
                     // Initialize After snapshot with same data so user only edits what's different
                     $afterSnapshot = $beforeSnapshot;
 
-                    // 2. Resolve Sequence Number
-                    $nextNumber = ($so->amendments()->max('amendment_number') ?? 0) + 1;
-
-                    // 3. Create Draft
+                    // 2. Create Draft (Observer will handle amendment_number, sequence_number and year)
                     $amendment = $so->amendments()->create([
-                        'amendment_number' => $nextNumber,
                         'amendment_date' => now(),
                         'reason' => 'Manual amendment proposal',
                         'status' => SalesOrderAmendmentStatus::Draft,
                         'before_snapshot' => $beforeSnapshot,
                         'after_snapshot' => $afterSnapshot,
-                        'content_config' => $afterSnapshot,
                         'year' => date('Y'),
                     ]);
 
-                    return redirect(AmendmentResource::getUrl('edit', ['record' => $amendment, 'parent' => $so->id]));
+                    return redirect(AmendmentResource::getUrl('edit', ['record' => $amendment, 'sales_order' => $so->id]));
                 }),
         ];
     }

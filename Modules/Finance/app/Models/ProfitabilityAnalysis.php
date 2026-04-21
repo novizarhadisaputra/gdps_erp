@@ -18,18 +18,18 @@ use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Database\Factories\ProfitabilityAnalysisFactory;
-use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Observers\ProfitabilityAnalysisObserver;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
-use Modules\Project\Models\Project;
 use Modules\MasterData\Traits\HasDigitalSignatures;
+use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -375,6 +375,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'bill_compensation_monthly' => $item['bill_compensation_monthly'] ?? true,
             'include_non_fixed_in_accruals' => $item['include_non_fixed_in_accruals'] ?? false,
             'extra_costs' => $item['extra_costs'] ?? [],
+            'uom' => $item['uom'] ?? $item['unit_of_measure'] ?? 'Person',
             'ptkp_config_id' => $item['ptkp_config_id'] ?? null,
             'cost_breakdown' => $item['cost_breakdown'] ?? null,
         ])->toArray();
@@ -400,6 +401,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
                 'quantity' => $item['quantity'] ?? 1,
                 'unit_cost' => $item['unit_amount'] ?? $item['unit_cost_price'] ?? 0,
                 'total_monthly_cost' => $item['amount'] ?? $item['total_monthly_cost'] ?? 0,
+                'uom' => $item['uom'] ?? $item['unit_of_measure'] ?? 'Pieces',
                 'calculation_type' => $item['calculation_type'] ?? 'nominal',
                 'percentage_basis' => $item['percentage_basis'] ?? null,
             ])->toArray(),

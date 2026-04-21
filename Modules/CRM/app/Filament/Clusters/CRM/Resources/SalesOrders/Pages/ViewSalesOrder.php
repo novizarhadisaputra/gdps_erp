@@ -2,14 +2,15 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages;
 
-use Filament\Actions\Action;
-use Filament\Actions\EditAction;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\{Action, ActionGroup, EditAction};
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 use Modules\CRM\Models\SalesOrder;
+use Modules\MasterData\Services\SignatureService;
 
 class ViewSalesOrder extends ViewRecord
 {
@@ -21,19 +22,31 @@ class ViewSalesOrder extends ViewRecord
             EditAction::make()
                 ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft),
 
-            \Filament\Actions\ActionGroup::make([
+            ActionGroup::make([
                 Action::make('sendEmail')
                     ->label('Send Email')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft)
                     ->url(fn (SalesOrder $record) => SalesOrderResource::getUrl('send', ['record' => $record])),
 
+                Action::make('submit')
+                    ->label('Submit')
+                    ->color('info')
+                    ->icon(Heroicon::OutlinedPaperAirplane)
+                    ->requiresConfirmation()
+                    ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft)
+                    ->action(function (SalesOrder $record) {
+                        $record->update(['status' => SalesOrderStatus::Submitted]);
+                        app(SignatureService::class)->notifyNextApprovers($record);
+                        Notification::make()->title('Order Submitted for Approval')->success()->send();
+                    }),
+
                 Action::make('approve')
                     ->label('Approve Order')
                     ->color('success')
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->requiresConfirmation()
-                    ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Sent]))
+                    ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]))
                     ->action(function (SalesOrder $record) {
                         $record->update(['status' => SalesOrderStatus::Approved]);
                         Notification::make()->title('Order Approved')->success()->send();
@@ -43,7 +56,7 @@ class ViewSalesOrder extends ViewRecord
                     ->label('Request Revision')
                     ->color('warning')
                     ->icon(Heroicon::OutlinedArrowPath)
-                    ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Sent, SalesOrderStatus::Approved]))
+                    ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Submitted, SalesOrderStatus::Approved]))
                     ->action(function (SalesOrder $record) {
                         if ($record->status === SalesOrderStatus::Approved) {
                             Notification::make()
@@ -80,7 +93,7 @@ class ViewSalesOrder extends ViewRecord
                     ->color('gray')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function (SalesOrder $record) {
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
+                        $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
                         $filename = str_replace(['/', '\\'], '-', $record->so_number);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "so-{$filename}.pdf");
