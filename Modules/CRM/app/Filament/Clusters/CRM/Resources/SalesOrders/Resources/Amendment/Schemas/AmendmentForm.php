@@ -97,34 +97,6 @@ class AmendmentForm
                                         Grid::make(3) // 3 components per row for maximum clarity
                                             ->schema([
                                                 // Row 1: Primary Identification
-                                                TextInput::make('description')
-                                                    ->label('Item')
-                                                    ->placeholder('Enter item name or position name...')
-                                                    ->required()
-                                                    ->live(debounce: 500)
-                                                    ->afterStateUpdated(function ($state, $set) {
-                                                        if (! $state) {
-                                                            return;
-                                                        }
-
-                                                        // Detective logic: Is this a Job Position?
-                                                        $position = JobPosition::where('name', 'ILIKE', $state)->first();
-                                                        if ($position) {
-                                                            $set('type', 'personnel');
-                                                            $set('uom', 'Person');
-                                                        } else {
-                                                            $item = Item::where('name', 'ILIKE', $state)->first();
-                                                            if ($item) {
-                                                                $set('type', 'item');
-                                                                $uomName = UnitOfMeasure::find($item->unit_of_measure_id)?->name;
-                                                                if ($uomName) {
-                                                                    $set('uom', $uomName);
-                                                                }
-                                                            }
-                                                        }
-                                                    })
-                                                    ->columnSpan(1),
-
                                                 Select::make('type')
                                                     ->label('Category')
                                                     ->options([
@@ -133,6 +105,50 @@ class AmendmentForm
                                                     ])
                                                     ->required()
                                                     ->live()
+                                                    ->afterStateUpdated(fn ($set) => $set('description', null))
+                                                    ->columnSpan(1),
+
+                                                Select::make('description')
+                                                    ->label(fn ($get) => $get('type') === 'personnel' ? 'Job Position' : 'Item Name')
+                                                    ->placeholder('Select item or position...')
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->options(function ($get) {
+                                                        $type = $get('type');
+                                                        if ($type === 'personnel') {
+                                                            return JobPosition::query()->where('is_active', true)->pluck('name', 'name');
+                                                        }
+                                                        return Item::query()->where('is_active', true)->pluck('name', 'name');
+                                                    })
+                                                    ->required()
+                                                    ->live()
+                                                    ->afterStateUpdated(function ($state, $get, $set) {
+                                                        if (! $state) {
+                                                            return;
+                                                        }
+
+                                                        $type = $get('type');
+                                                        if ($type === 'personnel') {
+                                                            $position = JobPosition::where('name', $state)->first();
+                                                            if ($position) {
+                                                                $set('uom', 'Person');
+                                                                // If there's a default price for position, we could set it here
+                                                                // For now, Manpower usually has custom pricing but position name is fixed
+                                                            }
+                                                        } else {
+                                                            $item = Item::where('name', $state)->first();
+                                                            if ($item) {
+                                                                $uomName = UnitOfMeasure::find($item->unit_of_measure_id)?->name;
+                                                                if ($uomName) {
+                                                                    $set('uom', $uomName);
+                                                                }
+                                                                $set('unit_price', $item->price);
+                                                                
+                                                                $qty = floatval($get('quantity') ?? 0);
+                                                                $set('total_price', $qty * floatval($item->price));
+                                                            }
+                                                        }
+                                                    })
                                                     ->columnSpan(1),
 
                                                 Select::make('uom')

@@ -35,6 +35,7 @@ class WorkCompletionReport extends Model implements HasMedia
         'service_period_end',
         'work_progress_percentage',
         'description',
+        'items',
         'status',
     ];
 
@@ -45,6 +46,7 @@ class WorkCompletionReport extends Model implements HasMedia
             'service_period_start' => 'date',
             'service_period_end' => 'date',
             'work_progress_percentage' => 'decimal:2',
+            'items' => 'array',
             'status' => WorkCompletionStatus::class,
         ];
     }

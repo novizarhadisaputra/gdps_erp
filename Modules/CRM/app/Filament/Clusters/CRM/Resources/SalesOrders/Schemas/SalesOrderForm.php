@@ -314,8 +314,8 @@ class SalesOrderForm
                                                 return "
                                                 <tr class='hover:bg-gray-50/50 transition-colors'>
                                                     <td class='px-4 py-2 border-b border-gray-100 text-sm font-medium text-gray-900'>{$desc}</td>
-                                                    <td class='px-4 py-2 border-b border-gray-100 text-sm text-gray-600'>{$uom}</td>
                                                     <td class='px-4 py-2 border-b border-gray-100 text-sm text-gray-600 text-right'>".number_format($qty)."</td>
+                                                    <td class='px-4 py-2 border-b border-gray-100 text-sm text-gray-600'>{$uom}</td>
                                                     <td class='px-4 py-2 border-b border-gray-100 text-sm text-gray-600 text-right'>".number_format($price, 0, ',', '.')."</td>
                                                     <td class='px-4 py-2 border-b border-gray-100 text-sm font-semibold text-gray-900 text-right'>".number_format($total, 0, ',', '.').'</td>
                                                 </tr>';
@@ -327,8 +327,8 @@ class SalesOrderForm
                                                         <thead>
                                                             <tr class='bg-gray-50/80'>
                                                                 <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200'>Description</th>
-                                                                <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200'>UoM</th>
                                                                 <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-200'>Qty</th>
+                                                                <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200'>UoM</th>
                                                                 <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-200'>Price</th>
                                                                 <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-200'>Total</th>
                                                             </tr>

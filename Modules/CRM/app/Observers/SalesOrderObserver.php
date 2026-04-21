@@ -3,6 +3,7 @@
 namespace Modules\CRM\Observers;
 
 use Modules\CRM\Enums\SalesOrderStatus;
+use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Models\SalesOrder;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\WorkCompletionReport;
@@ -31,6 +32,22 @@ class SalesOrderObserver
         $salesOrder->year = (int) $year;
         $salesOrder->sequence_number = $sequence;
         $salesOrder->so_number = sprintf('GDPS/UB/SO-%03d/%s', $sequence, $shortYear);
+    }
+
+    /**
+     * Handle the SalesOrder "saving" event.
+     */
+    public function saving(SalesOrder $salesOrder): void
+    {
+        // Distinguish Internal vs External based on attachments
+        // If a signed SO exists, it's external (requires customer signature)
+        // This addresses the feedback regarding attachment-based types
+        if ($salesOrder->hasMedia('signed_so')) {
+            $salesOrder->type = SalesOrderType::External;
+        } else {
+            // Default to internal if no external signature present
+            $salesOrder->type = SalesOrderType::Internal;
+        }
     }
 
     /**

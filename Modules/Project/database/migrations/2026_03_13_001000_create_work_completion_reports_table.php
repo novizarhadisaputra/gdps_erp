@@ -25,6 +25,7 @@ return new class extends Migration
 
             $blueprint->decimal('work_progress_percentage', 5, 2)->default(100.00);
             $blueprint->text('description')->nullable();
+            $blueprint->jsonb('items')->nullable();
 
             $blueprint->string('status')->default('draft');
 
