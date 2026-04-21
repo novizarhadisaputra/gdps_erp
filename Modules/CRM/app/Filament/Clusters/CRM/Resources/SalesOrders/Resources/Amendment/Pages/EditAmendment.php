@@ -27,7 +27,10 @@ class EditAmendment extends EditRecord
 
         // Add Items
         foreach ($after['items'] ?? [] as $item) {
-            $unified[] = array_merge($item, ['type' => 'item']);
+            $unified[] = array_merge($item, [
+                'type' => 'item',
+                'unit_price' => $item['unit_price'] ?? 0,
+            ]);
         }
 
         // Add Manpower
@@ -35,6 +38,8 @@ class EditAmendment extends EditRecord
             $unified[] = array_merge($mp, [
                 'type' => 'personnel',
                 'description' => $mp['job_position_name'] ?? '',
+                'unit_price' => $mp['unit_price'] ?? $mp['unit_cost'] ?? 0,
+                'total_price' => $mp['total_monthly_cost'] ?? $mp['total_price'] ?? 0, // Unify key
             ]);
         }
 
@@ -53,6 +58,8 @@ class EditAmendment extends EditRecord
             if (($entry['type'] ?? '') === 'personnel') {
                 $manpower[] = array_merge($entry, [
                     'job_position_name' => $entry['description'] ?? '',
+                    'unit_cost' => $entry['unit_price'] ?? 0, // Map for PA compatibility
+                    'total_monthly_cost' => $entry['total_price'] ?? 0, // Map back
                 ]);
             } else {
                 $items[] = $entry;

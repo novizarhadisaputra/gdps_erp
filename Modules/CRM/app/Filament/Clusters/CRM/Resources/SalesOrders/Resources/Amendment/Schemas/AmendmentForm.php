@@ -24,7 +24,7 @@ class AmendmentForm
         return $schema
             ->components([
                 Section::make('Documents')
-                    ->description('Unduh draft amandemen untuk ditandatangani, lalu unggah kembali hasil pindaian (Scan) dokumen yang telah ditandatangani untuk memproses persetujuan.')
+                    ->description('Download the draft amendment for signing, then upload the scanned signed document to process approval.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -34,7 +34,7 @@ class AmendmentForm
                                     ->disk('s3')
                                     ->downloadable()
                                     ->openable()
-                                    ->helperText('Dokumen draf hasil sistem yang belum ditandatangani.'),
+                                    ->helperText('System-generated draft document that is not yet signed.'),
 
                                 SpatieMediaLibraryFileUpload::make('signed_soa')
                                     ->label('Signed SOA (Final Scan)')
@@ -42,23 +42,23 @@ class AmendmentForm
                                     ->disk('s3')
                                     ->downloadable()
                                     ->openable()
-                                    ->helperText('Unggah pindaian dokumen yang telah ditandatangani oleh kedua belah pihak.')
+                                    ->helperText('Upload the scanned document that has been signed by both parties.')
                                     ->required(fn ($get) => $get('status') === SalesOrderAmendmentStatus::Submitted->value),
                             ]),
                     ])->columnSpanFull(),
 
                 Section::make('Amendment Metadata')
-                    ->description('Informasi dasar mengenai amandemen ini. Data ini bersifat historis dan tidak dapat diubah.')
+                    ->description('Basic information about this amendment. This data is historical and immutable.')
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('amendment_number')
-                                    ->label('No. Amandemen')
-                                    ->helperText('Nomor urut perubahan kontrak.')
+                                    ->label('Amendment Number')
+                                    ->helperText('Sequence number of the contract change.')
                                     ->disabled(),
                                 DatePicker::make('amendment_date')
-                                    ->label('Tanggal Amandemen')
-                                    ->helperText('Tanggal disetujuinya revisi PA.')
+                                    ->label('Amendment Date')
+                                    ->helperText('Approved date of the PA revision.')
                                     ->disabled(),
                                 Select::make('status')
                                     ->label('Status')
@@ -74,7 +74,7 @@ class AmendmentForm
                     ])->columnSpanFull(),
 
                 Section::make('Comparison: Manpower & Pricing')
-                    ->description('Perbandingan rinci antara data kontrak asli (Before) dan data kontrak baru hasil revisi (After). Gunakan ini untuk memverifikasi perubahan nilai atau jumlah personil.')
+                    ->description('Detailed comparison between original contract data (Before) and revised contract data (After). Use this to verify changes in value or personnel count.')
                     ->schema([
 
                         Section::make('Before (Original)')
@@ -97,30 +97,29 @@ class AmendmentForm
                                         Grid::make(3) // 3 components per row for maximum clarity
                                             ->schema([
                                                 // Row 1: Primary Identification
-                                                Select::make('description')
-                                                    ->label('Description / Position')
-                                                    ->options(function () {
-                                                        $items = Item::pluck('name', 'name')->toArray();
-                                                        $positions = JobPosition::pluck('name', 'name')->toArray();
-                                                        return array_merge(['' => 'Select Item/Position...'], $items, $positions);
-                                                    })
-                                                    ->searchable()
+                                                TextInput::make('description')
+                                                    ->label('Item')
+                                                    ->placeholder('Enter item name or position name...')
                                                     ->required()
-                                                    ->live()
+                                                    ->live(debounce: 500)
                                                     ->afterStateUpdated(function ($state, $set) {
-                                                        if (!$state) return;
-                                                        
+                                                        if (! $state) {
+                                                            return;
+                                                        }
+
                                                         // Detective logic: Is this a Job Position?
-                                                        $position = JobPosition::where('name', $state)->first();
+                                                        $position = JobPosition::where('name', 'ILIKE', $state)->first();
                                                         if ($position) {
                                                             $set('type', 'personnel');
                                                             $set('uom', 'Person');
                                                         } else {
-                                                            $set('type', 'item');
-                                                            $item = Item::where('name', $state)->first();
+                                                            $item = Item::where('name', 'ILIKE', $state)->first();
                                                             if ($item) {
+                                                                $set('type', 'item');
                                                                 $uomName = UnitOfMeasure::find($item->unit_of_measure_id)?->name;
-                                                                if ($uomName) $set('uom', $uomName);
+                                                                if ($uomName) {
+                                                                    $set('uom', $uomName);
+                                                                }
                                                             }
                                                         }
                                                     })
@@ -151,9 +150,12 @@ class AmendmentForm
                                                     ->state(function ($get, $record) {
                                                         $type = $get('type');
                                                         $name = $get('description');
-                                                        if (! $name) return 0;
+                                                        if (! $name) {
+                                                            return 0;
+                                                        }
                                                         $snapshotKey = $type === 'personnel' ? 'manpower_details' : 'items';
                                                         $nameKey = $type === 'personnel' ? 'job_position_name' : 'description';
+
                                                         return collect($record?->before_snapshot[$snapshotKey] ?? [])->firstWhere($nameKey, $name)['quantity'] ?? 0;
                                                     })
                                                     ->columnSpan(1),
@@ -167,8 +169,10 @@ class AmendmentForm
                                                         $snapshotKey = $type === 'personnel' ? 'manpower_details' : 'items';
                                                         $nameKey = $type === 'personnel' ? 'job_position_name' : 'description';
                                                         $old = collect($record?->before_snapshot[$snapshotKey] ?? [])->firstWhere($nameKey, $name)['quantity'] ?? 0;
-                                                        $delta = $new - $old; $sign = $delta > 0 ? '+' : '';
-                                                        return $sign . $delta;
+                                                        $delta = $new - $old;
+                                                        $sign = $delta > 0 ? '+' : '';
+
+                                                        return $sign.$delta;
                                                     })
                                                     ->badge()
                                                     ->color(fn ($state) => str_contains($state, '+') ? 'success' : (str_contains($state, '-') ? 'danger' : 'gray'))
@@ -178,22 +182,45 @@ class AmendmentForm
                                                     ->label('Qty (Revised)')
                                                     ->numeric()
                                                     ->required()
-                                                    ->live()
+                                                    ->live(onBlur: true)
+                                                    ->afterStateUpdated(function ($state, $get, $set) {
+                                                        $qty = floatval($state ?? 0);
+                                                        $unitPrice = floatval($get('unit_price') ?? 0);
+                                                        $set('total_price', $qty * $unitPrice);
+                                                    })
                                                     ->columnSpan(1),
 
                                                 // Row 3: Financials & Notes
-                                                TextInput::make('total_price')
-                                                    ->label('Price / Month (IDR)')
+                                                TextInput::make('unit_price')
+                                                    ->label(fn ($get) => ($get('type') ?? 'item') === 'personnel' ? 'Rate / Person (IDR)' : 'Unit Price (IDR)')
                                                     ->numeric()
-                                                    ->prefix('IDR')
+                                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                    ->prefix('IDR ')
                                                     ->required()
-                                                    ->visible(fn ($get) => $get('type') === 'item')
+                                                    ->live()
+                                                    ->afterStateUpdated(function ($state, $get, $set) {
+                                                        $qty = floatval($get('quantity') ?? 0);
+                                                        // Use a helper to parse numeric string if needed, but numeric() + currencyMask handles it
+                                                        $unitPrice = floatval($state ?? 0);
+                                                        $set('total_price', $qty * $unitPrice);
+                                                    })
+                                                    ->columnSpan(1),
+
+                                                TextInput::make('total_price')
+                                                    ->label(fn ($get) => ($get('type') ?? 'item') === 'personnel' ? 'Total Monthly Cost (IDR)' : 'Total Price / Month (IDR)')
+                                                    ->numeric()
+                                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                    ->prefix('IDR ')
+                                                    ->required()
+                                                    ->readonly()
+                                                    ->live()
+                                                    ->extraInputAttributes(['class' => 'font-bold text-primary-600'])
                                                     ->columnSpan(1),
 
                                                 TextInput::make('note')
                                                     ->label('Notes')
                                                     ->placeholder('Reason for change...')
-                                                    ->columnSpan(fn ($get) => $get('type') === 'item' ? 2 : 3),
+                                                    ->columnSpan(1),
                                             ]),
                                     ])
 

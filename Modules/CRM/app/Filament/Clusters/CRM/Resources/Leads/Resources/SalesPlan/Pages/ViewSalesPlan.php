@@ -2,8 +2,15 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\SalesPlanResource;
 
 class ViewSalesPlan extends ViewRecord
@@ -13,37 +20,46 @@ class ViewSalesPlan extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('pdf')
-                ->label('Export PDF')
-                ->color('gray')
-                ->icon(Heroicon::OutlinedArrowDownTray)
-                ->action(function () {
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.sales_plan', ['record' => $this->record]);
-                    $filename = str_replace(['/', '\\'], '-', $this->record->document_number);
+            EditAction::make(),
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "sales-plan-{$filename}.pdf");
-                }),
-            \Filament\Actions\Action::make('generateGI')
-                ->label('Convert to GI')
-                ->icon(Heroicon::OutlinedDocumentPlus)
-                ->color('success')
-                ->visible(fn () => $this->record->lead->generalInformations()->doesntExist() && ! empty($this->record->revenue_distribution_planning))
-                ->requiresConfirmation()
-                ->modalHeading('Generate General Information')
-                ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
-                ->action(function () {
-                    $this->record->toGeneralInformation();
+            ActionGroup::make([
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon(Heroicon::OutlinedArrowDownTray)
+                    ->action(function () {
+                        $pdf = Pdf::loadView('crm::pdf.sales_plan', ['record' => $this->record]);
+                        $filename = str_replace(['/', '\\'], '-', $this->record->document_number);
 
-                    \Filament\Notifications\Notification::make()
-                        ->title('General Information Created')
-                        ->body('Data has been synced from Sales Plan.')
-                        ->success()
-                        ->send();
+                        return response()->streamDownload(fn () => print ($pdf->output()), "sales-plan-{$filename}.pdf");
+                    }),
 
-                    return redirect()->to(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource::getUrl('general-informations', ['record' => $this->record->lead_id]));
-                }),
-            \Filament\Actions\EditAction::make(),
-            \Filament\Actions\DeleteAction::make(),
+                Action::make('generateGI')
+                    ->label('Convert to GI')
+                    ->icon(Heroicon::OutlinedDocumentPlus)
+                    ->color('success')
+                    ->visible(fn () => $this->record->lead->generalInformations()->doesntExist() && ! empty($this->record->revenue_distribution_planning))
+                    ->requiresConfirmation()
+                    ->modalHeading('Generate General Information')
+                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
+                    ->action(function () {
+                        $this->record->toGeneralInformation();
+
+                        Notification::make()
+                            ->title('General Information Created')
+                            ->body('Data has been synced from Sales Plan.')
+                            ->success()
+                            ->send();
+
+                        return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $this->record->lead_id]));
+                    }),
+            ])
+                ->label('Actions')
+                ->icon(Heroicon::EllipsisVertical)
+                ->color('primary')
+                ->button(),
+
+            DeleteAction::make(),
         ];
     }
 }

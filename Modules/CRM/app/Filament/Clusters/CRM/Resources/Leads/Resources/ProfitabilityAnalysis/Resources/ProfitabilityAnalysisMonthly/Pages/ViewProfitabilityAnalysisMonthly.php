@@ -16,4 +16,24 @@ class ViewProfitabilityAnalysisMonthly extends ViewRecord
             EditAction::make(),
         ];
     }
+
+    public function getBreadcrumbs(): array
+    {
+        $resource = static::getResource();
+        $record = $this->getRecord();
+        $pa = $record->profitabilityAnalysis;
+        $lead = $pa?->lead;
+
+        $leadResource = \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource::class;
+        $paResource = \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\ProfitabilityAnalysisResource::class;
+
+        return [
+            $leadResource::getUrl() => $leadResource::getBreadcrumb(),
+            $leadResource::getUrl('view', ['record' => $lead]) => $lead?->title ?? 'Lead',
+            $paResource::getUrl('index', ['lead' => $lead]) => $paResource::getBreadcrumb(),
+            $paResource::getUrl('view', ['lead' => $lead, 'record' => $pa]) => $pa?->document_number ?? 'PA',
+            $resource::getUrl('index', ['lead' => $lead, 'profitability_analysi' => $pa]) => $resource::getBreadcrumb(),
+            '#' => "{$record->month} {$record->year}",
+        ];
+    }
 }

@@ -87,6 +87,31 @@ class ProfitabilityAnalysisMonthlyObserver
         $this->syncToSalesPlan($monthly);
     }
 
+    public function updated(ProfitabilityAnalysisMonthly $monthly): void
+    {
+        // 1. Log Forecast Revenue changes
+        if ($monthly->wasChanged('forecast_revenue')) {
+            $monthly->logs()->create([
+                'user_id' => auth()->id(),
+                'field_name' => 'forecast_revenue',
+                'old_value' => $monthly->getOriginal('forecast_revenue'),
+                'new_value' => $monthly->forecast_revenue,
+                'delta' => (float) $monthly->forecast_revenue - (float) $monthly->getOriginal('forecast_revenue'),
+            ]);
+        }
+
+        // 2. Log Actual Revenue changes
+        if ($monthly->wasChanged('actual_revenue')) {
+            $monthly->logs()->create([
+                'user_id' => auth()->id(),
+                'field_name' => 'actual_revenue',
+                'old_value' => $monthly->getOriginal('actual_revenue'),
+                'new_value' => $monthly->actual_revenue,
+                'delta' => (float) $monthly->actual_revenue - (float) $monthly->getOriginal('actual_revenue'),
+            ]);
+        }
+    }
+
     public function deleted(ProfitabilityAnalysisMonthly $monthly): void
     {
         $this->syncToSalesPlan($monthly, true);

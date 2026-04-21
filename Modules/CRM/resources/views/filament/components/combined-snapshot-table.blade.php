@@ -1,9 +1,4 @@
-<div class="p-8 bg-white shadow-sm border border-black mx-auto max-w-5xl rounded-sm" style="font-family: 'Inter', sans-serif; color: #000;">
-    <!-- Document Header -->
-    <div class="border-b-2 border-black pb-2 mb-4 flex justify-between items-end">
-        <h1 class="text-xl font-bold uppercase tracking-tight">Original Contract Snapshot (Before)</h1>
-        <div class="text-[10px] italic text-gray-500 uppercase font-semibold">Reference Data Only</div>
-    </div>
+<div class="p-0" style="font-family: 'Inter', sans-serif; color: #000;">
 
     <table class="w-full border-collapse border-y border-black text-[11px]">
         <thead>

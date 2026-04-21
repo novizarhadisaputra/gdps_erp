@@ -11,6 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Enums\Gender;
 use Modules\MasterData\Models\ContactRole;
 
 class GeneralInformationForm
@@ -151,8 +152,8 @@ class GeneralInformationForm
                     Repeater::make('pics')
                         ->schema([
                             Select::make('gender')
-                                ->label('Sex')
-                                ->options(\Modules\MasterData\Enums\Gender::class)
+                                ->label('Gender')
+                                ->options(Gender::class)
                                 ->placeholder('Select')
                                 ->native(false),
                             TextInput::make('name')

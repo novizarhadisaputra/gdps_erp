@@ -35,4 +35,21 @@ class ManageProfitabilityAnalysisMonthlies extends ManageRelatedRecords
                     ->label('Add Monthly Record'),
             ]);
     }
+
+    public function getBreadcrumbs(): array
+    {
+        $resource = static::getResource();
+        $record = $this->getOwnerRecord();
+        $lead = $record->lead;
+
+        $leadResource = \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource::class;
+
+        return [
+            $leadResource::getUrl() => $leadResource::getBreadcrumb(),
+            $leadResource::getUrl('view', ['record' => $lead]) => $lead?->title ?? 'Lead',
+            $resource::getUrl('index', ['lead' => $lead]) => $resource::getBreadcrumb(),
+            $resource::getUrl('view', ['lead' => $lead, 'record' => $record]) => $record?->document_number ?? 'PA',
+            '#' => 'Monthly Performance',
+        ];
+    }
 }

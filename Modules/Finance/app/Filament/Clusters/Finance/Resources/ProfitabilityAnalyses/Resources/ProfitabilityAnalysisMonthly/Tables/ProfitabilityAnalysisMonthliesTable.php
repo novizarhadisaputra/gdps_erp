@@ -80,7 +80,9 @@ class ProfitabilityAnalysisMonthliesTable
                                         ->label('RoFo Delta')
                                         ->readOnly()
                                         ->prefix('IDR ')
-                                        ->color(fn ($state) => $state >= 0 ? 'success' : 'danger')
+                                        ->extraInputAttributes(fn ($state) => [
+                                            'class' => (float) $state >= 0 ? 'text-success-600 dark:text-success-400 font-bold' : 'text-danger-600 dark:text-danger-400 font-bold',
+                                        ])
                                         ->dehydrated(false),
                                     
                                     TextInput::make('actual_revenue')
@@ -98,7 +100,9 @@ class ProfitabilityAnalysisMonthliesTable
                                         ->label('Actual Delta')
                                         ->readOnly()
                                         ->prefix('IDR ')
-                                        ->color(fn ($state) => $state >= 0 ? 'success' : 'danger')
+                                        ->extraInputAttributes(fn ($state) => [
+                                            'class' => (float) $state >= 0 ? 'text-success-600 dark:text-success-400 font-bold' : 'text-danger-600 dark:text-danger-400 font-bold',
+                                        ])
                                         ->dehydrated(false),
                                 ]),
                         ])
@@ -120,28 +124,6 @@ class ProfitabilityAnalysisMonthliesTable
                                 'forecast_revenue' => $newForecast,
                                 'actual_revenue' => $newActual,
                             ]);
-
-                            // Log Forecast change if any
-                            if ($oldForecast != $newForecast) {
-                                $record->logs()->create([
-                                    'user_id' => auth()->id(),
-                                    'field_name' => 'forecast_revenue',
-                                    'old_value' => $oldForecast,
-                                    'new_value' => $newForecast,
-                                    'delta' => $newForecast - $oldForecast,
-                                ]);
-                            }
-
-                            // Log Actual change if any
-                            if ($oldActual != $newActual) {
-                                $record->logs()->create([
-                                    'user_id' => auth()->id(),
-                                    'field_name' => 'actual_revenue',
-                                    'old_value' => $oldActual,
-                                    'new_value' => $newActual,
-                                    'delta' => $newActual - $oldActual,
-                                ]);
-                            }
 
                             // Invalidate analytics caches
                             $cache = app(AnalyticsCacheService::class);

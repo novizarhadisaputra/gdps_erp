@@ -14,4 +14,20 @@ class SummaryProfitabilityAnalysis extends BasePage
     protected static string $resource = ProfitabilityAnalysisResource::class;
 
     protected static string $parentResource = LeadResource::class;
+
+    public function getBreadcrumbs(): array
+    {
+        $resource = static::getResource();
+        $record = $this->getRecord();
+        $lead = $this->getParentRecord();
+
+        $leadResource = LeadResource::class;
+
+        return [
+            $leadResource::getUrl() => $leadResource::getBreadcrumb(),
+            $leadResource::getUrl('view', ['record' => $lead]) => $lead?->title ?? 'Lead',
+            $resource::getUrl('index', ['lead' => $lead]) => $resource::getBreadcrumb(),
+            '#' => $record->document_number ?? 'PA',
+        ];
+    }
 }

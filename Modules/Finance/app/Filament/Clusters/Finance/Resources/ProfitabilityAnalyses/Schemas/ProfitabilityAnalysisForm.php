@@ -30,6 +30,8 @@ use Modules\Finance\Enums\AssetOwnership;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
@@ -618,8 +620,46 @@ class ProfitabilityAnalysisForm
                                         Repeater::make('sub_items')
                                             ->label('Sub-component Breakdown')
                                             ->schema([
-                                                Grid::make(3)
+                                                Grid::make(4)
                                                     ->schema([
+                                                        Select::make('job_position_id')
+                                                            ->label('Master Job Position')
+                                                            ->options(JobPosition::pluck('name', 'id'))
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->live()
+                                                            ->visible(fn (Get $get) => DirectCostCategory::find($get('../../direct_cost_category_id'))?->code === 'manpower')
+                                                            ->createOptionForm(JobPositionForm::schema())
+                                                            ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                                            ->createOptionUsing(fn (array $data) => JobPosition::create($data)->id)
+                                                            ->afterStateUpdated(function ($state, Set $set) {
+                                                                if ($state) {
+                                                                    $set('name', JobPosition::find($state)?->name);
+                                                                    $set('unit_of_measure', 'Person');
+                                                                }
+                                                            })
+                                                            ->columnSpan(2),
+
+                                                        Select::make('item_id')
+                                                            ->label('Master Item')
+                                                            ->options(Item::pluck('name', 'id'))
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->live()
+                                                            ->visible(fn (Get $get) => DirectCostCategory::find($get('../../direct_cost_category_id'))?->code === 'tools_equipment')
+                                                            ->createOptionForm(ItemForm::schema())
+                                                            ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                                            ->createOptionUsing(fn (array $data) => Item::create($data)->id)
+                                                            ->afterStateUpdated(function ($state, Set $set) {
+                                                                if ($state) {
+                                                                    $item = Item::with('unitOfMeasure')->find($state);
+                                                                    $set('name', $item?->name);
+                                                                    $set('unit_of_measure', $item?->unitOfMeasure?->name);
+                                                                    $set('unit_amount', $item?->price);
+                                                                }
+                                                            })
+                                                            ->columnSpan(2),
+
                                                         TextInput::make('name')
                                                             ->label('Sub-item Name')
                                                             ->required()

@@ -11,16 +11,16 @@
         </thead>
         <tbody>
             @php
-                // Before Data
-                $beforeAmount = collect($before['items'] ?? [])->sum('total_price');
+                // Before Data: Sum both items and manpower
+                $beforeAmountItems = collect($before['items'] ?? [])->sum('total_price');
+                $beforeAmountMP = collect($before['manpower_details'] ?? [])->sum('total_monthly_cost');
+                $beforeAmount = $beforeAmountItems + $beforeAmountMP;
+                
                 $beforeQty = collect($before['manpower_details'] ?? [])->sum('quantity');
 
-                // After Data (from the unified list in state)
-                $afterItems = collect($after)->where('type', 'item');
-                $afterMP = collect($after)->where('type', 'personnel');
-                
-                $afterAmount = $afterItems->sum('total_price');
-                $afterQty = $afterMP->sum('quantity');
+                // After Data: Sum everything from the unified list
+                $afterAmount = collect($after)->sum('total_price');
+                $afterQty = collect($after)->where('type', 'personnel')->sum('quantity');
 
                 // Delta
                 $deltaAmount = $afterAmount - $beforeAmount;
