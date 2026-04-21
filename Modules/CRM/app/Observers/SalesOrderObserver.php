@@ -55,18 +55,8 @@ class SalesOrderObserver
      */
     public function updated(SalesOrder $salesOrder): void
     {
-        if ($salesOrder->wasChanged('status') && $salesOrder->status === SalesOrderStatus::Approved) {
-            // Auto-create WorkCompletionReport (BAPP)
-            WorkCompletionReport::create([
-                'project_id' => $salesOrder->project_id,
-                'sales_order_id' => $salesOrder->id,
-                'customer_id' => $salesOrder->customer_id,
-                'report_number' => 'BAPP-'.str_replace('GDPS/UB/', '', $salesOrder->so_number),
-                'document_date' => now(),
-                'status' => WorkCompletionStatus::Draft,
-                'description' => 'Automatic BAPP from Sales Order '.$salesOrder->so_number,
-            ]);
-        }
+        // Automation removed: BAPP generation is now handled manually 
+        // via the "Generate BAPP" button in the Sales Order details page.
     }
 
     /**
@@ -75,18 +65,10 @@ class SalesOrderObserver
     public function saved(SalesOrder $salesOrder): void
     {
         // Automation: If Signed SO document is uploaded, flip status to Approved
-        // This ensures the SA is legally validated before moving to project execution
         if ($salesOrder->hasMedia('signed_so') && $salesOrder->status === SalesOrderStatus::Draft) {
             $salesOrder->updateQuietly([
                 'status' => SalesOrderStatus::Approved,
             ]);
-
-            // Note: Since updateQuietly is used, the 'updated' event above won't trigger
-            // from this specific call. If we WANT BAPP creation to also trigger,
-            // we should use a regular update() or manually trigger it.
-            // BAPP should usually be created once SO is Approved.
-
-            $this->updated($salesOrder->fresh());
         }
     }
 }
