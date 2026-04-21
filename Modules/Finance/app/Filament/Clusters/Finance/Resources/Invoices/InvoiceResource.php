@@ -10,6 +10,7 @@ use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages\CreateInvoice;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages\EditInvoice;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages\ListInvoices;
+use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages\ViewInvoice;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Schemas\InvoiceForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Tables\InvoicesTable;
 use Modules\Finance\Models\Invoice;
@@ -46,6 +47,7 @@ class InvoiceResource extends Resource
         return [
             'index' => ListInvoices::route('/'),
             'create' => CreateInvoice::route('/create'),
+            'view' => ViewInvoice::route('/{record}'),
             'edit' => EditInvoice::route('/{record}/edit'),
         ];
     }

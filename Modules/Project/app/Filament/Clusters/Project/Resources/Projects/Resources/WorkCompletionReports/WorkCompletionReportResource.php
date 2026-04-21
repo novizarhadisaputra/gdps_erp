@@ -11,6 +11,7 @@ use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkC
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\EditWorkCompletionReport;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ListWorkCompletionReports;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ManageWorkCompletionReportComments;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ViewWorkCompletionReport;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas\WorkCompletionReportForm;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Tables\WorkCompletionReportsTable;
 use Modules\Project\Models\WorkCompletionReport;
@@ -45,6 +46,7 @@ class WorkCompletionReportResource extends Resource
         return [
             'index' => ListWorkCompletionReports::route('/'),
             'create' => CreateWorkCompletionReport::route('/create'),
+            'view' => ViewWorkCompletionReport::route('/{record}'),
             'edit' => EditWorkCompletionReport::route('/{record}/edit'),
             'discussions' => ManageWorkCompletionReportComments::route('/{record}/discussions'),
         ];

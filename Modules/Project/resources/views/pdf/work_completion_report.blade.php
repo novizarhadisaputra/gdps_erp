@@ -1,4 +1,5 @@
 @php
+    $items = $record->items ?? [];
     $signatureService = app(\Modules\MasterData\Services\SignatureService::class);
     $requiredApprovers = $signatureService->getRequiredApprovers($record);
 
@@ -45,7 +46,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Invoice - {{ $record->invoice_number }}</title>
+    <title>BAPP - {{ $record->report_number }}</title>
     <style>
         @page {
             margin: 1.5in 0.7in 1.5in 0.7in;
@@ -138,19 +139,13 @@
 
         table.data-table td {
             border: 1px solid #000;
-            padding: 8px 6px;
+            padding: 4px 6px;
             vertical-align: top;
         }
 
         .text-right { text-align: right; }
         .text-center { text-align: center; }
         .font-bold { font-weight: bold; }
-
-        .payment-box {
-            margin-top: 20px;
-            border: 1px solid #000;
-            padding: 10px;
-        }
 
         .signature-table {
             margin-top: 20px;
@@ -198,91 +193,88 @@
     <table class="header-info-table">
         <tr>
             <td class="title-box">
-                <h1>INVOICE / TAGIHAN</h1>
-                <p>No: {{ $record->invoice_number }}</p>
-                <div style="font-weight: normal; font-size: 9px;">Date: {{ $record->invoice_date->format('d F Y') }}</div>
+                <h1>BERITA ACARA PEMERIKSAAN PEKERJAAN (BAPP)</h1>
+                <p>No: {{ $record->report_number }}</p>
+                <div style="font-weight: normal; font-size: 9px;">Date: {{ $record->document_date->format('d F Y') }}</div>
             </td>
         </tr>
     </table>
 
-    <div class="section-header">Billing Information</div>
+    <div class="section-header">Project Information</div>
     <table class="meta-table">
         <tr>
-            <td class="bg-gray">Customer Name</td>
+            <td class="bg-gray">Project Name</td>
+            <td class="bg-white">{{ $record->project->name ?? '-' }}</td>
+            <td class="bg-gray">Project Code</td>
+            <td class="bg-white">{{ $record->project->code ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="bg-gray">Customer</td>
             <td class="bg-white">{{ $record->customer->name ?? '-' }}</td>
-            <td class="bg-gray">Invoice Date</td>
-            <td class="bg-white">{{ $record->invoice_date->format('d/m/Y') }}</td>
+            <td class="bg-gray">Sales Order Ref</td>
+            <td class="bg-white">{{ $record->salesOrder->so_number ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="bg-gray">Project Ref</td>
-            <td class="bg-white">{{ $record->salesOrder->project->name ?? '-' }} ({{ $record->salesOrder->project->code ?? '-' }})</td>
-            <td class="bg-gray">Due Date</td>
-            <td class="bg-white" style="color: red; font-weight: bold;">{{ $record->due_date->format('d/m/Y') }}</td>
-        </tr>
-        <tr>
-            <td class="bg-gray">BAPP Reference</td>
+            <td class="bg-gray">Service Period</td>
             <td class="bg-white" colspan="3">
-                {{ $record->workCompletionReport->report_number ?? '-' }} 
-                ({{ $record->workCompletionReport->service_period_start->format('d/m/Y') }} - {{ $record->workCompletionReport->service_period_end->format('d/m/Y') }})
+                {{ $record->service_period_start->format('d/m/Y') }} - {{ $record->service_period_end->format('d/m/Y') }}
             </td>
         </tr>
     </table>
 
-    <div class="section-header">Invoice Details</div>
+    <div class="section-header">Work Completion Details</div>
     <table class="data-table">
         <thead>
             <tr>
                 <th width="5%">No</th>
-                <th width="55%">Description</th>
-                <th width="40%">Amount (IDR)</th>
+                <th width="45%">Description of Work</th>
+                <th width="10%">Qty / Vol</th>
+                <th width="10%">Unit</th>
+                <th width="15%">Price/Unit (IDR)</th>
+                <th width="15%">Total (IDR)</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td class="text-center">1</td>
-                <td>
-                    Implementation / Service charges for period 
-                    {{ $record->workCompletionReport->service_period_start->format('M Y') }}
-                    <br><small>As per BAPP {{ $record->workCompletionReport->report_number ?? '-' }}</small>
-                </td>
-                <td class="text-right">{{ number_format($record->amount, 0, ',', '.') }}</td>
-            </tr>
+            @php $no = 1; $grandTotal = 0; @endphp
+            @forelse($items as $item)
+                @php $grandTotal += ($item['total_price'] ?? 0); @endphp
+                <tr>
+                    <td class="text-center">{{ $no++ }}</td>
+                    <td>{{ $item['item_name'] ?? '-' }}</td>
+                    <td class="text-right">{{ number_format($item['quantity'] ?? 0) }}</td>
+                    <td class="text-center">{{ $item['uom'] ?? '-' }}</td>
+                    <td class="text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="text-center">No work details recorded.</td>
+                </tr>
+            @endforelse
         </tbody>
         <tfoot>
-            <tr>
-                <td colspan="2" class="bg-gray text-right">Subtotal</td>
-                <td class="text-right">{{ number_format($record->amount, 0, ',', '.') }}</td>
-            </tr>
-            <tr>
-                <td colspan="2" class="bg-gray text-right">VAT (PPN)</td>
-                <td class="text-right">{{ number_format($record->tax_amount, 0, ',', '.') }}</td>
-            </tr>
             <tr class="font-bold">
-                <td colspan="2" class="bg-gray text-right" style="background-color: #000; color: #fff;">Total Amount Due</td>
-                <td class="text-right" style="background-color: #f3f4f6;">IDR {{ number_format($record->total_amount, 0, ',', '.') }}</td>
+                <td colspan="5" class="bg-gray text-right">Grand Total Work Value</td>
+                <td class="text-right">IDR {{ number_format($grandTotal, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>
 
-    <div class="payment-box">
-        <div class="font-bold" style="text-decoration: underline; margin-bottom: 5px;">Payment Instructions:</div>
-        <div>Please settle the payment to the following bank account within the due date:</div>
-        <table style="border: none; margin-top: 10px; width: 60%;">
-            <tr><td style="border: none; width: 30%;">Account Name</td><td style="border: none;">: PT. GARUDA DAYA PRATAMA SEJAHTERA</td></tr>
-            <tr><td style="border: none;">Bank Name</td><td style="border: none;">: BANK MANDIRI</td></tr>
-            <tr><td style="border: none;">Account Number</td><td style="border: none; font-weight: bold;">: 123-456-7890 (Placeholder)</td></tr>
-        </table>
-        <div style="margin-top: 10px; font-style: italic;">*Please include Invoice Number in the payment reference.</div>
-    </div>
+    @if($record->description)
+        <div class="section-header">Description / Remarks</div>
+        <div style="border: 1px solid #000; padding: 10px; min-height: 40px;">
+            {{ $record->description }}
+        </div>
+    @endif
 
-    <div class="section-header">Signatures</div>
+    <div class="section-header">Signatures & Verification</div>
     <table class="signature-table">
         <tr>
             <td>
-                <div class="font-bold">Issued By</div>
+                <div class="font-bold">Prepared By</div>
                 <div class="sig-space"></div>
                 <div class="font-bold">( ........................................ )</div>
-                <div>Finance Dept.</div>
+                <div>Project Admin / Analyst</div>
             </td>
             @foreach ($requiredApprovers as $rule)
                 <td>
@@ -291,6 +283,12 @@
                     <div class="font-bold">( ........................................ )</div>
                 </td>
             @endforeach
+            <td>
+                <div class="font-bold">Verified By (Customer)</div>
+                <div class="sig-space"></div>
+                <div class="font-bold">( ........................................ )</div>
+                <div>Authorized Client Rep.</div>
+            </td>
         </tr>
     </table>
 </body>
