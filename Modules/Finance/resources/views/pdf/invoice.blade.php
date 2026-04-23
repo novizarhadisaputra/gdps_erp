@@ -255,21 +255,21 @@
                     {{ $record->workCompletionReport->service_period_start->format('M Y') }}
                     <br><small>As per BAPP {{ $record->workCompletionReport->report_number ?? '-' }}</small>
                 </td>
-                <td class="text-right">{{ number_format($record->amount, 0, ',', '.') }}</td>
+                <td class="text-right">{{ \Illuminate\Support\Number::currency($record->amount, 'IDR', 'id') }}</td>
             </tr>
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="2" class="bg-gray text-right">Subtotal</td>
-                <td class="text-right">{{ number_format($record->amount, 0, ',', '.') }}</td>
+                <td class="text-right">{{ \Illuminate\Support\Number::currency($record->amount, 'IDR', 'id') }}</td>
             </tr>
             <tr>
                 <td colspan="2" class="bg-gray text-right">VAT (PPN)</td>
-                <td class="text-right">{{ number_format($record->tax_amount, 0, ',', '.') }}</td>
+                <td class="text-right">{{ \Illuminate\Support\Number::currency($record->tax_amount, 'IDR', 'id') }}</td>
             </tr>
             <tr class="font-bold">
                 <td colspan="2" class="bg-gray text-right" style="background-color: #000; color: #fff;">Total Amount Due</td>
-                <td class="text-right" style="background-color: #f3f4f6;">IDR {{ number_format($record->total_amount, 0, ',', '.') }}</td>
+                <td class="text-right" style="background-color: #f3f4f6;">{{ \Illuminate\Support\Number::currency($record->total_amount, 'IDR', 'id') }}</td>
             </tr>
         </tfoot>
     </table>

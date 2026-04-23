@@ -2,15 +2,10 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectTasks\Tables;
 
-use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use Filament\Actions;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Support\Icons\Heroicon;
 
 class ProjectTasksTable
 {
@@ -46,18 +41,22 @@ class ProjectTasksTable
                 //
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
-                Action::make('discussions')
-                    ->label('Discussions')
-                    ->icon(Heroicon::OutlinedChatBubbleLeftRight)
-                    ->color('info')
-                    ->url(fn ($record) => "/admin/projects/{$record->project_id}/tasks/{$record->id}/discussions"),
-                DeleteAction::make(),
+                Actions\ActionGroup::make([
+                    Actions\ViewAction::make(),
+                    Actions\EditAction::make(),
+                    Actions\Action::make('discussions')
+                        ->label('Discussions')
+                        ->icon(Heroicon::OutlinedChatBubbleLeftRight)
+                        ->color('info')
+                        ->url(fn ($record) => "/admin/projects/{$record->project_id}/tasks/{$record->id}/discussions"),
+                    Actions\DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Actions'),
             ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+            ->toolbarActions([
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

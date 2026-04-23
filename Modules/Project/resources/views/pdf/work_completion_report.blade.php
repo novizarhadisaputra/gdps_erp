@@ -185,37 +185,37 @@
     <div class="doc-control">FR-UB-019 R.01</div>
 
     <div class="text-center">
-        <div class="document-title font-bold">BERITA ACARA PELAKSANAAN PEKERJAAN</div>
-        <div class="document-subtitle font-bold uppercase">PERIODE {{ $record->service_period_start->format('F Y') }}
+        <div class="document-title font-bold">WORK COMPLETION REPORT</div>
+        <div class="document-subtitle font-bold uppercase">PERIOD {{ $record->service_period_start->format('F Y') }}
         </div>
 
         <div style="margin: 10px 0;">
-            <div class="font-bold">Antara</div>
+            <div class="font-bold">Between</div>
             <div class="uppercase font-bold">{{ $record->customer->name ?? '-' }}</div>
-            <div class="font-bold">Dengan</div>
+            <div class="font-bold">With</div>
             <div class="font-bold uppercase">PT GARUDA DAYA PRATAMA SEJAHTERA</div>
         </div>
 
-        <div class="font-bold">Nomor : {{ $record->report_number }}</div>
+        <div class="font-bold">Number : {{ $record->report_number }}</div>
     </div>
 
     <div class="content-section">
         <p>
-            Berdasarkan Berita Acara Kerjasama Layanan
-            {{ $record->salesOrder->service_type ?? 'Penyediaan Jasa' }},
-            antara <strong>{{ $record->customer->name ?? '-' }}</strong> dengan
+            Based on the Service Cooperation Agreement
+            {{ $record->salesOrder->service_type ?? 'Service Provision' }},
+            between <strong>{{ $record->customer->name ?? '-' }}</strong> and
             <strong>PT Garuda Daya Pratama Sejahtera</strong>
-            Nomor: {{ $record->salesOrder->so_number ?? '-' }}
+            Number: {{ $record->salesOrder->so_number ?? '-' }}
             @if($latestAmendment)
-                (Amandemen: {{ $latestAmendment->amendment_number }})
+                (Amendment: {{ $latestAmendment->amendment_number }})
             @endif
-            telah dilaksanakan pemborongan pekerjaan periode
-            <strong>{{ $record->service_period_start->format('d F Y') }}</strong> s/d
+            work execution has been carried out for the period
+            <strong>{{ $record->service_period_start->format('d F Y') }}</strong> to
             <strong>{{ $record->service_period_end->format('d F Y') }}</strong>
-            dari PT Garuda Daya Pratama Sejahtera kepada {{ $record->customer->name ?? '-' }}.
+            from PT Garuda Daya Pratama Sejahtera to {{ $record->customer->name ?? '-' }}.
         </p>
 
-        <p>Rekapitulasi jumlah pemborongan pekerjaan yang telah dilakukan adalah sebagai berikut:</p>
+        <p>The summary of the work execution carried out is as follows:</p>
 
         <table class="data-table">
             <thead>
@@ -239,27 +239,26 @@
                         <td>{{ $item['item_name'] ?? '-' }}</td>
                         <td class="text-center">{{ number_format($item['quantity'] ?? 0) }}</td>
                         <td class="text-center">{{ $item['uom'] ?? '-' }}</td>
-                        <td class="text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ \Illuminate\Support\Number::currency($item['unit_price'] ?? 0, 'IDR', 'id') }}</td>
+                        <td class="text-right">{{ \Illuminate\Support\Number::currency($item['total_price'] ?? 0, 'IDR', 'id') }}</td>
                     </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="font-bold">
                     <td colspan="5" class="text-right" style="background-color: #f2f2f2;">Grand Total</td>
-                    <td class="text-right" style="background-color: #f2f2f2;">IDR
-                        {{ number_format($grandTotal, 0, ',', '.') }}</td>
+                    <td class="text-right" style="background-color: #f2f2f2;">
+                        {{ \Illuminate\Support\Number::currency($grandTotal, 'IDR', 'id') }}</td>
                 </tr>
             </tfoot>
         </table>
 
         <p class="font-bold" style="font-style: italic;">
-            * Pemborongan pekerjaan tersebut belum termasuk PPN 11%
+            * The above work execution does not include 11% VAT
         </p>
 
         <p style="margin-top: 15px;">
-            Demikian berita acara ini dibuat untuk dipergunakan sebagai dokumen pelengkap penagihan dan dapat
-            dipertanggungjawabkan sebagaimana mestinya.
+            This report is prepared to be used as a supporting document for billing and can be properly accounted for.
         </p>
     </div>
 
@@ -269,21 +268,21 @@
         </div>
 
         <div class="signature-block">
-            <div class="font-bold">Yang Menyerahkan,</div>
+            <div class="font-bold">Submitted By,</div>
             <div class="font-bold uppercase">PT Garuda Daya Pratama Sejahtera</div>
             <div class="sig-space"></div>
             <div class="font-bold">( ........................................ )</div>
-            <div>Nama : _____________________</div>
-            <div>Jabatan : ___________________</div>
+            <div>Name : _____________________</div>
+            <div>Position : ___________________</div>
         </div>
 
         <div class="signature-block">
-            <div class="font-bold">Yang Menerima,</div>
+            <div class="font-bold">Received By,</div>
             <div class="font-bold uppercase">{{ $record->customer->name ?? '-' }}</div>
             <div class="sig-space"></div>
             <div class="font-bold">( ........................................ )</div>
-            <div>Nama : _____________________</div>
-            <div>Jabatan : ___________________</div>
+            <div>Name : _____________________</div>
+            <div>Position : ___________________</div>
         </div>
         <div style="clear: both;"></div>
     </div>

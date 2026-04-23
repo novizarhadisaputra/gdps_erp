@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
@@ -17,19 +18,30 @@ class ViewInvoice extends ViewRecord
     {
         return [
             EditAction::make(),
-            Action::make('pdf')
-                ->label('Export PDF')
-                ->color('gray')
-                ->icon('heroicon-o-arrow-down-tray')
-                ->action(function (Invoice $record) {
-                    $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $record]);
-                    $filename = str_replace(['/', '\\'], '-', $record->invoice_number);
+            ActionGroup::make([
+                Action::make('pdf')
+                    ->label('Export PDF')
+                    ->color('gray')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->action(function (Invoice $record) {
+                        $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $record]);
+                        $filename = str_replace(['/', '\\'], '-', $record->invoice_number);
 
-                    return response()->streamDownload(
-                        fn () => print ($pdf->output()),
-                        "invoice-{$filename}.pdf"
-                    );
-                }),
+                        return response()->streamDownload(
+                            fn () => print ($pdf->output()),
+                            "invoice-{$filename}.pdf"
+                        );
+                    }),
+                Action::make('sendEmail')
+                    ->label('Send Email')
+                    ->icon('heroicon-o-envelope')
+                    ->color('primary')
+                    ->url(fn (Invoice $record) => InvoiceResource::getUrl('send', ['record' => $record])),
+            ])
+                ->label('Options')
+                ->icon('heroicon-m-cog-6-tooth')
+                ->color('gray')
+                ->button(),
         ];
     }
 }

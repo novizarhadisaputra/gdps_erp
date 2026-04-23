@@ -3,6 +3,7 @@
 namespace Modules\Finance\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,8 +12,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Enums\InvoiceStatus;
+use Modules\Finance\Observers\InvoiceObserver;
 use Modules\Project\Models\WorkCompletionReport;
 
+#[ObservedBy(InvoiceObserver::class)]
 class Invoice extends Model
 {
     use HasFactory;
@@ -25,6 +28,8 @@ class Invoice extends Model
         'work_completion_report_id',
         'customer_id',
         'invoice_number',
+        'sequence_number',
+        'year',
         'invoice_date',
         'due_date',
         'amount',

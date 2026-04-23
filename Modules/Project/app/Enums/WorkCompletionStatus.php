@@ -14,7 +14,6 @@ enum WorkCompletionStatus: string implements HasColor, HasIcon, HasLabel
     case Draft = 'draft';
     case Submitted = 'submitted';
     case Sent = 'sent';
-    case Signed = 'signed';
     case Approved = 'approved';
     case Rejected = 'rejected';
 
@@ -24,7 +23,6 @@ enum WorkCompletionStatus: string implements HasColor, HasIcon, HasLabel
             self::Draft => 'Draft',
             self::Submitted => 'Submitted',
             self::Sent => 'Sent',
-            self::Signed => 'Signed',
             self::Approved => 'Approved',
             self::Rejected => 'Rejected',
         };
@@ -36,7 +34,6 @@ enum WorkCompletionStatus: string implements HasColor, HasIcon, HasLabel
             self::Draft => 'gray',
             self::Submitted => 'warning',
             self::Sent => 'info',
-            self::Signed => 'info',
             self::Approved => 'success',
             self::Rejected => 'danger',
         };
@@ -48,7 +45,6 @@ enum WorkCompletionStatus: string implements HasColor, HasIcon, HasLabel
             self::Draft => Heroicon::Pencil,
             self::Submitted => Heroicon::PaperAirplane,
             self::Sent => Heroicon::PaperAirplane,
-            self::Signed => Heroicon::PencilSquare,
             self::Approved => Heroicon::CheckCircle,
             self::Rejected => Heroicon::XCircle,
         };

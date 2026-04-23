@@ -2,18 +2,18 @@
 
 namespace Modules\Project\Models;
 
+use App\Models\Comment;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Models\Invoice;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use App\Models\Comment;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Observers\WorkCompletionReportObserver;
@@ -30,12 +30,15 @@ class WorkCompletionReport extends Model implements HasMedia
         'sales_order_id',
         'customer_id',
         'report_number',
+        'sequence_number',
+        'year',
         'document_date',
         'service_period_start',
         'service_period_end',
         'work_progress_percentage',
         'description',
         'items',
+        'total_amount',
         'status',
     ];
 

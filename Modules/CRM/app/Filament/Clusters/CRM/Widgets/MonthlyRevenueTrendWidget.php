@@ -17,8 +17,6 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
 
     protected static ?int $sort = 2;
 
-    protected int|string|array $columnSpan = 'full';
-
     protected function getOptions(): array
     {
         $cache = app(AnalyticsCacheService::class);
@@ -34,7 +32,7 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
             for ($m = 1; $m <= 12; $m++) {
                 $date = Carbon::create()->year($currentYear)->month($m);
                 $monthName = $date->format('F');
-                
+
                 $categories[] = $date->format('M Y');
 
                 $monthlyStats = ProfitabilityAnalysisMonthly::where('year', $currentYear)

@@ -4,17 +4,10 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources
 
 use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Filament\Actions\Action;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
+use Filament\Actions;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Support\Icons\Heroicon;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Models\ProjectInformation;
 
@@ -52,126 +45,130 @@ class ProjectInformationTable
                 //
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->modalFooterActions([
-                        Action::make('Sign')
-                            ->label('Digital Signature')
-                            ->color('primary')
-                            ->icon(Heroicon::OutlinedPencilSquare)
-                            ->form([
-                                TextInput::make('pin')
-                                    ->label('Signature PIN')
-                                    ->password()
-                                    ->required()
-                                    ->helperText('Masukkan PIN tanda tangan digital Anda.'),
-                            ])
-                            ->action(function (ProjectInformation $record, array $data) {
-                                $service = app(SignatureService::class);
+                Actions\ActionGroup::make([
+                    Actions\ViewAction::make()
+                        ->modalFooterActions([
+                            Actions\Action::make('Sign')
+                                ->label('Digital Signature')
+                                ->color('primary')
+                                ->icon(Heroicon::OutlinedPencilSquare)
+                                ->form([
+                                    \Filament\Forms\Components\TextInput::make('pin')
+                                        ->label('Signature PIN')
+                                        ->password()
+                                        ->required()
+                                        ->helperText('Masukkan PIN tanda tangan digital Anda.'),
+                                ])
+                                ->action(function (ProjectInformation $record, array $data) {
+                                    $service = app(SignatureService::class);
 
-                                if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                                    Notification::make()
-                                        ->title('PIN Salah')
-                                        ->danger()
+                                    if (! $service->verifyPin(auth()->user(), $data['pin'])) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('PIN Salah')
+                                            ->danger()
+                                            ->send();
+
+                                        return;
+                                    }
+
+                                    $required = $service->getRequiredApprovers($record);
+                                    $userRole = auth()->user()->roles->first()?->name;
+
+                                    $matchingRule = $required->firstWhere('approver_role', $userRole);
+
+                                    if (! $matchingRule) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Akses Ditolak')
+                                            ->body('Peran Anda tidak diperlukan untuk menandatangani dokumen ini pada tahap ini.')
+                                            ->warning()
+                                            ->send();
+
+                                        return;
+                                    }
+
+                                    if ($record->hasSignatureFrom($userRole)) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('Sudah Ditandatangani')
+                                            ->body('Anda sudah menandatangani dokumen ini.')
+                                            ->warning()
+                                            ->send();
+
+                                        return;
+                                    }
+
+                                    $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
+                                    $qrCode = $service->generateQRCode($qrData);
+
+                                    $record->addSignature(auth()->user(), $matchingRule->signature_type);
+
+                                    // Notify next approvers
+                                    $service->notifyNextApprovers($record);
+
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('Dokumen Berhasil Ditandatangani')
+                                        ->success()
                                         ->send();
 
-                                    return;
-                                }
+                                    if ($record->isFullyApproved()) {
+                                        $record->update(['status' => 'active']);
+                                    }
+                                }),
+                            Actions\Action::make('exportPdf')
+                                ->label('Export PDF')
+                                ->icon(Heroicon::OutlinedDocumentArrowDown)
+                                ->color('danger')
+                                ->action(function (ProjectInformation $record) {
+                                    $pdf = Pdf::loadView(
+                                        'project::pdf.project-information',
+                                        [
+                                            'record' => $record,
+                                            'isExport' => true,
+                                            'isPdf' => true,
+                                        ]
+                                    )->setPaper('a4', 'portrait');
 
-                                $required = $service->getRequiredApprovers($record);
-                                $userRole = auth()->user()->roles->first()?->name;
+                                    $filename = 'project_info_'.($record->project?->code ?? $record->id).'.pdf';
+                                    $filename = str_replace(['/', '\\'], '_', $filename);
 
-                                $matchingRule = $required->firstWhere('approver_role', $userRole);
+                                    return response()->streamDownload(function () use ($pdf) {
+                                        echo $pdf->output();
+                                    }, $filename, [
+                                        'Content-Type' => 'application/pdf',
+                                    ]);
+                                }),
+                        ]),
+                    Actions\Action::make('exportPdf')
+                        ->label('Export PDF')
+                        ->icon(Heroicon::OutlinedDocumentArrowDown)
+                        ->color('danger')
+                        ->action(function (ProjectInformation $record) {
+                            $pdf = Pdf::loadView(
+                                'project::pdf.project-information',
+                                [
+                                    'record' => $record,
+                                    'isExport' => true,
+                                    'isPdf' => true,
+                                ]
+                            )->setPaper('a4', 'portrait');
 
-                                if (! $matchingRule) {
-                                    Notification::make()
-                                        ->title('Akses Ditolak')
-                                        ->body('Peran Anda tidak diperlukan untuk menandatangani dokumen ini pada tahap ini.')
-                                        ->warning()
-                                        ->send();
+                            $filename = 'project_info_'.($record->project?->project_code ?? $record->id).'.pdf';
+                            $filename = str_replace(['/', '\\'], '_', $filename);
 
-                                    return;
-                                }
-
-                                if ($record->hasSignatureFrom($userRole)) {
-                                    Notification::make()
-                                        ->title('Sudah Ditandatangani')
-                                        ->body('Anda sudah menandatangani dokumen ini.')
-                                        ->warning()
-                                        ->send();
-
-                                    return;
-                                }
-
-                                $qrData = $service->createSignatureData(auth()->user(), $record, $matchingRule->signature_type);
-                                $qrCode = $service->generateQRCode($qrData);
-
-                                $record->addSignature(auth()->user(), $matchingRule->signature_type);
-
-                                // Notify next approvers
-                                $service->notifyNextApprovers($record);
-
-                                Notification::make()
-                                    ->title('Dokumen Berhasil Ditandatangani')
-                                    ->success()
-                                    ->send();
-
-                                if ($record->isFullyApproved()) {
-                                    $record->update(['status' => 'active']);
-                                }
-                            }),
-                        Action::make('exportPdf')
-                            ->label('Export PDF')
-                            ->icon(Heroicon::OutlinedDocumentArrowDown)
-                            ->color('danger')
-                            ->action(function (ProjectInformation $record) {
-                                $pdf = Pdf::loadView(
-                                    'project::pdf.project-information',
-                                    [
-                                        'record' => $record,
-                                        'isExport' => true,
-                                        'isPdf' => true,
-                                    ]
-                                )->setPaper('a4', 'portrait');
-
-                                $filename = 'project_info_'.($record->project?->code ?? $record->id).'.pdf';
-                                $filename = str_replace(['/', '\\'], '_', $filename);
-
-                                return response()->streamDownload(function () use ($pdf) {
-                                    echo $pdf->output();
-                                }, $filename, [
-                                    'Content-Type' => 'application/pdf',
-                                ]);
-                            }),
-                    ]),
-                Action::make('exportPdf')
-                    ->label('Export PDF')
-                    ->icon(Heroicon::OutlinedDocumentArrowDown)
-                    ->color('danger')
-                    ->action(function (ProjectInformation $record) {
-                        $pdf = Pdf::loadView(
-                            'project::pdf.project-information',
-                            [
-                                'record' => $record,
-                                'isExport' => true,
-                                'isPdf' => true,
-                            ]
-                        )->setPaper('a4', 'portrait');
-
-                        $filename = 'project_info_'.($record->project?->project_code ?? $record->id).'.pdf';
-                        $filename = str_replace(['/', '\\'], '_', $filename);
-
-                        return response()->streamDownload(function () use ($pdf) {
-                            echo $pdf->output();
-                        }, $filename, [
-                            'Content-Type' => 'application/pdf',
-                        ]);
-                    }),
-                EditAction::make(),
-                DeleteAction::make(),
+                            return response()->streamDownload(function () use ($pdf) {
+                                echo $pdf->output();
+                            }, $filename, [
+                                'Content-Type' => 'application/pdf',
+                            ]);
+                        }),
+                    Actions\EditAction::make(),
+                    Actions\DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->tooltip('Actions'),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                Actions\BulkActionGroup::make([
+                    Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

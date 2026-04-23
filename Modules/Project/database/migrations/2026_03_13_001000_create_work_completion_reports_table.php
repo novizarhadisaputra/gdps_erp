@@ -18,6 +18,8 @@ return new class extends Migration
             $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
 
             $blueprint->string('report_number')->unique();
+            $blueprint->integer('sequence_number')->nullable();
+            $blueprint->integer('year')->nullable();
             $blueprint->date('document_date');
 
             $blueprint->date('service_period_start');
@@ -26,6 +28,7 @@ return new class extends Migration
             $blueprint->decimal('work_progress_percentage', 5, 2)->default(100.00);
             $blueprint->text('description')->nullable();
             $blueprint->jsonb('items')->nullable();
+            $blueprint->decimal('total_amount', 15, 2)->default(0);
 
             $blueprint->string('status')->default('draft');
 

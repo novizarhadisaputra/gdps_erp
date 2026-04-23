@@ -4,15 +4,7 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Tables;
 
 use BackedEnum;
 use EightyNine\ExcelImport\ExcelImportAction;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\RestoreBulkAction;
-use Filament\Actions\ViewAction;
+use Filament\Actions;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -112,22 +104,22 @@ class ProjectsTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
-                    ViewAction::make(),
-                    EditAction::make(),
-                    RestoreAction::make(),
-                    DeleteAction::make(),
-                    ForceDeleteAction::make(),
+                Actions\ActionGroup::make([
+                    Actions\ViewAction::make(),
+                    Actions\EditAction::make(),
+                    Actions\RestoreAction::make(),
+                    Actions\DeleteAction::make(),
+                    Actions\ForceDeleteAction::make(),
                 ])
-                ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->tooltip('Actions'),
             ])
             ->toolbarActions([
-                BulkActionGroup::make([
-                    RestoreBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    DeleteBulkAction::make(),
+                Actions\BulkActionGroup::make([
+                    Actions\RestoreBulkAction::make(),
+                    Actions\ForceDeleteBulkAction::make(),
+                    Actions\DeleteBulkAction::make(),
                     ExportAction::make(),
                 ]),
             ])

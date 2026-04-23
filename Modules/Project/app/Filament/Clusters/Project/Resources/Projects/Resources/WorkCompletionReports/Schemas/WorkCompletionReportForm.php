@@ -5,9 +5,9 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -23,7 +23,7 @@ class WorkCompletionReportForm
         return $schema
             ->components([
                 Section::make('Documents')
-                    ->description('Unduh draft BAPP untuk ditandatangani, lalu unggah kembali hasil pindaian (Scan) dokumen yang telah ditandatangani untuk memproses persetujuan.')
+                    ->description('Download the draft BAPP to be signed, then upload the final scanned document once signed by all parties to proceed with approval.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -33,7 +33,7 @@ class WorkCompletionReportForm
                                     ->disk('s3')
                                     ->downloadable()
                                     ->openable()
-                                    ->helperText('Dokumen draf hasil sistem yang belum ditandatangani.'),
+                                    ->helperText('The system-generated draft document that has not yet been signed.'),
 
                                 SpatieMediaLibraryFileUpload::make('signed_report')
                                     ->label('Signed BAPP (Final Scan)')
@@ -41,10 +41,11 @@ class WorkCompletionReportForm
                                     ->disk('s3')
                                     ->downloadable()
                                     ->openable()
-                                    ->helperText('Unggah pindaian dokumen yang telah ditandatangani oleh kedua belah pihak.')
+                                    ->helperText('Upload the scanned document that has been signed by both parties.')
                                     ->required(fn ($get) => $get('status') === WorkCompletionStatus::Submitted->value),
                             ]),
-                    ])->columnSpanFull(),
+                    ])->columnSpanFull()
+                    ->collapsible(),
 
                 Section::make('Report Details')
                     ->schema([
@@ -66,7 +67,8 @@ class WorkCompletionReportForm
                             ->options(Customer::all()->pluck('name', 'id'))
                             ->searchable()
                             ->required(),
-                    ])->columns(2),
+                    ])->columns(2)
+                    ->collapsible(),
 
                 Section::make('Service & Progress')
                     ->schema([
@@ -83,7 +85,8 @@ class WorkCompletionReportForm
                             ->options(WorkCompletionStatus::class)
                             ->required()
                             ->default(WorkCompletionStatus::Draft),
-                    ])->columns(2),
+                    ])->columns(2)
+                    ->collapsible(),
 
                 Section::make('Additional Information')
                     ->schema([
@@ -93,17 +96,19 @@ class WorkCompletionReportForm
                             ->searchable()
                             ->live()
                             ->afterStateUpdated(function ($state, $set) {
-                                if (!$state) return;
-                                
+                                if (! $state) {
+                                    return;
+                                }
+
                                 $so = SalesOrder::with(['proposal.profitabilityAnalysis'])->find($state);
                                 if ($so && $so->proposal && $so->proposal->profitabilityAnalysis) {
                                     $pa = $so->proposal->profitabilityAnalysis;
-                                    
+
                                     $manpower = $pa->manpower_requirements ?? [];
                                     $operational = $pa->financial_assumptions['operational_costs'] ?? [];
-                                    
+
                                     $items = [];
-                                    
+
                                     foreach ($manpower as $mp) {
                                         $items[] = [
                                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
@@ -114,7 +119,7 @@ class WorkCompletionReportForm
                                             'so_reference' => $so->so_number,
                                         ];
                                     }
-                                    
+
                                     foreach ($operational as $op) {
                                         $items[] = [
                                             'item_name' => $op['item_name'] ?? 'Item',
@@ -125,9 +130,9 @@ class WorkCompletionReportForm
                                             'so_reference' => $so->so_number,
                                         ];
                                     }
-                                    
+
                                     $set('items', $items);
-                                    
+
                                     // Also sync customer from SO
                                     if ($so->customer_id) {
                                         $set('customer_id', $so->customer_id);
@@ -136,25 +141,29 @@ class WorkCompletionReportForm
                             }),
                         Textarea::make('description')
                             ->columnSpanFull(),
-                    ])->columns(2),
+                    ])->columns(2)
+                    ->collapsible(),
 
-                Section::make('Standardized Work Completion Table')
-                    ->description('Detail rincian pekerjaan yang diselesaikan berdasarkan Sales Order.')
+                Section::make('BAPP Line Items')
+                    ->description('Detailed breakdown of work completed based on the Sales Order.')
                     ->schema([
                         Repeater::make('items')
                             ->label('Line Items')
                             ->schema([
-                                Grid::make(6)
+                                Grid::make(3)
                                     ->schema([
                                         TextInput::make('item_name')
-                                            ->label('Item')
+                                            ->label('Item Name')
                                             ->required()
-                                            ->columnSpan(2),
+                                            ->columnSpanFull(),
+                                        TextInput::make('so_reference')
+                                            ->label('SO Reference')
+                                            ->disabled(),
                                         TextInput::make('quantity')
                                             ->label('Quantity')
                                             ->numeric()
                                             ->required()
-                                            ->live()
+                                            ->live(onBlur: true)
                                             ->afterStateUpdated(fn ($get, $set) => $set('total_price', floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0))),
                                         TextInput::make('uom')
                                             ->label('Unit')
@@ -162,25 +171,34 @@ class WorkCompletionReportForm
                                         TextInput::make('unit_price')
                                             ->label('Price / Unit')
                                             ->numeric()
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->prefix('IDR')
                                             ->required()
-                                            ->live()
+                                            ->live(onBlur: true)
                                             ->afterStateUpdated(fn ($get, $set) => $set('total_price', floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0))),
                                         TextInput::make('total_price')
                                             ->label('Total Price')
                                             ->numeric()
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->prefix('IDR')
-                                            ->readonly()
-                                            ->columnSpan(1),
-                                        TextInput::make('so_reference')
-                                            ->label('SO Ref')
-                                            ->disabled()
-                                            ->columnSpan(1),
+                                            ->readonly(),
                                     ]),
                             ])
                             ->columnSpanFull()
                             ->reorderable()
                             ->addActionLabel('Add Manual Entry'),
+                    ])->collapsible(),
+
+                Section::make('Total')
+                    ->schema([
+                        TextInput::make('total_amount')
+                            ->label('Grand Total')
+                            ->numeric()
+                            ->prefix('IDR')
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                            ->readonly()
+                            ->live()
+                            ->afterStateHydrated(fn ($set, $get) => $set('total_amount', collect($get('items'))->sum('total_price'))),
                     ]),
             ]);
     }

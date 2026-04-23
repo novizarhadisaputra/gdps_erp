@@ -8,6 +8,8 @@ use Modules\CRM\Filament\Clusters\CRM\Widgets\CRMStatsOverviewWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\DealStatusDistributionWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\LeadConversionTrendWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\LeadPipelineWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\MonthlyRevenueTrendWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\PerformanceOverviewWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\RevenueForecastWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesPerformanceChartWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesTeamPerformanceWidget;
@@ -32,20 +34,24 @@ class CRMAnalyticsPage extends AnalyticsBasePage
     public function getWidgets(): array
     {
         return [
-            // Row 1: Full-width overview (most important KPIs)
+            // Row 1: High-Level Stats (Leads & Financial Performance)
             CRMStatsOverviewWidget::class,
+            PerformanceOverviewWidget::class,
 
-            // Row 2: Primary metrics (2 columns on desktop)
+            // Row 2: Revenue Performance & Trends (Target vs Actual)
+            MonthlyRevenueTrendWidget::class,       // Bar Chart (Monthly)
+            SalesPerformanceChartWidget::class,     // Line Chart (Cumulative)
+
+            // Row 3: Pipeline & Projections
             LeadPipelineWidget::class,              // Left: Sales funnel
             RevenueForecastWidget::class,           // Right: Revenue projection
-            SalesPerformanceChartWidget::class,     // Row 3: Performance comparison
 
-            // Row 3: Trends and analysis (2 columns on desktop)
+            // Row 4: Conversion & Team Performance
             LeadConversionTrendWidget::class,       // Left: Historical trend
             SalesTeamPerformanceWidget::class,      // Right: Team comparison
 
-            // Row 4: Distribution (centered single column)
-            DealStatusDistributionWidget::class,    // Full width or centered
+            // Row 5: Distribution
+            DealStatusDistributionWidget::class,
         ];
     }
 
