@@ -51,9 +51,9 @@
                 <td colspan="4" class="border border-black px-2 py-2 text-right">TOTAL MONTHLY CHARGE (BEFORE)</td>
                 <td class="border border-black px-2 py-2 text-right text-sm tracking-tighter">
                     @php
-                        $totalItems = collect($items)->sum('total_price');
-                        $totalMP = collect($manpower)->sum('total_monthly_cost');
-                        $grandTotal = $totalItems + $totalMP;
+                        $totalItems = collect($items)->sum(fn($i) => (float)($i['total_price'] ?? 0));
+                        $totalMP = collect($manpower)->sum(fn($m) => (float)($m['total_monthly_cost'] ?? 0));
+                        $grandTotal = (float)$totalItems + (float)$totalMP;
                     @endphp
                     IDR {{ number_format($grandTotal, 0, ',', '.') }}
                 </td>

@@ -12,19 +12,19 @@
         <tbody>
             @php
                 // Before Data: Sum both items and manpower
-                $beforeAmountItems = collect($before['items'] ?? [])->sum('total_price');
-                $beforeAmountMP = collect($before['manpower_details'] ?? [])->sum('total_monthly_cost');
-                $beforeAmount = $beforeAmountItems + $beforeAmountMP;
+                $beforeAmountItems = collect($before['items'] ?? [])->sum(fn($i) => (float)($i['total_price'] ?? 0));
+                $beforeAmountMP = collect($before['manpower_details'] ?? [])->sum(fn($m) => (float)($m['total_monthly_cost'] ?? 0));
+                $beforeAmount = (float)$beforeAmountItems + (float)$beforeAmountMP;
                 
-                $beforeQty = collect($before['manpower_details'] ?? [])->sum('quantity');
+                $beforeQty = collect($before['manpower_details'] ?? [])->sum(fn($m) => (float)($m['quantity'] ?? 0));
 
                 // After Data: Sum everything from the unified list
-                $afterAmount = collect($after)->sum('total_price');
-                $afterQty = collect($after)->where('type', 'personnel')->sum('quantity');
+                $afterAmount = collect($after)->sum(fn($i) => (float)($i['total_price'] ?? 0));
+                $afterQty = collect($after)->where('type', 'personnel')->sum(fn($m) => (float)($m['quantity'] ?? 0));
 
                 // Delta
-                $deltaAmount = $afterAmount - $beforeAmount;
-                $deltaQty = $afterQty - $beforeQty;
+                $deltaAmount = (float)$afterAmount - (float)$beforeAmount;
+                $deltaQty = (float)$afterQty - (float)$beforeQty;
             @endphp
             <tr>
                 <td class="border border-black px-2 py-1 font-medium">Total Monthly Service Amount</td>

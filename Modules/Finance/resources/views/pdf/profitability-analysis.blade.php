@@ -232,7 +232,7 @@
                     <tr>
                         <td style="padding-left: 30px;" class="italic">Base Project Fee / Price</td>
                         <td class="text-center">-</td>
-                        <td class="text-right">{{ $formatMoney($record->revenue_per_month - $record->management_fee) }}
+                        <td class="text-right">{{ $formatMoney((float)$record->revenue_per_month - (float)$record->management_fee) }}
                         </td>
                     </tr>
                     @if ($record->management_fee > 0)
@@ -259,7 +259,7 @@
                             <td class="text-center">
                                 {{ $category?->name === 'Manpower' ? (int) $items->sum('quantity') . ' HC' : '-' }}
                             </td>
-                            <td class="text-right">{{ $formatMoney($items->sum('total_monthly_cost')) }}</td>
+                            <td class="text-right">{{ $formatMoney($items->sum(fn($i) => (float)($i->total_monthly_cost ?? 0))) }}</td>
                         </tr>
                     @endforeach
 
@@ -268,7 +268,7 @@
                         <td class="font-bold">III. Gross Profit / Margin</td>
                         <td class="text-center">{{ number_format($record->margin_percentage, 2) }}%</td>
                         <td class="text-right font-bold">
-                            {{ $formatMoney($record->revenue_per_month - $record->direct_cost) }}
+                            {{ $formatMoney((float)$record->revenue_per_month - (float)$record->direct_cost) }}
                         </td>
                     </tr>
 
@@ -320,7 +320,7 @@
                         <td style="padding-left: 20px;" class="italic text-gray-400">Depreciation & Amortization</td>
                         <td class="text-center">-</td>
                         <td class="text-right">
-                            ({{ $formatMoney($record->depreciation + $record->manual_depreciation) }})</td>
+                            ({{ $formatMoney((float)$record->depreciation + (float)$record->manual_depreciation) }})</td>
                     </tr>
 
                     {{-- EBIT --}}
@@ -333,7 +333,7 @@
                     <tr>
                         <td style="padding-left: 30px;" class="italic">Finance Cost / Project Interest</td>
                         <td class="text-center">{{ number_format($record->interest_rate, 2) }}%</td>
-                        <td class="text-right">({{ $formatMoney($record->ebit - $record->ebt) }})</td>
+                        <td class="text-right">({{ $formatMoney((float)$record->ebit - (float)$record->ebt) }})</td>
                     </tr>
 
                     {{-- EBT --}}
@@ -345,7 +345,7 @@
                     <tr>
                         <td style="padding-left: 30px;" class="italic">Corporate Income Tax (Est.)</td>
                         <td class="text-center">{{ number_format($record->tax_rate, 2) }}%</td>
-                        <td class="text-right">({{ $formatMoney($record->ebt - $record->net_profit) }})</td>
+                        <td class="text-right">({{ $formatMoney((float)$record->ebt - (float)$record->net_profit) }})</td>
                     </tr>
 
                     {{-- NET PROFIT --}}

@@ -40,10 +40,16 @@
     $logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
     $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
     $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
+
+    $latestAmendment = $record->salesOrder?->amendments()
+        ?->where('status', \Modules\CRM\Enums\SalesOrderAmendmentStatus::Approved)
+        ?->latest('sequence_number')
+        ?->first();
 @endphp
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>BAPP - {{ $record->report_number }}</title>
@@ -57,8 +63,8 @@
             margin: 0;
             padding: 0;
             color: #000;
-            font-size: 9px;
-            line-height: 1.2;
+            font-size: 10px;
+            line-height: 1.4;
         }
 
         header {
@@ -78,104 +84,90 @@
             z-index: 1000;
         }
 
-        .header-info-table {
-            width: 100%;
-            border-bottom: 2px solid #000;
-            margin-bottom: 15px;
+        .text-center {
+            text-align: center;
         }
 
-        .title-box {
+        .text-right {
             text-align: right;
-            padding-bottom: 5px;
         }
 
-        .title-box h1 {
-            font-size: 16px;
-            margin: 0;
+        .font-bold {
             font-weight: bold;
+        }
+
+        .uppercase {
             text-transform: uppercase;
+        }
+
+        .document-title {
+            font-size: 14px;
+            text-decoration: underline;
+            margin-bottom: 2px;
+        }
+
+        .document-subtitle {
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+
+        .content-section {
+            margin-top: 15px;
+            text-align: justify;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8px;
+            margin: 15px 0;
         }
 
-        .meta-table td {
-            padding: 3px 6px;
+        table.data-table th,
+        table.data-table td {
             border: 1px solid #000;
-        }
-
-        .bg-gray {
-            background-color: #f3f4f6;
-            font-weight: bold;
-            width: 18%;
-        }
-
-        .bg-white {
-            background-color: #fff;
-            width: 32%;
-        }
-
-        .section-header {
-            background-color: #000;
-            color: #fff;
-            padding: 4px 8px;
-            font-weight: bold;
-            font-size: 10px;
-            margin-top: 12px;
-            margin-bottom: 6px;
-            text-transform: uppercase;
+            padding: 6px;
         }
 
         table.data-table th {
-            background-color: #e5e7eb;
-            border: 1px solid #000;
-            padding: 6px;
+            background-color: #f2f2f2;
             text-align: center;
-            font-weight: bold;
         }
 
-        table.data-table td {
-            border: 1px solid #000;
-            padding: 4px 6px;
-            vertical-align: top;
-        }
-
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-
-        .signature-table {
-            margin-top: 20px;
+        .signature-container {
+            margin-top: 30px;
             width: 100%;
-            table-layout: fixed;
         }
 
-        .signature-table td {
+        .signature-block {
+            width: 50%;
+            float: left;
             text-align: center;
-            vertical-align: top;
-            border: 1px solid #000;
-            padding: 8px;
         }
 
         .sig-space {
-            min-height: 50px;
-            margin: 5px 0;
+            height: 70px;
+        }
+
+        .doc-control {
+            position: fixed;
+            bottom: -1.2in;
+            left: 0;
+            font-size: 8px;
+            color: #666;
         }
     </style>
 </head>
+
 <body>
     <header>
-        <table style="width: 100%; border: none;">
+        <table style="width: 100%; border: none; margin: 0;">
             <tr>
-                <td style="border: none; width: 50%; text-align: left;">
+                <td style="border: none; width: 50%; text-align: left; padding: 0;">
                     @if ($logoLogogram)
                         <img src="{{ $logoLogogram }}" style="height: 160px;">
                     @endif
                 </td>
-                <td style="border: none; width: 50%; text-align: right;">
+                <td style="border: none; width: 50%; text-align: right; padding: 0;">
                     @if ($logoDetail)
                         <img src="{{ $logoDetail }}" style="height: 110px;">
                     @endif
@@ -190,106 +182,111 @@
         @endif
     </footer>
 
-    <table class="header-info-table">
-        <tr>
-            <td class="title-box">
-                <h1>BERITA ACARA PEMERIKSAAN PEKERJAAN (BAPP)</h1>
-                <p>No: {{ $record->report_number }}</p>
-                <div style="font-weight: normal; font-size: 9px;">Date: {{ $record->document_date->format('d F Y') }}</div>
-            </td>
-        </tr>
-    </table>
+    <div class="doc-control">FR-UB-019 R.01</div>
 
-    <div class="section-header">Project Information</div>
-    <table class="meta-table">
-        <tr>
-            <td class="bg-gray">Project Name</td>
-            <td class="bg-white">{{ $record->project->name ?? '-' }}</td>
-            <td class="bg-gray">Project Code</td>
-            <td class="bg-white">{{ $record->project->code ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td class="bg-gray">Customer</td>
-            <td class="bg-white">{{ $record->customer->name ?? '-' }}</td>
-            <td class="bg-gray">Sales Order Ref</td>
-            <td class="bg-white">{{ $record->salesOrder->so_number ?? '-' }}</td>
-        </tr>
-        <tr>
-            <td class="bg-gray">Service Period</td>
-            <td class="bg-white" colspan="3">
-                {{ $record->service_period_start->format('d/m/Y') }} - {{ $record->service_period_end->format('d/m/Y') }}
-            </td>
-        </tr>
-    </table>
-
-    <div class="section-header">Work Completion Details</div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th width="5%">No</th>
-                <th width="45%">Description of Work</th>
-                <th width="10%">Qty / Vol</th>
-                <th width="10%">Unit</th>
-                <th width="15%">Price/Unit (IDR)</th>
-                <th width="15%">Total (IDR)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php $no = 1; $grandTotal = 0; @endphp
-            @forelse($items as $item)
-                @php $grandTotal += ($item['total_price'] ?? 0); @endphp
-                <tr>
-                    <td class="text-center">{{ $no++ }}</td>
-                    <td>{{ $item['item_name'] ?? '-' }}</td>
-                    <td class="text-right">{{ number_format($item['quantity'] ?? 0) }}</td>
-                    <td class="text-center">{{ $item['uom'] ?? '-' }}</td>
-                    <td class="text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" class="text-center">No work details recorded.</td>
-                </tr>
-            @endforelse
-        </tbody>
-        <tfoot>
-            <tr class="font-bold">
-                <td colspan="5" class="bg-gray text-right">Grand Total Work Value</td>
-                <td class="text-right">IDR {{ number_format($grandTotal, 0, ',', '.') }}</td>
-            </tr>
-        </tfoot>
-    </table>
-
-    @if($record->description)
-        <div class="section-header">Description / Remarks</div>
-        <div style="border: 1px solid #000; padding: 10px; min-height: 40px;">
-            {{ $record->description }}
+    <div class="text-center">
+        <div class="document-title font-bold">BERITA ACARA PELAKSANAAN PEKERJAAN</div>
+        <div class="document-subtitle font-bold uppercase">PERIODE {{ $record->service_period_start->format('F Y') }}
         </div>
-    @endif
 
-    <div class="section-header">Signatures & Verification</div>
-    <table class="signature-table">
-        <tr>
-            <td>
-                <div class="font-bold">Prepared By</div>
-                <div class="sig-space"></div>
-                <div class="font-bold">( ........................................ )</div>
-                <div>Project Admin / Analyst</div>
-            </td>
-            @foreach ($requiredApprovers as $rule)
-                <td>
-                    <div class="font-bold">{{ $rule->signature_type->getLabel() }}</div>
-                    <div class="sig-space"></div>
-                    <div class="font-bold">( ........................................ )</div>
-                </td>
-            @endforeach
-            <td>
-                <div class="font-bold">Verified By (Customer)</div>
-                <div class="sig-space"></div>
-                <div class="font-bold">( ........................................ )</div>
-                <div>Authorized Client Rep.</div>
-            </td>
-        </tr>
-    </table>
+        <div style="margin: 10px 0;">
+            <div class="font-bold">Antara</div>
+            <div class="uppercase font-bold">{{ $record->customer->name ?? '-' }}</div>
+            <div class="font-bold">Dengan</div>
+            <div class="font-bold uppercase">PT GARUDA DAYA PRATAMA SEJAHTERA</div>
+        </div>
+
+        <div class="font-bold">Nomor : {{ $record->report_number }}</div>
+    </div>
+
+    <div class="content-section">
+        <p>
+            Berdasarkan Berita Acara Kerjasama Layanan
+            {{ $record->salesOrder->service_type ?? 'Penyediaan Jasa' }},
+            antara <strong>{{ $record->customer->name ?? '-' }}</strong> dengan
+            <strong>PT Garuda Daya Pratama Sejahtera</strong>
+            Nomor: {{ $record->salesOrder->so_number ?? '-' }}
+            @if($latestAmendment)
+                (Amandemen: {{ $latestAmendment->amendment_number }})
+            @endif
+            telah dilaksanakan pemborongan pekerjaan periode
+            <strong>{{ $record->service_period_start->format('d F Y') }}</strong> s/d
+            <strong>{{ $record->service_period_end->format('d F Y') }}</strong>
+            dari PT Garuda Daya Pratama Sejahtera kepada {{ $record->customer->name ?? '-' }}.
+        </p>
+
+        <p>Rekapitulasi jumlah pemborongan pekerjaan yang telah dilakukan adalah sebagai berikut:</p>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th width="5%">No</th>
+                    <th width="40%">Item Description</th>
+                    <th width="10%">Qty</th>
+                    <th width="10%">UOM</th>
+                    <th width="17%">Unit Price (IDR)</th>
+                    <th width="18%">Total Price (IDR)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $no = 1; $grandTotal = 0;
+                @endphp
+                @foreach ($items as $item)
+                    @php $grandTotal += (float)($item['total_price'] ?? 0); @endphp
+                    <tr>
+                        <td class="text-center">{{ $no++ }}</td>
+                        <td>{{ $item['item_name'] ?? '-' }}</td>
+                        <td class="text-center">{{ number_format($item['quantity'] ?? 0) }}</td>
+                        <td class="text-center">{{ $item['uom'] ?? '-' }}</td>
+                        <td class="text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="font-bold">
+                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">Grand Total</td>
+                    <td class="text-right" style="background-color: #f2f2f2;">IDR
+                        {{ number_format($grandTotal, 0, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <p class="font-bold" style="font-style: italic;">
+            * Pemborongan pekerjaan tersebut belum termasuk PPN 11%
+        </p>
+
+        <p style="margin-top: 15px;">
+            Demikian berita acara ini dibuat untuk dipergunakan sebagai dokumen pelengkap penagihan dan dapat
+            dipertanggungjawabkan sebagaimana mestinya.
+        </p>
+    </div>
+
+    <div class="signature-container">
+        <div style="margin-bottom: 40px;">
+            Tangerang, {{ $record->document_date->format('d F Y') }}
+        </div>
+
+        <div class="signature-block">
+            <div class="font-bold">Yang Menyerahkan,</div>
+            <div class="font-bold uppercase">PT Garuda Daya Pratama Sejahtera</div>
+            <div class="sig-space"></div>
+            <div class="font-bold">( ........................................ )</div>
+            <div>Nama : _____________________</div>
+            <div>Jabatan : ___________________</div>
+        </div>
+
+        <div class="signature-block">
+            <div class="font-bold">Yang Menerima,</div>
+            <div class="font-bold uppercase">{{ $record->customer->name ?? '-' }}</div>
+            <div class="sig-space"></div>
+            <div class="font-bold">( ........................................ )</div>
+            <div>Nama : _____________________</div>
+            <div>Jabatan : ___________________</div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
 </body>
+
 </html>

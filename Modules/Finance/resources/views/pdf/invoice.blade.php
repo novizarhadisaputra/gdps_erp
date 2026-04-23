@@ -39,6 +39,11 @@
     $logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
     $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
     $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
+
+    $latestAmendment = $record->salesOrder?->amendments()
+        ?->where('status', \Modules\CRM\Enums\SalesOrderAmendmentStatus::Approved)
+        ?->latest('sequence_number')
+        ?->first();
 @endphp
 
 <!DOCTYPE html>
@@ -214,8 +219,13 @@
             <td class="bg-white">{{ $record->invoice_date->format('d/m/Y') }}</td>
         </tr>
         <tr>
-            <td class="bg-gray">Project Ref</td>
-            <td class="bg-white">{{ $record->salesOrder->project->name ?? '-' }} ({{ $record->salesOrder->project->code ?? '-' }})</td>
+            <td class="bg-gray">SO Reference</td>
+            <td class="bg-white">
+                {{ $record->salesOrder->so_number ?? '-' }}
+                @if($latestAmendment)
+                    <br><small>(Amend: {{ $latestAmendment->amendment_number }})</small>
+                @endif
+            </td>
             <td class="bg-gray">Due Date</td>
             <td class="bg-white" style="color: red; font-weight: bold;">{{ $record->due_date->format('d/m/Y') }}</td>
         </tr>

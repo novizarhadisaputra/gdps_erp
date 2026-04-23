@@ -291,8 +291,8 @@
                 @php
                     $old = $beforeItems->firstWhere('description', $name);
                     $new = $afterItems->firstWhere('description', $name);
-                    $oldQty = $old['quantity'] ?? 0;
-                    $newQty = $new['quantity'] ?? 0;
+                    $oldQty = (float)($old['quantity'] ?? 0);
+                    $newQty = (float)($new['quantity'] ?? 0);
                     $change = $newQty - $oldQty;
                 @endphp
                 <tr>
@@ -321,8 +321,8 @@
                 @php
                     $old = $beforeMP->firstWhere('job_position_name', $pos);
                     $new = $afterMP->firstWhere('job_position_name', $pos);
-                    $oldQty = $old['quantity'] ?? 0;
-                    $newQty = $new['quantity'] ?? 0;
+                    $oldQty = (float)($old['quantity'] ?? 0);
+                    $newQty = (float)($new['quantity'] ?? 0);
                     $change = $newQty - $oldQty;
                 @endphp
                 <tr>
@@ -344,13 +344,13 @@
 
     <div class="section-header">II. Amendment Summary</div>
     @php
-        $sumBefore = collect($beforeItems)->sum('total_price');
-        $sumAfter = collect($afterItems)->sum('total_price');
-        $deltaAmount = $sumAfter - $sumBefore;
+        $sumBefore = collect($beforeItems)->sum(fn($i) => (float)($i['total_price'] ?? 0));
+        $sumAfter = collect($afterItems)->sum(fn($i) => (float)($i['total_price'] ?? 0));
+        $deltaAmount = (float)$sumAfter - (float)$sumBefore;
 
-        $qtyBefore = collect($beforeMP)->sum('quantity');
-        $qtyAfter = collect($afterMP)->sum('quantity');
-        $deltaQty = $qtyAfter - $qtyBefore;
+        $qtyBefore = collect($beforeMP)->sum(fn($m) => (float)($m['quantity'] ?? 0));
+        $qtyAfter = collect($afterMP)->sum(fn($m) => (float)($m['quantity'] ?? 0));
+        $deltaQty = (float)$qtyAfter - (float)$qtyBefore;
     @endphp
     <table class="meta-table">
         <tr class="bg-gray">
