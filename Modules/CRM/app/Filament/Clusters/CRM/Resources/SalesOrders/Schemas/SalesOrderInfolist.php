@@ -128,6 +128,32 @@ class SalesOrderInfolist
                                     ->html(),
                             ]),
                     ])->columnSpanFull(),
+
+                Section::make('Communication History')
+                    ->description('Traceability of emails sent to the customer regarding this Sales Order.')
+                    ->schema([
+                        RepeatableEntry::make('communicationLogs')
+                            ->label('Sent Emails')
+                            ->schema([
+                                Grid::make(4)->schema([
+                                    TextEntry::make('recipient_email')
+                                        ->label('Recipient')
+                                        ->icon('heroicon-m-envelope'),
+                                    TextEntry::make('subject')
+                                        ->label('Subject'),
+                                    TextEntry::make('sender.name')
+                                        ->label('Sent By')
+                                        ->state(fn ($record) => $record->sender?->name ?? $record->sender_email ?? '-'),
+                                    TextEntry::make('sent_at')
+                                        ->label('Sent Date')
+                                        ->dateTime()
+                                        ->color('gray'),
+                                ]),
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull()
+                    ->visible(fn ($record) => $record?->communicationLogs()->exists()),
             ]);
     }
 }

@@ -7,11 +7,16 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CRM\Database\Factories\CustomerFactory;
 use Modules\CRM\Observers\CustomerObserver;
 use Modules\MasterData\Enums\ActiveStatus;
 use Modules\MasterData\Enums\LegalEntityType;
+use Modules\MasterData\Models\District;
+use Modules\MasterData\Models\Province;
+use Modules\MasterData\Models\Regency;
+use Modules\MasterData\Models\Village;
 use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -32,6 +37,10 @@ class Customer extends Model implements HasMedia
         'email',
         'phone',
         'address',
+        'province_id',
+        'regency_id',
+        'district_id',
+        'village_id',
         'contacts',
         'status',
     ];
@@ -67,5 +76,25 @@ class Customer extends Model implements HasMedia
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+
+    public function province(): BelongsTo
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function regency(): BelongsTo
+    {
+        return $this->belongsTo(Regency::class);
+    }
+
+    public function district(): BelongsTo
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function village(): BelongsTo
+    {
+        return $this->belongsTo(Village::class);
     }
 }

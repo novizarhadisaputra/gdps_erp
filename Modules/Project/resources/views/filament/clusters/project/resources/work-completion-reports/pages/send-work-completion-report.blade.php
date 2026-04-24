@@ -24,17 +24,17 @@
             <div class="border rounded-lg p-6 bg-white min-h-[400px]">
                 <div class="mb-4 pb-4 border-b">
                     <div class="text-sm text-gray-500">Subject:</div>
-                    <div class="font-medium text-lg text-gray-900">{{ $this->data['subject'] ?? '' }}</div>
+                    <div class="font-medium text-lg text-gray-900">{{ is_string($this->data['subject'] ?? null) ? $this->data['subject'] : '' }}</div>
                 </div>
 
                 <div class="prose max-w-none">
                     <div
                         style="font-family: sans-serif; line-height: 1.6; color: #333; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-                        <h2 style="color: #2563eb; margin-top: 0;">Hello, {{ $this->data['recipient_name'] ?? $record->customer?->name }}</h2>
+                        <h2 style="color: #2563eb; margin-top: 0;">Hello, {{ is_string($this->data['recipient_name'] ?? null) ? $this->data['recipient_name'] : ($record->customer?->name ?? 'Customer') }}</h2>
 
-                        @if (!empty($this->data['message']))
+                        @if (!empty($this->data['message']) && is_string($this->data['message']))
                             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                                {!! $this->data['message'] ?? '' !!}
+                                {!! $this->data['message'] !!}
                             </div>
                         @else
                            <p>Please find the Work Completion Report (BAPP) for your project attached.</p>

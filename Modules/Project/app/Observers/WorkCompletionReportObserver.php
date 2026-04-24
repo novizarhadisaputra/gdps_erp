@@ -13,23 +13,20 @@ class WorkCompletionReportObserver
      */
     public function creating(WorkCompletionReport $report): void
     {
-        if (filled($report->report_number)) {
-            return;
-        }
-
         $year = date('Y');
+        $month = date('m');
         $shortYear = date('y');
 
-        $latest = WorkCompletionReport::query()
+        $latest = WorkCompletionReport::withTrashed()
             ->where('year', $year)
             ->orderBy('sequence_number', 'desc')
             ->first();
 
-        $sequence = $latest ? $latest->sequence_number + 1 : 1;
+        $sequence = ($latest && $latest->sequence_number) ? (int)$latest->sequence_number + 1 : 1;
 
         $report->year = (int) $year;
         $report->sequence_number = $sequence;
-        $report->report_number = sprintf('GDPS/UB/BAPP-%03d/%s', $sequence, $shortYear);
+        $report->report_number = sprintf('GDPS/UB/BAPP-%03d/%s/%s', $sequence, $month, $shortYear);
     }
 
     /**

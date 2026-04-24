@@ -11,10 +11,12 @@ use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource;
-use Modules\Project\Mail\WorkCompletionReportMail;
 
 class SendWorkCompletionReport extends Page
 {
@@ -64,12 +66,16 @@ class SendWorkCompletionReport extends Page
     {
         $contacts = $this->record->customer?->contacts ?? [];
 
-        return collect($contacts)->mapWithKeys(function ($contact) {
-            $value = ($contact['email'] ?? $contact['name']).'|'.($contact['name'] ?? '');
-            $label = $contact['name'].($contact['email'] ? " ({$contact['email']})" : '');
+        return collect($contacts)
+            ->filter(fn ($contact) => is_array($contact))
+            ->mapWithKeys(function ($contact) {
+                $email = $contact['email'] ?? ($contact['name'] ?? 'No Email');
+                $name = $contact['name'] ?? 'Unnamed';
+                $value = $email . '|' . $name;
+                $label = $name . ($email ? " ({$email})" : '');
 
-            return [$value => $label];
-        })->toArray();
+                return [$value => $label];
+            })->toArray();
     }
 
     public function form(Schema $schema): Schema
@@ -93,7 +99,7 @@ class SendWorkCompletionReport extends Page
                         return ($data['email'] ?? $data['name']).'|'.($data['name'] ?? '');
                     })
                     ->afterStateUpdated(function ($state, callable $set) {
-                        if ($state) {
+                        if ($state && str_contains($state, '|')) {
                             [$email, $name] = explode('|', $state);
                             $set('recipient_email', $email);
                             $set('recipient_name', $name);
@@ -138,24 +144,109 @@ class SendWorkCompletionReport extends Page
     {
         $formData = $this->form->getState();
 
-        try {
-            Mail::to($formData['recipient_email'])->send(new WorkCompletionReportMail(
-                $this->record,
-                $formData['subject'],
-                $formData['message']
-            ));
+        if (!$formData || empty($formData['recipient_email'])) {
+            Notification::make()
+                ->title('Validation Error')
+                ->body('Please ensure all required fields are filled correctly.')
+                ->danger()
+                ->send();
+            return;
+        }
 
+        try {
+            // 1. Prepare Attachment
+            $attachmentUrl = null;
+            $attachmentName = null;
+
+            if ($this->record->hasMedia('draft_report')) {
+                $media = $this->record->getFirstMedia('draft_report');
+                /** @var \Spatie\MediaLibrary\MediaCollections\Models\Media $media */
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+                $attachmentName = $media->file_name;
+            } else {
+                // Generate PDF on the fly if no media uploaded
+                $pdf = Pdf::loadView('project::pdf.work_completion_report', ['record' => $this->record]);
+                $filename = 'bapp-' . str_replace(['/', '\\'], '-', $this->record->report_number) . '.pdf';
+
+                // Store temporarily on S3 to get a URL
+                $tempPath = "temp/bapps/{$filename}";
+                Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
+
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                $disk = Storage::disk('s3');
+                $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
+                $attachmentName = $filename;
+            }
+
+            // 2. Prepare Message
+            $messageBody = $formData['message'] ?? '';
+
+            // 3. Send via External API
+            Log::info('BAPP Email Sending Attempt', [
+                'bapp_id' => $this->record->id,
+                'bapp_number' => $this->record->report_number,
+                'recipient' => $formData['recipient_email'],
+            ]);
+
+            $response = Http::timeout(60)
+                ->withHeaders([
+                    'content-type' => 'application/json',
+                    'x-requester-app' => 'GDPS-ERP',
+                ])->post('https://machine.garudapratama.com/api/v1/email/send', [
+                    'to' => [
+                        $formData['recipient_email'],
+                    ],
+                    'subject' => $formData['subject'],
+                    'body' => $messageBody,
+                    'attachments' => [
+                        [
+                            'name' => $attachmentName,
+                            'url' => $attachmentUrl,
+                        ],
+                    ],
+                ]);
+
+            if (!$response->successful()) {
+                $errorMsg = $response->json('message') ?? $response->status();
+
+                Log::error('BAPP Email Sending Failed', [
+                    'bapp_id' => $this->record->id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                throw new \Exception('Email system error: ' . $errorMsg);
+            }
+
+            // 4. Update BAPP status to Sent
             $this->record->update([
                 'status' => WorkCompletionStatus::Sent,
             ]);
 
+            // 5. Create Communication Log
+            $this->record->communicationLogs()->create([
+                'recipient_email' => $formData['recipient_email'],
+                'sender_id' => auth()->id(),
+                'sender_email' => auth()->user()?->email,
+                'subject' => $formData['subject'],
+                'message' => $messageBody,
+                'sent_at' => now(),
+            ]);
+
             Notification::make()
                 ->title('Email Sent Successfully')
+                ->body('The Work Completion Report has been successfully sent to the customer.')
                 ->success()
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            Log::error('BAPP Email Failure: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             Notification::make()
                 ->title('Failed to Send Email')
                 ->body($e->getMessage())

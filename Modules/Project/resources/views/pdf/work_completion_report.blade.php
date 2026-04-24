@@ -45,6 +45,38 @@
         ?->where('status', \Modules\CRM\Enums\SalesOrderAmendmentStatus::Approved)
         ?->latest('sequence_number')
         ?->first();
+
+    // Signature Data
+    $pm = $record->salesOrder?->projectManager;
+    $pmName = $pm->name ?? '.....................';
+    $pmTitle = $pm->position ?? 'Project Manager';
+
+    // Priority: Record specific fields -> SO config -> Customer first contact -> Fallback
+    $customerContactName = $record->content_config['recipient_name'] 
+        ?? $record->salesOrder?->content_config['recipient_name'] 
+        ?? null;
+    $customerContactTitle = $record->content_config['recipient_title'] 
+        ?? $record->salesOrder?->content_config['recipient_title'] 
+        ?? null;
+    $customerContactGender = $record->content_config['recipient_gender'] 
+        ?? $record->salesOrder?->content_config['recipient_gender'] 
+        ?? null;
+
+    if (!$customerContactName && !empty($record->customer?->contacts)) {
+        $firstContact = $record->customer->contacts[0];
+        $customerContactName = $firstContact['name'] ?? null;
+        $customerContactTitle = $firstContact['job_position'] ?? null;
+        $customerContactGender = $firstContact['gender'] ?? null;
+    }
+
+    $salutation = '';
+    if ($customerContactGender) {
+        $salutation = ($customerContactGender === 'male' || $customerContactGender === \Modules\MasterData\Enums\Gender::Male->value) ? 'Bapak' : 'Ibu';
+    }
+
+    $customerContactName = $customerContactName ?? '.....................';
+    $customerContactDisplay = $salutation ? $salutation . ' ' . $customerContactName : $customerContactName;
+    $customerContactTitle = $customerContactTitle ?? 'Jabatan';
 @endphp
 
 <!DOCTYPE html>
@@ -100,15 +132,36 @@
             text-transform: uppercase;
         }
 
-        .document-title {
-            font-size: 14px;
-            text-decoration: underline;
-            margin-bottom: 2px;
+        .header-info-table {
+            width: 100%;
+            border-bottom: 2px solid #000;
+            margin-bottom: 15px;
+            table-layout: fixed;
         }
 
-        .document-subtitle {
+        .title-box {
+            text-align: right;
+            vertical-align: middle;
+            padding-bottom: 5px;
+        }
+
+        .title-box h1 {
+            font-size: 16px;
+            margin: 0;
+            font-weight: bold;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        .title-box p {
             font-size: 11px;
-            margin-bottom: 10px;
+            margin: 2px 0;
+            font-weight: bold;
+        }
+
+        .title-box div {
+            font-size: 9px;
+            font-weight: normal;
         }
 
         .content-section {
@@ -160,16 +213,18 @@
 
 <body>
     <header>
-        <table style="width: 100%; border: none; margin: 0;">
+        <table style="width: 100%; border: none; margin: 0; padding: 0; border-collapse: collapse; table-layout: fixed;">
             <tr>
-                <td style="border: none; width: 50%; text-align: left; padding: 0;">
+                <td style="border: none; width: 50%; padding: 0; margin: 0; text-align: left; vertical-align: top;">
                     @if ($logoLogogram)
-                        <img src="{{ $logoLogogram }}" style="height: 160px;">
+                        <img src="{{ $logoLogogram }}"
+                            style="height: 160px; width: auto; display: block; margin: 0; border: none;">
                     @endif
                 </td>
-                <td style="border: none; width: 50%; text-align: right; padding: 0;">
+                <td style="border: none; width: 50%; padding: 0; margin: 0; text-align: right; vertical-align: top;">
                     @if ($logoDetail)
-                        <img src="{{ $logoDetail }}" style="height: 110px;">
+                        <img src="{{ $logoDetail }}"
+                            style="height: 110px; width: auto; display: block; margin: 0; margin-left: auto; border: none;">
                     @endif
                 </td>
             </tr>
@@ -178,54 +233,61 @@
 
     <footer>
         @if ($footerKop)
-            <img src="{{ $footerKop }}" style="width: 100%;">
+            <img src="{{ $footerKop }}"
+                style="width: 100%; height: auto; display: block; margin: 0; padding: 0; border: none; vertical-align: bottom;">
         @endif
+        <div style="position: absolute; bottom: 30px; right: 50px; color: #ffffff; font-size: 9px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+            Halaman <span class="page-number"></span></div>
     </footer>
 
     <div class="doc-control">FR-UB-019 R.01</div>
 
-    <div class="text-center">
-        <div class="document-title font-bold">WORK COMPLETION REPORT</div>
-        <div class="document-subtitle font-bold uppercase">PERIOD {{ $record->service_period_start->format('F Y') }}
-        </div>
+    <table class="header-info-table">
+        <tr>
+            <td class="title-box">
+                <h1>BERITA ACARA PENYELESAIAN PEKERJAAN</h1>
+                <p>Nomor : {{ $record->report_number }}</p>
+                <div>Periode : {{ $record->service_period_start->format('F Y') }}</div>
+            </td>
+        </tr>
+    </table>
 
+    <div style="margin-top: 10px; text-align: center;">
         <div style="margin: 10px 0;">
-            <div class="font-bold">Between</div>
+            <div class="font-bold">Antara</div>
             <div class="uppercase font-bold">{{ $record->customer->name ?? '-' }}</div>
-            <div class="font-bold">With</div>
+            <div class="font-bold">Dengan</div>
             <div class="font-bold uppercase">PT GARUDA DAYA PRATAMA SEJAHTERA</div>
         </div>
-
-        <div class="font-bold">Number : {{ $record->report_number }}</div>
     </div>
 
     <div class="content-section">
         <p>
-            Based on the Service Cooperation Agreement
-            {{ $record->salesOrder->service_type ?? 'Service Provision' }},
-            between <strong>{{ $record->customer->name ?? '-' }}</strong> and
+            Berdasarkan Perjanjian Kerja Sama Jasa
+            {{ $record->salesOrder->service_type ?? 'Penyediaan Jasa' }},
+            antara <strong>{{ $record->customer->name ?? '-' }}</strong> dan
             <strong>PT Garuda Daya Pratama Sejahtera</strong>
-            Number: {{ $record->salesOrder->so_number ?? '-' }}
+            Nomor: {{ $record->salesOrder->so_number ?? '-' }}
             @if($latestAmendment)
-                (Amendment: {{ $latestAmendment->amendment_number }})
+                (Adendum: {{ $latestAmendment->amendment_number }})
             @endif
-            work execution has been carried out for the period
-            <strong>{{ $record->service_period_start->format('d F Y') }}</strong> to
+            telah dilaksanakan pekerjaan untuk periode
+            <strong>{{ $record->service_period_start->format('d F Y') }}</strong> sampai dengan
             <strong>{{ $record->service_period_end->format('d F Y') }}</strong>
-            from PT Garuda Daya Pratama Sejahtera to {{ $record->customer->name ?? '-' }}.
+            dari PT Garuda Daya Pratama Sejahtera kepada {{ $record->customer->name ?? '-' }}.
         </p>
 
-        <p>The summary of the work execution carried out is as follows:</p>
+        <p>Ringkasan pelaksanaan pekerjaan yang telah dilaksanakan adalah sebagai berikut:</p>
 
         <table class="data-table">
             <thead>
                 <tr>
                     <th width="5%">No</th>
-                    <th width="40%">Item Description</th>
-                    <th width="10%">Qty</th>
-                    <th width="10%">UOM</th>
-                    <th width="17%">Unit Price (IDR)</th>
-                    <th width="18%">Total Price (IDR)</th>
+                    <th width="40%">Deskripsi Item</th>
+                    <th width="10%">Jml</th>
+                    <th width="10%">Satuan</th>
+                    <th width="17%">Harga Satuan (IDR)</th>
+                    <th width="18%">Total Harga (IDR)</th>
                 </tr>
             </thead>
             <tbody>
@@ -246,7 +308,7 @@
             </tbody>
             <tfoot>
                 <tr class="font-bold">
-                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">Grand Total</td>
+                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">Total Keseluruhan</td>
                     <td class="text-right" style="background-color: #f2f2f2;">
                         {{ \Illuminate\Support\Number::currency($grandTotal, 'IDR', 'id') }}</td>
                 </tr>
@@ -254,11 +316,11 @@
         </table>
 
         <p class="font-bold" style="font-style: italic;">
-            * The above work execution does not include 11% VAT
+            * Pelaksanaan pekerjaan di atas belum termasuk PPN 11%
         </p>
 
         <p style="margin-top: 15px;">
-            This report is prepared to be used as a supporting document for billing and can be properly accounted for.
+            Demikian laporan ini dibuat untuk dipergunakan sebagai dokumen pendukung penagihan dan dapat dipertanggungjawabkan sebagaimana mestinya.
         </p>
     </div>
 
@@ -268,21 +330,19 @@
         </div>
 
         <div class="signature-block">
-            <div class="font-bold">Submitted By,</div>
+            <div class="font-bold">Diajukan Oleh,</div>
             <div class="font-bold uppercase">PT Garuda Daya Pratama Sejahtera</div>
             <div class="sig-space"></div>
-            <div class="font-bold">( ........................................ )</div>
-            <div>Name : _____________________</div>
-            <div>Position : ___________________</div>
+            <div class="font-bold">( {{ $pmName }} )</div>
+            <div>Jabatan : {{ $pmTitle }}</div>
         </div>
 
         <div class="signature-block">
-            <div class="font-bold">Received By,</div>
+            <div class="font-bold">Diterima Oleh,</div>
             <div class="font-bold uppercase">{{ $record->customer->name ?? '-' }}</div>
             <div class="sig-space"></div>
-            <div class="font-bold">( ........................................ )</div>
-            <div>Name : _____________________</div>
-            <div>Position : ___________________</div>
+            <div class="font-bold">( {{ $customerContactDisplay }} )</div>
+            <div>Jabatan : {{ $customerContactTitle }}</div>
         </div>
         <div style="clear: both;"></div>
     </div>

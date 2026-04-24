@@ -11,10 +11,12 @@ use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
-use Illuminate\Support\Facades\Mail;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
-use Modules\Finance\Mail\InvoiceMail;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SendInvoice extends Page
 {
@@ -31,10 +33,10 @@ class SendInvoice extends Page
         $this->record = $this->resolveRecord($record);
 
         $this->form->fill([
-            'subject' => 'Invoice '.$this->record->invoice_number,
+            'subject' => 'Invoice & BAPP '.$this->record->invoice_number,
             'recipient_email' => $this->record->customer?->email,
             'recipient_name' => $this->record->customer?->name,
-            'message' => '<p>Please find your invoice attached.</p><p>Thank you for your business!</p>',
+            'message' => '<p>Kepada Yth. Bapak/Ibu,</p><p>Berikut kami lampirkan dokumen <strong>Invoice</strong> beserta <strong>Bukti Acara Serah Terima (BAPP)</strong> yang telah ditandatangani untuk proses penagihan.</p><p>Terima kasih atas kerja sama Anda.</p>',
         ]);
     }
 
@@ -127,23 +129,102 @@ class SendInvoice extends Page
         $formData = $this->form->getState();
 
         try {
-            Mail::to($formData['recipient_email'])->send(new InvoiceMail(
-                $this->record,
-                $formData['subject'],
-                $formData['message']
-            ));
+            // 1. Generate PDF on the fly
+            $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $this->record]);
+            $filename = 'invoice-' . str_replace(['/', '\\'], '-', $this->record->invoice_number) . '.pdf';
 
+            // 2. Store temporarily on S3 to get a URL
+            $tempPath = "temp/invoices/{$filename}";
+            Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
+
+            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+            $disk = Storage::disk('s3');
+            $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
+            $attachmentName = $filename;
+
+            // 3. Prepare Attachments
+            $attachments = [
+                [
+                    'name' => $attachmentName,
+                    'url' => $attachmentUrl,
+                ],
+            ];
+
+            // Attach BAPP (signed_report) if available
+            $bappMedia = $this->record->workCompletionReport?->getFirstMedia('signed_report');
+            if ($bappMedia) {
+                $bappAttachmentUrl = $bappMedia->disk === 's3' 
+                    ? Storage::disk('s3')->temporaryUrl($bappMedia->getPath(), now()->addMinutes(60)) 
+                    : url($bappMedia->getUrl());
+                
+                $attachments[] = [
+                    'name' => $bappMedia->file_name,
+                    'url' => $bappAttachmentUrl,
+                ];
+            }
+
+            // 4. Send via External API
+            Log::info('Invoice Email Sending Attempt', [
+                'invoice_id' => $this->record->id,
+                'invoice_number' => $this->record->invoice_number,
+                'recipient' => $formData['recipient_email'],
+                'attachments_count' => count($attachments),
+            ]);
+
+            $response = Http::timeout(60)
+                ->withHeaders([
+                    'content-type' => 'application/json',
+                    'x-requester-app' => 'GDPS-ERP',
+                ])->post('https://machine.garudapratama.com/api/v1/email/send', [
+                    'to' => [
+                        $formData['recipient_email'],
+                    ],
+                    'subject' => $formData['subject'],
+                    'body' => $formData['message'] ?? '',
+                    'attachments' => $attachments,
+                ]);
+
+            if (!$response->successful()) {
+                $errorMsg = $response->json('message') ?? $response->status();
+
+                Log::error('Invoice Email Sending Failed', [
+                    'invoice_id' => $this->record->id,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                throw new \Exception('Email system error: ' . $errorMsg);
+            }
+
+            // 4. Update Invoice status to Sent
             $this->record->update([
                 'status' => InvoiceStatus::Sent,
             ]);
 
+            // 5. Create Communication Log
+            $this->record->communicationLogs()->create([
+                'recipient_email' => $formData['recipient_email'],
+                'sender_id' => auth()->id(),
+                'sender_email' => auth()->user()?->email,
+                'subject' => $formData['subject'],
+                'message' => $formData['message'] ?? '',
+                'sent_at' => now(),
+            ]);
+
             Notification::make()
                 ->title('Email Sent Successfully')
+                ->body('The invoice has been successfully sent to the customer.')
                 ->success()
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
         } catch (\Exception $e) {
+            Log::error('Invoice Email Failure: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             Notification::make()
                 ->title('Failed to Send Email')
                 ->body($e->getMessage())

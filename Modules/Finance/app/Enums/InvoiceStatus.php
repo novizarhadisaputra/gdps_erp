@@ -13,6 +13,7 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Draft = 'draft';
     case Sent = 'sent';
+    case Approved = 'approved';
     case Partial = 'partial';
     case Paid = 'paid';
     case Overdue = 'overdue';
@@ -22,6 +23,7 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'Draft',
+            self::Approved => 'Approved',
             self::Sent => 'Sent',
             self::Partial => 'Partially Paid',
             self::Paid => 'Paid',
@@ -34,6 +36,7 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'gray',
+            self::Approved => 'success',
             self::Sent => 'info',
             self::Partial => 'warning',
             self::Paid => 'success',
@@ -46,6 +49,7 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => Heroicon::Pencil,
+            self::Approved => Heroicon::CheckBadge,
             self::Sent => Heroicon::PaperAirplane,
             self::Partial => Heroicon::Clock,
             self::Paid => Heroicon::CheckCircle,

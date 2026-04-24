@@ -8,6 +8,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas\WorkCompletionReportForm;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas\WorkCompletionReportInfolist;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Tables\WorkCompletionReportsTable;
 use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages\CreateWorkCompletionReport;
 use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages\EditWorkCompletionReport;
@@ -40,6 +41,11 @@ class WorkCompletionReportResource extends Resource
     public static function table(Table $table): Table
     {
         return WorkCompletionReportsTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return WorkCompletionReportInfolist::configure($schema);
     }
 
     public static function getPages(): array

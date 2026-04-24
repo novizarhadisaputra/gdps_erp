@@ -10,11 +10,15 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
+use Modules\MasterData\Enums\Gender;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\Project;
+use Modules\Project\Models\WorkCompletionReport;
 
 class WorkCompletionReportForm
 {
@@ -68,6 +72,107 @@ class WorkCompletionReportForm
                             ->searchable()
                             ->required(),
                     ])->columns(2)
+                    ->collapsible(),
+
+                Section::make('Customer Signatory')
+                    ->description('Select or manually enter the person who will sign this BAPP from the customer side.')
+                    ->schema([
+                        Select::make('recipient_contact_index')
+                            ->label('Customer Contact Reference')
+                            ->options(function (Get $get) {
+                                $customerId = $get('customer_id');
+                                if (!$customerId) {
+                                    return [];
+                                }
+                                $customer = Customer::find($customerId);
+                                if (!$customer || empty($customer->contacts)) {
+                                    return [];
+                                }
+                                return collect($customer->contacts)
+                                    ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'] . ' (' . ($contact['position'] ?? $contact['job_position'] ?? 'No Position') . ')'])
+                                    ->toArray();
+                            })
+                            ->live()
+                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                if ($state === null || $state === '') {
+                                    return;
+                                }
+                                $customerId = $get('customer_id');
+                                if (!$customerId) {
+                                    return;
+                                }
+                                $customer = Customer::find($customerId);
+                                if (!$customer || empty($customer->contacts)) {
+                                    return;
+                                }
+                                $contact = $customer->contacts[$state] ?? null;
+                                if ($contact) {
+                                    $set('content_config.recipient_name', $contact['name'] ?? '');
+                                    $position = $contact['position'] ?? $contact['job_position'] ?? $contact['job_title'] ?? $contact['title'] ?? '';
+                                    $set('content_config.recipient_title', $position);
+                                    $set('content_config.recipient_gender', $contact['gender'] ?? Gender::Male->value);
+                                }
+                            })
+                            ->createOptionForm([
+                                Grid::make(3)->schema([
+                                    Select::make('gender')
+                                        ->options(Gender::class)
+                                        ->required()
+                                        ->native(false),
+                                    TextInput::make('name')->required(),
+                                    TextInput::make('job_position')->label('Job Position'),
+                                ]),
+                                Grid::make(2)->schema([
+                                    TextInput::make('email')->email(),
+                                    TextInput::make('phone')->tel(),
+                                ]),
+                            ])
+                            ->createOptionUsing(function (array $data, Get $get) {
+                                $customerId = $get('customer_id');
+                                if (!$customerId) {
+                                    return null;
+                                }
+                                $customer = Customer::find($customerId);
+                                if (!$customer) {
+                                    return null;
+                                }
+
+                                $contacts = $customer->contacts ?? [];
+                                $contacts[] = [
+                                    'gender' => $data['gender'],
+                                    'name' => $data['name'],
+                                    'job_position' => $data['job_position'],
+                                    'email' => $data['email'] ?? null,
+                                    'phone' => $data['phone'] ?? null,
+                                    'type' => null,
+                                ];
+
+                                $customer->contacts = $contacts;
+                                $customer->save();
+
+                                return count($contacts) - 1;
+                            })
+                            ->placeholder('Pick a contact to auto-fill...')
+                            ->dehydrated(false)
+                            ->helperText('Selecting a contact will populate the fields below.'),
+
+                        Grid::make(3)->schema([
+                            Select::make('content_config.recipient_gender')
+                                ->label('Salutation')
+                                ->options(Gender::class)
+                                ->required()
+                                ->native(false),
+
+                            TextInput::make('content_config.recipient_name')
+                                ->label('Recipient Name')
+                                ->placeholder('Enter full name')
+                                ->required(),
+
+                            TextInput::make('content_config.recipient_title')
+                                ->label('Recipient Title/Position')
+                                ->placeholder('e.g. Director of Finance'),
+                        ]),
+                    ])
                     ->collapsible(),
 
                 Section::make('Service & Progress')

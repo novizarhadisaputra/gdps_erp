@@ -11,17 +11,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Modules\CRM\Models\CommunicationLog;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Observers\InvoiceObserver;
+use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\WorkCompletionReport;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[ObservedBy(InvoiceObserver::class)]
-class Invoice extends Model
+class Invoice extends Model implements HasMedia
 {
+    use HasDigitalSignatures;
     use HasFactory;
     use HasModuleSchema;
     use HasUuids;
     use SoftDeletes;
+    use InteractsWithMedia;
 
     protected $fillable = [
         'sales_order_id',
@@ -36,6 +43,9 @@ class Invoice extends Model
         'tax_amount',
         'total_amount',
         'status',
+        'payment_info',
+        'items',
+        'content_config',
     ];
 
     protected function casts(): array
@@ -47,6 +57,9 @@ class Invoice extends Model
             'tax_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'status' => InvoiceStatus::class,
+            'payment_info' => 'array',
+            'items' => 'array',
+            'content_config' => 'array',
         ];
     }
 
@@ -63,5 +76,21 @@ class Invoice extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function communicationLogs(): MorphMany
+    {
+        return $this->morphMany(CommunicationLog::class, 'emailable');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('payment_proof')
+            ->useDisk('s3')
+            ->singleFile();
+            
+        $this->addMediaCollection('draft_invoice')
+            ->useDisk('s3')
+            ->singleFile();
     }
 }

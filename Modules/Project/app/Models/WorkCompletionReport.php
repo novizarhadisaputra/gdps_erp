@@ -15,6 +15,7 @@ use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Traits\HasDigitalSignatures;
+use Modules\CRM\Models\CommunicationLog;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Observers\WorkCompletionReportObserver;
 use Spatie\MediaLibrary\HasMedia;
@@ -40,6 +41,7 @@ class WorkCompletionReport extends Model implements HasMedia
         'items',
         'total_amount',
         'status',
+        'content_config',
     ];
 
     protected function casts(): array
@@ -51,6 +53,7 @@ class WorkCompletionReport extends Model implements HasMedia
             'work_progress_percentage' => 'decimal:2',
             'items' => 'array',
             'status' => WorkCompletionStatus::class,
+            'content_config' => 'array',
         ];
     }
 
@@ -67,6 +70,11 @@ class WorkCompletionReport extends Model implements HasMedia
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function communicationLogs(): MorphMany
+    {
+        return $this->morphMany(CommunicationLog::class, 'emailable');
     }
 
     public function registerMediaCollections(): void

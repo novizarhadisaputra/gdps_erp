@@ -31,6 +31,7 @@ return new class extends Migration
             $blueprint->decimal('total_amount', 15, 2)->default(0);
 
             $blueprint->string('status')->default('draft');
+            $blueprint->jsonb('content_config')->nullable();
 
             $blueprint->timestamps();
             $blueprint->softDeletes();

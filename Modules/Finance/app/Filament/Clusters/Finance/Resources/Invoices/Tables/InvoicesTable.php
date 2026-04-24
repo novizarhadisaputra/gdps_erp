@@ -41,20 +41,6 @@ class InvoicesTable
                 Actions\ActionGroup::make([
                     Actions\ViewAction::make(),
                     Actions\EditAction::make(),
-                    Actions\Action::make('sendEmail')
-                        ->label('Send Email')
-                        ->icon(Heroicon::OutlinedPaperAirplane)
-                        ->url(fn (Invoice $record) => \Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource::getUrl('send', ['record' => $record])),
-                    Actions\Action::make('pdf')
-                        ->label('Export PDF')
-                        ->color('gray')
-                        ->icon(Heroicon::OutlinedArrowDownTray)
-                        ->action(function (Invoice $record) {
-                            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('finance::pdf.invoice', ['record' => $record]);
-                            $filename = str_replace(['/', '\\'], '-', $record->invoice_number);
-
-                            return response()->streamDownload(fn () => print ($pdf->output()), "invoice-{$filename}.pdf");
-                        }),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
                     ->tooltip('Actions'),

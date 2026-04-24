@@ -160,17 +160,14 @@ class SendSalesOrder extends Page
                 throw new \Exception('External API Error: '.$response->status());
             }
 
-            // 4. Record Activity Log for UI Visibility
-            if (function_exists('activity')) {
-                activity()
-                    ->performedOn($this->record)
-                    ->causedBy(auth()->user())
-                    ->withProperties([
-                        'to' => $formData['recipient_email'],
-                        'subject' => $formData['subject'],
-                    ])
-                    ->log('Sales Order email sent to ' . $formData['recipient_email']);
-            }
+            // 4. Record Communication Log
+            $this->record->communicationLogs()->create([
+                'recipient_email' => $formData['recipient_email'],
+                'subject' => $formData['subject'],
+                'message' => $messageBody,
+                'sender_id' => auth()->id(),
+                'sent_at' => now(),
+            ]);
 
             // 5. Update Sales Order status to Sent
             $this->record->update([

@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices;
 
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -13,6 +14,7 @@ use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages\ListInvoi
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages\SendInvoice;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages\ViewInvoice;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Schemas\InvoiceForm;
+use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Schemas\InvoiceInfolist;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Tables\InvoicesTable;
 use Modules\Finance\Models\Invoice;
 
@@ -34,6 +36,11 @@ class InvoiceResource extends Resource
     public static function table(Table $table): Table
     {
         return InvoicesTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return InvoiceInfolist::configure($schema);
     }
 
     public static function getRelations(): array

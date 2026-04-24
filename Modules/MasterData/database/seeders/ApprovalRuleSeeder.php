@@ -34,7 +34,7 @@ class ApprovalRuleSeeder extends Seeder
             'Board of Directors' => Role::where('name', 'Board of Directors')->value('id'),
         ];
 
-        ApprovalRule::truncate();
+        // ApprovalRule::truncate(); // Removed to prevent wiping user-defined rules
 
         $rules = [
             // General Information Rules - Always applies
@@ -220,32 +220,14 @@ class ApprovalRuleSeeder extends Seeder
                 'order' => 14,
                 'is_active' => true,
             ],
-            // Sales Order Rules - Mirroring Proposal & PA Final Step
-            [
-                'resource_type' => SalesOrder::class,
-                'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
-                'signature_type' => 'Approver',
-                'order' => 1,
-                'is_active' => true,
-            ],
+            // Sales Order Rules
             [
                 'resource_type' => SalesOrder::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
                 'signature_type' => 'Approver',
-                'order' => 2,
-                'is_active' => true,
-            ],
-            [
-                'resource_type' => SalesOrder::class,
-                'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
-                'signature_type' => 'Approver',
-                'order' => 3,
+                'order' => 1,
                 'is_active' => true,
             ],
 
@@ -254,33 +236,38 @@ class ApprovalRuleSeeder extends Seeder
                 'resource_type' => SalesOrderAmendment::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+
+            // Invoice Rules
+            [
+                'resource_type' => \Modules\Finance\Models\Invoice::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
             ],
-            [
-                'resource_type' => SalesOrderAmendment::class,
-                'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
-                'signature_type' => 'Approver',
-                'order' => 2,
-                'is_active' => true,
-            ],
-            [
-                'resource_type' => SalesOrderAmendment::class,
-                'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
-                'signature_type' => 'Approver',
-                'order' => 3,
-                'is_active' => true,
-            ],
         ];
 
         foreach ($rules as $rule) {
-            ApprovalRule::create($rule);
+            ApprovalRule::updateOrCreate(
+                [
+                    'resource_type' => $rule['resource_type'],
+                    'signature_type' => $rule['signature_type'],
+                    'order' => $rule['order'],
+                ],
+                [
+                    'conditions' => $rule['conditions'],
+                    'approver_type' => $rule['approver_type'],
+                    'approver_role' => $rule['approver_role'],
+                    'is_active' => $rule['is_active'],
+                ]
+            );
         }
     }
 }

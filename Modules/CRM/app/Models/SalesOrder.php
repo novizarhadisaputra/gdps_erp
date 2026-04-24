@@ -9,10 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Database\Factories\SalesOrderFactory;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
+use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Observers\SalesOrderObserver;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Models\Employee;
@@ -116,5 +118,10 @@ class SalesOrder extends Model implements HasMedia
     public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function communicationLogs(): MorphMany
+    {
+        return $this->morphMany(CommunicationLog::class, 'emailable');
     }
 }

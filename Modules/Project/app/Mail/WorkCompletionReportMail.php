@@ -13,7 +13,7 @@ use Modules\Project\Models\WorkCompletionReport;
 
 class WorkCompletionReportMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
 
     public function __construct(
         public WorkCompletionReport $report,
@@ -45,7 +45,7 @@ class WorkCompletionReportMail extends Mailable
         // Check if there is an uploaded Draft BAPP (Unsigned)
         if ($this->report->hasMedia('draft_report')) {
             $media = $this->report->getFirstMedia('draft_report');
-            $attachments[] = Attachment::fromPath($media->getPath())
+            $attachments[] = Attachment::fromStorageDisk($media->disk, $media->getPathRelativeToRoot())
                 ->as('BAPP-Draft-Unsigned.pdf')
                 ->withMime('application/pdf');
         } else {

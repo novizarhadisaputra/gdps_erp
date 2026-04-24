@@ -24,6 +24,7 @@ trait HasWorkCompletionReportActions
             ActionGroup::make([
                 $this->getExportPdfAction(),
                 $this->getGenerateInvoiceAction(),
+                $this->getDiscussionsAction(),
             ])
                 ->label('Options')
                 ->icon('heroicon-m-cog-6-tooth')
@@ -33,6 +34,7 @@ trait HasWorkCompletionReportActions
             ActionGroup::make([
                 $this->getSubmitAction(),
                 $this->getSendToCustomerAction(),
+                $this->getResendEmailAction(),
                 $this->getApproveAction(),
                 $this->getRejectAction(),
             ])
@@ -60,6 +62,15 @@ trait HasWorkCompletionReportActions
             });
     }
 
+    protected function getDiscussionsAction(): Action
+    {
+        return Action::make('discussions')
+            ->label('Discussions')
+            ->icon('heroicon-o-chat-bubble-left-right')
+            ->color('info')
+            ->url(fn (WorkCompletionReport $record) => "/admin/projects/{$record->project_id}/work-completion-reports/{$record->id}/discussions");
+    }
+
     protected function getGenerateInvoiceAction(): Action
     {
         return Action::make('generateInvoice')
@@ -84,6 +95,7 @@ trait HasWorkCompletionReportActions
                     'tax_amount' => $totalAmount * 0.11,
                     'total_amount' => $totalAmount * 1.11,
                     'status' => InvoiceStatus::Draft,
+                    'items' => $record->items,
                 ]);
 
                 Notification::make()
@@ -131,16 +143,28 @@ trait HasWorkCompletionReportActions
             });
     }
 
+    protected function getResendEmailAction(): Action
+    {
+        return Action::make('resend')
+            ->label('Resend Email')
+            ->color('info')
+            ->icon('heroicon-o-arrow-path')
+            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Sent)
+            ->action(function (WorkCompletionReport $record) {
+                $this->redirect(ClusterResource::getUrl('send', ['record' => $record]));
+            });
+    }
+
     protected function getApproveAction(): Action
     {
         return Action::make('approve')
             ->label('Approve BAPP (Confirm Signature)')
             ->color('success')
             ->icon('heroicon-o-check-circle')
-            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Sent)
+            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Sent && $record->hasMedia('signed_report'))
             ->requiresConfirmation()
             ->modalHeading('Confirm BAPP Approval')
-            ->modalDescription('By approving this BAPP, you confirm that you have received and uploaded the Signed BAPP (Final Scan) from the customer.')
+            ->modalDescription('By approving this BAPP, you confirm that you have received and verified the Signed BAPP (Final Scan) from the customer.')
             ->action(function (WorkCompletionReport $record) {
                 if (! $record->hasMedia('signed_report')) {
                     Notification::make()

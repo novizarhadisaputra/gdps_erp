@@ -54,11 +54,6 @@ class WorkCompletionReportsTable
                 Actions\ActionGroup::make([
                     Actions\ViewAction::make(),
                     Actions\EditAction::make(),
-                    Actions\Action::make('discussions')
-                        ->label('Discussions')
-                        ->icon(Heroicon::OutlinedChatBubbleLeftRight)
-                        ->color('info')
-                        ->url(fn ($record) => "/admin/projects/{$record->project_id}/work-completion-reports/{$record->id}/discussions"),
                     Actions\DeleteAction::make(),
                 ])
                     ->icon(Heroicon::EllipsisVertical)
