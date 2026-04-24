@@ -211,27 +211,43 @@ class WorkCompletionReportForm
 
                                     $manpower = $pa->manpower_requirements ?? [];
                                     $operational = $pa->financial_assumptions['operational_costs'] ?? [];
+                                    $mfRate = (float) ($pa->management_fee_rate ?? 0);
+                                    
+                                    // Use the standard GPM formula: Revenue = Cost / (1 - Margin)
+                                    // This matches the calculation logic in ProfitabilityAnalysisForm.php
+                                    $calculateRevenue = function ($cost) use ($mfRate) {
+                                        if ($mfRate >= 100) {
+                                            return $cost * 1.15; // Fallback safety
+                                        }
+                                        return $cost / (1 - ($mfRate / 100));
+                                    };
 
                                     $items = [];
 
                                     foreach ($manpower as $mp) {
+                                        $baseUnitPrice = (float) ($mp['unit_cost'] ?? 0);
+                                        $markupUnitPrice = $calculateRevenue($baseUnitPrice);
+                                        
                                         $items[] = [
                                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
                                             'quantity' => $mp['quantity'] ?? 0,
                                             'uom' => $mp['uom'] ?? 'Person',
-                                            'unit_price' => $mp['unit_cost'] ?? 0,
-                                            'total_price' => $mp['total_monthly_cost'] ?? 0,
+                                            'unit_price' => $markupUnitPrice,
+                                            'total_price' => $markupUnitPrice * ($mp['quantity'] ?? 0),
                                             'so_reference' => $so->so_number,
                                         ];
                                     }
 
                                     foreach ($operational as $op) {
+                                        $baseUnitPrice = (float) ($op['unit_cost'] ?? 0);
+                                        $markupUnitPrice = $calculateRevenue($baseUnitPrice);
+
                                         $items[] = [
                                             'item_name' => $op['item_name'] ?? 'Item',
                                             'quantity' => $op['quantity'] ?? 0,
                                             'uom' => $op['uom'] ?? 'Unit',
-                                            'unit_price' => $op['unit_cost'] ?? 0,
-                                            'total_price' => $op['total_monthly_cost'] ?? 0,
+                                            'unit_price' => $markupUnitPrice,
+                                            'total_price' => $markupUnitPrice * ($op['quantity'] ?? 0),
                                             'so_reference' => $so->so_number,
                                         ];
                                     }

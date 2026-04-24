@@ -6,9 +6,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\Finance\Enums\InvoiceStatus;
@@ -23,12 +23,28 @@ class ViewInvoice extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('submitInvoice')
+                ->label('Submit')
+                ->color('primary')
+                ->icon('heroicon-o-paper-airplane')
+                ->visible(fn (Invoice $record) => $record->status === InvoiceStatus::Draft)
+                ->requiresConfirmation()
+                ->action(function (Invoice $record) {
+                    $record->update(['status' => InvoiceStatus::Submitted]);
+
+                    Notification::make()
+                        ->title('Invoice Submitted')
+                        ->body('The invoice has been submitted for approval.')
+                        ->success()
+                        ->send();
+                }),
+
             Action::make('approveInvoice')
                 ->label('Approve Invoice')
                 ->color('success')
                 ->icon('heroicon-o-check-badge')
                 ->visible(function (Invoice $record) {
-                    if ($record->status !== InvoiceStatus::Draft) {
+                    if ($record->status !== InvoiceStatus::Submitted) {
                         return false;
                     }
 
@@ -75,6 +91,7 @@ class ViewInvoice extends ViewRecord
                             ->body('You do not have the authority to approve this Invoice.')
                             ->warning()
                             ->send();
+
                         return;
                     }
 
@@ -86,6 +103,7 @@ class ViewInvoice extends ViewRecord
                             ->body('You have already signed this approval step.')
                             ->warning()
                             ->send();
+
                         return;
                     }
 
@@ -113,36 +131,7 @@ class ViewInvoice extends ViewRecord
                         ->success()
                         ->send();
                 }),
-                Action::make('rejectInvoice')
-                    ->label('Reject / Revision')
-                    ->color('danger')
-                    ->icon('heroicon-o-x-circle')
-                    ->visible(fn (Invoice $record) => $record->status === InvoiceStatus::Draft && ! $record->isFullyApproved())
-                    ->modalHeading('Request Revision')
-                    ->modalDescription('Please provide a reason for rejecting this Invoice. The creator will be notified to revise it.')
-                    ->modalSubmitActionLabel('Submit Revision Request')
-                    ->schema([
-                        Textarea::make('reason')
-                            ->label('Reason for Revision')
-                            ->required()
-                            ->maxLength(500),
-                    ])
-                    ->action(function (Invoice $record, array $data) {
-                        // Reset any partial signatures
-                        $record->signatures()->delete();
-                        
-                        // Keep status as Draft, but notify the owner
-                        // Assuming $record->salesOrder->user_id is the owner, or similar. If unknown, we can just log it or notify all Finance users.
-                        Notification::make()
-                            ->title('Invoice Revision Requested')
-                            ->body("Reason: " . $data['reason'])
-                            ->danger()
-                            ->send();
-                            
-                        // Also broadcast to the user who created it (if you have an owner tracking on invoice)
-                        // This uses Filament's Database Notifications if configured
-                        // Notification::make()->title('Invoice Rejected')->body($data['reason'])->sendToDatabase($record->creator);
-                    }),
+
             Action::make('markAsPaid')
                 ->label('Mark as Paid')
                 ->color('success')
@@ -163,11 +152,35 @@ class ViewInvoice extends ViewRecord
                         ->success()
                         ->send();
                 }),
-            EditAction::make(),
+
             ActionGroup::make([
+                EditAction::make(),
+                Action::make('rejectInvoice')
+                    ->label('Reject / Revision')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->visible(fn (Invoice $record) => $record->status === InvoiceStatus::Submitted && ! $record->isFullyApproved())
+                    ->modalHeading('Request Revision')
+                    ->modalDescription('Please provide a reason for rejecting this Invoice. The creator will be notified to revise it.')
+                    ->modalSubmitActionLabel('Submit Revision Request')
+                    ->schema([
+                        Textarea::make('reason')
+                            ->label('Reason for Revision')
+                            ->required()
+                            ->maxLength(500),
+                    ])
+                    ->action(function (Invoice $record, array $data) {
+                        $record->signatures()->delete();
+                        $record->update(['status' => InvoiceStatus::Draft]);
+
+                        Notification::make()
+                            ->title('Invoice Revision Requested')
+                            ->body('Reason: '.$data['reason'])
+                            ->danger()
+                            ->send();
+                    }),
                 Action::make('pdf')
                     ->label('Export PDF')
-                    ->color('gray')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->action(function (Invoice $record) {
                         $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $record]);
@@ -185,10 +198,10 @@ class ViewInvoice extends ViewRecord
                     ->visible(fn (Invoice $record) => in_array($record->status, [InvoiceStatus::Approved, InvoiceStatus::Sent, InvoiceStatus::Partial, InvoiceStatus::Overdue]))
                     ->url(fn (Invoice $record) => InvoiceResource::getUrl('send', ['record' => $record])),
             ])
-                ->label('Options')
-                ->icon('heroicon-m-cog-6-tooth')
-                ->color('gray')
-                ->button(),
+            ->label('Actions')
+            ->icon('heroicon-m-ellipsis-vertical')
+            ->color('gray')
+            ->button(),
         ];
     }
 }

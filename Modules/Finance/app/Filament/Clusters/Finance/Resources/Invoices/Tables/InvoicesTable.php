@@ -6,6 +6,7 @@ use Filament\Actions;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Modules\Finance\Models\Invoice;
 
 class InvoicesTable
@@ -28,7 +29,7 @@ class InvoicesTable
                 TextColumn::make('total_amount')
                     ->money('IDR')
                     ->sortable()
-                    ->summarize(\Filament\Tables\Columns\Summarizers\Sum::make()
+                    ->summarize(Sum::make()
                         ->money('IDR')
                     ),
                 TextColumn::make('status')

@@ -34,8 +34,7 @@ class CRMAnalyticsPage extends AnalyticsBasePage
     public function getWidgets(): array
     {
         return [
-            // Row 1: High-Level Stats (Leads & Financial Performance)
-            CRMStatsOverviewWidget::class,
+            // Row 1: High-Level Stats (RoFo vs Actual Performance)
             PerformanceOverviewWidget::class,
 
             // Row 2: Revenue Performance & Trends (Target vs Actual)
@@ -43,15 +42,7 @@ class CRMAnalyticsPage extends AnalyticsBasePage
             SalesPerformanceChartWidget::class,     // Line Chart (Cumulative)
 
             // Row 3: Pipeline & Projections
-            LeadPipelineWidget::class,              // Left: Sales funnel
-            RevenueForecastWidget::class,           // Right: Revenue projection
-
-            // Row 4: Conversion & Team Performance
-            LeadConversionTrendWidget::class,       // Left: Historical trend
-            SalesTeamPerformanceWidget::class,      // Right: Team comparison
-
-            // Row 5: Distribution
-            DealStatusDistributionWidget::class,
+            RevenueForecastWidget::class,           // Revenue projection
         ];
     }
 

@@ -54,13 +54,22 @@ class SalesOrderService
         $manpower = $analysis->manpower_requirements;
         $financials = $analysis->financial_assumptions;
 
+        $mfRate = (float) ($analysis->management_fee_rate ?? 0);
+
+        $calculateRevenue = function ($cost) use ($mfRate) {
+            if ($mfRate >= 100) {
+                return $cost * 1.15;
+            }
+            return $cost / (1 - ($mfRate / 100));
+        };
+
         // Map PA items to SO Table items
         $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
             'description' => $item['item_name'],
             'uom' => $item['uom'] ?? 'Unit',
             'quantity' => $item['quantity'],
-            'unit_price' => $item['unit_cost'],
-            'total_price' => $item['total_monthly_cost'],
+            'unit_price' => $calculateRevenue($item['unit_cost'] ?? 0),
+            'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
         ])->toArray();
 
         // 5. Generate SO Number
@@ -134,12 +143,21 @@ class SalesOrderService
 
         $manpower = $analysis->manpower_requirements;
         $financials = $analysis->financial_assumptions;
+        $mfRate = (float) ($analysis->management_fee_rate ?? 0);
+
+        $calculateRevenue = function ($cost) use ($mfRate) {
+            if ($mfRate >= 100) {
+                return $cost * 1.15;
+            }
+            return $cost / (1 - ($mfRate / 100));
+        };
+
         $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
             'description' => $item['item_name'],
             'uom' => $item['uom'] ?? 'Unit',
             'quantity' => $item['quantity'],
-            'unit_price' => $item['unit_cost'],
-            'total_price' => $item['total_monthly_cost'],
+            'unit_price' => $calculateRevenue($item['unit_cost'] ?? 0),
+            'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
         ])->toArray();
 
         $afterSnapshot = [

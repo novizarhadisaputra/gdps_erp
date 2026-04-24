@@ -24,20 +24,30 @@
             <div class="border rounded-lg p-6 bg-white min-h-[400px]">
                 <div class="mb-4 pb-4 border-b">
                     <div class="text-sm text-gray-500">Subject:</div>
-                    <div class="font-medium text-lg text-gray-900">{{ $data['subject'] ?? '' }}</div>
+                    @php
+                        $subject = $this->form->getRawState()['subject'] ?? '';
+                        $subject = is_array($subject) ? '' : (string) $subject;
+                    @endphp
+                    <div class="font-medium text-lg text-gray-900">{{ $subject }}</div>
                 </div>
 
                 <div class="prose max-w-none">
                     <div
                         style="font-family: sans-serif; line-height: 1.6; color: #333; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-                        <h2 style="color: #2563eb; margin-top: 0;">Hello, {{ $data['recipient_name'] ?? $record->customer?->name }}</h2>
+                        @php
+                            $formData = $this->form->getRawState();
+                            $recipientName = $formData['recipient_name'] ?? ($record->customer?->name ?? 'Customer');
+                            $recipientName = is_array($recipientName) ? 'Customer' : (string) $recipientName;
+                        @endphp
 
-                        @if (!empty($data['message']))
+                        <h2 style="color: #2563eb; margin-top: 0;">Hello, {{ $recipientName }}</h2>
+
+                        @if (!empty($formData['message'] ?? null))
                             <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                                {!! $data['message'] !!}
+                                {{ \Filament\Forms\Components\RichEditor\RichContentRenderer::make($formData['message']) }}
                             </div>
                         @else
-                           <p>Please find your invoice attached.</p>
+                            <p>Please find your invoice attached.</p>
                         @endif
 
                         <p>Best regards,<br>

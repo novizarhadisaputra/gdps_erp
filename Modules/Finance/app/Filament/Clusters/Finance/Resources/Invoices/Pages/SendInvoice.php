@@ -98,8 +98,7 @@ class SendInvoice extends Page
                     ->required()
                     ->live(onBlur: false),
                 RichEditor::make('message')
-                    ->live(onBlur: false)
-                    ->debounce(500),
+                    ->live(),
             ])
             ->statePath('data');
     }

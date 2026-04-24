@@ -12,6 +12,7 @@ use BackedEnum;
 enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
 {
     case Draft = 'draft';
+    case Submitted = 'submitted';
     case Sent = 'sent';
     case Approved = 'approved';
     case Partial = 'partial';
@@ -23,6 +24,7 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'Draft',
+            self::Submitted => 'Submitted',
             self::Approved => 'Approved',
             self::Sent => 'Sent',
             self::Partial => 'Partially Paid',
@@ -36,6 +38,7 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => 'gray',
+            self::Submitted => 'warning',
             self::Approved => 'success',
             self::Sent => 'info',
             self::Partial => 'warning',
@@ -49,6 +52,7 @@ enum InvoiceStatus: string implements HasColor, HasIcon, HasLabel
     {
         return match ($this) {
             self::Draft => Heroicon::Pencil,
+            self::Submitted => Heroicon::Clock,
             self::Approved => Heroicon::CheckBadge,
             self::Sent => Heroicon::PaperAirplane,
             self::Partial => Heroicon::Clock,

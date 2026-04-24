@@ -5,9 +5,13 @@ namespace Modules\MasterData\Database\Seeders;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\GeneralInformation;
+use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesOrder;
 use Modules\CRM\Models\SalesOrderAmendment;
+use Modules\Finance\Models\Invoice;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Models\ProductCluster;
 
@@ -39,28 +43,18 @@ class ApprovalRuleSeeder extends Seeder
         $rules = [
             // General Information Rules - Always applies
             [
-                'resource_type' => 'Modules\CRM\Models\GeneralInformation',
-                'conditions' => [
-                    ['field' => 'sequence_number', 'operator' => '>=', 'value' => 0],
-                ],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['super_admin']])),
-                'signature_type' => 'Approver',
-                'order' => 1,
-                'is_active' => true,
-            ],
-            // Proposal Rules - Mirrors PA Approval Step
-            [
-                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'resource_type' => GeneralInformation::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
             ],
+
+            // Proposal Rules
             [
-                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'resource_type' => Proposal::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
@@ -69,7 +63,7 @@ class ApprovalRuleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'resource_type' => Proposal::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
                 ],
@@ -80,7 +74,7 @@ class ApprovalRuleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'resource_type' => Proposal::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
                 ],
@@ -91,7 +85,7 @@ class ApprovalRuleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'resource_type' => 'Modules\CRM\Models\Proposal',
+                'resource_type' => Proposal::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
@@ -101,7 +95,7 @@ class ApprovalRuleSeeder extends Seeder
             ],
             // Minutes of Agreement Rules
             [
-                'resource_type' => 'Modules\CRM\Models\MinutesOfAgreement',
+                'resource_type' => MinutesOfAgreement::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['super_admin']])),
@@ -111,7 +105,7 @@ class ApprovalRuleSeeder extends Seeder
             ],
             // Contract Rules
             [
-                'resource_type' => 'Modules\CRM\Models\Contract',
+                'resource_type' => Contract::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['super_admin']])),
@@ -124,7 +118,7 @@ class ApprovalRuleSeeder extends Seeder
              * Profitability Analysis - Margin Approval Step
              */
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
@@ -133,7 +127,7 @@ class ApprovalRuleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
@@ -143,7 +137,7 @@ class ApprovalRuleSeeder extends Seeder
             ],
             // Beyond Care -> VP HC (Margin)
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
                 ],
@@ -155,7 +149,7 @@ class ApprovalRuleSeeder extends Seeder
             ],
             // Other Beyond -> VP Operations (Margin)
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
                 ],
@@ -170,7 +164,7 @@ class ApprovalRuleSeeder extends Seeder
              * Profitability Analysis - PA Approval Step (after Margin)
              */
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
@@ -179,7 +173,7 @@ class ApprovalRuleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
@@ -189,7 +183,7 @@ class ApprovalRuleSeeder extends Seeder
             ],
             // Beyond Care -> VP HC (PA)
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
                 ],
@@ -201,7 +195,7 @@ class ApprovalRuleSeeder extends Seeder
             ],
             // Other Beyond -> VP Operations (PA)
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
                 ],
@@ -212,7 +206,7 @@ class ApprovalRuleSeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'resource_type' => 'Modules\Finance\Models\ProfitabilityAnalysis',
+                'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
@@ -244,7 +238,7 @@ class ApprovalRuleSeeder extends Seeder
 
             // Invoice Rules
             [
-                'resource_type' => \Modules\Finance\Models\Invoice::class,
+                'resource_type' => Invoice::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),

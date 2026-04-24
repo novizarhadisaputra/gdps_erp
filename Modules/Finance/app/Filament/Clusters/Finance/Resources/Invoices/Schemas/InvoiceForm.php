@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Schemas;
 
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -67,7 +68,39 @@ class InvoiceForm
                             ->searchable()
                             ->live()
                             ->placeholder('Select a sales order...')
-                            ->helperText('The originating contract or PO.'),
+                            ->helperText('The originating contract or PO.')
+                            ->afterStateUpdated(function ($state, $set, $get) {
+                                if (! $state || $get('work_completion_report_id')) return;
+                                
+                                $so = SalesOrder::find($state);
+                                if ($so) {
+                                    $set('customer_id', $so->customer_id);
+                                    
+                                    $soItems = $so->content_config['items'] ?? [];
+                                    if (!empty($soItems)) {
+                                        // Map SO items to Invoice items structure
+                                        $invoiceItems = collect($soItems)->map(fn ($item) => [
+                                            'item_name' => $item['description'] ?? 'Item',
+                                            'quantity' => $item['quantity'] ?? 0,
+                                            'uom' => $item['uom'] ?? 'Unit',
+                                            'unit_price' => $item['unit_price'] ?? 0,
+                                            'total_price' => $item['total_price'] ?? 0,
+                                        ])->toArray();
+                                        
+                                        $set('items', $invoiceItems);
+                                        
+                                        // Auto-calculate totals
+                                        $sum = 0;
+                                        foreach ($invoiceItems as $item) {
+                                            $sum += floatval($item['total_price'] ?? 0);
+                                        }
+                                        $set('amount', $sum);
+                                        $tax = $sum * 0.11;
+                                        $set('tax_amount', $tax);
+                                        $set('total_amount', $sum + $tax);
+                                    }
+                                }
+                            }),
                         Select::make('work_completion_report_id')
                             ->label('Work Completion Report (BAPP)')
                             ->options(WorkCompletionReport::all()->pluck('report_number', 'id'))
@@ -337,12 +370,13 @@ class InvoiceForm
                 Section::make('Attachments')
                     ->description('Upload physical or digital documents related to this invoice.')
                     ->schema([
-                        SpatieMediaLibraryFileUpload::make('draft_invoice')
-                            ->collection('draft_invoice')
-                            ->label('Draft / Signed Invoice PDF')
+                        SpatieMediaLibraryFileUpload::make('signed_invoice')
+                            ->collection('signed_invoice')
+                            ->label('Signed Invoice (Final Scan)')
                             ->acceptedFileTypes(['application/pdf'])
                             ->maxSize(10240)
-                            ->helperText('Upload the drafted or finalized invoice document (PDF only, max 10MB).'),
+                            ->helperText('Upload the scanned document that has been signed by the customer.')
+                            ->visible(fn ($record) => $record && ! in_array($record->status, [InvoiceStatus::Draft, InvoiceStatus::Submitted])),
                         SpatieMediaLibraryFileUpload::make('payment_proof')
                             ->collection('payment_proof')
                             ->label('Payment Proof (Bukti Bayar)')
@@ -350,6 +384,33 @@ class InvoiceForm
                             ->maxSize(5120)
                             ->helperText('Upload the official transfer receipt from the client (PDF/JPG/PNG, max 5MB).'),
                     ])->columns(2),
+
+                Section::make('Approval History')
+                    ->description('Digital signatures recorded during the approval process.')
+                    ->schema([
+                        Repeater::make('signatures')
+                            ->relationship('signatures')
+                            ->label('')
+                            ->schema([
+                                Grid::make(3)->schema([
+                                    TextInput::make('user.name')
+                                        ->label('Approver Name')
+                                        ->disabled(),
+                                    TextInput::make('role')
+                                        ->label('Title/Role')
+                                        ->disabled(),
+                                    DateTimePicker::make('signed_at')
+                                        ->label('Signed At')
+                                        ->disabled(),
+                                ]),
+                            ])
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull()
+                    ->visible(fn ($record) => $record?->signatures()->exists()),
             ]);
     }
 }

@@ -8,6 +8,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
+use Illuminate\Support\HtmlString;
 
 class InvoiceInfolist
 {
@@ -107,11 +108,52 @@ class InvoiceInfolist
                                     return 'Belum ada bukti pembayaran.';
                                 }
 
-                                return new \Illuminate\Support\HtmlString("<a href='{$media->getUrl()}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-1'>Lihat Bukti Pembayaran ({$media->file_name})</a>");
+                                return new HtmlString("<a href='{$media->getUrl()}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-1'>Lihat Bukti Pembayaran ({$media->file_name})</a>");
                             })
                             ->html(),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => $record?->hasMedia('payment_proof')),
+
+                Section::make('Documents')
+                    ->schema([
+                        TextEntry::make('signed_invoice')
+                            ->label('Signed Invoice (Final)')
+                            ->state(function ($record) {
+                                $media = $record->getFirstMedia('signed_invoice');
+                                if (! $media) {
+                                    return 'Dokumen belum diunggah.';
+                                }
+
+                                return new HtmlString("<a href='{$media->getUrl()}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-1'>Lihat Signed Invoice ({$media->file_name})</a>");
+                            })
+                            ->html(),
+                    ])->columnSpanFull()
+                    ->visible(fn ($record) => $record?->hasMedia('signed_invoice')),
+
+                Section::make('Approval History')
+                    ->description('Digital signatures recorded during the approval process.')
+                    ->schema([
+                        RepeatableEntry::make('signatures')
+                            ->label('')
+                            ->schema([
+                                Grid::make(3)->schema([
+                                    TextEntry::make('user.name')
+                                        ->label('Approver Name')
+                                        ->icon('heroicon-m-user'),
+                                    TextEntry::make('role')
+                                        ->label('Title/Role')
+                                        ->badge()
+                                        ->color('info'),
+                                    TextEntry::make('signed_at')
+                                        ->label('Signed At')
+                                        ->dateTime()
+                                        ->icon('heroicon-m-calendar'),
+                                ]),
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull()
+                    ->visible(fn ($record) => $record?->signatures()->exists()),
 
                 Section::make('Communication History')
                     ->description('Traceability of emails sent to the customer regarding this invoice.')

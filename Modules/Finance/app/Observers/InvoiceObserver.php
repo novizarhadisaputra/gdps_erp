@@ -3,6 +3,8 @@
 namespace Modules\Finance\Observers;
 
 use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Services\SignatureService;
+use Modules\Finance\Enums\InvoiceStatus;
 
 class InvoiceObserver
 {
@@ -41,11 +43,12 @@ class InvoiceObserver
     }
 
     /**
-     * Handle the Invoice "created" event.
+     * Handle the Invoice "updated" event.
      */
-    public function created(Invoice $invoice): void
+    public function updated(Invoice $invoice): void
     {
-        // Automatically notify approvers when an invoice is generated
-        app(\Modules\MasterData\Services\SignatureService::class)->notifyNextApprovers($invoice);
+        if ($invoice->wasChanged('status') && $invoice->status === InvoiceStatus::Submitted) {
+            app(SignatureService::class)->notifyNextApprovers($invoice);
+        }
     }
 }

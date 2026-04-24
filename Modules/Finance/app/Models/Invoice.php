@@ -89,7 +89,7 @@ class Invoice extends Model implements HasMedia
             ->useDisk('s3')
             ->singleFile();
             
-        $this->addMediaCollection('draft_invoice')
+        $this->addMediaCollection('signed_invoice')
             ->useDisk('s3')
             ->singleFile();
     }
