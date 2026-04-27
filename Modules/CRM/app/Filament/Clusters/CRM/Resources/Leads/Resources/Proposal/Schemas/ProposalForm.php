@@ -2,7 +2,6 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas;
 
-use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -15,13 +14,15 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\MasterData\Enums\Gender;
-use Illuminate\Database\Eloquent\Model;
 
 class ProposalForm
 {
@@ -76,6 +77,7 @@ class ProposalForm
                             ->afterStateHydrated(function (TextInput $component, ?Model $record) {
                                 if (! $record) {
                                     $component->state(0);
+
                                     return;
                                 }
 
@@ -107,20 +109,39 @@ class ProposalForm
                     ->schema([
                         Select::make('recipient_contact_index')
                             ->label('Customer Contact Reference')
-                            ->options(fn (Proposal $record) => collect($record->customer?->contacts ?? [])
-                                ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'].' ('.($contact['position'] ?? $contact['job_position'] ?? 'No Position').')'])
-                            )
+                            ->options(function (Get $get, ?Proposal $record) {
+                                $customerId = $get('customer_id') ?? $record?->customer_id;
+                                $customer = $customerId ? Customer::find($customerId) : null;
+
+                                return collect($customer?->contacts ?? [])
+                                    ->mapWithKeys(function ($contact, $index) {
+                                        $label = $contact['name'] ?? 'Unknown';
+                                        $pos = $contact['position'] ?? $contact['job_position'] ?? $contact['role'] ?? $contact['type'] ?? 'No Position';
+
+                                        return [$index => "{$label} ({$pos})"];
+                                    });
+                            })
                             ->live()
-                            ->afterStateUpdated(function ($state, Set $set, Proposal $record) {
+                            ->afterStateUpdated(function ($state, Set $set, Get $get, ?Proposal $record) {
                                 if ($state === null || $state === '') {
                                     return;
                                 }
-                                $contacts = $record->customer?->contacts ?? [];
+
+                                $customerId = $get('customer_id') ?? $record?->customer_id;
+                                $customer = $customerId ? Customer::find($customerId) : null;
+                                $contacts = $customer?->contacts ?? [];
                                 $contact = $contacts[$state] ?? null;
+
                                 if ($contact) {
                                     $set('content_config.recipient_name', $contact['name'] ?? '');
-                                    // Robust position check
-                                    $position = $contact['position'] ?? $contact['job_position'] ?? $contact['job_title'] ?? $contact['title'] ?? '';
+                                    // Robust position check with role/type fallback
+                                    $position = $contact['position'] ??
+                                               $contact['job_position'] ??
+                                               $contact['job_title'] ??
+                                               $contact['title'] ??
+                                               $contact['role'] ??
+                                               $contact['type'] ??
+                                               '';
                                     $set('content_config.recipient_title', $position);
                                     $set('content_config.recipient_gender', $contact['gender'] ?? Gender::Male->value);
                                 }
@@ -210,7 +231,7 @@ class ProposalForm
                                     ->schema([
                                         RichEditor::make('item')
                                             ->toolbarButtons(['bold', 'italic', 'undo', 'redo'])
-                                            ->columnSpanFull()
+                                            ->columnSpanFull(),
                                     ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Add point into List A')
@@ -221,7 +242,7 @@ class ProposalForm
                                     ->schema([
                                         RichEditor::make('item')
                                             ->toolbarButtons(['bold', 'italic', 'undo', 'redo'])
-                                            ->columnSpanFull()
+                                            ->columnSpanFull(),
                                     ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Add point into List B')
@@ -232,7 +253,7 @@ class ProposalForm
                                     ->schema([
                                         RichEditor::make('item')
                                             ->toolbarButtons(['bold', 'italic', 'undo', 'redo'])
-                                            ->columnSpanFull()
+                                            ->columnSpanFull(),
                                     ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Add point into List C')
@@ -290,7 +311,7 @@ class ProposalForm
                                         TextInput::make('item')
                                             ->placeholder('e.g. PT Customer menyediakan tempat penyimpanan...')
                                             ->required()
-                                            ->columnSpanFull()
+                                            ->columnSpanFull(),
                                     ])
                                     ->defaultItems(0)
                                     ->addActionLabel('Add Miscellaneous Point')

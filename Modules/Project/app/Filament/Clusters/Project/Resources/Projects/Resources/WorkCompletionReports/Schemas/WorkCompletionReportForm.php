@@ -3,8 +3,8 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas;
 
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\MorphToSelect;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
@@ -15,7 +15,6 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
-use Modules\CRM\Models\SalesOrder;
 use Modules\MasterData\Enums\Gender;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\Project;
@@ -46,8 +45,7 @@ class WorkCompletionReportForm
                                     ->downloadable()
                                     ->openable()
                                     ->helperText('Upload the scanned document that has been signed by both parties.')
-                                    ->required(fn (Get $get) => 
-                                        $get('status') === WorkCompletionStatus::Submitted->value && 
+                                    ->required(fn (Get $get) => $get('status') === WorkCompletionStatus::Submitted->value &&
                                         $get('so_type') !== \Modules\CRM\Enums\SalesOrderType::Internal->value
                                     ),
                             ]),
@@ -105,12 +103,16 @@ class WorkCompletionReportForm
                             ->preload()
                             ->live()
                             ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                                if (!$state) return;
+                                if (! $state) {
+                                    return;
+                                }
 
                                 [$modelClass, $id] = explode(':', $state);
                                 $source = $modelClass::find($id);
 
-                                if (!$source) return;
+                                if (! $source) {
+                                    return;
+                                }
 
                                 if (isset($source->customer_id)) {
                                     $set('customer_id', $source->customer_id);
@@ -118,19 +120,22 @@ class WorkCompletionReportForm
 
                                 if ($source instanceof \Modules\CRM\Models\SalesOrder) {
                                     $set('so_type', $source->type->value);
-                                    
+
                                     $manpower = $source->content_config['manpower_details'] ?? [];
                                     $operational = $source->content_config['items'] ?? [];
                                     $mfRate = (float) ($source->management_fee_percentage ?? 0);
 
                                     $calculateRevenue = function ($cost) use ($mfRate) {
-                                        if ($mfRate >= 100) return $cost * 1.15;
+                                        if ($mfRate >= 100) {
+                                            return $cost * 1.15;
+                                        }
+
                                         return $cost / (1 - ($mfRate / 100));
                                     };
 
                                     $items = [];
                                     foreach ($manpower as $mp) {
-                                        $price = $calculateRevenue((float)($mp['unit_cost'] ?? 0));
+                                        $price = $calculateRevenue((float) ($mp['unit_cost'] ?? 0));
                                         $items[] = [
                                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
                                             'quantity' => $mp['quantity'] ?? 0,
@@ -142,7 +147,7 @@ class WorkCompletionReportForm
                                     }
 
                                     foreach ($operational as $op) {
-                                        $price = $calculateRevenue((float)($op['unit_cost'] ?? 0));
+                                        $price = $calculateRevenue((float) ($op['unit_cost'] ?? 0));
                                         $items[] = [
                                             'item_name' => $op['item_name'] ?? 'Item',
                                             'quantity' => $op['quantity'] ?? 0,
@@ -183,7 +188,12 @@ class WorkCompletionReportForm
                                 }
 
                                 return collect($customer->contacts)
-                                    ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'].' ('.($contact['position'] ?? $contact['job_position'] ?? 'No Position').')'])
+                                    ->mapWithKeys(function ($contact, $index) {
+                                        $label = $contact['name'] ?? 'Unknown';
+                                        $pos = $contact['position'] ?? $contact['job_position'] ?? $contact['role'] ?? $contact['type'] ?? 'No Position';
+
+                                        return [$index => "{$label} ({$pos})"];
+                                    })
                                     ->toArray();
                             })
                             ->live()
@@ -202,7 +212,19 @@ class WorkCompletionReportForm
                                 $contact = $customer->contacts[$state] ?? null;
                                 if ($contact) {
                                     $set('content_config.recipient_name', $contact['name'] ?? '');
-                                    $position = $contact['position'] ?? $contact['job_position'] ?? $contact['job_title'] ?? $contact['title'] ?? '';
+
+                                    $position = $contact['position'] ??
+                                               $contact['job_position'] ??
+                                               $contact['job_title'] ??
+                                               $contact['role'] ??
+                                               $contact['type'] ??
+                                               '';
+
+                                    // If position is a UUID (from type field), we don't want to show it as a title
+                                    if (preg_match('/^[0-9a-f]{8}-\b[0-9a-f]{4}\b-\b[0-9a-f]{4}\b-\b[0-9a-f]{4}\b-\b[0-9a-f]{12}\b$/i', $position)) {
+                                        $position = '';
+                                    }
+
                                     $set('content_config.recipient_title', $position);
                                     $set('content_config.recipient_gender', $contact['gender'] ?? Gender::Male->value);
                                 }

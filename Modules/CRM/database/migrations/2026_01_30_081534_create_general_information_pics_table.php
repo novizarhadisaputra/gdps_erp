@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignUuid('general_information_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('contact_role_id')->constrained(config('database.default') === 'sqlite' ? 'contact_roles' : 'master_data.contact_roles');
             $table->string('name');
+            $table->string('job_position')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->timestamps();

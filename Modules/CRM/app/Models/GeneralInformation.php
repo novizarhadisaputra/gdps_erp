@@ -183,7 +183,8 @@ class GeneralInformation extends Model implements HasMedia
             'email' => $pic->email,
             'phone' => $pic->phone,
             'type' => (string) $pic->contact_role_id,
-            'job_position' => null, // Not present in GI PICs
+            'role' => $pic->contactRole?->name,
+            'job_position' => $pic->job_position,
         ])->toArray();
 
         foreach ($newContacts as $newContact) {

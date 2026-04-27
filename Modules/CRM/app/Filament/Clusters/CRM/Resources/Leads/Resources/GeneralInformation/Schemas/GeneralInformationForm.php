@@ -158,11 +158,14 @@ class GeneralInformationForm
                                 ->native(false),
                             TextInput::make('name')
                                 ->required(),
+                            TextInput::make('job_position')
+                                ->label('Job Position')
+                                ->placeholder('e.g. Procurement Manager'),
                             TextInput::make('phone'),
                             TextInput::make('email')
                                 ->email(),
                             Select::make('contact_role_id')
-                                ->label('Role')
+                                ->label('Role (Functional)')
                                 ->options(fn () => ContactRole::pluck('name', 'id'))
                                 ->searchable()
                                 ->required(),

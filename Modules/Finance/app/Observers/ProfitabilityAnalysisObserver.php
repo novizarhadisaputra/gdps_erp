@@ -27,12 +27,21 @@ class ProfitabilityAnalysisObserver
         $details['calculation_context'] = [
             'revenue_per_month' => (float) $analysis->revenue_per_month,
             'direct_cost' => (float) $analysis->direct_cost,
+            'gross_profit' => (float) ($analysis->revenue_per_month - $analysis->direct_cost),
+            'ebitda' => (float) $analysis->ebitda,
+            'ebit' => (float) $analysis->ebit,
+            'ebt' => (float) $analysis->ebt,
+            'net_profit' => (float) $analysis->net_profit,
+            'net_profit_margin' => (float) $analysis->net_profit_margin,
             'margin_percentage' => (float) $analysis->margin_percentage,
             'management_fee_rate' => (float) $analysis->management_fee_rate,
             'tax_rate' => (float) $analysis->tax_rate,
             'duration' => (int) $analysis->duration,
             'interest_rate' => (float) $analysis->interest_rate,
-            'net_profit_margin' => (float) $analysis->net_profit_margin,
+            'total_project_revenue' => (float) ($analysis->revenue_per_month * ($analysis->duration ?: 1)),
+            'total_project_cost' => (float) (($analysis->direct_cost + ($analysis->avg_monthly_indirect_cost ?? 0)) * ($analysis->duration ?: 1)),
+            'project_name' => $analysis->generalInformation?->project_name ?? $analysis->lead?->project_name,
+            'document_number' => $analysis->number,
         ];
         $analysis->analysis_details = $details;
     }
@@ -202,7 +211,7 @@ class ProfitabilityAnalysisObserver
         // 5. When PA is Approved, attempt to create a Project and a Draft Sales Order
         if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Approved) {
             $project = app(ProjectService::class)->attemptProjectCreation($analysis);
-            
+
             // Ensure the relationship is refreshed and we pass the project to the SO service
             $analysis->loadMissing('project');
             app(SalesOrderService::class)->createDraftFromAnalysis($analysis, $project);

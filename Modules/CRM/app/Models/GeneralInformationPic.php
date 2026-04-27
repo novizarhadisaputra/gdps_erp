@@ -18,6 +18,7 @@ class GeneralInformationPic extends Model
         'general_information_id',
         'contact_role_id',
         'name',
+        'job_position',
         'phone',
         'email',
     ];

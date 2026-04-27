@@ -16,10 +16,8 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
-use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\MasterData\Enums\Gender;
-use Modules\Project\Models\WorkCompletionReport;
 
 class InvoiceForm
 {
@@ -95,12 +93,16 @@ class InvoiceForm
                             ->live()
                             ->required()
                             ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                                if (!$state) return;
+                                if (! $state) {
+                                    return;
+                                }
 
                                 [$modelClass, $id] = explode(':', $state);
                                 $source = $modelClass::find($id);
 
-                                if (!$source) return;
+                                if (! $source) {
+                                    return;
+                                }
 
                                 // Sync customer
                                 if (isset($source->customer_id)) {
@@ -115,7 +117,7 @@ class InvoiceForm
                                     $set('content_config.recipient_title', $source->content_config['recipient_title'] ?? null);
                                     $set('content_config.recipient_gender', $source->content_config['recipient_gender'] ?? null);
 
-                                    if (!empty($source->items)) {
+                                    if (! empty($source->items)) {
                                         $set('items', $source->items);
                                         $sum = collect($source->items)->sum('total_price');
                                         $set('amount', $sum);
@@ -125,7 +127,7 @@ class InvoiceForm
                                     }
                                 } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
                                     $soItems = $source->content_config['items'] ?? [];
-                                    if (!empty($soItems)) {
+                                    if (! empty($soItems)) {
                                         $invoiceItems = collect($soItems)->map(fn ($item) => [
                                             'item_name' => $item['description'] ?? $item['item_name'] ?? 'Item',
                                             'quantity' => $item['quantity'] ?? 0,
@@ -172,7 +174,12 @@ class InvoiceForm
                                 }
 
                                 return collect($customer->contacts)
-                                    ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'].' ('.($contact['position'] ?? $contact['job_position'] ?? 'No Position').')'])
+                                    ->mapWithKeys(function ($contact, $index) {
+                                        $label = $contact['name'] ?? 'Unknown';
+                                        $pos = $contact['position'] ?? $contact['job_position'] ?? $contact['role'] ?? $contact['type'] ?? 'No Position';
+
+                                        return [$index => "{$label} ({$pos})"];
+                                    })
                                     ->toArray();
                             })
                             ->live()
@@ -191,7 +198,19 @@ class InvoiceForm
                                 $contact = $customer->contacts[$state] ?? null;
                                 if ($contact) {
                                     $set('content_config.recipient_name', $contact['name'] ?? '');
-                                    $position = $contact['position'] ?? $contact['job_position'] ?? $contact['job_title'] ?? $contact['title'] ?? '';
+
+                                    $position = $contact['position'] ??
+                                               $contact['job_position'] ??
+                                               $contact['job_title'] ??
+                                               $contact['role'] ??
+                                               $contact['type'] ??
+                                               '';
+
+                                    // If position is a UUID (from type field), we don't want to show it as a title
+                                    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $position)) {
+                                        $position = '';
+                                    }
+
                                     $set('content_config.recipient_title', $position);
                                     $set('content_config.recipient_gender', $contact['gender'] ?? Gender::Male->value);
                                 }
