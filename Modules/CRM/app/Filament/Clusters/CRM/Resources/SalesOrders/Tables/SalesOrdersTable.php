@@ -56,7 +56,7 @@ class SalesOrdersTable
                         ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft),
                 ]),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

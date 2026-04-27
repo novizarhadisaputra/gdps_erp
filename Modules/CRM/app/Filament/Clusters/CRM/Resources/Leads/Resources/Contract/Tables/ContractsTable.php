@@ -92,7 +92,7 @@ class ContractsTable
                 ->color('gray')
                 ->button(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

@@ -96,7 +96,7 @@ class SalesPlanTable
                 ->color('gray')
                 ->button(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

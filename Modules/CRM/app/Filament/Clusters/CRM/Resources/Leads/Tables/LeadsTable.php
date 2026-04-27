@@ -53,7 +53,7 @@ class LeadsTable
                 ->color('gray')
                 ->button(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     RestoreBulkAction::make(),
                     ForceDeleteBulkAction::make(),
