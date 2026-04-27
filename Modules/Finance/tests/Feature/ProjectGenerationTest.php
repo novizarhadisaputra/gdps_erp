@@ -56,8 +56,8 @@ class ProjectGenerationTest extends TestCase
 
         // 4. Assertions
         $this->assertInstanceOf(Project::class, $project);
-        $this->assertStringNotContainsString('XXX', $project->code);
-        $this->assertStringNotContainsString('XX', $project->code);
+        $this->assertStringNotContainsString('XXX', $project->number);
+        $this->assertStringNotContainsString('XX', $project->number);
         $this->assertEquals(11.00, (float) $project->information->ppn_percentage);
         $this->assertEquals(66000000.00, (float) $project->information->revenue_per_month);
     }
@@ -106,7 +106,7 @@ class ProjectGenerationTest extends TestCase
         $project = $service->generateFromPA($pa);
 
         $this->assertInstanceOf(Project::class, $project);
-        $this->assertStringNotContainsString('XXX', $project->code);
+        $this->assertStringNotContainsString('XXX', $project->number);
         $this->assertEquals($pa->start_date->format('Y-m-d'), $project->information->start_date->format('Y-m-d'));
     }
 

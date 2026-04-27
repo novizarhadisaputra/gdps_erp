@@ -9,22 +9,22 @@ class MinutesOfAgreementObserver
 {
     public function creating(MinutesOfAgreement $minutesOfAgreement): void
     {
-        if (empty($minutesOfAgreement->moa_number)) {
+        if (empty($minutesOfAgreement->number)) {
             $year = date('Y');
             $shortYear = date('y');
 
             $latest = MinutesOfAgreement::query()
                 ->whereYear('created_at', $year)
-                ->where('moa_number', 'LIKE', 'GDPS/UB/BAK-%')
+                ->where('number', 'LIKE', 'GDPS/UB/BAK-%')
                 ->orderBy('id', 'desc')
                 ->first();
 
             $sequence = 1;
-            if ($latest && preg_match('/BAK-(\d+)\//', $latest->moa_number, $matches)) {
+            if ($latest && preg_match('/BAK-(\d+)\//', $latest->number, $matches)) {
                 $sequence = ((int) $matches[1]) + 1;
             }
 
-            $minutesOfAgreement->moa_number = sprintf('GDPS/UB/BAK-%03d/%s', $sequence, $shortYear);
+            $minutesOfAgreement->number = sprintf('GDPS/UB/BAK-%03d/%s', $sequence, $shortYear);
         }
     }
 

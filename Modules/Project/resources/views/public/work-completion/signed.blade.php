@@ -11,7 +11,7 @@
                 BAPP Signed!
             </h2>
             <p class="mt-2 text-sm text-gray-600">
-                Thank you for your response. The Work Completion Report (BAPP) <span class="font-bold text-gray-900">#{{ $report->report_number }}</span> has been successfully approved and signed.
+                Thank you for your response. The Work Completion Report (BAPP) <span class="font-bold text-gray-900">#{{ $report->number }}</span> has been successfully approved and signed.
             </p>
             <p class="text-xs text-gray-400 mt-4">
                 A confirmation has been sent to our team. An invoice will be generated shortly.

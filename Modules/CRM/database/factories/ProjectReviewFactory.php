@@ -13,7 +13,7 @@ class ProjectReviewFactory extends Factory
     {
         return [
             'lead_id' => \Modules\CRM\Models\Lead::factory(),
-            'status' => $this->faker->randomElement(['draft', 'reviewing', 'approved', 'rejected']),
+            'status' => $this->faker->randomElement(['draft', 'in_progress', 'completed', 'revision_needed', 'cancelled']),
             'revision_number' => 1,
         ];
     }

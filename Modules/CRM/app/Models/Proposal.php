@@ -33,7 +33,7 @@ class Proposal extends Model implements HasMedia
         'profitability_analysis_id',
         'work_scheme_id',
         'title',
-        'proposal_number',
+        'number',
         'amount',
         'status',
         'is_manual',

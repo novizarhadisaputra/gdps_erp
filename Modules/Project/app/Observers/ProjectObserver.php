@@ -15,8 +15,8 @@ class ProjectObserver
      */
     public function creating(Project $project): void
     {
-        if (empty($project->code)) {
-            $project->code = Project::generateProjectCode($project);
+        if (empty($project->number)) {
+            $project->number = Project::generateProjectNumber($project);
         }
     }
 
@@ -55,7 +55,7 @@ class ProjectObserver
         ];
 
         if ($project->isDirty($segments)) {
-            $project->code = Project::generateProjectCode($project);
+            $project->number = Project::generateProjectNumber($project);
         }
     }
 
@@ -68,12 +68,12 @@ class ProjectObserver
 
         if ($project->lead && $project->lead->salesPlan) {
             $project->lead->salesPlan->update([
-                'project_code' => $project->code,
+                'project_code' => $project->number,
             ]);
 
             // Sync to monthly as well
             $project->lead->salesPlan->monthlyBreakdowns()->update([
-                'project_code' => $project->code,
+                'project_code' => $project->number,
             ]);
         }
     }

@@ -372,7 +372,7 @@
             <p>Kami dari PT Garuda Daya Pratama Sejahtera (PT GDPS) mengucapkan terima kasih atas kesempatan yang
                 diberikan sehingga dapat menyampaikan Proposal Penawaran Harga Paket Layanan
                 <strong>{{ $productClusterNameFormatted }}</strong> dengan nomor
-                <strong>{{ $record->proposal_number }}</strong>
+                <strong>{{ $record->number }}</strong>
                 sebagai tindak lanjut atas permintaan {{ trim($recipientSalutation) ?: 'Bapak/Ibu' }} melalui
                 email/telepon/online meeting/offline meeting/chat pada tanggal {{ $meetingDateText }}.
             </p>

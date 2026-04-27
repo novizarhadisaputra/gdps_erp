@@ -18,7 +18,7 @@ class ProjectReview extends Model
     use HasFactory, HasModuleSchema, HasUuids;
 
     protected $fillable = [
-        'document_number',
+        'number',
         'sequence_number',
         'year',
         'lead_id',

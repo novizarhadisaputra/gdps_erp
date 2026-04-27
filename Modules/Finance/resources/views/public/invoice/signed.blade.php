@@ -11,7 +11,7 @@
                 Invoice Signed!
             </h2>
             <p class="mt-2 text-sm text-gray-600">
-                Thank you for your response. The Invoice <span class="font-bold text-gray-900">#{{ $invoice->invoice_number }}</span> has been successfully approved and signed.
+                Thank you for your response. The Invoice <span class="font-bold text-gray-900">#{{ $invoice->number }}</span> has been successfully approved and signed.
             </p>
             <p class="text-xs text-gray-400 mt-4">
                 A confirmation has been sent to our finance team. You can now close this window.

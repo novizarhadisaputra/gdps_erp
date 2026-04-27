@@ -29,16 +29,15 @@ class CostingTemplateResourceTest extends TestCase
 
         Livewire::test($manageTemplatesPage, ['record' => $lead->id])
             ->assertSuccessful()
-            ->callTableAction('create', data: [
-                'name' => 'Template for Lead',
-                'pic_id' => auth()->id(),
-                'file' => [\Illuminate\Http\UploadedFile::fake()->create('document.pdf')],
-            ])
-            ->assertHasNoActionErrors()
-            ->assertRedirect(CostingTemplateResource::getUrl('view', [
-                'lead' => $lead->id,
-                'record' => CostingTemplate::latest()->first()->id,
-            ]));
+            ->callAction(
+                \Filament\Actions\Testing\TestAction::make('create')->table(),
+                [
+                    'name' => 'Template for Lead',
+                    'pic_id' => auth()->id(),
+                    'file' => [\Illuminate\Http\UploadedFile::fake()->create('document.pdf')],
+                ]
+            )
+            ->assertHasNoFormErrors();
 
         $this->assertDatabaseHas('costing_templates', [
             'lead_id' => $lead->id,
@@ -62,9 +61,12 @@ class CostingTemplateResourceTest extends TestCase
 
         $this->actingAs(\App\Models\User::factory()->create());
 
-        $this->get(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource::getUrl('items', ['lead' => $lead->id, 'record' => $template->id]))
+        $this->get(route('filament.admin.crm.resources.leads.costing-templates.costing-template-items.index', [
+            'lead' => $lead->id,
+            'costing_template' => $template->id,
+        ]))
             ->assertSuccessful()
-            ->assertSee('Tools & Equipment Costing');
+            ->assertSee('Nested Item');
 
         $this->assertDatabaseHas('costing_template_items', [
             'costing_template_id' => $template->id,

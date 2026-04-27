@@ -2,9 +2,10 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -17,8 +18,8 @@ use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Enums\InvoiceStatus;
-use Modules\Project\Models\WorkCompletionReport;
 use Modules\MasterData\Enums\Gender;
+use Modules\Project\Models\WorkCompletionReport;
 
 class InvoiceForm
 {
@@ -30,7 +31,7 @@ class InvoiceForm
                     ->description('Define the core identity and dates for this invoice.')
                     ->columnSpanFull()
                     ->schema([
-                        TextInput::make('invoice_number')
+                        TextInput::make('number')
                             ->label('Invoice Number')
                             ->required()
                             ->unique(ignoreRecord: true)
@@ -46,6 +47,11 @@ class InvoiceForm
                             ->required()
                             ->default(now()->addDays(30))
                             ->helperText('The deadline for the customer to complete payment.'),
+                        TextInput::make('invoice_type')
+                            ->label('Invoice Label')
+                            ->placeholder('e.g. Invoice, Debit Note, Proforma')
+                            ->default('Invoice')
+                            ->helperText('Customizes the main title on the PDF document.'),
                         Hidden::make('status')
                             ->default(InvoiceStatus::Draft),
                     ])->columns(2),
@@ -62,79 +68,93 @@ class InvoiceForm
                             ->live()
                             ->placeholder('Select a customer...')
                             ->helperText('The client being billed.'),
-                        Select::make('sales_order_id')
-                            ->label('Sales Order')
-                            ->options(SalesOrder::all()->pluck('so_number', 'id'))
+                        MorphToSelect::make('sourceable')
+                            ->label('Reference Document')
+                            ->types([
+                                MorphToSelect\Type::make(\Modules\CRM\Models\SalesOrder::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\Project\Models\WorkCompletionReport::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\PurchaseOrder::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\WorkOrder::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\CooperationAgreement::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\MinutesOfAgreement::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                            ])
                             ->searchable()
+                            ->preload()
                             ->live()
-                            ->placeholder('Select a sales order...')
-                            ->helperText('The originating contract or PO.')
-                            ->afterStateUpdated(function ($state, $set, $get) {
-                                if (! $state || $get('work_completion_report_id')) return;
-                                
-                                $so = SalesOrder::find($state);
-                                if ($so) {
-                                    $set('customer_id', $so->customer_id);
-                                    
-                                    $soItems = $so->content_config['items'] ?? [];
+                            ->required()
+                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                if (!$state) return;
+
+                                [$modelClass, $id] = explode(':', $state);
+                                $source = $modelClass::find($id);
+
+                                if (!$source) return;
+
+                                // Sync customer
+                                if (isset($source->customer_id)) {
+                                    $set('customer_id', $source->customer_id);
+                                }
+
+                                // Sync items and financial details
+                                if ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
+                                    $set('tax_percentage', $source->tax_percentage ?? 11);
+                                    $set('tax_wording', $source->tax_wording);
+                                    $set('content_config.recipient_name', $source->content_config['recipient_name'] ?? null);
+                                    $set('content_config.recipient_title', $source->content_config['recipient_title'] ?? null);
+                                    $set('content_config.recipient_gender', $source->content_config['recipient_gender'] ?? null);
+
+                                    if (!empty($source->items)) {
+                                        $set('items', $source->items);
+                                        $sum = collect($source->items)->sum('total_price');
+                                        $set('amount', $sum);
+                                        $tax = $sum * (($source->tax_percentage ?? 11) / 100);
+                                        $set('tax_amount', $tax);
+                                        $set('total_amount', $sum + $tax);
+                                    }
+                                } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
+                                    $soItems = $source->content_config['items'] ?? [];
                                     if (!empty($soItems)) {
-                                        // Map SO items to Invoice items structure
                                         $invoiceItems = collect($soItems)->map(fn ($item) => [
-                                            'item_name' => $item['description'] ?? 'Item',
+                                            'item_name' => $item['description'] ?? $item['item_name'] ?? 'Item',
                                             'quantity' => $item['quantity'] ?? 0,
                                             'uom' => $item['uom'] ?? 'Unit',
                                             'unit_price' => $item['unit_price'] ?? 0,
                                             'total_price' => $item['total_price'] ?? 0,
                                         ])->toArray();
-                                        
+
                                         $set('items', $invoiceItems);
-                                        
-                                        // Auto-calculate totals
-                                        $sum = 0;
-                                        foreach ($invoiceItems as $item) {
-                                            $sum += floatval($item['total_price'] ?? 0);
-                                        }
+                                        $sum = collect($invoiceItems)->sum('total_price');
                                         $set('amount', $sum);
-                                        $tax = $sum * 0.11;
+                                        $taxPercent = $get('tax_percentage') ?? 11;
+                                        $tax = $sum * ($taxPercent / 100);
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $sum + $tax);
                                     }
-                                }
-                            }),
-                        Select::make('work_completion_report_id')
-                            ->label('Work Completion Report (BAPP)')
-                            ->options(WorkCompletionReport::all()->pluck('report_number', 'id'))
-                            ->searchable()
-                            ->live()
-                            ->placeholder('Select a BAPP...')
-                            ->helperText('The finalized service delivery proof.')
-                            ->afterStateUpdated(function ($state, $set) {
-                                if (! $state) return;
-                                
-                                $bapp = WorkCompletionReport::find($state);
-                                if ($bapp) {
-                                    $set('customer_id', $bapp->customer_id);
-                                    $set('sales_order_id', $bapp->sales_order_id);
-                                    $set('content_config.recipient_name', $bapp->content_config['recipient_name'] ?? null);
-                                    $set('content_config.recipient_title', $bapp->content_config['recipient_title'] ?? null);
-                                    $set('content_config.recipient_gender', $bapp->content_config['recipient_gender'] ?? null);
-                                    
-                                    if (!empty($bapp->items)) {
-                                        $set('items', $bapp->items);
-                                        
-                                        // Auto-calculate totals
-                                        $sum = 0;
-                                        foreach ((array) $bapp->items as $item) {
-                                            $sum += floatval($item['total_price'] ?? 0);
-                                        }
+                                } else {
+                                    // Default for other types (PO, SPK, PKS)
+                                    if (isset($source->items)) {
+                                        $set('items', $source->items);
+                                        $sum = collect($source->items)->sum('total_price');
                                         $set('amount', $sum);
-                                        $tax = $sum * 0.11;
-                                        $set('tax_amount', $tax);
-                                        $set('total_amount', $sum + $tax);
+                                        $set('tax_amount', $sum * 0.11);
+                                        $set('total_amount', $sum * 1.11);
                                     }
                                 }
-                            }),
-                    ])->columns(3),
+                            })
+                            ->columnSpanFull(),
+                    ])->columns(1),
 
                 Section::make('Customer Signatory')
                     ->description('Select or manually enter the person who will receive/sign this invoice from the customer side.')
@@ -143,15 +163,16 @@ class InvoiceForm
                             ->label('Customer Contact Reference')
                             ->options(function (Get $get) {
                                 $customerId = $get('customer_id');
-                                if (!$customerId) {
+                                if (! $customerId) {
                                     return [];
                                 }
                                 $customer = Customer::find($customerId);
-                                if (!$customer || empty($customer->contacts)) {
+                                if (! $customer || empty($customer->contacts)) {
                                     return [];
                                 }
+
                                 return collect($customer->contacts)
-                                    ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'] . ' (' . ($contact['position'] ?? $contact['job_position'] ?? 'No Position') . ')'])
+                                    ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'].' ('.($contact['position'] ?? $contact['job_position'] ?? 'No Position').')'])
                                     ->toArray();
                             })
                             ->live()
@@ -160,11 +181,11 @@ class InvoiceForm
                                     return;
                                 }
                                 $customerId = $get('customer_id');
-                                if (!$customerId) {
+                                if (! $customerId) {
                                     return;
                                 }
                                 $customer = Customer::find($customerId);
-                                if (!$customer || empty($customer->contacts)) {
+                                if (! $customer || empty($customer->contacts)) {
                                     return;
                                 }
                                 $contact = $customer->contacts[$state] ?? null;
@@ -191,11 +212,11 @@ class InvoiceForm
                             ])
                             ->createOptionUsing(function (array $data, Get $get) {
                                 $customerId = $get('customer_id');
-                                if (!$customerId) {
+                                if (! $customerId) {
                                     return null;
                                 }
                                 $customer = Customer::find($customerId);
-                                if (!$customer) {
+                                if (! $customer) {
                                     return null;
                                 }
 
@@ -289,7 +310,8 @@ class InvoiceForm
                                 $tax = $sum * 0.11;
                                 $set('tax_amount', $tax);
                                 $set('total_amount', $sum + $tax);
-                            }),
+                            })
+                            ->translatable(),
                     ])->collapsible(),
 
                 Section::make('Financial Details')
@@ -307,21 +329,34 @@ class InvoiceForm
                                     ->live(onBlur: true)
                                     ->placeholder('0')
                                     ->helperText('The principal billable amount excluding tax. Auto-calculated from items.')
-                                    ->afterStateUpdated(function ($state, $set) {
+                                    ->afterStateUpdated(function ($state, $set, $get) {
                                         $amount = (float) str_replace('.', '', $state);
-                                        $tax = $amount * 0.11;
+                                        $taxPercent = (float) $get('tax_percentage') ?? 11;
+                                        $tax = $amount * ($taxPercent / 100);
+                                        $set('tax_amount', $tax);
+                                        $set('total_amount', $amount + $tax);
+                                    }),
+                                TextInput::make('tax_percentage')
+                                    ->label('Tax %')
+                                    ->numeric()
+                                    ->default(11)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function ($state, $set, $get) {
+                                        $amount = (float) str_replace('.', '', $get('amount') ?? 0);
+                                        $taxPercent = (float) $state ?? 11;
+                                        $tax = $amount * ($taxPercent / 100);
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
                                     }),
                                 TextInput::make('tax_amount')
-                                    ->label('Tax (11%)')
+                                    ->label('Tax Amount')
                                     ->numeric()
                                     ->prefix('IDR')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->required()
                                     ->live(onBlur: true)
                                     ->placeholder('0')
-                                    ->helperText('Value Added Tax (PPN). Auto-calculated at 11%.')
+                                    ->helperText('Value Added Tax (PPN).')
                                     ->afterStateUpdated(function ($get, $set) {
                                         $amount = (float) str_replace('.', '', $get('amount') ?? 0);
                                         $tax = (float) str_replace('.', '', $get('tax_amount') ?? 0);
@@ -336,34 +371,56 @@ class InvoiceForm
                                     ->placeholder('0')
                                     ->helperText('The grand total to be paid by the customer.')
                                     ->required(),
+                                TextInput::make('tax_wording')
+                                    ->label('Tax Wording (PDF)')
+                                    ->placeholder('e.g. PPN 11%, PPN 12%')
+                                    ->columnSpan(2)
+                                    ->helperText('This text will appear in the tax row of the PDF summary.')
+                                    ->translatable(),
                             ]),
                     ]),
 
                 Section::make('Payment Information')
-                    ->description('Specify the banking details for remittance.')
+                    ->description('Select the bank account for remittance.')
                     ->schema([
+                        Select::make('bank_account_id')
+                            ->label('Bank Account')
+                            ->options(\Modules\MasterData\Models\BankAccount::query()->where('is_active', true)->pluck('bank_name', 'id'))
+                            ->searchable()
+                            ->live()
+                            ->required()
+                            ->afterStateUpdated(function ($state, Set $set) {
+                                if (! $state) {
+                                    return;
+                                }
+                                $bank = \Modules\MasterData\Models\BankAccount::find($state);
+                                if ($bank) {
+                                    $set('payment_info', [
+                                        'account_name' => $bank->account_name,
+                                        'banks' => [
+                                            [
+                                                'bank_name' => $bank->bank_name,
+                                                'account_number' => $bank->account_number,
+                                                'currency' => $bank->currency,
+                                            ],
+                                        ],
+                                    ]);
+                                }
+                            }),
                         TextInput::make('payment_info.account_name')
                             ->label('Account Name (A/N)')
                             ->required()
-                            ->placeholder('e.g. PT. Garuda Daya Pratama Sejahtera')
-                            ->helperText('The registered entity name for the bank accounts.'),
+                            ->readonly(),
                         Repeater::make('payment_info.banks')
-                            ->label('Bank Accounts')
-                            ->addActionLabel('Add Bank Account')
+                            ->label('Bank Details (Snapshot)')
                             ->schema([
-                                TextInput::make('bank_name')
-                                    ->label('Bank Name')
-                                    ->required()
-                                    ->placeholder('e.g. Bank Mandiri'),
-                                TextInput::make('account_number')
-                                    ->label('Account Number')
-                                    ->required()
-                                    ->placeholder('e.g. 155-00-1307311-2'),
-                                TextInput::make('currency')
-                                    ->label('Currency')
-                                    ->required()
-                                    ->placeholder('e.g. IDR'),
+                                TextInput::make('bank_name')->readonly(),
+                                TextInput::make('account_number')->readonly(),
+                                TextInput::make('currency')->readonly(),
                             ])
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
                             ->columns(3),
                     ]),
 

@@ -33,7 +33,7 @@ class SendInvoice extends Page
         $this->record = $this->resolveRecord($record);
 
         $this->form->fill([
-            'subject' => 'Invoice & BAPP '.$this->record->invoice_number,
+            'subject' => 'Invoice & BAPP '.$this->record->number,
             'recipient_email' => $this->record->customer?->email,
             'recipient_name' => $this->record->customer?->name,
             'message' => '<p>Kepada Yth. Bapak/Ibu,</p><p>Berikut kami lampirkan dokumen <strong>Invoice</strong> beserta <strong>Bukti Acara Serah Terima (BAPP)</strong> yang telah ditandatangani untuk proses penagihan.</p><p>Terima kasih atas kerja sama Anda.</p>',
@@ -130,7 +130,7 @@ class SendInvoice extends Page
         try {
             // 1. Generate PDF on the fly
             $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $this->record]);
-            $filename = 'invoice-' . str_replace(['/', '\\'], '-', $this->record->invoice_number) . '.pdf';
+            $filename = 'invoice-' . str_replace(['/', '\\'], '-', $this->record->number) . '.pdf';
 
             // 2. Store temporarily on S3 to get a URL
             $tempPath = "temp/invoices/{$filename}";
@@ -165,7 +165,7 @@ class SendInvoice extends Page
             // 4. Send via External API
             Log::info('Invoice Email Sending Attempt', [
                 'invoice_id' => $this->record->id,
-                'invoice_number' => $this->record->invoice_number,
+                'number' => $this->record->number,
                 'recipient' => $formData['recipient_email'],
                 'attachments_count' => count($attachments),
             ]);

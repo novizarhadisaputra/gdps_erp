@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices', function (Blueprint $blueprint) {
             $blueprint->uuid('id')->primary();
-            $blueprint->foreignUuid('sales_order_id')->constrained(config('database.default') === 'sqlite' ? 'sales_orders' : 'crm.sales_orders')->onDelete('cascade');
             $blueprint->foreignUuid('work_completion_report_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports')->onDelete('set null');
             $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
+            $blueprint->nullableUuidMorphs('sourceable');
 
-            $blueprint->string('invoice_number')->unique();
+            $blueprint->string('number')->unique();
             $blueprint->integer('sequence_number')->nullable();
             $blueprint->integer('year')->nullable();
             $blueprint->date('invoice_date');
@@ -29,7 +29,8 @@ return new class extends Migration
 
             $blueprint->string('status')->default('draft');
             $blueprint->json('payment_info')->nullable();
-            $blueprint->json('items')->nullable();
+            $blueprint->jsonb('items')->nullable();
+            $blueprint->jsonb('tax_wording')->nullable();
             $blueprint->jsonb('content_config')->nullable();
 
             $blueprint->timestamps();

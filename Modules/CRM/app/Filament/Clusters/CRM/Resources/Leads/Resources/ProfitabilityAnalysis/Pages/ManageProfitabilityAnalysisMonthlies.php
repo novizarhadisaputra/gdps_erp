@@ -48,7 +48,7 @@ class ManageProfitabilityAnalysisMonthlies extends ManageRelatedRecords
             $leadResource::getUrl() => $leadResource::getBreadcrumb(),
             $leadResource::getUrl('view', ['record' => $lead]) => $lead?->title ?? 'Lead',
             $resource::getUrl('index', ['lead' => $lead]) => $resource::getBreadcrumb(),
-            $resource::getUrl('view', ['lead' => $lead, 'record' => $record]) => $record?->document_number ?? 'PA',
+            $resource::getUrl('view', ['lead' => $lead, 'record' => $record]) => $record?->number ?? 'PA',
             '#' => 'Monthly Performance',
         ];
     }

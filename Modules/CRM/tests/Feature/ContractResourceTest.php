@@ -2,10 +2,13 @@
 
 namespace Modules\CRM\Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\Pages\ListContracts;
 use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\Lead;
 use Tests\TestCase;
 
 class ContractResourceTest extends TestCase
@@ -21,7 +24,7 @@ class ContractResourceTest extends TestCase
 
     public function test_can_list_contracts(): void
     {
-        $roleId = (string) \Illuminate\Support\Str::uuid();
+        $roleId = (string) Str::uuid();
         \Illuminate\Support\Facades\DB::table('roles')->insert([
             'id' => $roleId,
             'name' => 'super_admin',
@@ -29,15 +32,20 @@ class ContractResourceTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        $user = \App\Models\User::factory()->create();
+        $user = User::factory()->create();
         $user->assignRole('super_admin');
         $this->actingAs($user);
 
+        $lead = Lead::factory()->create();
+
         $contract = Contract::factory()->create([
-            'contract_number' => 'CONT-001',
+            'lead_id' => $lead->id,
+            'number' => 'CONT-001',
         ]);
 
-        Livewire::test(ListContracts::class)
+        Livewire::test(ListContracts::class, [
+            'parentRecord' => $lead,
+        ])
             ->assertCanSeeTableRecords([$contract])
             ->assertSee('CONT-001');
     }

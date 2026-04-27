@@ -55,7 +55,7 @@ class WorkCompletionReportInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('report_number')
+                                TextEntry::make('number')
                                     ->label('Report Number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('document_date')

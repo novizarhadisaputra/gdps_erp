@@ -20,7 +20,7 @@ class GeneralInformationSeeder extends Seeder
                 ['lead_id' => $lead->id],
                 [
                     'customer_id' => $lead->customer_id,
-                    'document_number' => 'GI-2025-'.str_pad($index + 1, 4, '0', STR_PAD_LEFT),
+                    'number' => 'GI-2025-'.str_pad($index + 1, 4, '0', STR_PAD_LEFT),
                     'status' => 'draft',
                     'scope_of_work' => 'General services and maintenance.',
                     'project_area_id' => \Modules\MasterData\Models\ProjectArea::first()?->id,

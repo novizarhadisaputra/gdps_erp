@@ -25,7 +25,7 @@ class ProposalInfolist
                                     ->label('Proposal Title')
                                     ->weight(FontWeight::Bold)
                                     ->columnSpanFull(),
-                                TextEntry::make('proposal_number')
+                                TextEntry::make('number')
                                     ->label('Proposal Number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('customer.name')

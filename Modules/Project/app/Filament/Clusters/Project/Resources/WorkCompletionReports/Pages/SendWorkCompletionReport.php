@@ -45,7 +45,7 @@ class SendWorkCompletionReport extends Page
         }
 
         $this->form->fill([
-            'subject' => 'Work Completion Report (BAPP) - '.$this->record->report_number,
+            'subject' => 'Work Completion Report (BAPP) - '.$this->record->number,
             'recipient_email' => $this->record->customer?->email,
             'recipient_name' => $this->record->customer?->name,
             'message' => '<p>Please find the Work Completion Report (BAPP) for your project attached.</p><p>Please review the document. If you have any questions, feel free to contact us.</p>',
@@ -166,7 +166,7 @@ class SendWorkCompletionReport extends Page
             } else {
                 // Generate PDF on the fly if no media uploaded
                 $pdf = Pdf::loadView('project::pdf.work_completion_report', ['record' => $this->record]);
-                $filename = 'bapp-' . str_replace(['/', '\\'], '-', $this->record->report_number) . '.pdf';
+                $filename = 'bapp-' . str_replace(['/', '\\'], '-', $this->record->number) . '.pdf';
 
                 // Store temporarily on S3 to get a URL
                 $tempPath = "temp/bapps/{$filename}";
@@ -184,7 +184,7 @@ class SendWorkCompletionReport extends Page
             // 3. Send via External API
             Log::info('BAPP Email Sending Attempt', [
                 'bapp_id' => $this->record->id,
-                'bapp_number' => $this->record->report_number,
+                'number' => $this->record->number,
                 'recipient' => $formData['recipient_email'],
             ]);
 

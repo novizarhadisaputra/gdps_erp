@@ -52,7 +52,7 @@ class ViewSalesOrder extends ViewRecord
                             'uom' => $mp['uom'] ?? 'Person',
                             'unit_price' => $mp['unit_cost'] ?? 0,
                             'total_price' => $mp['total_monthly_cost'] ?? 0,
-                            'so_reference' => $record->so_number,
+                            'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
                         ];
                     }
 
@@ -64,7 +64,7 @@ class ViewSalesOrder extends ViewRecord
                             'uom' => $item['uom'] ?? 'Unit',
                             'unit_price' => $item['unit_price'] ?? 0,
                             'total_price' => $item['total_price'] ?? 0,
-                            'so_reference' => $record->so_number,
+                            'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
                         ];
                     }
 
@@ -72,13 +72,13 @@ class ViewSalesOrder extends ViewRecord
                         'project_id' => $record->project_id,
                         'sales_order_id' => $record->id,
                         'customer_id' => $record->customer_id,
-                        'report_number' => $reportNumber,
+                        'number' => $reportNumber,
                         'items' => $bappItems,
                         'document_date' => now(),
                         'service_period_start' => now()->startOfMonth(),
                         'service_period_end' => now()->endOfMonth(),
                         'status' => WorkCompletionStatus::Draft,
-                        'description' => "Monthly BAPP #{$sequence} for SO {$record->so_number}",
+                        'description' => "Monthly BAPP #{$sequence} for SO {$record->number}",
                     ]);
 
                     Notification::make()
@@ -254,7 +254,7 @@ class ViewSalesOrder extends ViewRecord
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function (SalesOrder $record) {
                         $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
-                        $filename = str_replace(['/', '\\'], '-', $record->so_number);
+                        $filename = str_replace(['/', '\\'], '-', $record->number);
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "so-{$filename}.pdf");
                     }),

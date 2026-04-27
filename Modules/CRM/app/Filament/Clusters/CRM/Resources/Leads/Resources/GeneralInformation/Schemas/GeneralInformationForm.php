@@ -21,7 +21,7 @@ class GeneralInformationForm
         return [
             Section::make('Basic Information')
                 ->schema([
-                    TextInput::make('document_number')
+                    TextInput::make('number')
                         ->disabled()
                         ->placeholder('Generated after create'),
                     Select::make('status')

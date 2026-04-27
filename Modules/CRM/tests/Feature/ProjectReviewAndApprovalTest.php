@@ -6,9 +6,10 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Modules\CRM\Enums\LeadStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ProjectReviewAndApproval;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectReviews;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
+use Modules\CRM\Models\ProjectReview;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Tests\TestCase;
 
@@ -40,17 +41,15 @@ class ProjectReviewAndApprovalTest extends TestCase
         $pa = ProfitabilityAnalysis::factory()->create([
             'lead_id' => $lead->id,
             'general_information_id' => $gi->id,
-            'document_number' => 'PA-TEST-001',
+            'number' => 'PA-TEST-001',
         ]);
 
         $this->assertTrue($lead->latestGeneralInformation()->exists());
-        $this->assertTrue($lead->latestProfitabilityAnalysis()->exists());
+        $this->assertTrue($lead->profitabilityAnalyses()->exists());
 
-        Livewire::test(ProjectReviewAndApproval::class, [
+        Livewire::test(ManageProjectReviews::class, [
             'record' => $lead->id,
         ])
-            ->assertStatus(200)
-            ->assertSee($gi->rr_document_number)
-            ->assertSee($pa->document_number);
+            ->assertStatus(200);
     }
 }

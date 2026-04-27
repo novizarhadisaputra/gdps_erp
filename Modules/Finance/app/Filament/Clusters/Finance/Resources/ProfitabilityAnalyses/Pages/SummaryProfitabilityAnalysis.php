@@ -57,7 +57,7 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                     ->icon(Heroicon::OutlinedTableCells)
                     ->color('success')
                     ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
-                        $filename = 'profitability_analysis_'.($record->document_number ?? $record->id).'.xlsx';
+                        $filename = 'profitability_analysis_'.($record->number ?? $record->id).'.xlsx';
                         $filename = str_replace(['/', '\\'], '_', $filename);
 
                         return Excel::download(
@@ -79,7 +79,7 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                             ]
                         )->setPaper('a4', 'portrait');
 
-                        $filename = 'profitability_summary_'.($record->document_number ?? $record->id).'.pdf';
+                        $filename = 'profitability_summary_'.($record->number ?? $record->id).'.pdf';
                         $filename = str_replace(['/', '\\'], '_', $filename);
 
                         return response()->streamDownload(function () use ($pdf) {

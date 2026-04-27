@@ -65,7 +65,7 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
         };
 
         try {
-            ProfitabilityAnalysisForm::calculateDirectCost($get, $set);
+            ProfitabilityAnalysisForm::calculateDirectCost($get, $set, '/data.');
 
             $this->assertArrayHasKey('/data.direct_cost', $setResults);
             $this->assertArrayHasKey('/data.ebitda', $setResults);
@@ -81,35 +81,35 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
         $manpowerCat = DirectCostCategory::firstOrCreate(['code' => 'manpower'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Manpower']);
         $toolsCat = DirectCostCategory::firstOrCreate(['code' => 'tools_equipment'], ['id' => (string) \Illuminate\Support\Str::uuid(), 'name' => 'Tools & Equipment']);
 
-        $get = function ($path) use ($manpowerCat, $toolsCat) {
-            $data = [
-                '/data.is_manual_cost' => true,
-                '/data.analysis_details.manual_revenue' => 50000000,
-                '/data.analysis_details.manual_costs' => [
-                    ['direct_cost_category_id' => $manpowerCat->id, 'amount' => 20000000],
-                    ['direct_cost_category_id' => $toolsCat->id, 'amount' => 10000000],
-                ],
-                '/data.general_information_id' => null,
-                '/data.management_fee_rate' => 0,
-                '/data.management_fee' => 5000000,
-                '/data.management_expense_rate' => 2,
-                '/data.indirect_mgmt_expenses' => 0,
-                '/data.indirect_entertainment' => 0,
-                '/data.indirect_concession' => 0,
-                '/data.indirect_business_partners' => [],
-                '/data.interest_rate' => 0,
-                '/data.tax_rate' => 22,
-            ];
+        $data = [
+            '/data.is_manual_cost' => true,
+            '/data.analysis_details.manual_revenue' => 50000000,
+            '/data.analysis_details.manual_costs' => [
+                ['direct_cost_category_id' => $manpowerCat->id, 'amount' => 20000000],
+                ['direct_cost_category_id' => $toolsCat->id, 'amount' => 10000000],
+            ],
+            '/data.general_information_id' => null,
+            '/data.management_fee_rate' => 0,
+            '/data.management_fee' => 5000000,
+            '/data.management_expense_rate' => 2,
+            '/data.indirect_mgmt_expenses' => 0,
+            '/data.indirect_entertainment' => 0,
+            '/data.indirect_concession' => 0,
+            '/data.indirect_business_partners' => [],
+            '/data.interest_rate' => 0,
+            '/data.tax_rate' => 22,
+        ];
 
+        $get = function ($path) use (&$data) {
             return $data[$path] ?? null;
         };
 
         $setResults = [];
-        $set = function ($path, $value) use (&$setResults) {
+        $set = function ($path, $value) use (&$data, &$setResults) {
+            $data[$path] = $value;
             $setResults[$path] = $value;
         };
-
-        ProfitabilityAnalysisForm::calculateDirectCost($get, $set);
+        ProfitabilityAnalysisForm::calculateDirectCost($get, $set, '/data.');
 
         // Direct Cost = 20M + 10M = 30M
         $this->assertEquals(30000000, $setResults['/data.direct_cost']);

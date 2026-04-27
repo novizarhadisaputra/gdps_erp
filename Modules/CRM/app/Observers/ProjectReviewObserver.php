@@ -23,7 +23,7 @@ class ProjectReviewObserver
 
         $projectReview->year = $year;
         $projectReview->sequence_number = $sequence;
-        $projectReview->document_number = sprintf('GDPS/UB/PR-%03d/%s', $sequence, $shortYear);
+        $projectReview->number = sprintf('GDPS/UB/PR-%03d/%s', $sequence, $shortYear);
     }
 
     /**

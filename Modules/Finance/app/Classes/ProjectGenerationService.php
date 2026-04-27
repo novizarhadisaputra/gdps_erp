@@ -32,7 +32,7 @@ class ProjectGenerationService
 
             // 3. Create or Update the Project
             $projectData = [
-                'name' => $pa->proposal?->proposal_number ?? 'Project for '.$pa->customer?->name,
+                'name' => $pa->proposal?->number ?? 'Project for '.$pa->customer?->name,
                 'customer_id' => $pa->customer_id,
                 'work_scheme_id' => $pa->work_scheme_id,
                 'product_cluster_id' => $pa->product_cluster_id,
@@ -44,9 +44,9 @@ class ProjectGenerationService
                 'proposal_id' => $pa->proposal_id,
                 'profitability_analysis_id' => $pa->id,
                 'lead_id' => $pa->lead_id,
-                'contract_id' => $contract?->id,
                 'oprep_id' => $this->getEmployeeIdFromUser($pa->lead?->pic_costing_id),
                 'ams_id' => $this->getEmployeeIdFromUser($pa->lead?->user_id),
+                'contract_id' => $contract?->id,
                 'payment_term_id' => $pa->lead?->payment_term_id,
                 'billing_option_id' => $pa->lead?->billing_option_id,
                 'start_date' => $pa->lead?->start_date,
@@ -92,6 +92,9 @@ class ProjectGenerationService
                 'analysis_details' => $details,
                 'remuneration_details' => $pa->manpower_requirements,
                 'lead_id' => $pa->lead_id,
+                'oprep_id' => $projectData['oprep_id'],
+                'ams_id' => $projectData['ams_id'],
+                'project_type_id' => $projectData['project_type_id'],
             ]);
 
             // 5. Update PA status
@@ -101,7 +104,7 @@ class ProjectGenerationService
             ]);
 
             // Force code update if parameters changed
-            $project->code = Project::generateProjectCode($project);
+            $project->number = Project::generateProjectNumber($project);
             $project->save();
 
             return $project;

@@ -17,6 +17,27 @@ use Modules\Project\Services\ProjectService;
 class ProfitabilityAnalysisObserver
 {
     /**
+     * Handle the ProfitabilityAnalysis "saving" event.
+     */
+    public function saving(ProfitabilityAnalysis $analysis): void
+    {
+        // Inject high-level calculation fields into analysis_details so that when the
+        // JSON snapshot is passed to Proposals and Invoices, the calculation context is retained.
+        $details = $analysis->analysis_details ?? [];
+        $details['calculation_context'] = [
+            'revenue_per_month' => (float) $analysis->revenue_per_month,
+            'direct_cost' => (float) $analysis->direct_cost,
+            'margin_percentage' => (float) $analysis->margin_percentage,
+            'management_fee_rate' => (float) $analysis->management_fee_rate,
+            'tax_rate' => (float) $analysis->tax_rate,
+            'duration' => (int) $analysis->duration,
+            'interest_rate' => (float) $analysis->interest_rate,
+            'net_profit_margin' => (float) $analysis->net_profit_margin,
+        ];
+        $analysis->analysis_details = $details;
+    }
+
+    /**
      * Handle the ProfitabilityAnalysis "creating" event.
      */
     public function creating(ProfitabilityAnalysis $analysis): void
@@ -34,7 +55,7 @@ class ProfitabilityAnalysisObserver
         $analysis->year = $year;
         $analysis->sequence_number = $sequence;
         // PA = Profitability Analysis
-        $analysis->document_number = sprintf('GDPS/UB/PA-%03d/%s', $sequence, $shortYear);
+        $analysis->number = sprintf('GDPS/UB/PA-%03d/%s', $sequence, $shortYear);
     }
 
     /**
@@ -136,7 +157,7 @@ class ProfitabilityAnalysisObserver
 
             $analysis->updateQuietly([
                 'revision_number' => $analysis->revision_number + 1,
-                'previous_code' => $analysis->document_number,
+                'previous_code' => $analysis->number,
                 'is_margin_approved' => false,
             ]);
 

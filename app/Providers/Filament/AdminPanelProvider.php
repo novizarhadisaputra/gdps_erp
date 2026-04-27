@@ -23,6 +23,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Jacobtims\FilamentLogger\FilamentLoggerPlugin;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 use MWGuerra\FileManager\FileManagerPlugin;
+use Outerweb\FilamentTranslatableFields\TranslatableFieldsPlugin;
 use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
 
 class AdminPanelProvider extends PanelProvider
@@ -68,6 +69,12 @@ class AdminPanelProvider extends PanelProvider
                 FilamentLaravelLogPlugin::make()->authorize(
                     fn () => auth()->user()->isAdmin()
                 )->navigationGroup('Settings'),
+                TranslatableFieldsPlugin::make()
+                    ->supportedLocales([
+                        'id' => 'Indonesian',
+                        'en' => 'English',
+                    ])
+                    ->defaultLocale('id'),
             ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

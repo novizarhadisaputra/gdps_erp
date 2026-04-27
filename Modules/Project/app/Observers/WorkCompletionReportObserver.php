@@ -26,7 +26,7 @@ class WorkCompletionReportObserver
 
         $report->year = (int) $year;
         $report->sequence_number = $sequence;
-        $report->report_number = sprintf('GDPS/UB/BAPP-%03d/%s/%s', $sequence, $month, $shortYear);
+        $report->number = sprintf('GDPS/UB/BAPP-%03d/%s/%s', $sequence, $month, $shortYear);
     }
 
     /**

@@ -27,7 +27,7 @@ class GeneralInformationApiController extends Controller
                 'projectArea' => fn ($q) => $q->select(['id', 'name']),
             ])
             ->select([
-                'id', 'document_number', 'scope_of_work', 'customer_id', 'lead_id', 'project_area_id',
+                'id', 'number', 'scope_of_work', 'customer_id', 'lead_id', 'project_area_id',
                 'status', 'rr_status', 'rr_document_number', 'created_at', 'updated_at',
             ]);
 

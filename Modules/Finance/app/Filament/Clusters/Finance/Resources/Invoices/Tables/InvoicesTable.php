@@ -2,12 +2,16 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Tables;
 
-use Filament\Actions;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\Summarizers\Sum;
-use Modules\Finance\Models\Invoice;
+use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Traits\HasInvoiceActions;
 
 class InvoicesTable
 {
@@ -15,7 +19,7 @@ class InvoicesTable
     {
         return $table
             ->columns([
-                TextColumn::make('invoice_number')
+                TextColumn::make('number')
                     ->label('Invoice Number')
                     ->searchable()
                     ->sortable(),
@@ -39,16 +43,25 @@ class InvoicesTable
                 //
             ])
             ->recordActions([
-                Actions\ActionGroup::make([
-                    Actions\ViewAction::make(),
-                    Actions\EditAction::make(),
+                ActionGroup::make([
+                    (new class
+                    {
+                        use HasInvoiceActions;
+
+                        public function getAction()
+                        {
+                            return $this->getExportPdfAction();
+                        }
+                    })->getAction(),
+                    ViewAction::make(),
+                    EditAction::make(),
                 ])
-                    ->icon(Heroicon::EllipsisVertical)
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->tooltip('Actions'),
             ])
-            ->toolbarActions([
-                Actions\BulkActionGroup::make([
-                    Actions\DeleteBulkAction::make(),
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

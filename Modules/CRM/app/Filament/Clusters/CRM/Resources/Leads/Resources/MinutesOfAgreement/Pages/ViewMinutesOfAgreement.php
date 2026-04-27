@@ -2,21 +2,27 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
+use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\MoAStatus;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
+use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\MasterData\Services\SignatureService;
 
 class ViewMinutesOfAgreement extends ViewRecord
 {
-    use \Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
+    use InteractsWithParentRecord;
 
     protected static string $resource = MinutesOfAgreementResource::class;
 
@@ -27,11 +33,26 @@ class ViewMinutesOfAgreement extends ViewRecord
                 ->label('Export PDF')
                 ->color('gray')
                 ->icon(Heroicon::OutlinedArrowDownTray)
-                ->action(function () {
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.minutes_of_agreement', ['record' => $this->record]);
-                    $filename = str_replace(['/', '\\'], '-', $this->record->document_number);
+                ->form([
+                    Select::make('language')
+                        ->label('Select Document Language')
+                        ->options([
+                            'id' => 'Indonesia (Bahasa)',
+                            'en' => 'English',
+                        ])
+                        ->default('id')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $language = $data['language'];
+                    $pdf = Pdf::loadView('crm::pdf.minutes_of_agreement', [
+                        'record' => $this->record,
+                        'language' => $language,
+                    ]);
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "moa-{$filename}.pdf");
+                    $filename = str_replace(['/', '\\'], '-', $this->record->moa_number ?? $this->record->id);
+
+                    return response()->streamDownload(fn () => print ($pdf->output()), "moa-{$filename}-{$language}.pdf");
                 }),
             Action::make('sign')
                 ->label('Digital Signature')
@@ -39,7 +60,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                 ->icon(Heroicon::OutlinedPencilSquare)
                 ->modalWidth('md')
                 ->schema([
-                    \Filament\Forms\Components\TextInput::make('pin')
+                    TextInput::make('pin')
                         ->label('Signature PIN')
                         ->password()
                         ->required()
@@ -141,11 +162,11 @@ class ViewMinutesOfAgreement extends ViewRecord
                 ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Approved && ! $record->proposal?->contracts()->exists())
                 ->requiresConfirmation()
                 ->action(function (MinutesOfAgreement $record) {
-                    $contract = \Modules\CRM\Models\Contract::create([
+                    $contract = Contract::create([
                         'customer_id' => $record->customer_id,
                         'lead_id' => $record->lead_id,
                         'proposal_id' => $record->proposal_id,
-                        'status' => \Modules\CRM\Enums\ContractStatus::Draft,
+                        'status' => ContractStatus::Draft,
                     ]);
 
                     Notification::make()
@@ -153,14 +174,14 @@ class ViewMinutesOfAgreement extends ViewRecord
                         ->success()
                         ->send();
 
-                    $this->redirect(\Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource::getUrl('edit', ['record' => $contract->id, 'lead' => $record->lead_id]));
+                    $this->redirect(ContractResource::getUrl('edit', ['record' => $contract->id, 'lead' => $record->lead_id]));
                 }),
             Action::make('Reject')
                 ->color('danger')
                 ->icon(Heroicon::OutlinedXMark)
                 ->requiresConfirmation()
                 ->modalHeading('Reject MoA')
-                ->form([
+                ->schema([
                     TextInput::make('reason')
                         ->label('Reason for Rejection')
                         ->required(),

@@ -33,7 +33,7 @@ class EditProfitabilityAnalysisMonthly extends EditRecord
             $leadResource::getUrl() => $leadResource::getBreadcrumb(),
             $leadResource::getUrl('view', ['record' => $lead]) => $lead?->title ?? 'Lead',
             $paResource::getUrl('index', ['lead' => $lead]) => $paResource::getBreadcrumb(),
-            $paResource::getUrl('view', ['lead' => $lead, 'record' => $pa]) => $pa?->document_number ?? 'PA',
+            $paResource::getUrl('view', ['lead' => $lead, 'record' => $pa]) => $pa?->number ?? 'PA',
             $resource::getUrl('index', ['lead' => $lead, 'profitability_analysi' => $pa]) => $resource::getBreadcrumb(),
             '#' => "{$record->month} {$record->year}",
         ];

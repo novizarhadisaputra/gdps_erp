@@ -32,7 +32,7 @@ class ProfitabilityAnalysisInfolist
                     ->schema([
                         Grid::make(['default' => 1, 'md' => 3])
                             ->schema([
-                                TextEntry::make('proposal.proposal_number')
+                                TextEntry::make('proposal.number')
                                     ->label('Proposal Number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('customer.name')

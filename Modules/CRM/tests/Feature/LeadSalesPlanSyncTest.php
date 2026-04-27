@@ -89,7 +89,7 @@ class LeadSalesPlanSyncTest extends TestCase
         $proposal = Proposal::create([
             'lead_id' => $lead->id,
             'customer_id' => $lead->customer_id,
-            'proposal_number' => 'PROP-2026-001',
+            'number' => 'PROP-2026-001',
             'amount' => 7500000,
             'status' => 'draft',
         ]);

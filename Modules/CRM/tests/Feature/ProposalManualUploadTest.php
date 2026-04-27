@@ -38,8 +38,10 @@ class ProposalManualUploadTest extends TestCase
             ->test(ManageProposals::class, [
                 'record' => $lead->id,
             ])
-            ->callTableAction('bookingCode')
-            ->assertHasNoTableActionErrors();
+            ->callAction(
+                \Filament\Actions\Testing\TestAction::make('bookingCode')->table()
+            )
+            ->assertHasNoFormErrors();
 
         $this->assertDatabaseHas('proposals', [
             'lead_id' => $lead->id,
@@ -51,7 +53,7 @@ class ProposalManualUploadTest extends TestCase
         /** @var Proposal $proposal */
         $proposal = Proposal::where('lead_id', $lead->id)->first();
         $this->assertNotNull($proposal);
-        $this->assertStringContainsString('GDPS/UB/PROP-', $proposal->proposal_number);
+        $this->assertStringContainsString('GDPS/UB/PROP-', $proposal->number);
         $this->assertEquals(0, $proposal->getMedia('final_proposal')->count());
 
         $lead->refresh();

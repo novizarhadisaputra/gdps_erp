@@ -18,7 +18,7 @@ class GeneralInformationInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('document_number'),
+                                TextEntry::make('number'),
                                 TextEntry::make('customer.name')
                                     ->label('Customer'),
                                 TextEntry::make('status')

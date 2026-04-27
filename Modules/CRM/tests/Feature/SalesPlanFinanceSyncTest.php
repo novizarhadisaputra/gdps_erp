@@ -26,7 +26,7 @@ class SalesPlanFinanceSyncTest extends TestCase
             'status' => LeadStatus::Approach,
         ]);
 
-        $salesPlan = $lead->salesPlan;
+        $salesPlan = $lead->refresh()->salesPlan;
         $this->assertNotNull($salesPlan);
 
         // 2. Setup Profitability Analysis in Finance
@@ -76,7 +76,7 @@ class SalesPlanFinanceSyncTest extends TestCase
             'status' => LeadStatus::Approach,
         ]);
 
-        $salesPlan = $lead->salesPlan;
+        $salesPlan = $lead->refresh()->salesPlan;
 
         // Approved PA
         $pa = ProfitabilityAnalysis::create([

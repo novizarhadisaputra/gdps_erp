@@ -10,7 +10,7 @@
     @else
         <p>Please find the Work Completion Report (BAPP) for your project attached.</p>
         <p>
-            Report Number: {{ $report->report_number }}<br>
+            Report Number: {{ $report->number }}<br>
             Project: {{ $report->project?->name ?? 'N/A' }}
         </p>
         <p>Please review the document. If you have any questions, feel free to contact us.</p>

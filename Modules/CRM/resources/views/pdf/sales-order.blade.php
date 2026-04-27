@@ -48,7 +48,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Sales Order - {{ $record->so_number }}</title>
+    <title>Sales Order - {{ $record->number }}</title>
     <style>
         @page {
             margin: 1.5in 0.7in 1.5in 0.7in;
@@ -259,7 +259,7 @@
         <tr>
             <td class="title-box">
                 <h1>SALES ORDER / SURAT PESANAN</h1>
-                <p>{{ $record->so_number }}</p>
+                <p>{{ $record->number }}</p>
                 <div style="font-weight: normal; font-size: 9px;">Date: {{ $record->order_date->format('d F Y') }}</div>
             </td>
         </tr>

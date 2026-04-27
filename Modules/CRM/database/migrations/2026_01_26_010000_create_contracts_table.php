@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
             $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('set null');
             $table->foreignUuid('proposal_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('contract_number')->unique();
+            $table->string('number')->nullable()->unique();
             $table->string('type')->default('agreement'); // agreement, work_order
             $table->date('expiry_date')->nullable();
             $table->string('status')->default('draft'); // draft, active, expired, terminated

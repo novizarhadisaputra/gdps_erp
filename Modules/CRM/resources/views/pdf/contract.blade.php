@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Contract - {{ $record->contract_number }}</title>
+    <title>Contract - {{ $record->number }}</title>
     <style>
         @page {
             margin: 0;
@@ -163,7 +163,7 @@
             </div>
             <div class="document-type" style="float: right; width: 50%;">
                 <h1>CONTRACT</h1>
-                <p>{{ $record->contract_number }}</p>
+                <p>{{ $record->number }}</p>
                 <div style="font-size: 9px; color: #94a3b8; margin-top: 5px;">Date: {{ now()->format('d M Y') }}</div>
             </div>
             <div style="clear: both;"></div>
@@ -178,11 +178,11 @@
                 </tr>
                 <tr>
                     <th>Contract Number</th>
-                    <td class="info-value">{{ $record->contract_number }}</td>
+                    <td class="info-value">{{ $record->number }}</td>
                 </tr>
                 <tr>
                     <th>Reference Proposal</th>
-                    <td>{{ $record->proposal->proposal_number ?? '-' }}</td>
+                    <td>{{ $record->proposal->number ?? '-' }}</td>
                 </tr>
                 <tr>
                     <th>Expiry Date</th>

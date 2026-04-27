@@ -41,25 +41,54 @@
     $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
     $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
 
-    $latestAmendment = $record->salesOrder?->amendments()
-        ?->where('status', \Modules\CRM\Enums\SalesOrderAmendmentStatus::Approved)
-        ?->latest('sequence_number')
-        ?->first();
+    $source = $record->sourceable;
+    $sourceNumber = '-';
+    $displaySourceType = '';
+    $isInternal = false;
+
+    if ($source) {
+        if ($source instanceof \Modules\CRM\Models\SalesOrder) {
+            $isInternal = $source->type === \Modules\CRM\Enums\SalesOrderType::Internal;
+            $sourceNumber = $isInternal ? '-' : $source->number;
+            $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
+        } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
+            $sourceNumber = $source->number;
+            $displaySourceType = 'Purchase Order (PO)';
+        } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
+            $sourceNumber = $source->number;
+            $displaySourceType = 'Surat Perintah Kerja (SPK)';
+        } elseif ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
+            $sourceNumber = $source->number;
+            $displaySourceType = 'Perjanjian Kerja Sama (PKS)';
+        } elseif ($source instanceof \Modules\CRM\Models\MinutesOfAgreement) {
+            $sourceNumber = $source->number;
+            $displaySourceType = 'Memorandum of Agreement (MoA)';
+        } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
+            $sourceNumber = $source->number;
+            $displaySourceType = 'BAPP';
+        }
+    }
+
+    $latestAmendment = ($source instanceof \Modules\CRM\Models\SalesOrder) 
+        ? $source->amendments()->where('status', \Modules\CRM\Enums\SalesOrderAmendmentStatus::Approved)->latest('sequence_number')->first()
+        : null;
 
     // Signature Data
-    $pm = $record->salesOrder?->projectManager;
+    $pm = ($source instanceof \Modules\CRM\Models\SalesOrder) ? $source->projectManager : null;
     $pmName = $pm->name ?? '.....................';
     $pmTitle = $pm->position ?? 'Project Manager';
 
-    // Priority: Record specific fields -> SO config -> Customer first contact -> Fallback
+    // Priority: Record specific fields -> Source config -> Customer first contact -> Fallback
+    $sourceConfig = ($source instanceof \Modules\CRM\Models\SalesOrder) ? $source->content_config : [];
+    
     $customerContactName = $record->content_config['recipient_name'] 
-        ?? $record->salesOrder?->content_config['recipient_name'] 
+        ?? $sourceConfig['recipient_name'] 
         ?? null;
     $customerContactTitle = $record->content_config['recipient_title'] 
-        ?? $record->salesOrder?->content_config['recipient_title'] 
+        ?? $sourceConfig['recipient_title'] 
         ?? null;
     $customerContactGender = $record->content_config['recipient_gender'] 
-        ?? $record->salesOrder?->content_config['recipient_gender'] 
+        ?? $sourceConfig['recipient_gender'] 
         ?? null;
 
     if (!$customerContactName && !empty($record->customer?->contacts)) {
@@ -77,6 +106,73 @@
     $customerContactName = $customerContactName ?? '.....................';
     $customerContactDisplay = $salutation ? $salutation . ' ' . $customerContactName : $customerContactName;
     $customerContactTitle = $customerContactTitle ?? 'Jabatan';
+
+    // Bilingual Labels
+    $lang = $language ?? 'id';
+    $items = $record->getTranslation('items', $lang) ?? $record->items ?? [];
+    $tax_wording = $record->getTranslation('tax_wording', $lang) ?? $record->tax_wording ?? ($lang === 'id' ? 'Pelaksanaan pekerjaan di atas belum termasuk PPN 11%' : 'The above work execution does not include 11% VAT');
+
+    $labels = [
+        'title' => [
+            'id' => 'BERITA ACARA PENYELESAIAN PEKERJAAN',
+            'en' => 'WORK COMPLETION REPORT',
+        ],
+        'number' => [
+            'id' => 'Nomor',
+            'en' => 'Number',
+        ],
+        'period' => [
+            'id' => 'Periode',
+            'en' => 'Period',
+        ],
+        'page' => [
+            'id' => 'Halaman',
+            'en' => 'Page',
+        ],
+        'between' => [
+            'id' => 'Antara',
+            'en' => 'Between',
+        ],
+        'with' => [
+            'id' => 'Dengan',
+            'en' => 'And',
+        ],
+        'based_on' => [
+            'id' => 'Berdasarkan',
+            'en' => 'Based on',
+        ],
+        'completed_period' => [
+            'id' => 'telah diselesaikan pekerjaan untuk periode',
+            'en' => 'the work has been completed for the period',
+        ],
+        'until' => [
+            'id' => 'sampai dengan',
+            'en' => 'until',
+        ],
+        'summary_intro' => [
+            'id' => 'Ringkasan penyelesaian pekerjaan yang telah diselesaikan adalah sebagai berikut:',
+            'en' => 'The summary of work completion is as follows:',
+        ],
+        'table_no' => ['id' => 'No', 'en' => 'No'],
+        'table_desc' => ['id' => 'Deskripsi Item', 'en' => 'Item Description'],
+        'table_qty' => ['id' => 'Jml', 'en' => 'Qty'],
+        'table_unit' => ['id' => 'Satuan', 'en' => 'Unit'],
+        'table_price' => ['id' => 'Harga Satuan', 'en' => 'Unit Price'],
+        'table_total' => ['id' => 'Total Harga', 'en' => 'Total Price'],
+        'table_grand_total' => ['id' => 'Total Keseluruhan', 'en' => 'Grand Total'],
+        'closing_statement' => [
+            'id' => 'Demikian laporan ini dibuat untuk dipergunakan sebagai dokumen pendukung penagihan dan dapat dipertanggungjawabkan sebagaimana mestinya.',
+            'en' => 'This report is made to be used as a supporting document for billing and can be accounted for accordingly.',
+        ],
+        'proposed_by' => ['id' => 'Diajukan Oleh', 'en' => 'Proposed By'],
+        'received_by' => ['id' => 'Diterima Oleh', 'en' => 'Received By'],
+        'position' => ['id' => 'Jabatan', 'en' => 'Position'],
+        'source_so' => ['id' => 'Sales Order', 'en' => 'Sales Order'],
+        'source_internal' => ['id' => 'Memo Internal / ST', 'en' => 'Internal Memo / Assignment Letter'],
+    ];
+
+    $soType = $record->salesOrder?->type;
+    $isInternal = $soType === \Modules\CRM\Enums\SalesOrderType::Internal;
 @endphp
 
 <!DOCTYPE html>
@@ -84,7 +180,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>BAPP - {{ $record->report_number }}</title>
+    <title>BAPP - {{ $record->number }}</title>
     <style>
         @page {
             margin: 1.5in 0.7in 1.5in 0.7in;
@@ -140,7 +236,7 @@
         }
 
         .title-box {
-            text-align: right;
+            text-align: center;
             vertical-align: middle;
             padding-bottom: 5px;
         }
@@ -237,7 +333,7 @@
                 style="width: 100%; height: auto; display: block; margin: 0; padding: 0; border: none; vertical-align: bottom;">
         @endif
         <div style="position: absolute; bottom: 30px; right: 50px; color: #ffffff; font-size: 9px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
-            Halaman <span class="page-number"></span></div>
+            {{ $labels['page'][$lang] }} <span class="page-number"></span></div>
     </footer>
 
     <div class="doc-control">FR-UB-019 R.01</div>
@@ -245,49 +341,46 @@
     <table class="header-info-table">
         <tr>
             <td class="title-box">
-                <h1>BERITA ACARA PENYELESAIAN PEKERJAAN</h1>
-                <p>Nomor : {{ $record->report_number }}</p>
-                <div>Periode : {{ $record->service_period_start->format('F Y') }}</div>
+                <h1>{{ $labels['title'][$lang] }}</h1>
+                <p>{{ $labels['number'][$lang] }} : {{ $record->number }}</p>
+                <div>{{ $labels['period'][$lang] }} : {{ $record->service_period_start->translatedFormat('F Y') }}</div>
             </td>
         </tr>
     </table>
 
     <div style="margin-top: 10px; text-align: center;">
         <div style="margin: 10px 0;">
-            <div class="font-bold">Antara</div>
+            <div class="font-bold">{{ $labels['between'][$lang] }}</div>
             <div class="uppercase font-bold">{{ $record->customer->name ?? '-' }}</div>
-            <div class="font-bold">Dengan</div>
+            <div class="font-bold">{{ $labels['with'][$lang] }}</div>
             <div class="font-bold uppercase">PT GARUDA DAYA PRATAMA SEJAHTERA</div>
         </div>
     </div>
 
     <div class="content-section">
         <p>
-            Berdasarkan Perjanjian Kerja Sama Jasa
-            {{ $record->salesOrder->service_type ?? 'Penyediaan Jasa' }},
-            antara <strong>{{ $record->customer->name ?? '-' }}</strong> dan
-            <strong>PT Garuda Daya Pratama Sejahtera</strong>
-            Nomor: {{ $record->salesOrder->so_number ?? '-' }}
+            {{ $labels['based_on'][$lang] }} <strong>{{ $displaySourceType }}</strong>
+            {{ $labels['number'][$lang] }}: <strong>{{ $sourceNumber }}</strong>
             @if($latestAmendment)
-                (Adendum: {{ $latestAmendment->amendment_number }})
+                (Adendum: {{ $latestAmendment->number }})
             @endif
-            telah dilaksanakan pekerjaan untuk periode
-            <strong>{{ $record->service_period_start->format('d F Y') }}</strong> sampai dengan
-            <strong>{{ $record->service_period_end->format('d F Y') }}</strong>
-            dari PT Garuda Daya Pratama Sejahtera kepada {{ $record->customer->name ?? '-' }}.
+            {{ $labels['completed_period'][$lang] }}
+            <strong>{{ $record->service_period_start->translatedFormat('d F Y') }}</strong> {{ $labels['until'][$lang] }}
+            <strong>{{ $record->service_period_end->translatedFormat('d F Y') }}</strong>
+            {{ $lang === 'id' ? 'dari' : 'from' }} PT Garuda Daya Pratama Sejahtera {{ $lang === 'id' ? 'kepada' : 'to' }} {{ $record->customer->name ?? '-' }}.
         </p>
 
-        <p>Ringkasan pelaksanaan pekerjaan yang telah dilaksanakan adalah sebagai berikut:</p>
+        <p>{{ $labels['summary_intro'][$lang] }}</p>
 
         <table class="data-table">
             <thead>
                 <tr>
-                    <th width="5%">No</th>
-                    <th width="40%">Deskripsi Item</th>
-                    <th width="10%">Jml</th>
-                    <th width="10%">Satuan</th>
-                    <th width="17%">Harga Satuan (IDR)</th>
-                    <th width="18%">Total Harga (IDR)</th>
+                    <th width="5%">{{ $labels['table_no'][$lang] }}</th>
+                    <th width="40%">{{ $labels['table_desc'][$lang] }}</th>
+                    <th width="10%">{{ $labels['table_qty'][$lang] }}</th>
+                    <th width="10%">{{ $labels['table_unit'][$lang] }}</th>
+                    <th width="17%">{{ $labels['table_price'][$lang] }} (IDR)</th>
+                    <th width="18%">{{ $labels['table_total'][$lang] }} (IDR)</th>
                 </tr>
             </thead>
             <tbody>
@@ -308,41 +401,47 @@
             </tbody>
             <tfoot>
                 <tr class="font-bold">
-                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">Total Keseluruhan</td>
+                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">{{ $labels['table_grand_total'][$lang] }}</td>
                     <td class="text-right" style="background-color: #f2f2f2;">
                         {{ \Illuminate\Support\Number::currency($grandTotal, 'IDR', 'id') }}</td>
                 </tr>
             </tfoot>
         </table>
 
+        @if($tax_wording && $tax_wording !== '-')
         <p class="font-bold" style="font-style: italic;">
-            * Pelaksanaan pekerjaan di atas belum termasuk PPN 11%
+            * {{ $tax_wording }}
         </p>
+        @elseif($isInternal)
+        <p class="font-bold" style="font-style: italic;">
+            * -
+        </p>
+        @endif
 
         <p style="margin-top: 15px;">
-            Demikian laporan ini dibuat untuk dipergunakan sebagai dokumen pendukung penagihan dan dapat dipertanggungjawabkan sebagaimana mestinya.
+            {{ $labels['closing_statement'][$lang] }}
         </p>
     </div>
 
     <div class="signature-container">
         <div style="margin-bottom: 40px;">
-            Tangerang, {{ $record->document_date->format('d F Y') }}
+            Tangerang, {{ $record->document_date->translatedFormat('d F Y') }}
         </div>
 
         <div class="signature-block">
-            <div class="font-bold">Diajukan Oleh,</div>
+            <div class="font-bold">{{ $labels['proposed_by'][$lang] }},</div>
             <div class="font-bold uppercase">PT Garuda Daya Pratama Sejahtera</div>
             <div class="sig-space"></div>
             <div class="font-bold">( {{ $pmName }} )</div>
-            <div>Jabatan : {{ $pmTitle }}</div>
+            <div>{{ $labels['position'][$lang] }} : {{ $pmTitle }}</div>
         </div>
 
         <div class="signature-block">
-            <div class="font-bold">Diterima Oleh,</div>
+            <div class="font-bold">{{ $labels['received_by'][$lang] }},</div>
             <div class="font-bold uppercase">{{ $record->customer->name ?? '-' }}</div>
             <div class="sig-space"></div>
             <div class="font-bold">( {{ $customerContactDisplay }} )</div>
-            <div>Jabatan : {{ $customerContactTitle }}</div>
+            <div>{{ $labels['position'][$lang] }} : {{ $customerContactTitle }}</div>
         </div>
         <div style="clear: both;"></div>
     </div>

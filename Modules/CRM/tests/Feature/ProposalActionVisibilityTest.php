@@ -90,7 +90,9 @@ class ProposalActionVisibilityTest extends TestCase
     public function test_manual_approval_action(): void
     {
         $lead = Lead::factory()->create();
-        $user = User::factory()->create();
+        $user = User::factory()->create([
+            'signature_pin' => \Illuminate\Support\Facades\Hash::make('123456'),
+        ]);
         $this->actingAs($user);
 
         // Create a proposal in Submitted status
@@ -99,8 +101,16 @@ class ProposalActionVisibilityTest extends TestCase
             'status' => ProposalStatus::Submitted,
         ]);
 
-        // Verify that isFullyApproved returns true (default if no rules)
-        $this->assertTrue($proposal->isFullyApproved());
+        // Add an approval rule so that isFullyApproved returns false and the action is visible
+        \Modules\MasterData\Models\ApprovalRule::create([
+            'resource_type' => Proposal::class,
+            'approver_type' => 'User',
+            'approver_user_id' => [$user->id],
+            'signature_type' => 'Approver',
+            'is_active' => true,
+        ]);
+
+        $this->assertFalse($proposal->isFullyApproved());
 
         // Test visibility of Approve action
         Livewire::test(ViewProposal::class, [
@@ -110,8 +120,11 @@ class ProposalActionVisibilityTest extends TestCase
         ])
             ->assertActionVisible('Approve')
             ->assertActionHidden('sendEmail') // Not approved yet
-            ->callAction('Approve')
-            ->assertHasNoActionErrors();
+            ->callAction('Approve', ['pin' => '123456'])
+            ->assertHasNoActionErrors()
+            ->assertNotified();
+
+        $this->assertCount(1, $proposal->refresh()->signatures);
 
         // Verify status change
         $this->assertEquals(ProposalStatus::Approved, $proposal->refresh()->status);

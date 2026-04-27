@@ -23,6 +23,7 @@ class LeadObserver
     public function created(Lead $lead): void
     {
         $this->cache->flushCRM();
+        $this->handleStatusTransitions($lead);
     }
 
     /**
@@ -30,7 +31,7 @@ class LeadObserver
      */
     public function creating(Lead $lead): void
     {
-        $lead->status = LeadStatus::Lead;
+        $lead->status = $lead->status ?? LeadStatus::Lead;
         $lead->confidence_level = $lead->confidence_level ?? ConfidenceLevel::Pessimistic;
         $lead->position = Lead::max('position') + 1;
 
@@ -79,67 +80,61 @@ class LeadObserver
                 }
             }
 
-            if (! $lead->wasChanged('status')) {
-                return;
-            }
-
-            switch ($lead->status) {
-                case LeadStatus::Lead:
-                    break;
-
-                case LeadStatus::Approach:
-                    // Auto-create SalesPlan if it doesn't exist
-                    if (! $lead->salesPlan) {
-                        $lead->salesPlan()->create([
-                            'revenue_segment_id' => $lead->revenue_segment_id,
-                            'product_cluster_id' => $lead->product_cluster_id,
-                            'project_type_id' => $lead->project_type_id,
-                            'industrial_sector_id' => $lead->industrial_sector_id,
-                            'project_area_id' => $lead->project_area_id,
-                            'estimated_value' => $lead->estimated_amount ?? 0,
-                            'confidence_level' => $lead->confidence_level ?? ConfidenceLevel::Moderate,
-                            'job_positions' => $lead->job_positions,
-                            'start_date' => $lead->start_date ?? now(),
-                            'end_date' => $lead->end_date ?? now()->addYear(),
-                        ]);
-                    }
-
-                    activity()
-                        ->performedOn($lead)
-                        ->log('Lead moved to Approach. Sales Plan draft created/synced.');
-                    break;
-
-                case LeadStatus::Proposal:
-                    // We no longer automatically create a draft proposal here.
-                    // Proposals are created either via "Create Proposal" (from PA)
-                    // or via "Manual Upload" in the Lead Proposals page.
-                    break;
-
-                case LeadStatus::Negotiation:
-                    // 4. Negotiation: Validasi minimal 1 Proposal
-                    // Validasi idealnya di UI Action.
-                    break;
-
-                case LeadStatus::Won:
-                    // 5. Won: Create Draft Contract
-
-                    if ($lead->contracts()->count() === 0) {
-                        $lead->contracts()->create([
-                            'customer_id' => $lead->customer_id,
-                            'start_date' => now(),
-                            'end_date' => now()->addYear(),
-                            'amount' => $lead->estimated_amount,
-                            'status' => 'draft', // Assuming draft is valid
-                            // Other fields...
-                        ]);
-                    }
-                    break;
-
-                case LeadStatus::ClosedLost:
-                    // 6. Closed Lost
-                    break;
+            if ($lead->wasChanged('status')) {
+                $this->handleStatusTransitions($lead);
             }
         });
+    }
+
+    protected function handleStatusTransitions(Lead $lead): void
+    {
+        switch ($lead->status) {
+            case LeadStatus::Lead:
+                break;
+
+            case LeadStatus::Approach:
+                // Auto-create SalesPlan if it doesn't exist
+                if (! $lead->salesPlan) {
+                    $lead->salesPlan()->create([
+                        'revenue_segment_id' => $lead->revenue_segment_id,
+                        'product_cluster_id' => $lead->product_cluster_id,
+                        'project_type_id' => $lead->project_type_id,
+                        'industrial_sector_id' => $lead->industrial_sector_id,
+                        'project_area_id' => $lead->project_area_id,
+                        'estimated_value' => $lead->estimated_amount ?? 0,
+                        'confidence_level' => $lead->confidence_level ?? ConfidenceLevel::Moderate,
+                        'job_positions' => $lead->job_positions,
+                        'start_date' => $lead->start_date ?? now(),
+                        'end_date' => $lead->end_date ?? now()->addYear(),
+                    ]);
+                }
+
+                activity()
+                    ->performedOn($lead)
+                    ->log('Lead moved to Approach. Sales Plan draft created/synced.');
+                break;
+
+            case LeadStatus::Proposal:
+                break;
+
+            case LeadStatus::Negotiation:
+                break;
+
+            case LeadStatus::Won:
+                if ($lead->contracts()->count() === 0) {
+                    $lead->contracts()->create([
+                        'customer_id' => $lead->customer_id,
+                        'start_date' => now(),
+                        'end_date' => now()->addYear(),
+                        'amount' => $lead->estimated_amount,
+                        'status' => 'draft',
+                    ]);
+                }
+                break;
+
+            case LeadStatus::ClosedLost:
+                break;
+        }
     }
 
     /**

@@ -20,7 +20,7 @@ class SalesOrderAmendmentFactory extends Factory
     {
         return [
             'sales_order_id' => SalesOrder::factory(),
-            'amendment_number' => $this->faker->unique()->word,
+            'number' => $this->faker->unique()->word,
             'amendment_date' => $this->faker->date(),
             'status' => 'draft',
         ];

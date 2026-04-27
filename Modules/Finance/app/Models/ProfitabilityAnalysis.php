@@ -48,7 +48,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'document_number',
+        'number',
         'lead_id',
         'customer_id',
         'general_information_id',

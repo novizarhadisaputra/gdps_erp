@@ -34,7 +34,7 @@ class EditProfitabilityAnalysis extends EditRecord
             $leadResource::getUrl() => $leadResource::getBreadcrumb(),
             $leadResource::getUrl('view', ['record' => $lead]) => $lead?->title ?? 'Lead',
             $resource::getUrl('index', ['lead' => $lead]) => $resource::getBreadcrumb(),
-            '#' => $record->document_number ?? 'PA',
+            '#' => $record->number ?? 'PA',
         ];
     }
 }

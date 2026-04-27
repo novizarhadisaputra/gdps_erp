@@ -29,7 +29,7 @@ class SalesOrder extends Model implements HasMedia
     use HasDigitalSignatures, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia, SoftDeletes;
 
     protected $fillable = [
-        'so_number',
+        'number',
         'order_date',
         'project_id',
         'proposal_id',

@@ -29,7 +29,7 @@
                         </div>
                         <div
                             style="font-family: monospace; font-size: 10px; color: #94a3b8; text-transform: uppercase;">
-                            {{ $record->document_number }}</div>
+                            {{ $record->number }}</div>
                     </td>
                 </tr>
             </table>
@@ -59,13 +59,13 @@
                         <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Project
                             Ref</span>
                         <span
-                            class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ $record->project_number ?? 'PENDING' }}</span>
+                            class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ $record->project?->number ?? 'PENDING' }}</span>
                     </div>
                     <div class="flex justify-between items-baseline border-b border-gray-100 dark:border-gray-800 pb-1">
                         <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Proposal
                             No</span>
                         <span
-                            class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ $record->proposal?->proposal_number ?? 'NOT ASSIGNED' }}</span>
+                            class="text-xs font-bold text-gray-800 dark:text-gray-200">{{ $record->proposal?->number ?? 'NOT ASSIGNED' }}</span>
                     </div>
                     <div class="flex justify-between items-baseline border-b border-gray-100 dark:border-gray-800 pb-1">
                         <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Currency</span>

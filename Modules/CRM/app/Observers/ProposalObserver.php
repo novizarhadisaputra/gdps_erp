@@ -17,7 +17,7 @@ class ProposalObserver
     public function creating(Proposal $proposal): void
     {
         // For manual uploads or reference proposals, skip automatic numbering
-        if (filled($proposal->proposal_number)) {
+        if (filled($proposal->number)) {
             return;
         }
 
@@ -33,7 +33,7 @@ class ProposalObserver
 
         $proposal->year = $year;
         $proposal->sequence_number = $sequence;
-        $proposal->proposal_number = sprintf('GDPS/UB/PROP-%03d/%s', $sequence, $shortYear);
+        $proposal->number = sprintf('GDPS/UB/PROP-%03d/%s', $sequence, $shortYear);
 
         // Naming convention: Customer Name + Proposal
         if (! $proposal->title || $proposal->title === 'New Proposal') {
@@ -105,8 +105,8 @@ class ProposalObserver
 
             $proposal->updateQuietly([
                 'revision_number' => $newRevisionNumber,
-                'previous_code' => $proposal->proposal_number,
-                'proposal_number' => $newNumber,
+                'previous_code' => $proposal->number,
+                'number' => $newNumber,
             ]);
 
             // Downgrade Lead status to Approach (Revision stage)
@@ -137,13 +137,13 @@ class ProposalObserver
     {
         if ($proposal->lead && $proposal->lead->salesPlan) {
             $proposal->lead->salesPlan->updateQuietly([
-                'proposal_number' => $proposal->proposal_number,
+                'proposal_number' => $proposal->number,
                 'estimated_value' => $proposal->amount,
             ]);
 
             // Sync to monthly as well
             $proposal->lead->salesPlan->monthlyBreakdowns()->update([
-                'proposal_number' => $proposal->proposal_number,
+                'proposal_number' => $proposal->number,
             ]);
         }
 

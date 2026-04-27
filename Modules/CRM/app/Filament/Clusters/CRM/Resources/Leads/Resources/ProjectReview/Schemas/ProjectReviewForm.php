@@ -35,17 +35,17 @@ class ProjectReviewForm
                             ->schema([
                                 Select::make('general_information_id')
                                     ->label('General Information')
-                                    ->options(fn ($get) => GeneralInformation::where('lead_id', $get('lead_id'))->pluck('document_number', 'id'))
+                                    ->options(fn ($get) => GeneralInformation::where('lead_id', $get('lead_id'))->pluck('number', 'id'))
                                     ->searchable()
                                     ->placeholder('Select GI'),
                                 Select::make('profitability_analysis_id')
                                     ->label('Profitability Analysis')
-                                    ->options(fn ($get) => ProfitabilityAnalysis::where('lead_id', $get('lead_id'))->pluck('document_number', 'id'))
+                                    ->options(fn ($get) => ProfitabilityAnalysis::where('lead_id', $get('lead_id'))->pluck('number', 'id'))
                                     ->searchable()
                                     ->placeholder('Select PA'),
                                 Select::make('proposal_id')
                                     ->label('Proposal')
-                                    ->options(fn ($get) => Proposal::where('lead_id', $get('lead_id'))->pluck('proposal_number', 'id'))
+                                    ->options(fn ($get) => Proposal::where('lead_id', $get('lead_id'))->pluck('number', 'id'))
                                     ->searchable()
                                     ->placeholder('Select Proposal'),
                             ]),

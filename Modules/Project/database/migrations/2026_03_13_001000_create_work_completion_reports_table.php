@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports', function (Blueprint $blueprint) {
             $blueprint->uuid('id')->primary();
             $blueprint->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->onDelete('cascade');
-            $blueprint->foreignUuid('sales_order_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'sales_orders' : 'crm.sales_orders')->onDelete('set null');
             $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
+            $blueprint->uuidMorphs('sourceable');
 
-            $blueprint->string('report_number')->unique();
+            $blueprint->string('number')->unique();
             $blueprint->integer('sequence_number')->nullable();
             $blueprint->integer('year')->nullable();
             $blueprint->date('document_date');
@@ -26,8 +26,9 @@ return new class extends Migration
             $blueprint->date('service_period_end');
 
             $blueprint->decimal('work_progress_percentage', 5, 2)->default(100.00);
-            $blueprint->text('description')->nullable();
+            $blueprint->jsonb('description')->nullable();
             $blueprint->jsonb('items')->nullable();
+            $blueprint->jsonb('tax_wording')->nullable();
             $blueprint->decimal('total_amount', 15, 2)->default(0);
 
             $blueprint->string('status')->default('draft');

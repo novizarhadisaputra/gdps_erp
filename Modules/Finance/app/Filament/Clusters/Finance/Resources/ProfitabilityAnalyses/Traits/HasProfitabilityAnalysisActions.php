@@ -362,8 +362,8 @@ trait HasProfitabilityAnalysisActions
                     ->columnSpanFull(),
                 TextInput::make('project_name_override')
                     ->label('Project Name (Optional)')
-                    ->placeholder('Example: Proposal '.($record?->proposal?->proposal_number ?? '...'))
-                    ->default(fn ($record) => $record?->proposal?->proposal_number ?? 'Project for '.$record?->customer?->name),
+                    ->placeholder('Example: Proposal '.($record?->proposal?->number ?? '...'))
+                    ->default(fn ($record) => $record?->proposal?->number ?? 'Project for '.$record?->customer?->name),
             ])
             ->action(function ($record, array $data) {
                 if (! $this->validateProfitability($record)) {
@@ -447,7 +447,7 @@ trait HasProfitabilityAnalysisActions
                 try {
                     DB::transaction(function () use ($record, &$newRecord) {
                         $newRecord = $record->replicate([
-                            'document_number',
+                            'number',
                             'year',
                             'sequence_number',
                             'status',
@@ -458,12 +458,6 @@ trait HasProfitabilityAnalysisActions
                         $newRecord->status = ProfitabilityAnalysisStatus::Draft;
                         $newRecord->save();
 
-                        // Duplicate items
-                        foreach ($record->items as $item) {
-                            $newItem = $item->replicate(['profitability_analysis_id']);
-                            $newItem->profitability_analysis_id = $newRecord->id;
-                            $newItem->save();
-                        }
 
                         // Copy media (TOR, RFP, RFQ)
                         foreach (['tor', 'rfp', 'rfq'] as $collection) {
@@ -676,7 +670,7 @@ trait HasProfitabilityAnalysisActions
                 if ($result instanceof \Modules\CRM\Models\SalesOrder) {
                     Notification::make()
                         ->title('Sales Order Generated')
-                        ->body("Sales Order: {$result->so_number}")
+                        ->body("Sales Order: {$result->number}")
                         ->success()
                         ->actions([
                             Action::make('view_so')
@@ -688,7 +682,7 @@ trait HasProfitabilityAnalysisActions
                 } elseif ($result instanceof SalesOrderAmendment) {
                     Notification::make()
                         ->title('Sales Order Amendment Created')
-                        ->body("Amendment No: {$result->amendment_number}")
+                        ->body("Amendment No: {$result->number}")
                         ->success()
                         ->actions([
                             Action::make('view_so')

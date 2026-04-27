@@ -30,7 +30,7 @@
                 <div class="prose max-w-none">
                     <div
                         style="font-family: sans-serif; line-height: 1.6; color: #333; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-                        <h2 style="color: #2563eb; margin-top: 0;">Sales Order - {{ $record->so_number }}</h2>
+                        <h2 style="color: #2563eb; margin-top: 0;">Sales Order - {{ $record->number }}</h2>
 
                         <p>Dear {{ $data['recipient_name'] ?? $record->customer?->name }},</p>
 
@@ -39,7 +39,7 @@
                                 {{ \Filament\Forms\Components\RichEditor\RichContentRenderer::make($data['message']) }}
                             </div>
                         @else
-                           <p>A new Sales Order #{{ $record->so_number }} has been generated for your review.</p>
+                           <p>A new Sales Order #{{ $record->number }} has been generated for your review.</p>
                         @endif
 
                         <p>Please review the document details and contact our representative for any further actions.</p>
@@ -53,7 +53,7 @@
                 <div class="mt-8 pt-4 border-t border-dashed">
                     <div class="flex items-center gap-2 text-sm text-gray-400 italic">
                         <x-filament::icon icon="heroicon-m-paper-clip" class="h-4 w-4" />
-                        <span>so-{{ str_replace(['/', '\\'], '-', $record->so_number) }}.pdf</span>
+                        <span>so-{{ str_replace(['/', '\\'], '-', $record->number) }}.pdf</span>
                     </div>
                 </div>
             </div>

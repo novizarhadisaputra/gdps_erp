@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'sales_orders' : 'crm.sales_orders', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('so_number')->unique();
+            $table->string('number')->unique();
             $table->date('order_date');
 
             $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects');

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('document_number')->nullable()->unique();
+            $table->string('number')->nullable()->unique();
             $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
             $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('set null');
             $table->foreignUuid('general_information_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'general_informations' : 'crm.general_informations')->onDelete('set null');

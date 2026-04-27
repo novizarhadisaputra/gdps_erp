@@ -17,7 +17,7 @@ class GeneralInformationTable
     {
         return $table
             ->columns([
-                TextColumn::make('document_number')
+                TextColumn::make('number')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.name')

@@ -2,20 +2,20 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Tables;
 
+use App\Services\AnalyticsCacheService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Grid;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Utilities\Set;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
-use App\Services\AnalyticsCacheService;
 
 class ProfitabilityAnalysisMonthliesTable
 {
@@ -62,7 +62,7 @@ class ProfitabilityAnalysisMonthliesTable
                         ->label('Update Performance')
                         ->icon('heroicon-o-pencil-square')
                         ->color('warning')
-                        ->form([
+                        ->schema([
                             Grid::make(2)
                                 ->schema([
                                     TextInput::make('forecast_revenue')
@@ -84,12 +84,12 @@ class ProfitabilityAnalysisMonthliesTable
                                             'class' => (float) $state >= 0 ? 'text-success-600 dark:text-success-400 font-bold' : 'text-danger-600 dark:text-danger-400 font-bold',
                                         ])
                                         ->dehydrated(false),
-                                    
+
                                     TextInput::make('actual_revenue')
                                         ->label('Actual Revenue')
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR ')
-                                        ->disabled(fn () => !auth()->user()->can('UpdateActual:Finance')) // Authorization check
+                                        ->disabled(fn () => ! auth()->user()->can('UpdateActual:Finance')) // Authorization check
                                         ->live()
                                         ->afterStateUpdated(function ($state, $record, Set $set) {
                                             $oldValue = (float) $record->actual_revenue;
@@ -115,7 +115,7 @@ class ProfitabilityAnalysisMonthliesTable
                         ->action(function (array $data, ProfitabilityAnalysisMonthly $record): void {
                             $oldForecast = (float) $record->forecast_revenue;
                             $newForecast = (float) $data['forecast_revenue'];
-                            
+
                             $oldActual = (float) $record->actual_revenue;
                             $newActual = (float) ($data['actual_revenue'] ?? $oldActual);
 
@@ -133,7 +133,7 @@ class ProfitabilityAnalysisMonthliesTable
                             $cache->forget('crm.team_performance');
                         })
                         ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft),
-                    
+
                     Action::make('finalize')
                         ->label('Finalize Performance')
                         ->icon('heroicon-o-check-circle')

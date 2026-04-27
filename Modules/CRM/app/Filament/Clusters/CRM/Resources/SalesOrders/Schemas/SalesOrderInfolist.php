@@ -25,7 +25,7 @@ class SalesOrderInfolist
                             ->schema([
                                 Grid::make(2)
                                     ->schema([
-                                        TextEntry::make('so_number')
+                                        TextEntry::make('number')
                                             ->label('SO Number')
                                             ->weight(FontWeight::Bold)
                                             ->copyable(),
@@ -38,7 +38,7 @@ class SalesOrderInfolist
                                         TextEntry::make('project.code')
                                             ->label('Referenced Project')
                                             ->color('primary'),
-                                        TextEntry::make('proposal.proposal_number')
+                                        TextEntry::make('proposal.number')
                                             ->label('Referenced Proposal')
                                             ->color('primary'),
                                         TextEntry::make('customer.name')

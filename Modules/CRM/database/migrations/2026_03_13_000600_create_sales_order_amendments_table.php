@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'sales_order_amendments' : 'crm.sales_order_amendments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('sales_order_id')->constrained(config('database.default') === 'sqlite' ? 'sales_orders' : 'crm.sales_orders')->onDelete('cascade');
-            $table->string('amendment_number')->unique();
+            $table->string('number')->unique();
             $table->date('amendment_date');
             $table->text('reason')->nullable();
 

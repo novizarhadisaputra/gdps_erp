@@ -34,7 +34,7 @@ class ProjectForm
         return [
             Section::make('Project Details')
                 ->schema([
-                    TextEntry::make('code')
+                    TextEntry::make('number')
                         ->label('Project Code Preview')
                         ->state(function (Get $get): string {
                             $customer = Customer::find($get('customer_id'))?->code ?? 'UNK';

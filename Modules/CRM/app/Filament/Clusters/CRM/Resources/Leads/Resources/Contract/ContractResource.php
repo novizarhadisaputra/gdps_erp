@@ -23,6 +23,8 @@ class ContractResource extends Resource
     protected static bool $isNested = true;
 
     protected static ?string $parentResource = LeadResource::class;
+    
+    protected static ?string $parentRouteParameterName = 'lead';
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPencilSquare;
 

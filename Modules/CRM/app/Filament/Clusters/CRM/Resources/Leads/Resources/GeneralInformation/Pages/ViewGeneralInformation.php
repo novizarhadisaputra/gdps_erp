@@ -41,7 +41,7 @@ class ViewGeneralInformation extends ViewRecord
                     ->action(function () {
                         $record = $this->getRecord();
                         $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
-                        $name = Str::slug($record->document_number, '-');
+                        $name = Str::slug($record->number, '-');
 
                         return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$name}.pdf");
                     }),

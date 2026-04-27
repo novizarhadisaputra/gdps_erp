@@ -25,7 +25,7 @@ class SalesOrderAmendment extends Model implements HasMedia
 
     protected $fillable = [
         'sales_order_id',
-        'amendment_number',
+        'number',
         'amendment_date',
         'reason',
         'before_snapshot',

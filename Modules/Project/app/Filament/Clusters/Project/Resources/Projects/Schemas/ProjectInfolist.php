@@ -20,7 +20,7 @@ class ProjectInfolist
                     ->schema([
                         Grid::make(3)
                             ->schema([
-                                TextEntry::make('code')
+                                TextEntry::make('number')
                                     ->label('Project Code')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('name')

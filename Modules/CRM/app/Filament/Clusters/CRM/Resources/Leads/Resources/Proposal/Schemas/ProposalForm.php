@@ -303,7 +303,7 @@ class ProposalForm
                     ->schema([
                         Section::make('Identification')
                             ->schema([
-                                TextInput::make('proposal_number')
+                                TextInput::make('number')
                                     ->label('Proposal #')
                                     ->prefixIcon('heroicon-o-hashtag')
                                     ->placeholder('Auto-generated')
@@ -312,7 +312,7 @@ class ProposalForm
                                     ->disabled()
                                     ->dehydrated()
                                     ->copyable()
-                                    ->unique(Proposal::class, 'proposal_number', ignoreRecord: true),
+                                    ->unique(Proposal::class, 'number', ignoreRecord: true),
 
                                 DatePicker::make('submission_date')
                                     ->label('Submission Date')

@@ -13,7 +13,7 @@
                 </div>
                 <div class="text-right">
                     <p class="text-xs text-gray-400">Report Number</p>
-                    <p class="text-sm font-bold text-blue-600">{{ $report->report_number }}</p>
+                    <p class="text-sm font-bold text-blue-600">{{ $report->number }}</p>
                     <p class="text-xs text-gray-400 mt-1">{{ now()->format('d M Y') }}</p>
                 </div>
             </div>

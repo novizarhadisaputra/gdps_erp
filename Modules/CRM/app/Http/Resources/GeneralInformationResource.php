@@ -14,7 +14,7 @@ class GeneralInformationResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'document_number' => $this->document_number,
+            'number' => $this->number,
             'name' => $this->scope_of_work,
             'customer' => [
                 'id' => $this->customer_id,

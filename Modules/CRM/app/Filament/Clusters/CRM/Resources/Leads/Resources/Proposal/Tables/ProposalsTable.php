@@ -2,21 +2,24 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Tables;
 
-use Filament\Actions\Action;
-use Filament\Support\Icons\Heroicon;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ProposalStatus;
+use Modules\CRM\Models\Customer;
+use Modules\CRM\Models\Proposal;
 
 class ProposalsTable
 {
@@ -24,15 +27,14 @@ class ProposalsTable
     {
         return $table
             ->columns([
+                TextColumn::make('number')
+                    ->label('Proposal Number')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('title')
+                    ->searchable()
+                    ->limit(30),
                 TextColumn::make('customer.name')
-                    ->label('Customer')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('workScheme.name')
-                    ->label('Scheme')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('proposal_number')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('amount')
@@ -43,11 +45,15 @@ class ProposalsTable
                 TextColumn::make('submission_date')
                     ->date()
                     ->sortable(),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('customer_id')
-                    ->relationship('customer', 'name')
                     ->label('Customer')
+                    ->options(Customer::pluck('name', 'id'))
                     ->searchable()
                     ->preload(),
                 SelectFilter::make('status')
@@ -55,29 +61,33 @@ class ProposalsTable
                 TrashedFilter::make(),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
+                ActionGroup::make([
                     ViewAction::make()
-                        ->url(fn($record) => route('filament.admin.crm.resources.leads.proposals.view', [
+                        ->url(fn (Proposal $record) => route('filament.admin.crm.resources.leads.proposals.view', [
                             'record' => $record,
                             'lead' => $record->lead_id,
                         ])),
-                    Action::make('Revise')
+                    EditAction::make()
+                        ->url(fn (Proposal $record) => route('filament.admin.crm.resources.leads.proposals.edit', [
+                            'record' => $record,
+                            'lead' => $record->lead_id,
+                        ])),
+                    \Filament\Actions\Action::make('Revise')
                         ->label('Revise')
                         ->icon(Heroicon::OutlinedArrowPath)
                         ->color('warning')
                         ->requiresConfirmation()
                         ->modalDescription('Are you sure you want to revise this proposal? This will reset the status to Draft and allow you to modify the Profitability Analysis costing.')
-                        ->action(fn($record) => $record->update(['status' => \Modules\CRM\Enums\ProposalStatus::Draft]))
-                        ->visible(fn($record) => $record->status === \Modules\CRM\Enums\ProposalStatus::Submitted || $record->status === 'submitted'),
+                        ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Draft]))
+                        ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
                     RestoreAction::make(),
                     DeleteAction::make(),
                     ForceDeleteAction::make(),
                 ])
                 ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                ->color('gray'),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     RestoreBulkAction::make(),
                     ForceDeleteBulkAction::make(),

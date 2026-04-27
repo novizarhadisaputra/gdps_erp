@@ -220,7 +220,7 @@
             </div>
             <div class="document-type" style="float: right; width: 40%;">
                 <h1 style="font-size: 18px;">PROJECT REVIEW</h1>
-                <p style="color: #2563eb; font-weight: bold;">{{ $record->document_number }}</p>
+                <p style="color: #2563eb; font-weight: bold;">{{ $record->number }}</p>
                 <div style="font-size: 9px; color: #94a3b8; margin-top: 8px;">
                     Date: {{ now()->format('d M Y') }}<br>
                     REF: {{ $record->lead?->reference_no ?? 'N/A' }}
@@ -255,7 +255,7 @@
             <table>
                 <tr>
                     <th>Document Number</th>
-                    <td class="info-value">{{ $record->generalInformation->document_number }}</td>
+                    <td class="info-value">{{ $record->generalInformation->number }}</td>
                 </tr>
                 <tr>
                     <th>Customer Area</th>
@@ -311,7 +311,7 @@
             <table>
                 <tr>
                     <th>Document Number</th>
-                    <td class="info-value">{{ $record->profitabilityAnalysis->document_number }}</td>
+                    <td class="info-value">{{ $record->profitabilityAnalysis->number }}</td>
                     <th>Margin Approved</th>
                     <td class="info-value" style="{{ $record->profitabilityAnalysis->is_margin_approved ? 'color: #059669;' : 'color: #d97706;' }}">
                         {{ $record->profitabilityAnalysis->is_margin_approved ? 'YES' : 'PENDING' }}

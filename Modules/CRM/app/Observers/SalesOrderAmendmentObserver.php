@@ -12,7 +12,7 @@ class SalesOrderAmendmentObserver
      */
     public function creating(SalesOrderAmendment $amendment): void
     {
-        if (filled($amendment->amendment_number)) {
+        if (filled($amendment->number)) {
             return;
         }
 
@@ -42,17 +42,17 @@ class SalesOrderAmendmentObserver
         // Let's extract the "GDPS/UB/SO-NNN" part if possible, or just build it.
         // The user example matches: [SO_PART]/AMAND/[SEQ]/[YY]
 
-        $soNumberParts = explode('/', $salesOrder->so_number);
+        $soNumberParts = explode('/', $salesOrder->number);
         // SO Format: GDPS/UB/SO-001/25
         // Parts: [0=>GDPS, 1=>UB, 2=>SO-001, 3=>25]
         
         if (count($soNumberParts) >= 4) {
             $basePart = implode('/', array_slice($soNumberParts, 0, 3)); // GDPS/UB/SO-001
             $soYear = $soNumberParts[3]; // 25
-            $amendment->amendment_number = sprintf('%s/AMAND/%02d/%s', $basePart, $sequence, $soYear);
+            $amendment->number = sprintf('%s/AMAND/%02d/%s', $basePart, $sequence, $soYear);
         } else {
             // Fallback: If SO number is shorter or different format
-            $amendment->amendment_number = sprintf('%s/AMAND/%02d/%s', $salesOrder->so_number, $sequence, $shortYear);
+            $amendment->number = sprintf('%s/AMAND/%02d/%s', $salesOrder->number, $sequence, $shortYear);
         }
     }
 

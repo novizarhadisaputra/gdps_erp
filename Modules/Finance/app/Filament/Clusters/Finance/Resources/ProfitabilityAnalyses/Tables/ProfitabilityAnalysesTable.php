@@ -31,12 +31,12 @@ class ProfitabilityAnalysesTable
 
         return $table
             ->columns([
-                TextColumn::make('document_number')
+                TextColumn::make('number')
                     ->label('Document No.')
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('proposal.proposal_number')
+                TextColumn::make('proposal.number')
                     ->label('Proposal')
                     ->searchable()
                     ->sortable(),

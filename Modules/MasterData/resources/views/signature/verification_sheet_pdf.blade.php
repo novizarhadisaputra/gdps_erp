@@ -226,7 +226,7 @@
                 <tr>
                     <td class="info-item" width="50%">
                         <span class="info-label">Nomor Registrasi</span>
-                        <span class="info-value">{{ $document->document_number ?? $document->id }}</span>
+                        <span class="info-value">{{ $document->number ?? $document->id }}</span>
                     </td>
                     <td class="info-item" width="50%">
                         <span class="info-label">Tipe Dokumen</span>

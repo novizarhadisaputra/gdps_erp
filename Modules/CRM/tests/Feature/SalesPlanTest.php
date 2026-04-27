@@ -86,16 +86,12 @@ class SalesPlanTest extends TestCase
 
     public function test_proposal_syncs_number_to_sales_plan(): void
     {
-        $salesPlan = SalesPlan::create([
-            'lead_id' => $this->lead->id,
-            'confidence_level' => 'moderate',
-            'priority_level' => 2,
-        ]);
+        $salesPlan = $this->lead->refresh()->salesPlan;
 
         $proposal = Proposal::create([
             'lead_id' => $this->lead->id,
             'customer_id' => $this->customer->id,
-            'proposal_number' => 'PROP-001',
+            'number' => 'PROP-001',
             'amount' => 1000000,
             'status' => 'submitted',
         ]);
@@ -106,16 +102,12 @@ class SalesPlanTest extends TestCase
 
     public function test_project_syncs_code_to_sales_plan(): void
     {
-        $salesPlan = SalesPlan::create([
-            'lead_id' => $this->lead->id,
-            'confidence_level' => 'moderate',
-            'priority_level' => 2,
-        ]);
+        $salesPlan = $this->lead->refresh()->salesPlan;
 
         $project = Project::create([
             'lead_id' => $this->lead->id,
             'customer_id' => $this->customer->id,
-            'code' => 'PROJ-999',
+            'number' => 'PROJ-999',
             'name' => 'Project Alpha',
             'status' => 'active',
         ]);
@@ -126,16 +118,12 @@ class SalesPlanTest extends TestCase
 
     public function test_contract_creation_auto_links_to_sales_plan(): void
     {
-        $salesPlan = SalesPlan::create([
-            'lead_id' => $this->lead->id,
-            'confidence_level' => 'moderate',
-            'priority_level' => 2,
-        ]);
+        $salesPlan = $this->lead->refresh()->salesPlan;
 
         $proposal = Proposal::create([
             'lead_id' => $this->lead->id,
             'customer_id' => $this->customer->id,
-            'proposal_number' => 'PROP-XYZ',
+            'number' => 'PROP-XYZ',
             'amount' => 1000000,
             'status' => 'submitted',
         ]);
@@ -144,7 +132,7 @@ class SalesPlanTest extends TestCase
             'lead_id' => $this->lead->id,
             'customer_id' => $this->customer->id,
             'proposal_id' => $proposal->id,
-            'contract_number' => 'WO-001',
+            'number' => 'WO-001',
             'type' => ContractType::WorkOrder,
             'status' => 'draft',
         ]);

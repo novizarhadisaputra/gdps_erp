@@ -17,7 +17,7 @@ class ProjectsTable
     {
         return $table
             ->columns([
-                TextColumn::make('code')
+                TextColumn::make('number')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('name')

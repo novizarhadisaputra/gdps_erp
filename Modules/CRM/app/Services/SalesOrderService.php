@@ -40,7 +40,7 @@ class SalesOrderService
             ->first();
 
         if ($existing) {
-            $latestAmendment = $existing->amendments()->orderBy('amendment_number', 'desc')->first();
+            $latestAmendment = $existing->amendments()->orderBy('number', 'desc')->first();
             $currentRevision = $latestAmendment ? $latestAmendment->after_snapshot['pa_revision_number'] ?? 0 : ($existing->content_config['pa_revision_number'] ?? 0);
 
             if (($analysis->revision_number ?? 0) > $currentRevision) {
@@ -93,7 +93,7 @@ class SalesOrderService
         ];
 
         $values = [
-            'so_number' => $soNumber,
+            'number' => $soNumber,
             'order_date' => now(),
             'customer_id' => $analysis->customer_id,
             'type' => SalesOrderType::Internal,
@@ -167,12 +167,12 @@ class SalesOrderService
             'pa_revision_number' => $analysis->revision_number ?? 0,
         ];
 
-        $latest = $so->amendments()->orderBy('amendment_number', 'desc')->first();
-        $nextNumber = ($latest?->amendment_number ?? 0) + 1;
+        $latest = $so->amendments()->orderBy('number', 'desc')->first();
+        $nextNumber = ($latest?->number ?? 0) + 1;
 
         return SalesOrderAmendment::create([
             'sales_order_id' => $so->id,
-            'amendment_number' => $nextNumber,
+            'number' => $nextNumber,
             'amendment_date' => now(),
             'reason' => "Automatic amendment based on PA Revision #{$analysis->revision_number}",
             'status' => SalesOrderAmendmentStatus::Draft,
@@ -206,6 +206,6 @@ class SalesOrderService
             }
         }
 
-        throw new \Exception("Cannot create Sales Order: No Proposal found for PA {$analysis->document_number}. A Proposal must be created before a Sales Order can be generated.");
+        throw new \Exception("Cannot create Sales Order: No Proposal found for PA {$analysis->number}. A Proposal must be created before a Sales Order can be generated.");
     }
 }

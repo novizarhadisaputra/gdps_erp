@@ -46,7 +46,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Sales Order Amendment #{{ $record->amendment_number }} - {{ $record->salesOrder->so_number }}</title>
+    <title>Sales Order Amendment #{{ $record->number }} - {{ $record->salesOrder->number }}</title>
     <style>
         @page {
             margin: 1.5in 0.7in 1.5in 0.7in;
@@ -238,7 +238,7 @@
         <tr>
             <td class="title-box">
                 <h1>SALES ORDER AMENDMENT (SOA)</h1>
-                <p>No: {{ $record->amendment_number }}</p>
+                <p>No: {{ $record->number }}</p>
                 <div style="font-weight: normal; font-size: 9px;">Date: {{ $record->amendment_date->format('d F Y') }}
                 </div>
             </td>
@@ -249,7 +249,7 @@
     <table class="meta-table">
         <tr>
             <td class="bg-gray">Original SO No.</td>
-            <td class="bg-white">{{ $record->salesOrder->so_number }}</td>
+            <td class="bg-white">{{ $record->salesOrder->number }}</td>
             <td class="bg-gray">Project Code</td>
             <td class="bg-white">{{ $record->salesOrder->project->code ?? '-' }}</td>
         </tr>

@@ -31,7 +31,7 @@ class SignatureVerificationController extends Controller
                 'type' => $result['type'],
             ]);
 
-            $filename = 'Verification_'.($model->document_number ? Str::slug($model->document_number, '_') : $model->id).'.pdf';
+            $filename = 'Verification_'.($model->number ? Str::slug($model->number, '_') : $model->id).'.pdf';
 
             return $pdf->download($filename);
         }

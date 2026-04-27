@@ -24,9 +24,9 @@ class PAApprovalTransitionTest extends TestCase
             'status' => ProfitabilityAnalysisStatus::Draft,
         ]);
 
-        // 2. Action: Approve the PA
+        // 2. Action: Approve the PA margin
         $pa->update([
-            'status' => ProfitabilityAnalysisStatus::Approved,
+            'is_margin_approved' => true,
         ]);
 
         // 3. Assertions
@@ -44,9 +44,9 @@ class PAApprovalTransitionTest extends TestCase
             'status' => ProfitabilityAnalysisStatus::Draft,
         ]);
 
-        // 2. Action: Approve the PA
+        // 2. Action: Approve the PA margin
         $pa->update([
-            'status' => ProfitabilityAnalysisStatus::Approved,
+            'is_margin_approved' => true,
         ]);
 
         // 3. Assertions: Should stay in Negotiation

@@ -7,7 +7,7 @@
         </tr>
         <tr>
             <td colspan="3" style="text-align: center; font-weight: bold; height: 20pt;">
-                No : {{ $data['header']['document_number'] }}</td>
+                No : {{ $data['header']['number'] }}</td>
         </tr>
         <tr>
             <th colspan="3"></th>

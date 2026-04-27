@@ -21,7 +21,7 @@ class SalesOrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'so_number' => $this->faker->unique()->word,
+            'number' => $this->faker->unique()->bothify('GDPS/UB/SO-###/??'),
             'order_date' => $this->faker->date(),
             'project_id' => Project::factory(),
             'proposal_id' => Proposal::factory(),

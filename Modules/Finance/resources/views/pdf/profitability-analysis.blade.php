@@ -8,7 +8,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Profitability Analysis Summary - {{ $record->document_number }}</title>
+    <title>Profitability Analysis Summary - {{ $record->number }}</title>
     <style>
         @page {
             margin: 0;
@@ -160,7 +160,7 @@
             </div>
             <div class="document-type" style="float: right; width: 50%;">
                 <h1>PROFITABILITY ANALYSIS</h1>
-                <p>{{ $record->document_number }}</p>
+                <p>{{ $record->number }}</p>
                 <div style="font-size: 9px; color: #94a3b8; margin-top: 5px;">Date: {{ now()->format('d M Y') }}</div>
             </div>
             <div style="clear: both;"></div>

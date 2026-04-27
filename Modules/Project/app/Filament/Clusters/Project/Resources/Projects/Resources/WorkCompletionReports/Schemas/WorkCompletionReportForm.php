@@ -4,6 +4,7 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
@@ -18,7 +19,6 @@ use Modules\CRM\Models\SalesOrder;
 use Modules\MasterData\Enums\Gender;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\Project;
-use Modules\Project\Models\WorkCompletionReport;
 
 class WorkCompletionReportForm
 {
@@ -46,14 +46,17 @@ class WorkCompletionReportForm
                                     ->downloadable()
                                     ->openable()
                                     ->helperText('Upload the scanned document that has been signed by both parties.')
-                                    ->required(fn ($get) => $get('status') === WorkCompletionStatus::Submitted->value),
+                                    ->required(fn (Get $get) => 
+                                        $get('status') === WorkCompletionStatus::Submitted->value && 
+                                        $get('so_type') !== \Modules\CRM\Enums\SalesOrderType::Internal->value
+                                    ),
                             ]),
                     ])->columnSpanFull()
                     ->collapsible(),
 
                 Section::make('Report Details')
                     ->schema([
-                        TextInput::make('report_number')
+                        TextInput::make('number')
                             ->disabled()
                             ->dehydrated(false)
                             ->placeholder('Auto-generated'),
@@ -74,6 +77,96 @@ class WorkCompletionReportForm
                     ])->columns(2)
                     ->collapsible(),
 
+                Section::make('Source Document')
+                    ->description('Select the primary document this BAPP is based on.')
+                    ->schema([
+                        MorphToSelect::make('sourceable')
+                            ->label('Reference Document')
+                            ->types([
+                                MorphToSelect\Type::make(\Modules\CRM\Models\SalesOrder::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\PurchaseOrder::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\WorkOrder::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\CooperationAgreement::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\CRM\Models\MinutesOfAgreement::class)
+                                    ->titleAttribute('number')
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                MorphToSelect\Type::make(\Modules\Project\Models\WorkCompletionReport::class)
+                                    ->titleAttribute('number'),
+                            ])
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                if (!$state) return;
+
+                                [$modelClass, $id] = explode(':', $state);
+                                $source = $modelClass::find($id);
+
+                                if (!$source) return;
+
+                                if (isset($source->customer_id)) {
+                                    $set('customer_id', $source->customer_id);
+                                }
+
+                                if ($source instanceof \Modules\CRM\Models\SalesOrder) {
+                                    $set('so_type', $source->type->value);
+                                    
+                                    $manpower = $source->content_config['manpower_details'] ?? [];
+                                    $operational = $source->content_config['items'] ?? [];
+                                    $mfRate = (float) ($source->management_fee_percentage ?? 0);
+
+                                    $calculateRevenue = function ($cost) use ($mfRate) {
+                                        if ($mfRate >= 100) return $cost * 1.15;
+                                        return $cost / (1 - ($mfRate / 100));
+                                    };
+
+                                    $items = [];
+                                    foreach ($manpower as $mp) {
+                                        $price = $calculateRevenue((float)($mp['unit_cost'] ?? 0));
+                                        $items[] = [
+                                            'item_name' => $mp['job_position_name'] ?? 'Personnel',
+                                            'quantity' => $mp['quantity'] ?? 0,
+                                            'uom' => $mp['uom'] ?? 'Person',
+                                            'unit_price' => $price,
+                                            'total_price' => $price * ($mp['quantity'] ?? 0),
+                                            'so_reference' => $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? '-' : $source->number,
+                                        ];
+                                    }
+
+                                    foreach ($operational as $op) {
+                                        $price = $calculateRevenue((float)($op['unit_cost'] ?? 0));
+                                        $items[] = [
+                                            'item_name' => $op['item_name'] ?? 'Item',
+                                            'quantity' => $op['quantity'] ?? 0,
+                                            'uom' => $op['uom'] ?? 'Unit',
+                                            'unit_price' => $price,
+                                            'total_price' => $price * ($op['quantity'] ?? 0),
+                                            'so_reference' => $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? '-' : $source->number,
+                                        ];
+                                    }
+
+                                    $set('items', $items);
+                                    $set('tax_percentage', $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? 0 : 11);
+                                    $set('tax_wording', $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? ['id' => '-', 'en' => '-'] : ['id' => 'Pelaksanaan pekerjaan di atas belum termasuk PPN 11%', 'en' => 'The above work execution does not include 11% VAT']);
+                                } else {
+                                    $set('so_type', 'External');
+                                    if (isset($source->items)) {
+                                        $set('items', $source->items);
+                                    }
+                                }
+                            })
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible(),
+
                 Section::make('Customer Signatory')
                     ->description('Select or manually enter the person who will sign this BAPP from the customer side.')
                     ->schema([
@@ -81,15 +174,16 @@ class WorkCompletionReportForm
                             ->label('Customer Contact Reference')
                             ->options(function (Get $get) {
                                 $customerId = $get('customer_id');
-                                if (!$customerId) {
+                                if (! $customerId) {
                                     return [];
                                 }
                                 $customer = Customer::find($customerId);
-                                if (!$customer || empty($customer->contacts)) {
+                                if (! $customer || empty($customer->contacts)) {
                                     return [];
                                 }
+
                                 return collect($customer->contacts)
-                                    ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'] . ' (' . ($contact['position'] ?? $contact['job_position'] ?? 'No Position') . ')'])
+                                    ->mapWithKeys(fn ($contact, $index) => [$index => $contact['name'].' ('.($contact['position'] ?? $contact['job_position'] ?? 'No Position').')'])
                                     ->toArray();
                             })
                             ->live()
@@ -98,11 +192,11 @@ class WorkCompletionReportForm
                                     return;
                                 }
                                 $customerId = $get('customer_id');
-                                if (!$customerId) {
+                                if (! $customerId) {
                                     return;
                                 }
                                 $customer = Customer::find($customerId);
-                                if (!$customer || empty($customer->contacts)) {
+                                if (! $customer || empty($customer->contacts)) {
                                     return;
                                 }
                                 $contact = $customer->contacts[$state] ?? null;
@@ -129,11 +223,11 @@ class WorkCompletionReportForm
                             ])
                             ->createOptionUsing(function (array $data, Get $get) {
                                 $customerId = $get('customer_id');
-                                if (!$customerId) {
+                                if (! $customerId) {
                                     return null;
                                 }
                                 $customer = Customer::find($customerId);
-                                if (!$customer) {
+                                if (! $customer) {
                                     return null;
                                 }
 
@@ -195,73 +289,12 @@ class WorkCompletionReportForm
 
                 Section::make('Additional Information')
                     ->schema([
-                        Select::make('sales_order_id')
-                            ->label('Sales Order')
-                            ->options(SalesOrder::all()->pluck('so_number', 'id'))
-                            ->searchable()
-                            ->live()
-                            ->afterStateUpdated(function ($state, $set) {
-                                if (! $state) {
-                                    return;
-                                }
-
-                                $so = SalesOrder::with(['proposal.profitabilityAnalysis'])->find($state);
-                                if ($so && $so->proposal && $so->proposal->profitabilityAnalysis) {
-                                    $pa = $so->proposal->profitabilityAnalysis;
-
-                                    $manpower = $pa->manpower_requirements ?? [];
-                                    $operational = $pa->financial_assumptions['operational_costs'] ?? [];
-                                    $mfRate = (float) ($pa->management_fee_rate ?? 0);
-                                    
-                                    // Use the standard GPM formula: Revenue = Cost / (1 - Margin)
-                                    // This matches the calculation logic in ProfitabilityAnalysisForm.php
-                                    $calculateRevenue = function ($cost) use ($mfRate) {
-                                        if ($mfRate >= 100) {
-                                            return $cost * 1.15; // Fallback safety
-                                        }
-                                        return $cost / (1 - ($mfRate / 100));
-                                    };
-
-                                    $items = [];
-
-                                    foreach ($manpower as $mp) {
-                                        $baseUnitPrice = (float) ($mp['unit_cost'] ?? 0);
-                                        $markupUnitPrice = $calculateRevenue($baseUnitPrice);
-                                        
-                                        $items[] = [
-                                            'item_name' => $mp['job_position_name'] ?? 'Personnel',
-                                            'quantity' => $mp['quantity'] ?? 0,
-                                            'uom' => $mp['uom'] ?? 'Person',
-                                            'unit_price' => $markupUnitPrice,
-                                            'total_price' => $markupUnitPrice * ($mp['quantity'] ?? 0),
-                                            'so_reference' => $so->so_number,
-                                        ];
-                                    }
-
-                                    foreach ($operational as $op) {
-                                        $baseUnitPrice = (float) ($op['unit_cost'] ?? 0);
-                                        $markupUnitPrice = $calculateRevenue($baseUnitPrice);
-
-                                        $items[] = [
-                                            'item_name' => $op['item_name'] ?? 'Item',
-                                            'quantity' => $op['quantity'] ?? 0,
-                                            'uom' => $op['uom'] ?? 'Unit',
-                                            'unit_price' => $markupUnitPrice,
-                                            'total_price' => $markupUnitPrice * ($op['quantity'] ?? 0),
-                                            'so_reference' => $so->so_number,
-                                        ];
-                                    }
-
-                                    $set('items', $items);
-
-                                    // Also sync customer from SO
-                                    if ($so->customer_id) {
-                                        $set('customer_id', $so->customer_id);
-                                    }
-                                }
-                            }),
+                        TextInput::make('so_type')
+                            ->hidden()
+                            ->dehydrated(false),
                         Textarea::make('description')
-                            ->columnSpanFull(),
+                            ->columnSpanFull()
+                            ->translatable(),
                     ])->columns(2)
                     ->collapsible(),
 
@@ -307,7 +340,8 @@ class WorkCompletionReportForm
                             ])
                             ->columnSpanFull()
                             ->reorderable()
-                            ->addActionLabel('Add Manual Entry'),
+                            ->addActionLabel('Add Manual Entry')
+                            ->translatable(),
                     ])->collapsible(),
 
                 Section::make('Total')
@@ -320,6 +354,26 @@ class WorkCompletionReportForm
                             ->readonly()
                             ->live()
                             ->afterStateHydrated(fn ($set, $get) => $set('total_amount', collect($get('items'))->sum('total_price'))),
+                    ]),
+
+                Section::make('Tax Configuration')
+                    ->schema([
+                        Grid::make(4)->schema([
+                            TextInput::make('tax_percentage')
+                                ->label('PPN (%)')
+                                ->numeric()
+                                ->default(11)
+                                ->suffix('%')
+                                ->required()
+                                ->live(),
+                            TextInput::make('tax_wording')
+                                ->label('Tax Statement (Free Text)')
+                                ->placeholder('e.g. Pelaksanaan pekerjaan di atas belum termasuk PPN 11%')
+                                ->default('Pelaksanaan pekerjaan di atas belum termasuk PPN 11%')
+                                ->columnSpan(3)
+                                ->required()
+                                ->translatable(),
+                        ]),
                     ]),
             ]);
     }

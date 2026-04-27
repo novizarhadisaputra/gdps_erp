@@ -29,6 +29,8 @@ class ProposalResource extends Resource
     protected static ?string $slug = 'proposals';
 
     protected static ?string $parentResource = LeadResource::class;
+    
+    protected static ?string $parentRouteParameterName = 'lead';
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentText;
 

@@ -31,7 +31,7 @@ class SendSalesOrder extends Page
         $this->record = $this->resolveRecord($record);
 
         $this->form->fill([
-            'subject' => 'Sales Order - '.$this->record->so_number,
+            'subject' => 'Sales Order - '.$this->record->number,
             'recipient_email' => $this->record->customer?->email,
             'recipient_name' => $this->record->customer?->name,
             'message' => '<p>A new Sales Order has been generated for your review.</p><p>Please find the details and contact our representative for any further actions.</p>',
@@ -133,7 +133,7 @@ class SendSalesOrder extends Page
             // 2. Log sending attempt
             Log::info('Sales Order Email Sending Attempt', [
                 'so_id' => $this->record->id,
-                'so_number' => $this->record->so_number,
+                'number' => $this->record->number,
                 'recipient' => $formData['recipient_email'],
             ]);
 

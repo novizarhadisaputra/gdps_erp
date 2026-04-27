@@ -47,13 +47,13 @@ class RiskRegisterWebhookController extends Controller
             'rr_payload' => $request->all(),
         ]);
 
-        Log::info("Risk Register Webhook processed for GI: {$gi->document_number}, Status: {$gi->rr_status}");
+        Log::info("Risk Register Webhook processed for GI: {$gi->number}, Status: {$gi->rr_status}");
 
         // 3. Trigger Strict Approval Check
         // If RR is approved, check if we can fully approve the GI (signatures must also be ready)
         if ($gi->rr_status === GeneralInformationStatus::Approved->value && $gi->isFullyApproved()) {
             $gi->update(['status' => GeneralInformationStatus::Approved]);
-            Log::info("General Information {$gi->document_number} fully APPROVED via Webhook.");
+            Log::info("General Information {$gi->number} fully APPROVED via Webhook.");
         }
 
         return $this->success([

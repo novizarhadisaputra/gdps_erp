@@ -15,7 +15,7 @@ class ProjectReviewTable
     {
         return $table
             ->columns([
-                TextColumn::make('document_number')
+                TextColumn::make('number')
                     ->label('Review Code')
                     ->searchable()
                     ->sortable()
@@ -25,15 +25,15 @@ class ProjectReviewTable
                     ->label('Lead / Company')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('generalInformation.document_number')
+                TextColumn::make('generalInformation.number')
                     ->label('GI #')
                     ->placeholder('-')
                     ->searchable(),
-                TextColumn::make('profitabilityAnalysis.document_number')
+                TextColumn::make('profitabilityAnalysis.number')
                     ->label('PA #')
                     ->placeholder('-')
                     ->searchable(),
-                TextColumn::make('proposal.proposal_number')
+                TextColumn::make('proposal.number')
                     ->label('Proposal #')
                     ->placeholder('-')
                     ->searchable(),

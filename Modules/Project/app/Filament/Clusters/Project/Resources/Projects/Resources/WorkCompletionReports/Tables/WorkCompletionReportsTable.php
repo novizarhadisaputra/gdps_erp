@@ -2,7 +2,12 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Tables;
 
-use Filament\Actions;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -15,7 +20,7 @@ class WorkCompletionReportsTable
     {
         return $table
             ->columns([
-                TextColumn::make('report_number')
+                TextColumn::make('number')
                     ->label('Report Number')
                     ->searchable()
                     ->sortable(),
@@ -51,17 +56,19 @@ class WorkCompletionReportsTable
                     ->options(WorkCompletionStatus::class),
             ])
             ->recordActions([
-                Actions\ActionGroup::make([
-                    Actions\ViewAction::make(),
-                    Actions\EditAction::make(),
-                    Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make()
+                        ->visible(fn ($record) => $record->status === WorkCompletionStatus::Draft),
+                    DeleteAction::make()
+                        ->visible(fn ($record) => $record->status === WorkCompletionStatus::Draft),
                 ])
-                    ->icon(Heroicon::EllipsisVertical)
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->tooltip('Actions'),
             ])
-            ->toolbarActions([
-                Actions\BulkActionGroup::make([
-                    Actions\DeleteBulkAction::make(),
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'projects' : 'project.projects', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('code')->unique();
+            $table->string('number')->nullable()->unique();
             $table->string('name');
             $table->string('status')->default('planning');
             $table->decimal('progress_percentage', 5, 2)->default(0);

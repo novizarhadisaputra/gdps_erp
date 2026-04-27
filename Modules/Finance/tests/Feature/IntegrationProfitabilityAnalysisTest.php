@@ -58,7 +58,7 @@ class IntegrationProfitabilityAnalysisTest extends TestCase
         $customer = Customer::factory()->create();
         $lead = Lead::factory()->create(['customer_id' => $customer->id]);
         $gi = GeneralInformation::factory()->create([
-            'document_number' => 'GI/TEST/001',
+            'rr_document_number' => 'GI/TEST/001',
             'customer_id' => $customer->id,
             'lead_id' => $lead->id,
             'status' => 'draft',

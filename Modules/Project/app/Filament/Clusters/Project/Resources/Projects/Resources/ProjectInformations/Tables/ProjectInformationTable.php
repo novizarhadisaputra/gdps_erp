@@ -5,6 +5,8 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources
 use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -52,8 +54,8 @@ class ProjectInformationTable
                                 ->label('Digital Signature')
                                 ->color('primary')
                                 ->icon(Heroicon::OutlinedPencilSquare)
-                                ->form([
-                                    \Filament\Forms\Components\TextInput::make('pin')
+                                ->schema([
+                                    TextInput::make('pin')
                                         ->label('Signature PIN')
                                         ->password()
                                         ->required()
@@ -63,7 +65,7 @@ class ProjectInformationTable
                                     $service = app(SignatureService::class);
 
                                     if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                                        \Filament\Notifications\Notification::make()
+                                        Notification::make()
                                             ->title('PIN Salah')
                                             ->danger()
                                             ->send();
@@ -77,7 +79,7 @@ class ProjectInformationTable
                                     $matchingRule = $required->firstWhere('approver_role', $userRole);
 
                                     if (! $matchingRule) {
-                                        \Filament\Notifications\Notification::make()
+                                        Notification::make()
                                             ->title('Akses Ditolak')
                                             ->body('Peran Anda tidak diperlukan untuk menandatangani dokumen ini pada tahap ini.')
                                             ->warning()
@@ -87,7 +89,7 @@ class ProjectInformationTable
                                     }
 
                                     if ($record->hasSignatureFrom($userRole)) {
-                                        \Filament\Notifications\Notification::make()
+                                        Notification::make()
                                             ->title('Sudah Ditandatangani')
                                             ->body('Anda sudah menandatangani dokumen ini.')
                                             ->warning()
@@ -104,7 +106,7 @@ class ProjectInformationTable
                                     // Notify next approvers
                                     $service->notifyNextApprovers($record);
 
-                                    \Filament\Notifications\Notification::make()
+                                    Notification::make()
                                         ->title('Dokumen Berhasil Ditandatangani')
                                         ->success()
                                         ->send();

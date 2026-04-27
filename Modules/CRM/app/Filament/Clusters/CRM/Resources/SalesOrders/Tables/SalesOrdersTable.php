@@ -20,7 +20,7 @@ class SalesOrdersTable
     {
         return $table
             ->columns([
-                TextColumn::make('so_number')
+                TextColumn::make('number')
                     ->label('SO Number')
                     ->searchable()
                     ->sortable(),
@@ -56,7 +56,7 @@ class SalesOrdersTable
                         ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft),
                 ]),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

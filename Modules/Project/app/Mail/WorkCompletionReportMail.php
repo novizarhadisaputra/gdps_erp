@@ -24,7 +24,7 @@ class WorkCompletionReportMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->customSubject ?? 'Work Completion Report (BAPP) - '.$this->report->report_number,
+            subject: $this->customSubject ?? 'Work Completion Report (BAPP) - '.$this->report->number,
         );
     }
 
@@ -51,7 +51,7 @@ class WorkCompletionReportMail extends Mailable
         } else {
             // Fallback to generated PDF if no media uploaded
             $pdf = Pdf::loadView('project::pdf.work_completion_report', ['record' => $this->report]);
-            $filename = str_replace(['/', '\\'], '-', $this->report->report_number);
+            $filename = str_replace(['/', '\\'], '-', $this->report->number);
             $attachments[] = Attachment::fromData(fn () => $pdf->output(), "BAPP-{$filename}.pdf")
                 ->withMime('application/pdf');
         }

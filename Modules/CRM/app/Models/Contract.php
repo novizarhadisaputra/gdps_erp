@@ -26,7 +26,7 @@ class Contract extends Model implements HasMedia
         'lead_id',
         'customer_id',
         'proposal_id',
-        'contract_number',
+        'number',
         'type',
         'expiry_date',
         'status',

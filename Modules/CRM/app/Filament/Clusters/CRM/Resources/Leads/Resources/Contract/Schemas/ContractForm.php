@@ -42,7 +42,7 @@ class ContractForm
                         ->editOptionForm(CustomerForm::schema())
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('proposal_id')
-                        ->relationship('proposal', 'proposal_number')
+                        ->relationship('proposal', 'number')
                         ->searchable()
                         ->preload()
                         ->live()
@@ -59,10 +59,10 @@ class ContractForm
                             }
                             $set('customer_id', $proposal->customer_id);
                         }),
-                    TextInput::make('contract_number')
+                    TextInput::make('number')
                         ->required()
                         ->hiddenOn('create')
-                        ->unique(Contract::class, 'contract_number', ignoreRecord: true)
+                        ->unique(Contract::class, 'number', ignoreRecord: true)
                         ->placeholder('GDPS/UB/CON-001/26')
                         ->helperText('Format: GDPS/UB/CON-001/26'),
                     Select::make('type')

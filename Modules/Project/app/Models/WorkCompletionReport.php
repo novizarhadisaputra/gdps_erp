@@ -11,26 +11,32 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Traits\HasDigitalSignatures;
-use Modules\CRM\Models\CommunicationLog;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Observers\WorkCompletionReportObserver;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
 
 #[ObservedBy(WorkCompletionReportObserver::class)]
 class WorkCompletionReport extends Model implements HasMedia
 {
-    use HasDigitalSignatures, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia, SoftDeletes;
+    use HasDigitalSignatures, HasFactory, HasModuleSchema, HasTranslations, HasUuids, InteractsWithMedia, SoftDeletes;
+
+    public array $translatable = [
+        'description',
+        'tax_wording',
+        'items',
+    ];
 
     protected $fillable = [
         'project_id',
-        'sales_order_id',
         'customer_id',
-        'report_number',
+        'number',
         'sequence_number',
         'year',
         'document_date',
@@ -41,7 +47,10 @@ class WorkCompletionReport extends Model implements HasMedia
         'items',
         'total_amount',
         'status',
-        'content_config',
+        'sourceable_id',
+        'sourceable_type',
+        'tax_percentage',
+        'tax_wording',
     ];
 
     protected function casts(): array
@@ -51,20 +60,21 @@ class WorkCompletionReport extends Model implements HasMedia
             'service_period_start' => 'date',
             'service_period_end' => 'date',
             'work_progress_percentage' => 'decimal:2',
+            'tax_percentage' => 'decimal:2',
             'items' => 'array',
             'status' => WorkCompletionStatus::class,
             'content_config' => 'array',
         ];
     }
 
+    public function sourceable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
-    }
-
-    public function salesOrder(): BelongsTo
-    {
-        return $this->belongsTo(SalesOrder::class);
     }
 
     public function customer(): BelongsTo

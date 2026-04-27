@@ -16,14 +16,14 @@ return new class extends Migration
             $table->foreignUuid('lead_id')->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
             $table->foreignUuid('proposal_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals')->onDelete('set null');
             $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
-            $table->string('moa_number')->unique();
+            $table->string('number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, cancelled
             $table->date('negotiation_date')->nullable();
-            $table->text('notes')->nullable();
-            $table->text('scope_of_work')->nullable();
-            $table->text('timeline')->nullable();
-            $table->text('terms')->nullable();
+            $table->jsonb('notes')->nullable();
+            $table->jsonb('scope_of_work')->nullable();
+            $table->jsonb('timeline')->nullable();
+            $table->jsonb('terms')->nullable();
             $table->timestamps();
         });
     }

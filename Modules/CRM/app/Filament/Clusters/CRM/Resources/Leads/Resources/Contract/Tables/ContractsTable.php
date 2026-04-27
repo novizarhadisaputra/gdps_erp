@@ -25,10 +25,10 @@ class ContractsTable
                     ->label('Customer')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('contract_number')
+                TextColumn::make('number')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('proposal.proposal_number')
+                TextColumn::make('proposal.number')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('status')
@@ -53,7 +53,7 @@ class ContractsTable
                         ->action(function (Contract $record) {
                             $renewal = $record->replicate();
                             $renewal->status = ContractStatus::Draft;
-                            $renewal->contract_number = $renewal->contract_number . '-RENEW';
+                            $renewal->number = $renewal->number . '-RENEW';
                             $renewal->save();
 
                             Notification::make()
@@ -74,7 +74,7 @@ class ContractsTable
                             if ($project) {
                                 Notification::make()
                                     ->title('Project Created Successfully')
-                                    ->body("Project {$project->code} has been created and initialized.")
+                                    ->body("Project {$project->number} has been created and initialized.")
                                     ->success()
                                     ->send();
                             } else {

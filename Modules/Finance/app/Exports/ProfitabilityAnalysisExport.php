@@ -11,7 +11,6 @@ use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\Finance\Models\ProfitabilityAnalysisItem;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\ApprovalRule;
@@ -47,7 +46,7 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
 
         $sections = [
             'header' => [
-                'document_number' => $pa->document_number ?? '-',
+                'number' => $pa->number ?? '-',
                 'ams' => $pa->lead?->salesPlan?->ams?->name ?? $pa->ams?->name ?? $pa->lead?->ams?->name ?? '-',
                 'customer' => $pa->customer?->name ?? '-',
                 'project_name' => $pa->lead?->title ?? '-',
@@ -127,56 +126,9 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
                          (isset($item->is_manpower) && $item->is_manpower);
 
             if ($isManpower) {
-                // If we have detailed breakdown items, process them.
-                // For 'Manual Cost' PA, this might be a flat amount.
-                if ($item instanceof ProfitabilityAnalysisItem) {
-                    $costable = $item->costable;
-                    $allowances = [];
-                    if ($costable instanceof JobPosition) {
-                        foreach ($costable->fixedAllowances ?? [] as $allowance) {
-                            $allowances[] = ['name' => $allowance->name, 'type' => 'nominal', 'value' => (float) $allowance->pivot->amount, 'is_fixed' => true];
-                        }
-                        foreach ($costable->nonFixedAllowances ?? [] as $allowance) {
-                            $allowances[] = ['name' => $allowance->name, 'type' => 'nominal', 'value' => (float) $allowance->pivot->amount, 'is_fixed' => false];
-                        }
-                    }
-
-                    $calculation = $service->calculate(
-                        basicSalary: (float) $item->unit_cost_price,
-                        allowances: $allowances,
-                        projectAreaId: $pa->project_area_id,
-                        year: (int) ($pa->year ?? date('Y')),
-                        riskLevel: $item->risk_level ?? $costable->risk_level ?? 'very_low',
-                        isLaborIntensive: (bool) ($item->is_labor_intensive ?? $costable->is_labor_intensive ?? false),
-                        ptkpCode: $item->ptkpConfig?->code ?? 'TK/0'
-                    );
-
-                    $name = $costable->name ?? 'Unknown';
-                    $isTeamLeader = str_contains(strtolower($name), 'leader') || str_contains(strtolower($name), 'tl');
-
-                    $target = $isTeamLeader ? 'team_leader' : 'base';
-                    $sections['direct_cost']['manpower'][$target]['qty'] += $qty;
-                    $sections['direct_cost']['manpower'][$target]['amount'] += ((float) $item->unit_cost_price + collect($calculation['allowances']['fixed'] ?? [])->sum('value')) * $qty;
-
-                    $sections['direct_cost']['manpower']['variable']['qty'] = $qty.' MP';
-                    $sections['direct_cost']['manpower']['variable']['amount'] += collect($calculation['allowances']['non_fixed'] ?? [])->sum('value') * $qty;
-
-                    $benefitValue = ($calculation['bpjs_health']['employer_contribution'] ?? 0) +
-                                   ($calculation['bpjs_employment']['jkk'] ?? 0) +
-                                   ($calculation['bpjs_employment']['jkm'] ?? 0) +
-                                   ($calculation['bpjs_employment']['jht_employer'] ?? 0) +
-                                   ($calculation['bpjs_employment']['jp_employer'] ?? 0) +
-                                   ($calculation['accruals']['thr'] ?? 0) +
-                                   ($calculation['accruals']['bonus'] ?? 0) +
-                                   ($calculation['pph21']['monthly_tax'] ?? 0);
-
-                    $sections['direct_cost']['manpower']['benefit']['qty'] = $qty.' MP';
-                    $sections['direct_cost']['manpower']['benefit']['amount'] += $benefitValue * $qty;
-                } else {
-                    // Fallback for manual cost entries that are flat amounts
-                    $sections['direct_cost']['manpower']['base']['qty'] += $qty;
-                    $sections['direct_cost']['manpower']['base']['amount'] += $amount;
-                }
+                // Fallback for manual cost entries that are flat amounts
+                $sections['direct_cost']['manpower']['base']['qty'] += $qty;
+                $sections['direct_cost']['manpower']['base']['amount'] += $amount;
             } else {
                 // Operational Cost Grouping
                 $matchedKey = 'Others';
@@ -343,6 +295,6 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
 
     public function title(): string
     {
-        return 'Profitability Analysis - '.($this->record->document_number ?? $this->record->id);
+        return 'Profitability Analysis - '.($this->record->number ?? $this->record->id);
     }
 }

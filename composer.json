@@ -26,6 +26,7 @@
         "league/flysystem-aws-s3-v3": "^3.0",
         "leandrocfe/filament-apex-charts": "^4.0",
         "mwguerra/filemanager": "^0.1",
+        "outerweb/filament-translatable-fields": "^4.1",
         "pxlrbt/filament-excel": "^3.4",
         "relaticle/flowforge": "^3.0",
         "saade/filament-laravel-log": "^4.0",

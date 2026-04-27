@@ -175,7 +175,7 @@
             </div>
             <div class="document-type" style="float: right; width: 50%;">
                 <h1>GENERAL INFORMATION</h1>
-                <p>{{ $record->document_number ?? '-' }}</p>
+                <p>{{ $record->number ?? '-' }}</p>
                 <div style="font-size: 9px; color: #94a3b8; margin-top: 5px;">Date: {{ now()->format('d M Y') }}</div>
             </div>
             <div style="clear: both;"></div>

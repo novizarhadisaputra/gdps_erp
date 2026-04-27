@@ -2,7 +2,6 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
@@ -13,11 +12,14 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
+use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Traits\HasInvoiceActions;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Services\SignatureService;
 
 class ViewInvoice extends ViewRecord
 {
+    use HasInvoiceActions;
+
     protected static string $resource = InvoiceResource::class;
 
     protected function getHeaderActions(): array
@@ -179,18 +181,7 @@ class ViewInvoice extends ViewRecord
                             ->danger()
                             ->send();
                     }),
-                Action::make('pdf')
-                    ->label('Export PDF')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->action(function (Invoice $record) {
-                        $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $record]);
-                        $filename = str_replace(['/', '\\'], '-', $record->invoice_number);
-
-                        return response()->streamDownload(
-                            fn () => print ($pdf->output()),
-                            "invoice-{$filename}.pdf"
-                        );
-                    }),
+                $this->getExportPdfAction(),
                 Action::make('sendEmail')
                     ->label(fn (Invoice $record) => $record->status === InvoiceStatus::Sent ? 'Resend Email' : 'Send Email')
                     ->icon('heroicon-o-envelope')
@@ -198,10 +189,10 @@ class ViewInvoice extends ViewRecord
                     ->visible(fn (Invoice $record) => in_array($record->status, [InvoiceStatus::Approved, InvoiceStatus::Sent, InvoiceStatus::Partial, InvoiceStatus::Overdue]))
                     ->url(fn (Invoice $record) => InvoiceResource::getUrl('send', ['record' => $record])),
             ])
-            ->label('Actions')
-            ->icon('heroicon-m-ellipsis-vertical')
-            ->color('gray')
-            ->button(),
+                ->label('Actions')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->color('gray')
+                ->button(),
         ];
     }
 }

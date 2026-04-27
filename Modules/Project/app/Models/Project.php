@@ -44,7 +44,7 @@ class Project extends Model implements HasMedia
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'code',
+        'number',
         'name',
         'status',
         'customer_id',
@@ -67,7 +67,7 @@ class Project extends Model implements HasMedia
         'progress_percentage',
     ];
 
-    public static function generateProjectCode(self $project): string
+    public static function generateProjectNumber(self $project): string
     {
         // Formula: [Customer(3)][ProjectSeq(2)][Area(3)][BranchSeq(2)][Cluster(3)][TaxCode(2)]
 

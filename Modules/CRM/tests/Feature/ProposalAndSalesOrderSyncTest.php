@@ -74,12 +74,12 @@ class ProposalAndSalesOrderSyncTest extends TestCase
     public function it_generates_sales_order_number_correctly()
     {
         $so = SalesOrder::factory()->create([
-            'so_number' => null,
+            'number' => null,
             'order_date' => now(),
         ]);
 
         $shortYear = date('y');
-        $this->assertMatchesRegularExpression("/GDPS\/UB\/SO-\d{3}\/$shortYear/", $so->so_number);
+        $this->assertMatchesRegularExpression("/GDPS\/UB\/SO-\d{3}\/$shortYear/", $so->number);
         $this->assertEquals(1, $so->sequence_number);
     }
 
@@ -87,17 +87,16 @@ class ProposalAndSalesOrderSyncTest extends TestCase
     public function it_generates_sales_order_amendment_number_correctly()
     {
         $so = SalesOrder::factory()->create([
-            'so_number' => 'GDPS/UB/SO-001/25',
+            'number' => 'GDPS/UB/SO-001/25',
         ]);
 
         $amendment = SalesOrderAmendment::factory()->create([
             'sales_order_id' => $so->id,
-            'amendment_number' => null,
+            'number' => null,
         ]);
 
-        $shortYear = date('y');
-        // Expected format: GDPS/UB/SO-001/AMAND/01/25 (if year is 2025)
-        $this->assertEquals("GDPS/UB/SO-001/AMAND/01/$shortYear", $amendment->amendment_number);
+        // The observer derives the year from the SO number suffix ('25'), not from date('y')
+        $this->assertEquals('GDPS/UB/SO-001/AMAND/01/25', $amendment->number);
         $this->assertEquals(1, $amendment->sequence_number);
     }
 
@@ -110,7 +109,7 @@ class ProposalAndSalesOrderSyncTest extends TestCase
 
         // Mock sequence and year
         $proposal->updateQuietly([
-            'proposal_number' => 'GDPS/UB/PROP-001/25',
+            'number' => 'GDPS/UB/PROP-001/25',
             'sequence_number' => 1,
             'revision_number' => 0,
             'created_at' => '2025-01-01 00:00:00',
@@ -119,7 +118,7 @@ class ProposalAndSalesOrderSyncTest extends TestCase
         $proposal->update(['status' => ProposalStatus::Draft]);
 
         $shortYearNow = date('y');
-        $this->assertEquals("GDPS/UB/PROP-001/REV/01/$shortYearNow", $proposal->proposal_number);
+        $this->assertEquals("GDPS/UB/PROP-001/REV/01/$shortYearNow", $proposal->number);
         $this->assertEquals(1, $proposal->revision_number);
     }
 

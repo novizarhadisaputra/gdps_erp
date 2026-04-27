@@ -20,7 +20,7 @@ class InvoiceInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('invoice_number')
+                                TextEntry::make('number')
                                     ->label('Invoice Number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('status')
@@ -32,11 +32,11 @@ class InvoiceInfolist
                                     ->color('danger'),
                                 TextEntry::make('customer.name')
                                     ->label('Customer'),
-                                TextEntry::make('salesOrder.so_number')
+                                TextEntry::make('salesOrder.number')
                                     ->label('Sales Order'),
-                                TextEntry::make('workCompletionReport.report_number')
+                                TextEntry::make('workCompletionReport.number')
                                     ->label('Work Completion Report (BAPP)'),
-                            ]),
+                             ]),
                     ])->columnSpanFull(),
 
                 Section::make('Financial Information')

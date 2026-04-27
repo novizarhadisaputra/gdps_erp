@@ -49,7 +49,7 @@
                 <div class="mt-8 pt-4 border-t border-dashed">
                     <div class="flex items-center gap-2 text-sm text-gray-400 italic">
                         <x-filament::icon icon="heroicon-m-paper-clip" class="h-4 w-4" />
-                        <span>BAPP-{{ str_replace(['/', '\\'], '-', $record->report_number) }}.pdf</span>
+                        <span>BAPP-{{ str_replace(['/', '\\'], '-', $record->number) }}.pdf</span>
                     </div>
                 </div>
             </div>

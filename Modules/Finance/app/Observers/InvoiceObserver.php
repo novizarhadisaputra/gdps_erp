@@ -13,7 +13,7 @@ class InvoiceObserver
      */
     public function creating(Invoice $invoice): void
     {
-        if (filled($invoice->invoice_number) && $invoice->invoice_number !== 'Auto-generated') {
+        if (filled($invoice->number) && $invoice->number !== 'Auto-generated') {
             return;
         }
 
@@ -29,7 +29,7 @@ class InvoiceObserver
 
         $invoice->year = (int) $year;
         $invoice->sequence_number = $sequence;
-        $invoice->invoice_number = sprintf('GDPS/UB/INV-%03d/%s', $sequence, $shortYear);
+        $invoice->number = sprintf('GDPS/UB/INV-%03d/%s', $sequence, $shortYear);
         
         if (empty($invoice->payment_info)) {
             $invoice->payment_info = [

@@ -112,7 +112,7 @@ class ProfitabilityAnalysisForm
                         Grid::make(3)
                             ->schema([
                                 Select::make('general_information_id')
-                                    ->relationship('generalInformation', 'document_number')
+                                    ->relationship('generalInformation', 'number')
                                     ->label('GI Form')
                                     ->required()
                                     ->searchable()
@@ -193,7 +193,7 @@ class ProfitabilityAnalysisForm
                                     ->editOptionForm(CustomerForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver())
                                     ->dehydrated(),
-                                TextInput::make('document_number')
+                                TextInput::make('number')
                                     ->label('Document Number')
                                     ->disabled()
                                     ->placeholder('Auto-generated')
@@ -708,7 +708,7 @@ class ProfitabilityAnalysisForm
                                     ->columnSpanFull()
                                     ->itemLabel(fn (array $state): ?string => filled($state['direct_cost_category_id'] ?? null) ? DirectCostCategory::find($state['direct_cost_category_id'])?->name : 'New Manual Cost')
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
+                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set, '../../')),
                             ]),
                     ]),
 
@@ -1062,6 +1062,8 @@ class ProfitabilityAnalysisForm
         $catToolsId = DirectCostCategory::where('code', 'tools_equipment')->first()?->id;
         $catMaterialId = DirectCostCategory::where('code', 'material')->first()?->id;
 
+
+
         foreach ($manualCosts as $item) {
             // IGNORE items without a selected category to prevent garbage data
             if (empty($item['direct_cost_category_id'])) {
@@ -1090,7 +1092,9 @@ class ProfitabilityAnalysisForm
         $set($root.'direct_cost', $totalStep3Cost);
         $set($root.'analysis_details.manual_revenue', $totalStep3Cost);
 
-        if ($isManual || ! empty($manualCosts)) {
+        $validManualCosts = array_filter($manualCosts, fn ($item) => ! empty($item['direct_cost_category_id']));
+
+        if ($isManual || ! empty($validManualCosts)) {
             $totalProjectCost = $totalStep3Cost * $projectDurationMonths;
 
             $totalProjectDepreciation = self::parseNumericValue($get($root.'manual_depreciation') ?? $get('manual_depreciation') ?? $get('/manual_depreciation') ?? 0) * $projectDurationMonths;
@@ -1245,7 +1249,7 @@ class ProfitabilityAnalysisForm
         $set($root.'total_project_depreciation', $totalProjectDepreciation);
 
         // 4. Trigger Global Performance Recalculation
-        self::calculatePerformance($get, $set);
+        self::calculatePerformance($get, $set, $root);
     }
 
     protected static function updateItemTotals($get, $set): void
@@ -1346,7 +1350,7 @@ class ProfitabilityAnalysisForm
         return $monthlyCost * (1.0 + ($markup / 100));
     }
 
-    public static function handleManpowerTemplateSelection($state, Set $set, Get $get): void
+    public static function handleManpowerTemplateSelection($state, Set|Closure $set, Get|Closure $get): void
     {
         if (! $state) {
             $set('manpowerItems', []);
@@ -1375,7 +1379,7 @@ class ProfitabilityAnalysisForm
         self::calculateDirectCost($get, $set);
     }
 
-    public static function handleCostingTemplateSelection($state, Set $set, Get $get): void
+    public static function handleCostingTemplateSelection($state, Set|Closure $set, Get|Closure $get): void
     {
         if (! $state) {
             $set('analysis_details.manual_costs', []);
@@ -1504,7 +1508,7 @@ class ProfitabilityAnalysisForm
         }
     }
 
-    public static function calculateSubItemAmount(Get $get, Set $set): void
+    public static function calculateSubItemAmount(Get|Closure $get, Set|Closure $set): void
     {
         $qty = self::parseNumericValue($get('quantity') ?? 1);
         $unitAmount = self::parseNumericValue($get('unit_amount') ?? 0);
@@ -1520,10 +1524,10 @@ class ProfitabilityAnalysisForm
         $set('../../amount', $categoryTotal);
 
         // Bubble up calculation to the top level global subtotal
-        self::calculateDirectCost($get, $set);
+        self::calculateDirectCost($get, $set, '../../../../');
     }
 
-    public static function calculateSubItemAmountForIndirect(Get $get, Set $set)
+    public static function calculateSubItemAmountForIndirect(Get|Closure $get, Set|Closure $set)
     {
         $qty = self::parseNumericValue($get('quantity') ?? 1);
         $unitAmount = self::parseNumericValue($get('unit_amount') ?? 0);
@@ -1542,7 +1546,7 @@ class ProfitabilityAnalysisForm
         self::calculateIndirectCost($get, $set, '../../../../');
     }
 
-    public static function calculateIndirectCost(Get $get, Set $set, string $root = ''): void
+    public static function calculateIndirectCost(Get|Closure $get, Set|Closure $set, string $root = ''): void
     {
         $indirectCosts = $get($root.'analysis_details.indirect_costs') ?? $get('analysis_details.indirect_costs') ?? $get('/analysis_details.indirect_costs') ?? [];
         $total = 0;
@@ -1572,7 +1576,7 @@ class ProfitabilityAnalysisForm
         self::calculatePerformance($get, $set, $root);
     }
 
-    public static function calculatePerformance(Get $get, Set $set, string $root = ''): void
+    public static function calculatePerformance(Get|Closure $get, Set|Closure $set, string $root = ''): void
     {
         // 1. Core Inputs
         $directCost = self::parseNumericValue($get($root.'direct_cost') ?? $get('/direct_cost') ?? 0);
@@ -1585,7 +1589,13 @@ class ProfitabilityAnalysisForm
 
         // 2. Revenue Calculation (Cost-Plus / Target GPM Model)
         // Formula: Revenue = Cost / (1 - Margin)
-        $revenue = ($gpmTarget < 100) ? ($directCost / (1 - ($gpmTarget / 100))) : ($directCost * 1.15);
+        $revenue = ($gpmTarget < 100 && $gpmTarget > 0) ? ($directCost / (1 - ($gpmTarget / 100))) : $directCost;
+
+        // If GPM Target is 0, we might have a manual management fee
+        if ($gpmTarget <= 0) {
+            $mgmtFee = self::parseNumericValue($get($root.'management_fee') ?? $get('/management_fee') ?? 0);
+            $revenue += $mgmtFee;
+        }
 
         // 3. Performance Metrics (Monthly)
         $grossProfit = $revenue - $directCost;
@@ -1741,7 +1751,7 @@ class ProfitabilityAnalysisForm
         </div>';
     }
 
-    public static function calculateRepeaterItem(Get $get, Set $set, string $type): void
+    public static function calculateRepeaterItem(Get|Closure $get, Set|Closure $set, string $type): void
     {
         $qty = (float) ($get('quantity') ?? 1);
         $unitAmount = (float) ($get('unit_cost_price') ?? 0);
@@ -1752,7 +1762,7 @@ class ProfitabilityAnalysisForm
         self::syncItemsToManualCosts($get, $set, $type);
     }
 
-    protected static function syncItemsToManualCosts(Get $get, Set $set, string $type): void
+    protected static function syncItemsToManualCosts(Get|Closure $get, Set|Closure $set, string $type): void
     {
         $categoryCode = $type === 'manpower' ? 'manpower' : 'tools_equipment';
         $categoryId = DirectCostCategory::where('code', $categoryCode)->first()?->id;

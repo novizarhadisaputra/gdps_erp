@@ -47,7 +47,7 @@
                                     <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Document
                                         No.</span>
                                     <span
-                                        class="text-xs font-black text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->generalInformation->document_number }}</span>
+                                        class="text-xs font-black text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->generalInformation->number }}</span>
                                 </div>
                                 <div class="flex flex-col border-b border-gray-50 dark:border-gray-800 pb-2">
                                     <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Customer
@@ -185,7 +185,7 @@
                                     <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Document
                                         No.</span>
                                     <span
-                                        class="text-xs font-black text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->profitabilityAnalysis->document_number }}</span>
+                                        class="text-xs font-black text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->profitabilityAnalysis->number }}</span>
                                 </div>
                                 <div class="flex flex-col border-b border-gray-50 dark:border-gray-800 pb-2">
                                     <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Monthly

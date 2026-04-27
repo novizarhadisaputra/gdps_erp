@@ -22,11 +22,11 @@ class ContractInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('contract_number')
+                                TextEntry::make('number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('customer.name')
                                     ->label('Customer'),
-                                TextEntry::make('proposal.proposal_number')
+                                TextEntry::make('proposal.number')
                                     ->label('Reference Proposal'),
                                 TextEntry::make('expiry_date')
                                     ->date(),

@@ -61,7 +61,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
                         <div class="space-y-1">
                             <label class="text-[11px] font-bold text-slate-400 uppercase">Nomor Registrasi</label>
-                            <p class="text-slate-900 font-semibold">{{ $document->document_number ?? $document->id }}
+                            <p class="text-slate-900 font-semibold">{{ $document->number ?? $document->id }}
                             </p>
                         </div>
                         <div class="space-y-1">

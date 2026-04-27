@@ -26,7 +26,7 @@ class ProjectReviewInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('generalInformation.document_number')
+                                TextEntry::make('generalInformation.number')
                                     ->label('Document #')
                                     ->placeholder('Not created yet'),
                                 TextEntry::make('generalInformation.status')
@@ -53,7 +53,7 @@ class ProjectReviewInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('profitabilityAnalysis.document_number')
+                                TextEntry::make('profitabilityAnalysis.number')
                                     ->label('Document #')
                                     ->placeholder('Not created yet'),
                                 TextEntry::make('profitabilityAnalysis.status')
@@ -82,7 +82,7 @@ class ProjectReviewInfolist
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('proposal.proposal_number')
+                                TextEntry::make('proposal.number')
                                     ->label('Proposal #')
                                     ->placeholder('Not created yet'),
                                 TextEntry::make('proposal.status')
@@ -112,7 +112,7 @@ class ProjectReviewInfolist
             ->label('Approve Document')
             ->icon('heroicon-o-pencil-square')
             ->color('primary')
-            ->form([
+            ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
                     ->password()
@@ -211,7 +211,7 @@ class ProjectReviewInfolist
             ->label('Approve Margin')
             ->icon('heroicon-o-check-badge')
             ->color('success')
-            ->form([
+            ->schema([
                 TextInput::make('pin')
                     ->label('Signature PIN')
                     ->password()

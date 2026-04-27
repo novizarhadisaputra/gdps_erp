@@ -23,7 +23,7 @@ class MinutesOfAgreementForm
                     ->icon('heroicon-m-information-circle')
                     ->schema([
 
-                        TextInput::make('moa_number')
+                        TextInput::make('number')
                             ->label('MOA Number')
                             ->placeholder('Auto-generated')
                             ->disabled()
@@ -32,7 +32,7 @@ class MinutesOfAgreementForm
                             ->dehydrated(false),
                         Select::make('proposal_id')
                             ->label('Source Proposal')
-                            ->relationship('proposal', 'proposal_number', fn ($query, $record) => $query->where('lead_id', $record?->lead_id))
+                            ->relationship('proposal', 'number', fn ($query, $record) => $query->where('lead_id', $record?->lead_id))
                             ->searchable()
                             ->preload()
                             ->live()
@@ -75,22 +75,26 @@ class MinutesOfAgreementForm
                                     ->label('Scope of Work')
                                     ->rows(3)
                                     ->placeholder('Define the project boundaries and deliverables...')
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->translatable(),
                                 Textarea::make('timeline')
                                     ->label('Timeline')
                                     ->rows(3)
                                     ->placeholder('Specify key dates or duration...')
-                                    ->columnSpan(1),
+                                    ->columnSpan(1)
+                                    ->translatable(),
                                 Textarea::make('terms')
                                     ->label('Terms & Conditions')
                                     ->rows(3)
                                     ->placeholder('Specific payment terms, duties, etc...')
-                                    ->columnSpan(1),
+                                    ->columnSpan(1)
+                                    ->translatable(),
                                 Textarea::make('notes')
                                     ->label('Additional Notes')
                                     ->rows(3)
                                     ->placeholder('Any other relevant details...')
-                                    ->columnSpanFull(),
+                                    ->columnSpanFull()
+                                    ->translatable(),
                             ]),
                     ]),
             ]);

@@ -6,6 +6,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
@@ -51,13 +52,28 @@ trait HasWorkCompletionReportActions
             ->label('Export PDF')
             ->color('gray')
             ->icon('heroicon-o-arrow-down-tray')
-            ->action(function (WorkCompletionReport $record) {
-                $pdf = Pdf::loadView('project::pdf.work_completion_report', ['record' => $record]);
-                $filename = str_replace(['/', '\\'], '-', $record->report_number);
+            ->schema([
+                Select::make('language')
+                    ->label('Template Language')
+                    ->options([
+                        'id' => 'Indonesian (Bahasa Indonesia)',
+                        'en' => 'English (International)',
+                    ])
+                    ->default('id')
+                    ->required(),
+            ])
+            ->action(function (WorkCompletionReport $record, array $data) {
+                $pdf = Pdf::loadView('project::pdf.work_completion_report', [
+                    'record' => $record,
+                    'language' => $data['language'],
+                ]);
+
+                $filename = str_replace(['/', '\\'], '-', $record->number);
+                $langSuffix = strtoupper($data['language']);
 
                 return response()->streamDownload(
                     fn () => print ($pdf->output()),
-                    "bapp-{$filename}.pdf"
+                    "bapp-{$filename}-{$langSuffix}.pdf"
                 );
             });
     }
@@ -88,7 +104,7 @@ trait HasWorkCompletionReportActions
                     'sales_order_id' => $record->sales_order_id,
                     'customer_id' => $record->customer_id,
                     'work_completion_report_id' => $record->id,
-                    'invoice_number' => 'Auto-generated',
+                    'number' => 'Auto-generated',
                     'invoice_date' => now(),
                     'due_date' => now()->addDays(30),
                     'amount' => $totalAmount,

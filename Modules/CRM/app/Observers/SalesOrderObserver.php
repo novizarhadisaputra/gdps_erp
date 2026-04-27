@@ -15,7 +15,7 @@ class SalesOrderObserver
      */
     public function creating(SalesOrder $salesOrder): void
     {
-        if (filled($salesOrder->so_number)) {
+        if (filled($salesOrder->number)) {
             return;
         }
 
@@ -31,7 +31,7 @@ class SalesOrderObserver
 
         $salesOrder->year = (int) $year;
         $salesOrder->sequence_number = $sequence;
-        $salesOrder->so_number = sprintf('GDPS/UB/SO-%03d/%s', $sequence, $shortYear);
+        $salesOrder->number = sprintf('GDPS/UB/SO-%03d/%s', $sequence, $shortYear);
     }
 
     /**

@@ -3,7 +3,10 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Tables;
 
 use Barryvdh\DomPDF\Facade\Pdf;
-use Filament\Actions\{Action, ActionGroup, EditAction, ViewAction};
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -15,7 +18,8 @@ class AmendmentsTable
     {
         return $table
             ->columns([
-                TextColumn::make('amendment_number')
+                TextColumn::make('number')
+                    ->label('Amendment Number')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('reason')
@@ -38,7 +42,7 @@ class AmendmentsTable
                         ->color('gray')
                         ->action(function (SalesOrderAmendment $record) {
                             $pdf = Pdf::loadView('crm::pdf.sales-order-amendment', ['record' => $record]);
-                            $filename = "soa-{$record->salesOrder->so_number}-rev{$record->amendment_number}";
+                            $filename = "soa-{$record->salesOrder->number}-rev{$record->number}";
                             $filename = str_replace(['/', '\\'], '-', $filename);
 
                             return response()->streamDownload(fn () => print ($pdf->output()), "{$filename}.pdf");

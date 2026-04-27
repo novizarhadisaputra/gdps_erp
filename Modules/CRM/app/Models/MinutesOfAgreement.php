@@ -13,18 +13,27 @@ use Modules\CRM\Observers\MinutesOfAgreementObserver;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
 
 #[ObservedBy(MinutesOfAgreementObserver::class)]
 class MinutesOfAgreement extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia;
     use HasModuleSchema;
+    use HasTranslations;
+
+    public array $translatable = [
+        'scope_of_work',
+        'timeline',
+        'terms',
+        'notes',
+    ];
 
     protected $fillable = [
         'lead_id',
         'proposal_id',
         'customer_id',
-        'moa_number',
+        'number',
         'amount',
         'status',
         'negotiation_date',

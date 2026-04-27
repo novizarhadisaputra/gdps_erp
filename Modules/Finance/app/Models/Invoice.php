@@ -8,17 +8,18 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\SalesOrder;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Modules\CRM\Models\CommunicationLog;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Observers\InvoiceObserver;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\WorkCompletionReport;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\Translatable\HasTranslations;
 
 #[ObservedBy(InvoiceObserver::class)]
 class Invoice extends Model implements HasMedia
@@ -26,15 +27,19 @@ class Invoice extends Model implements HasMedia
     use HasDigitalSignatures;
     use HasFactory;
     use HasModuleSchema;
+    use HasTranslations;
     use HasUuids;
-    use SoftDeletes;
     use InteractsWithMedia;
+    use SoftDeletes;
+
+    public array $translatable = [
+        'tax_wording',
+        'items',
+    ];
 
     protected $fillable = [
-        'sales_order_id',
-        'work_completion_report_id',
         'customer_id',
-        'invoice_number',
+        'number',
         'sequence_number',
         'year',
         'invoice_date',
@@ -46,6 +51,12 @@ class Invoice extends Model implements HasMedia
         'payment_info',
         'items',
         'content_config',
+        'invoice_type',
+        'tax_percentage',
+        'tax_wording',
+        'sourceable_id',
+        'sourceable_type',
+        'bank_account_id',
     ];
 
     protected function casts(): array
@@ -56,6 +67,7 @@ class Invoice extends Model implements HasMedia
             'amount' => 'decimal:2',
             'tax_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
+            'tax_percentage' => 'decimal:2',
             'status' => InvoiceStatus::class,
             'payment_info' => 'array',
             'items' => 'array',
@@ -63,14 +75,9 @@ class Invoice extends Model implements HasMedia
         ];
     }
 
-    public function salesOrder(): BelongsTo
+    public function sourceable(): \Illuminate\Database\Eloquent\Relations\MorphTo
     {
-        return $this->belongsTo(SalesOrder::class);
-    }
-
-    public function workCompletionReport(): BelongsTo
-    {
-        return $this->belongsTo(WorkCompletionReport::class, 'work_completion_report_id');
+        return $this->morphTo();
     }
 
     public function customer(): BelongsTo
@@ -88,7 +95,7 @@ class Invoice extends Model implements HasMedia
         $this->addMediaCollection('payment_proof')
             ->useDisk('s3')
             ->singleFile();
-            
+
         $this->addMediaCollection('signed_invoice')
             ->useDisk('s3')
             ->singleFile();

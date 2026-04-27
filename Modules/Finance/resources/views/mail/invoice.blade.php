@@ -10,7 +10,7 @@
     @else
         <p>Please find your invoice attached.</p>
         <p>
-            Invoice Number: {{ $invoice->invoice_number }}<br>
+            Invoice Number: {{ $invoice->number }}<br>
             Total Amount: IDR {{ number_format($invoice->total_amount, 2) }}
         </p>
     @endif
