@@ -22,6 +22,7 @@ class CooperationAgreement extends Model implements HasMedia
     {
         return \Modules\CRM\Database\Factories\CooperationAgreementFactory::new();
     }
+
     use HasModuleSchema;
 
     protected $fillable = [
@@ -36,6 +37,7 @@ class CooperationAgreement extends Model implements HasMedia
         'items',
         'sequence_number',
         'year',
+        'is_manual',
     ];
 
     protected $casts = [
@@ -43,6 +45,7 @@ class CooperationAgreement extends Model implements HasMedia
         'items' => 'array',
         'amount' => 'decimal:2',
         'tax_percentage' => 'decimal:2',
+        'is_manual' => 'boolean',
     ];
 
     public function customer(): BelongsTo

@@ -2,12 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\PurchaseOrder\PurchaseOrderResource;
+use Modules\CRM\Models\PurchaseOrder;
 
 class ManagePurchaseOrders extends ManageRelatedRecords
 {
@@ -35,8 +39,30 @@ class ManagePurchaseOrders extends ManageRelatedRecords
     {
         return PurchaseOrderResource::table($table)
             ->headerActions([
-                \Filament\Actions\CreateAction::make()
-                    ->url(fn () => PurchaseOrderResource::getUrl('create', ['lead' => $this->getOwnerRecord()->id])),
+                Action::make('bookingCode')
+                    ->label('Booking PO Code')
+                    ->icon(Heroicon::OutlinedDocumentPlus)
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Booking Purchase Order Code')
+                    ->modalDescription('This will generate a new PO record with an auto-generated code. You can upload the documentation later.')
+                    ->action(function () {
+                        $lead = $this->getOwnerRecord();
+
+                        PurchaseOrder::create([
+                            'lead_id' => $lead->id,
+                            'customer_id' => $lead->customer_id,
+                            'proposal_id' => $lead->proposals()->latest()->first()?->id,
+                            'order_date' => now(),
+                            'status' => ProposalStatus::Draft,
+                            'is_manual' => true,
+                        ]);
+
+                        Notification::make()
+                            ->title('PO code booked successfully')
+                            ->success()
+                            ->send();
+                    }),
             ]);
     }
 }

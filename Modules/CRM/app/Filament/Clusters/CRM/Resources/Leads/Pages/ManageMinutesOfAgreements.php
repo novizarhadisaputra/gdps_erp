@@ -2,12 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Modules\CRM\Enums\MoAStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
+use Modules\CRM\Models\MinutesOfAgreement;
 
 class ManageMinutesOfAgreements extends ManageRelatedRecords
 {
@@ -35,8 +39,30 @@ class ManageMinutesOfAgreements extends ManageRelatedRecords
     {
         return MinutesOfAgreementResource::table($table)
             ->headerActions([
-                \Filament\Actions\CreateAction::make()
-                    ->url(fn () => MinutesOfAgreementResource::getUrl('create', ['lead' => $this->getOwnerRecord()->id])),
+                Action::make('bookingCode')
+                    ->label('Booking BAK Code')
+                    ->icon(Heroicon::OutlinedDocumentPlus)
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->modalHeading('Booking Minutes of Agreement (BAK) Code')
+                    ->modalDescription('This will generate a new BAK record with an auto-generated code. You can upload the documentation later.')
+                    ->action(function () {
+                        $lead = $this->getOwnerRecord();
+
+                        MinutesOfAgreement::create([
+                            'lead_id' => $lead->id,
+                            'customer_id' => $lead->customer_id,
+                            'proposal_id' => $lead->proposals()->latest()->first()?->id,
+                            'negotiation_date' => now(),
+                            'status' => MoAStatus::Draft,
+                            'is_manual' => true,
+                        ]);
+
+                        Notification::make()
+                            ->title('BAK code booked successfully')
+                            ->success()
+                            ->send();
+                    }),
             ]);
     }
 }

@@ -41,6 +41,7 @@ class MinutesOfAgreement extends Model implements HasMedia
         'scope_of_work',
         'timeline',
         'terms',
+        'is_manual',
     ];
 
     protected function casts(): array
@@ -49,6 +50,7 @@ class MinutesOfAgreement extends Model implements HasMedia
             'status' => MoAStatus::class,
             'negotiation_date' => 'date',
             'amount' => 'decimal:2',
+            'is_manual' => 'boolean',
         ];
     }
 

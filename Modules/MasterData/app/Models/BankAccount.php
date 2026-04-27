@@ -19,7 +19,7 @@ class BankAccount extends Model
         'account_name',
         'swift_code',
         'currency',
-        'gl_code',
+        'account_code',
         'is_active',
     ];
 

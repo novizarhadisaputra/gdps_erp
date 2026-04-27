@@ -110,7 +110,7 @@
     // Bilingual Labels
     $lang = $language ?? 'id';
     $items = $record->getTranslation('items', $lang) ?? $record->items ?? [];
-    $tax_wording = $record->getTranslation('tax_wording', $lang) ?? $record->tax_wording ?? ($lang === 'id' ? 'Pelaksanaan pekerjaan di atas belum termasuk PPN 11%' : 'The above work execution does not include 11% VAT');
+    $tax_wording = $record->getTranslation('tax_wording', $lang) ?? $record->tax_wording ?? ($lang === 'id' ? 'Penyelesaian pekerjaan di atas belum termasuk PPN 11%' : 'The above work completion does not include 11% VAT');
 
     $labels = [
         'title' => [

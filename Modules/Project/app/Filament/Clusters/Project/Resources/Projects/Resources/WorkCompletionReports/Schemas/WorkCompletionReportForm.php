@@ -14,10 +14,17 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\SalesOrderType;
+use Modules\CRM\Models\CooperationAgreement;
 use Modules\CRM\Models\Customer;
+use Modules\CRM\Models\MinutesOfAgreement;
+use Modules\CRM\Models\PurchaseOrder;
+use Modules\CRM\Models\SalesOrder;
+use Modules\CRM\Models\WorkOrder;
 use Modules\MasterData\Enums\Gender;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\Project;
+use Modules\Project\Models\WorkCompletionReport;
 
 class WorkCompletionReportForm
 {
@@ -81,22 +88,22 @@ class WorkCompletionReportForm
                         MorphToSelect::make('sourceable')
                             ->label('Reference Document')
                             ->types([
-                                MorphToSelect\Type::make(\Modules\CRM\Models\SalesOrder::class)
+                                MorphToSelect\Type::make(SalesOrder::class)
                                     ->titleAttribute('number')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\PurchaseOrder::class)
+                                MorphToSelect\Type::make(PurchaseOrder::class)
                                     ->titleAttribute('number')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\WorkOrder::class)
+                                MorphToSelect\Type::make(WorkOrder::class)
                                     ->titleAttribute('number')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\CooperationAgreement::class)
+                                MorphToSelect\Type::make(CooperationAgreement::class)
                                     ->titleAttribute('number')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\MinutesOfAgreement::class)
+                                MorphToSelect\Type::make(MinutesOfAgreement::class)
                                     ->titleAttribute('number')
                                     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\Project\Models\WorkCompletionReport::class)
+                                MorphToSelect\Type::make(WorkCompletionReport::class)
                                     ->titleAttribute('number'),
                             ])
                             ->searchable()
@@ -118,7 +125,7 @@ class WorkCompletionReportForm
                                     $set('customer_id', $source->customer_id);
                                 }
 
-                                if ($source instanceof \Modules\CRM\Models\SalesOrder) {
+                                if ($source instanceof SalesOrder) {
                                     $set('so_type', $source->type->value);
 
                                     $manpower = $source->content_config['manpower_details'] ?? [];
@@ -142,7 +149,7 @@ class WorkCompletionReportForm
                                             'uom' => $mp['uom'] ?? 'Person',
                                             'unit_price' => $price,
                                             'total_price' => $price * ($mp['quantity'] ?? 0),
-                                            'so_reference' => $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? '-' : $source->number,
+                                            'so_reference' => $source->type === SalesOrderType::Internal ? '-' : $source->number,
                                         ];
                                     }
 
@@ -154,13 +161,13 @@ class WorkCompletionReportForm
                                             'uom' => $op['uom'] ?? 'Unit',
                                             'unit_price' => $price,
                                             'total_price' => $price * ($op['quantity'] ?? 0),
-                                            'so_reference' => $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? '-' : $source->number,
+                                            'so_reference' => $source->type === SalesOrderType::Internal ? '-' : $source->number,
                                         ];
                                     }
 
                                     $set('items', $items);
-                                    $set('tax_percentage', $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? 0 : 11);
-                                    $set('tax_wording', $source->type === \Modules\CRM\Enums\SalesOrderType::Internal ? ['id' => '-', 'en' => '-'] : ['id' => 'Pelaksanaan pekerjaan di atas belum termasuk PPN 11%', 'en' => 'The above work execution does not include 11% VAT']);
+                                    $set('tax_percentage', $source->type === SalesOrderType::Internal ? 0 : 11);
+                                    $set('tax_wording', $source->type === SalesOrderType::Internal ? ['id' => '-', 'en' => '-'] : ['id' => 'Penyelesaian pekerjaan di atas belum termasuk PPN 11%', 'en' => 'The above work completion does not include 11% VAT']);
                                 } else {
                                     $set('so_type', 'External');
                                     if (isset($source->items)) {
@@ -390,8 +397,8 @@ class WorkCompletionReportForm
                                 ->live(),
                             TextInput::make('tax_wording')
                                 ->label('Tax Statement (Free Text)')
-                                ->placeholder('e.g. Pelaksanaan pekerjaan di atas belum termasuk PPN 11%')
-                                ->default('Pelaksanaan pekerjaan di atas belum termasuk PPN 11%')
+                                ->placeholder('e.g. Penyelesaian pekerjaan di atas belum termasuk PPN 11%')
+                                ->default('Penyelesaian pekerjaan di atas belum termasuk PPN 11%')
                                 ->columnSpan(3)
                                 ->required()
                                 ->translatable(),

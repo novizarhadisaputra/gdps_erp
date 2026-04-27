@@ -1,14 +1,21 @@
 {
     "agents": [
         "claude_code",
-        "gemini"
-    ],
-    "editors": [
-        "claude_code",
         "gemini",
-        "vscode"
+        "codex"
     ],
-    "guidelines": [
-        "filament/filament"
+    "guidelines": true,
+    "herd_mcp": false,
+    "mcp": true,
+    "packages": [
+        "filament/filament",
+        "laravel/ai",
+        "spatie/laravel-medialibrary"
+    ],
+    "sail": false,
+    "skills": [
+        "tailwindcss-development",
+        "developing-with-ai-sdk",
+        "medialibrary-development"
     ]
 }
