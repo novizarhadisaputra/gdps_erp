@@ -4,7 +4,6 @@ namespace Modules\Finance\Classes;
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Modules\CRM\Models\Contract;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Employee;
 use Modules\Project\Models\Project;
@@ -14,11 +13,13 @@ class ProjectGenerationService
     public function generateFromPA(ProfitabilityAnalysis $pa): Project
     {
         return DB::transaction(function () use ($pa) {
-            // Get active contract if available
-            $contract = $pa->lead?->contracts()->where('status', 'active')->first();
+            // 0. Get the source document (PO, WO, or CA) from the lead
+            $source = $pa->lead?->cooperationAgreements()->latest()->first()
+                ?? $pa->lead?->purchaseOrders()->latest()->first()
+                ?? $pa->lead?->workOrders()->latest()->first();
 
             // 1. Calculate next sequence number for this Customer + Work Scheme
-            $nextNumber = $this->getNextSequenceNumber($pa, $contract);
+            $nextNumber = $this->getNextSequenceNumber($pa, $source);
 
             // 2. Validate required fields for Project Code generation to avoid 'XXX' or 'XX'
             $this->validateProjectCodeSegments($pa);
@@ -46,7 +47,8 @@ class ProjectGenerationService
                 'lead_id' => $pa->lead_id,
                 'oprep_id' => $this->getEmployeeIdFromUser($pa->lead?->pic_costing_id),
                 'ams_id' => $this->getEmployeeIdFromUser($pa->lead?->user_id),
-                'contract_id' => $contract?->id,
+                'sourceable_id' => $source?->id,
+                'sourceable_type' => $source ? get_class($source) : null,
                 'payment_term_id' => $pa->lead?->payment_term_id,
                 'billing_option_id' => $pa->lead?->billing_option_id,
                 'start_date' => $pa->lead?->start_date,
@@ -57,16 +59,16 @@ class ProjectGenerationService
             // We want to avoid creating duplicate projects if one already exists for the lead
             /** @var Project|null $project */
             $project = Project::query()
-                ->when($contract?->id, fn ($q) => $q->where('contract_id', $contract->id))
-                ->when(! $contract?->id && $pa->lead_id, fn ($q) => $q->where('lead_id', $pa->lead_id))
-                ->when(! $contract?->id && ! $pa->lead_id, fn ($q) => $q->where('profitability_analysis_id', $pa->id))
+                ->when($source, fn ($q) => $q->where('sourceable_id', $source->id)->where('sourceable_type', get_class($source)))
+                ->when(! $source && $pa->lead_id, fn ($q) => $q->where('lead_id', $pa->lead_id))
+                ->when(! $source && ! $pa->lead_id, fn ($q) => $q->where('profitability_analysis_id', $pa->id))
                 ->first();
 
             if ($project) {
                 $project->update($projectData);
             } else {
                 // Double check if there's any project with lead_id if we are currently looking by contract but found none
-                if ($contract?->id && $pa->lead_id) {
+                if ($source && $pa->lead_id) {
                     /** @var Project|null $project */
                     $project = Project::where('lead_id', $pa->lead_id)->first();
                     if ($project) {
@@ -165,13 +167,15 @@ class ProjectGenerationService
         }
     }
 
-    protected function getNextSequenceNumber(ProfitabilityAnalysis $pa, ?Contract $contract = null): int
+    protected function getNextSequenceNumber(ProfitabilityAnalysis $pa, $source = null): int
     {
         // 1. Reuse project number from existing Project tied to this contract/lead
         /** @var Project|null $existingProject */
         $existingProject = null;
-        if ($contract?->id) {
-            $existingProject = Project::where('contract_id', $contract->id)->first();
+        if ($source) {
+            $existingProject = Project::where('sourceable_id', $source->id)
+                ->where('sourceable_type', get_class($source))
+                ->first();
             // Fallback to lead if contract has no project yet but lead does
             if (! $existingProject && $pa->lead_id) {
                 $existingProject = Project::where('lead_id', $pa->lead_id)->first();

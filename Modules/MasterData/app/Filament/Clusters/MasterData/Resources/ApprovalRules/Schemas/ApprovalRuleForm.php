@@ -11,7 +11,9 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\CooperationAgreement;
+use Modules\CRM\Models\PurchaseOrder;
+use Modules\CRM\Models\WorkOrder;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\MinutesOfAgreement;
@@ -39,7 +41,9 @@ class ApprovalRuleForm
                             ->options([
                                 ProfitabilityAnalysis::class => 'Profitability Analysis',
                                 Project::class => 'Project',
-                                Contract::class => 'Contract',
+                                PurchaseOrder::class => 'Purchase Order',
+                                WorkOrder::class => 'Work Order',
+                                CooperationAgreement::class => 'Cooperation Agreement',
                                 Proposal::class => 'Proposal',
                                 MinutesOfAgreement::class => 'Minutes of Agreement',
                                 GeneralInformation::class => 'General Information',
@@ -62,7 +66,7 @@ class ApprovalRuleForm
                                                 'net_profit' => 'Net Profit',
                                                 'product_cluster_id' => 'Product Cluster',
                                             ],
-                                            Contract::class, 'Modules\CRM\Models\Project', Project::class, Proposal::class => [
+                                            PurchaseOrder::class, WorkOrder::class, CooperationAgreement::class, 'Modules\CRM\Models\Project', Project::class, Proposal::class => [
                                                 'amount' => 'Amount / Value',
                                             ],
                                             MinutesOfAgreement::class => [

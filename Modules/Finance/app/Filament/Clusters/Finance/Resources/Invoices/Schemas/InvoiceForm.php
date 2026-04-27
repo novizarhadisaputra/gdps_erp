@@ -427,7 +427,7 @@ class InvoiceForm
                                 }
                             }),
                         TextInput::make('payment_info.account_name')
-                            ->label('Account Name (A/N)')
+                            ->label('Account Name (a.n.)')
                             ->required()
                             ->readonly(),
                         Repeater::make('payment_info.banks')

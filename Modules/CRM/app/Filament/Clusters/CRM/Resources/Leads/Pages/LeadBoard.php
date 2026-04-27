@@ -13,7 +13,6 @@ use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Database\Eloquent\Builder;
-use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource;
@@ -142,7 +141,7 @@ class LeadBoard extends BoardResourcePage
             'proposal' => $record->profitabilityAnalyses()->exists() && $record->generalInformations()->exists(),
             'negotiation' => $record->proposals()->exists(),
             'contract' => $record->minutesOfAgreements()->where('status', \Modules\CRM\Enums\MoAStatus::Approved)->exists(),
-            'won' => $record->contracts()->where('status', ContractStatus::Active)->exists(),
+            'won' => $record->purchaseOrders()->exists() || $record->workOrders()->exists() || $record->cooperationAgreements()->exists(),
             'closed_lost', 'cancelled', 'postponed' => true,
             default => true,
         };
@@ -152,7 +151,7 @@ class LeadBoard extends BoardResourcePage
                 'proposal' => 'Moving to Proposal requires both General Information and Profitability Analysis (PA).',
                 'negotiation' => 'Please create a Proposal document first.',
                 'contract' => 'Please approve Minutes of Agreement (MoA) first.',
-                'won' => 'Please create and activate a Contract first.',
+                'won' => 'Please create at least one legal document (PO, SPK, or PKS) first.',
                 default => 'Some requirements are missing for this stage.',
             };
 

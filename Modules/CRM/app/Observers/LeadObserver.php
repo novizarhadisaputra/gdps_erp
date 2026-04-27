@@ -6,7 +6,6 @@ use App\Services\AnalyticsCacheService;
 use Illuminate\Support\Facades\DB;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\LeadStatus;
-use Modules\CRM\Models\Contract;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
@@ -121,15 +120,8 @@ class LeadObserver
                 break;
 
             case LeadStatus::Won:
-                if ($lead->contracts()->count() === 0) {
-                    $lead->contracts()->create([
-                        'customer_id' => $lead->customer_id,
-                        'start_date' => now(),
-                        'end_date' => now()->addYear(),
-                        'amount' => $lead->estimated_amount,
-                        'status' => 'draft',
-                    ]);
-                }
+                // No longer auto-creating a generic contract.
+                // User should create PO, SPK, or PKS.
                 break;
 
             case LeadStatus::ClosedLost:
@@ -159,7 +151,9 @@ class LeadObserver
             $lead->proposals()->each(fn (Proposal $p) => $p->delete());
             $lead->generalInformations()->each(fn (GeneralInformation $gi) => $gi->delete());
             $lead->profitabilityAnalyses()->each(fn (ProfitabilityAnalysis $pa) => $pa->delete());
-            $lead->contracts()->each(fn (Contract $c) => $c->delete());
+            $lead->purchaseOrders()->each(fn ($po) => $po->delete());
+            $lead->workOrders()->each(fn ($wo) => $wo->delete());
+            $lead->cooperationAgreements()->each(fn ($ca) => $ca->delete());
             $lead->projectInformations()->each(fn (ProjectInformation $pi) => $pi->delete());
         });
     }

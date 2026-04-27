@@ -1,18 +1,43 @@
 @php
     if (!function_exists('terbilang')) {
-        function terbilang($x) {
-            $angka = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
-            if ($x < 12) return " " . $angka[$x];
-            elseif ($x < 20) return terbilang($x - 10) . " Belas";
-            elseif ($x < 100) return terbilang($x / 10) . " Puluh" . terbilang($x % 10);
-            elseif ($x < 200) return "Seratus" . terbilang($x - 100);
-            elseif ($x < 1000) return terbilang($x / 100) . " Ratus" . terbilang($x % 100);
-            elseif ($x < 2000) return "Seribu" . terbilang($x - 1000);
-            elseif ($x < 1000000) return terbilang($x / 1000) . " Ribu" . terbilang($x % 1000);
-            elseif ($x < 1000000000) return terbilang($x / 1000000) . " Juta" . terbilang($x % 1000000);
-            elseif ($x < 1000000000000) return terbilang($x / 1000000000) . " Milyar" . terbilang(fmod($x, 1000000000));
-            elseif ($x < 1000000000000000) return terbilang($x / 1000000000000) . " Trilyun" . terbilang(fmod($x, 1000000000000));
-            return "";
+        function terbilang($x)
+        {
+            $angka = [
+                '',
+                'Satu',
+                'Dua',
+                'Tiga',
+                'Empat',
+                'Lima',
+                'Enam',
+                'Tujuh',
+                'Delapan',
+                'Sembilan',
+                'Sepuluh',
+                'Sebelas',
+            ];
+            if ($x < 12) {
+                return ' ' . $angka[$x];
+            } elseif ($x < 20) {
+                return terbilang($x - 10) . ' Belas';
+            } elseif ($x < 100) {
+                return terbilang($x / 10) . ' Puluh' . terbilang($x % 10);
+            } elseif ($x < 200) {
+                return 'Seratus' . terbilang($x - 100);
+            } elseif ($x < 1000) {
+                return terbilang($x / 100) . ' Ratus' . terbilang($x % 100);
+            } elseif ($x < 2000) {
+                return 'Seribu' . terbilang($x - 1000);
+            } elseif ($x < 1000000) {
+                return terbilang($x / 1000) . ' Ribu' . terbilang($x % 1000);
+            } elseif ($x < 1000000000) {
+                return terbilang($x / 1000000) . ' Juta' . terbilang($x % 1000000);
+            } elseif ($x < 1000000000000) {
+                return terbilang($x / 1000000000) . ' Milyar' . terbilang(fmod($x, 1000000000));
+            } elseif ($x < 1000000000000000) {
+                return terbilang($x / 1000000000000) . ' Trilyun' . terbilang(fmod($x, 1000000000000));
+            }
+            return '';
         }
     }
 
@@ -26,7 +51,9 @@
                     $extension = pathinfo($defaultPath, PATHINFO_EXTENSION);
                     $content = file_get_contents($defaultPath);
                 }
-                if (!$content) return null;
+                if (!$content) {
+                    return null;
+                }
                 return 'data:image/' . $extension . ';base64,' . base64_encode($content);
             } catch (\Exception $e) {
                 return null;
@@ -35,91 +62,6 @@
     }
 
     $lang = $language ?? 'id';
-    $terbilangStr = trim(terbilang($record->total_amount)) . " Rupiah";
-    $items = $record->getTranslation('items', $lang) ?? $record->items ?? [];
-    $tax_percentage = $record->tax_percentage ?? ($record->amount > 0 ? round(($record->tax_amount / $record->amount) * 100) : 12);
-    $tax_wording = $record->getTranslation('tax_wording', $lang) ?? $record->tax_wording ?? ("PPN " . $tax_percentage . "%");
-
-    $source = $record->sourceable;
-    $sourceNumber = '-';
-    $displaySourceType = $labels['source_doc'][$lang] ?? 'Source';
-    $isInternal = false;
-    $refNo = '-';
-
-    if ($source) {
-        if ($source instanceof \Modules\CRM\Models\SalesOrder) {
-            $isInternal = $source->type === \Modules\CRM\Enums\SalesOrderType::Internal;
-            $sourceNumber = $isInternal ? '-' : $source->number;
-            $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
-        } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
-            $refNo = $source->number;
-            $subSource = $source->sourceable;
-            if ($subSource instanceof \Modules\CRM\Models\SalesOrder) {
-                $isInternal = $subSource->type === \Modules\CRM\Enums\SalesOrderType::Internal;
-                $sourceNumber = $isInternal ? '-' : $subSource->number;
-                $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
-            } else {
-                $sourceNumber = $source->source_number ?? '-';
-                $displaySourceType = $labels['source_doc'][$lang];
-            }
-        } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
-            $sourceNumber = $source->number;
-            $displaySourceType = 'Purchase Order (PO)';
-        } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
-            $sourceNumber = $source->number;
-            $displaySourceType = 'Surat Perintah Kerja (SPK)';
-        } elseif ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
-            $sourceNumber = $source->number;
-            $displaySourceType = 'Perjanjian Kerja Sama (PKS)';
-        }
-    }
-
-    $approverSig = $record->signatures()->where('signature_type', 'Approver')->first();
-    
-    // Calculate Term of Payment
-    $so = null;
-    if ($source instanceof \Modules\CRM\Models\SalesOrder) {
-        $so = $source;
-    } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport && $source->sourceable instanceof \Modules\CRM\Models\SalesOrder) {
-        $so = $source->sourceable;
-    }
-
-    $termOfPayment = $so->payment_terms ?? ($record->invoice_date && $record->due_date ? $record->invoice_date->diffInDays($record->due_date) . ' Hari' : '-');
-
-    // Dynamic Payment Info
-    $paymentInfo = is_array($record->payment_info) ? $record->payment_info : json_decode($record->payment_info, true) ?? [];
-    $accountName = $paymentInfo['account_name'] ?? '';
-    $banks = $paymentInfo['banks'] ?? [];
-
-    // Branding Assets
-    $logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
-    $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
-    $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
-
-    // Customer Contact Logic
-    $customerContactName = $record->content_config['recipient_name'] 
-        ?? $so?->content_config['recipient_name'] 
-        ?? null;
-    $customerContactTitle = $record->content_config['recipient_title'] 
-        ?? $so?->content_config['recipient_title'] 
-        ?? null;
-    $customerContactGender = $record->content_config['recipient_gender'] 
-        ?? $so?->content_config['recipient_gender'] 
-        ?? null;
-
-    if (!$customerContactName && !empty($record->customer?->contacts)) {
-        $firstContact = $record->customer->contacts[0];
-        $customerContactName = $firstContact['name'] ?? null;
-        $customerContactTitle = $firstContact['job_position'] ?? null;
-        $customerContactGender = $firstContact['gender'] ?? null;
-    }
-
-    $salutation = '';
-    if ($customerContactGender) {
-        $salutation = ($customerContactGender === 'male' || $customerContactGender === \Modules\MasterData\Enums\Gender::Male->value) ? 'Bapak' : 'Ibu';
-    }
-
-    $customerContactDisplay = $customerContactName ? ($salutation ? $salutation . ' ' . $customerContactName : $customerContactName) : 'Unit Accounting';
 
     // Bilingual Labels
     $labels = [
@@ -144,68 +86,83 @@
             'id' => 'Pembayaran dapat dilakukan melalui transfer ke rekening kami :',
             'en' => 'Payment can be made via transfer to our account :',
         ],
-        'an' => ['id' => 'a/n', 'en' => 'o/b'],
+        'an' => ['id' => 'a.n.', 'en' => 'a.n.'], // Keep a.n. as requested by user for branding
         'signed_by' => ['id' => 'Digitally Signed By', 'en' => 'Digitally Signed By'],
         'page' => ['id' => 'Halaman', 'en' => 'Page'],
         'source_so' => ['id' => 'No Sales Order', 'en' => 'Sales Order No'],
         'source_internal' => ['id' => 'No Memo Internal / ST', 'en' => 'Internal Memo / ST No'],
+        'days' => ['id' => 'Hari', 'en' => 'Days'],
+        'pks' => ['id' => 'Perjanjian Kerja Sama (PKS)', 'en' => 'Cooperation Agreement (PKS)'],
+        'spk' => ['id' => 'Surat Perintah Kerja (SPK)', 'en' => 'Work Order (SPK)'],
+        'po' => ['id' => 'Purchase Order (PO)', 'en' => 'Purchase Order (PO)'],
+        'moa' => ['id' => 'Memorandum of Agreement (MoA)', 'en' => 'Memorandum of Agreement (MoA)'],
+        'job_invoice' => ['id' => 'Tagihan Pekerjaan', 'en' => 'Job Invoice for'],
+        'period' => ['id' => 'Periode', 'en' => 'Period'],
+        'draft' => ['id' => 'Draf (Belum Disetujui)', 'en' => 'Draft (Unapproved)'],
+        'mr' => ['id' => 'Bapak', 'en' => 'Mr.'],
+        'ms' => ['id' => 'Ibu', 'en' => 'Ms.'],
     ];
-@endphp
 
-@php
     // Simple English Number to Words (Terbilang) helper for English
     if ($lang === 'en' && !function_exists('numberToWordsEn')) {
-        function numberToWordsEn($number) {
-            $hyphen      = '-';
+        function numberToWordsEn($number)
+        {
+            $hyphen = '-';
             $conjunction = ' and ';
-            $separator   = ', ';
-            $negative    = 'negative ';
-            $decimal     = ' point ';
-            $dictionary  = array(
-                0                   => 'zero',
-                1                   => 'one',
-                2                   => 'two',
-                3                   => 'three',
-                4                   => 'four',
-                5                   => 'five',
-                6                   => 'six',
-                7                   => 'seven',
-                8                   => 'eight',
-                9                   => 'nine',
-                10                  => 'ten',
-                11                  => 'eleven',
-                12                  => 'twelve',
-                13                  => 'thirteen',
-                14                  => 'fourteen',
-                15                  => 'fifteen',
-                16                  => 'sixteen',
-                17                  => 'seventeen',
-                18                  => 'eighteen',
-                19                  => 'nineteen',
-                20                  => 'twenty',
-                30                  => 'thirty',
-                40                  => 'forty',
-                50                  => 'fifty',
-                60                  => 'sixty',
-                70                  => 'seventy',
-                80                  => 'eighty',
-                90                  => 'ninety',
-                100                 => 'hundred',
-                1000                => 'thousand',
-                1000000             => 'million',
-                1000000000          => 'billion',
-                1000000000000       => 'trillion',
-                1000000000000000    => 'quadrillion',
-                1000000000000000000 => 'quintillion'
-            );
+            $separator = ', ';
+            $negative = 'negative ';
+            $decimal = ' point ';
+            $dictionary = [
+                0 => 'zero',
+                1 => 'one',
+                2 => 'two',
+                3 => 'three',
+                4 => 'four',
+                5 => 'five',
+                6 => 'six',
+                7 => 'seven',
+                8 => 'eight',
+                9 => 'nine',
+                10 => 'ten',
+                11 => 'eleven',
+                12 => 'twelve',
+                13 => 'thirteen',
+                14 => 'fourteen',
+                15 => 'fifteen',
+                16 => 'sixteen',
+                17 => 'seventeen',
+                18 => 'eighteen',
+                19 => 'nineteen',
+                20 => 'twenty',
+                30 => 'thirty',
+                40 => 'forty',
+                50 => 'fifty',
+                60 => 'sixty',
+                70 => 'seventy',
+                80 => 'eighty',
+                90 => 'ninety',
+                100 => 'hundred',
+                1000 => 'thousand',
+                1000000 => 'million',
+                1000000000 => 'billion',
+                1000000000000 => 'trillion',
+                1000000000000000 => 'quadrillion',
+                1000000000000000000 => 'quintillion',
+            ];
 
-            if (!is_numeric($number)) return false;
-            if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) return false;
-            if ($number < 0) return $negative . numberToWordsEn(abs($number));
+            if (!is_numeric($number)) {
+                return false;
+            }
+            if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) {
+                return false;
+            }
+            if ($number < 0) {
+                return $negative . numberToWordsEn(abs($number));
+            }
 
             $string = $fraction = null;
             if (strpos($number, '.') !== false) {
-                list($number, $fraction) = explode('.', $number);
+                [$number, $fraction] = explode('.', $number);
             }
 
             switch (true) {
@@ -213,16 +170,20 @@
                     $string = $dictionary[$number];
                     break;
                 case $number < 100:
-                    $tens   = ((int) ($number / 10)) * 10;
-                    $units  = $number % 10;
+                    $tens = ((int) ($number / 10)) * 10;
+                    $units = $number % 10;
                     $string = $dictionary[$tens];
-                    if ($units) $string .= $hyphen . $dictionary[$units];
+                    if ($units) {
+                        $string .= $hyphen . $dictionary[$units];
+                    }
                     break;
                 case $number < 1000:
-                    $hundreds  = $number / 100;
+                    $hundreds = $number / 100;
                     $remainder = $number % 100;
                     $string = $dictionary[(int) $hundreds] . ' ' . $dictionary[100];
-                    if ($remainder) $string .= $conjunction . numberToWordsEn($remainder);
+                    if ($remainder) {
+                        $string .= $conjunction . numberToWordsEn($remainder);
+                    }
                     break;
                 default:
                     $baseUnit = pow(1000, floor(log($number, 1000)));
@@ -241,12 +202,210 @@
     }
 
     if ($lang === 'en') {
-        $terbilangStr = ucwords(numberToWordsEn($record->total_amount)) . " Rupiah";
+        $terbilangStr = ucwords(numberToWordsEn($record->total_amount)) . ' Rupiah';
+    } else {
+        $terbilangStr = trim(terbilang($record->total_amount)) . ' Rupiah';
+    }
+
+    $items = $record->getTranslation('items', $lang) ?? ($record->items ?? []);
+    $tax_percentage =
+        $record->tax_percentage ?? ($record->amount > 0 ? round(($record->tax_amount / $record->amount) * 100) : 12);
+    $tax_wording =
+        $record->getTranslation('tax_wording', $lang) ?? ($record->tax_wording ?? 'PPN ' . $tax_percentage . '%');
+
+    $source = $record->sourceable;
+    $sourceNumber = '-';
+    $displaySourceType = $labels['source_doc'][$lang];
+    $isInternal = false;
+    $refNo = '-';
+    $so = null;
+
+    if ($source) {
+        if ($source instanceof \Modules\CRM\Models\SalesOrder) {
+            $so = $source;
+            $isInternal = $source->type === \Modules\CRM\Enums\SalesOrderType::Internal;
+            $sourceNumber = $isInternal ? '-' : $source->number;
+            $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
+        } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
+            $refNo = $source->number;
+            if ($source->sourceable instanceof \Modules\CRM\Models\SalesOrder) {
+                $so = $source->sourceable;
+            }
+            $sourceNumber = $source->number;
+            $displaySourceType = 'BAPP';
+        } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
+            $sourceNumber = $source->number;
+            $displaySourceType = $labels['po'][$lang];
+        } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
+            $sourceNumber = $source->number;
+            $displaySourceType = $labels['spk'][$lang];
+        } elseif ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
+            $sourceNumber = $source->number;
+            $displaySourceType = $labels['pks'][$lang];
+        }
+    }
+
+    $termOfPayment =
+        $so?->payment_terms ??
+        ($record->invoice_date && $record->due_date
+            ? $record->invoice_date->diffInDays($record->due_date) . ' ' . $labels['days'][$lang]
+            : '-');
+
+    // Dynamic Payment Info
+    $paymentInfo = is_array($record->payment_info)
+        ? $record->payment_info
+        : (json_decode($record->payment_info, true) ?? []);
+    $accountName = $paymentInfo['account_name'] ?? 'PT. GARUDA DAYA PRATAMA SEJAHTERA';
+    $banks = $paymentInfo['banks'] ?? [];
+
+    // Branding Assets
+    $logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
+    $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
+    $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
+
+    // Customer Contact Logic
+    $customerContactName =
+        $record->content_config['recipient_name'] ?? ($so?->content_config['recipient_name'] ?? null);
+    $customerContactTitle =
+        $record->content_config['recipient_title'] ?? ($so?->content_config['recipient_title'] ?? null);
+    $customerContactGender =
+        $record->content_config['recipient_gender'] ?? ($so?->content_config['recipient_gender'] ?? null);
+
+    if (!$customerContactName && !empty($record->customer?->contacts)) {
+        $firstContact = $record->customer->contacts[0];
+        $customerContactName = $firstContact['name'] ?? null;
+        $customerContactTitle = $firstContact['job_position'] ?? null;
+        $customerContactGender = $firstContact['gender'] ?? null;
+    }
+
+    $salutation = '';
+    if ($customerContactGender) {
+        $salutation =
+            $customerContactGender === 'male' ||
+            $customerContactGender === \Modules\MasterData\Enums\Gender::Male->value
+                ? $labels['mr'][$lang]
+                : $labels['ms'][$lang];
+    }
+
+    $customerContactDisplay = $customerContactName
+        ? ($salutation
+            ? $salutation . ' ' . $customerContactName
+            : $customerContactName)
+        : $labels['accounting_unit'][$lang];
+
+    $approverSig = $record->signatures()->where('signature_type', 'Approver')->first();
+    $approverUnit = $approverSig
+        ? ($approverSig->user->unit->name ?? $labels['accounting_unit'][$lang])
+        : $labels['accounting_unit'][$lang];
+@endphp
+
+@php
+    // Simple English Number to Words (Terbilang) helper for English
+    if ($lang === 'en' && !function_exists('numberToWordsEn')) {
+        function numberToWordsEn($number)
+        {
+            $hyphen = '-';
+            $conjunction = ' and ';
+            $separator = ', ';
+            $negative = 'negative ';
+            $decimal = ' point ';
+            $dictionary = [
+                0 => 'zero',
+                1 => 'one',
+                2 => 'two',
+                3 => 'three',
+                4 => 'four',
+                5 => 'five',
+                6 => 'six',
+                7 => 'seven',
+                8 => 'eight',
+                9 => 'nine',
+                10 => 'ten',
+                11 => 'eleven',
+                12 => 'twelve',
+                13 => 'thirteen',
+                14 => 'fourteen',
+                15 => 'fifteen',
+                16 => 'sixteen',
+                17 => 'seventeen',
+                18 => 'eighteen',
+                19 => 'nineteen',
+                20 => 'twenty',
+                30 => 'thirty',
+                40 => 'forty',
+                50 => 'fifty',
+                60 => 'sixty',
+                70 => 'seventy',
+                80 => 'eighty',
+                90 => 'ninety',
+                100 => 'hundred',
+                1000 => 'thousand',
+                1000000 => 'million',
+                1000000000 => 'billion',
+                1000000000000 => 'trillion',
+                1000000000000000 => 'quadrillion',
+                1000000000000000000 => 'quintillion',
+            ];
+
+            if (!is_numeric($number)) {
+                return false;
+            }
+            if (($number >= 0 && (int) $number < 0) || (int) $number < 0 - PHP_INT_MAX) {
+                return false;
+            }
+            if ($number < 0) {
+                return $negative . numberToWordsEn(abs($number));
+            }
+
+            $string = $fraction = null;
+            if (strpos($number, '.') !== false) {
+                [$number, $fraction] = explode('.', $number);
+            }
+
+            switch (true) {
+                case $number < 21:
+                    $string = $dictionary[$number];
+                    break;
+                case $number < 100:
+                    $tens = ((int) ($number / 10)) * 10;
+                    $units = $number % 10;
+                    $string = $dictionary[$tens];
+                    if ($units) {
+                        $string .= $hyphen . $dictionary[$units];
+                    }
+                    break;
+                case $number < 1000:
+                    $hundreds = $number / 100;
+                    $remainder = $number % 100;
+                    $string = $dictionary[(int) $hundreds] . ' ' . $dictionary[100];
+                    if ($remainder) {
+                        $string .= $conjunction . numberToWordsEn($remainder);
+                    }
+                    break;
+                default:
+                    $baseUnit = pow(1000, floor(log($number, 1000)));
+                    $numBaseUnits = (int) ($number / $baseUnit);
+                    $remainder = $number % $baseUnit;
+                    $string = numberToWordsEn($numBaseUnits) . ' ' . $dictionary[$baseUnit];
+                    if ($remainder) {
+                        $string .= $remainder < 100 ? $conjunction : $separator;
+                        $string .= numberToWordsEn($remainder);
+                    }
+                    break;
+            }
+
+            return $string;
+        }
+    }
+
+    if ($lang === 'en') {
+        $terbilangStr = ucwords(numberToWordsEn($record->total_amount)) . ' Rupiah';
     }
 @endphp
 
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Invoice - {{ $record->number }}</title>
@@ -254,8 +413,16 @@
         @page {
             margin: 1.5in 0.7in 1.5in 0.7in;
         }
-        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 11px; color: #000; line-height: 1.3; margin: 0; padding: 0; }
-        
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11px;
+            color: #000;
+            line-height: 1.3;
+            margin: 0;
+            padding: 0;
+        }
+
         header {
             position: fixed;
             top: -1.5in;
@@ -263,6 +430,7 @@
             right: -0.7in;
             z-index: 1000;
         }
+
         footer {
             position: fixed;
             bottom: -1.5in;
@@ -272,35 +440,126 @@
             line-height: 0;
             z-index: 1000;
         }
-        footer .page-number:after { content: counter(page); }
 
-        table { width: 100%; border-collapse: collapse; }
-        .header-table { width: 100%; margin-bottom: 15px; font-size: 11px; }
-        .header-table td { padding: 4px; vertical-align: top; }
-        
-        .box { border: 1px solid #e5e7eb; padding: 12px; border-radius: 8px; background-color: #f9fafb; }
-        .invoice-box { border: none; text-align: center; font-size: 26px; font-weight: bold; letter-spacing: 4px; color: #1e3a8a; }
-        
-        .main-table { width: 100%; border-collapse: collapse; margin-top: 20px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
-        .main-table th, .main-table td { padding: 8px; border: 1px solid #e5e7eb; }
-        .main-table th { text-align: center; background-color: #f3f4f6; color: #374151; border-bottom: 2px solid #cbd5e1; font-weight: 600; }
-        .main-table .desc-col { padding: 12px 8px; vertical-align: top; }
-        
-        .summary-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .summary-table td { padding: 8px; border-bottom: 1px solid #f1f5f9; }
-        .summary-table tr:last-child td { border-bottom: none; font-weight: bold; background-color: #f8fafc; border-top: 2px solid #cbd5e1; font-size: 12px; }
-        
-        .footer-table { width: 100%; margin-top: 25px; }
-        .footer-table td { vertical-align: top; }
-        
-        .payment-box { border: 1px dashed #94a3b8; padding: 15px; line-height: 1.6; font-size: 11px; border-radius: 8px; background-color: #f8fafc; }
-        
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
-        .font-bold { font-weight: bold; }
-        .text-primary { color: #1e40af; }
+        footer .page-number:after {
+            content: counter(page);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-table {
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 11px;
+        }
+
+        .header-table td {
+            padding: 4px;
+            vertical-align: top;
+        }
+
+        .box {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #f9fafb;
+        }
+
+        .invoice-box {
+            border: none;
+            text-align: center;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #1e3a8a;
+        }
+
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .main-table th,
+        .main-table td {
+            padding: 8px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .main-table th {
+            text-align: center;
+            background-color: #f3f4f6;
+            color: #374151;
+            border-bottom: 2px solid #cbd5e1;
+            font-weight: 600;
+        }
+
+        .main-table .desc-col {
+            padding: 12px 8px;
+            vertical-align: top;
+        }
+
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .summary-table td {
+            padding: 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: none;
+            font-weight: bold;
+            background-color: #f8fafc;
+            border-top: 2px solid #cbd5e1;
+            font-size: 12px;
+        }
+
+        .footer-table {
+            width: 100%;
+            margin-top: 25px;
+        }
+
+        .footer-table td {
+            vertical-align: top;
+        }
+
+        .payment-box {
+            border: 1px dashed #94a3b8;
+            padding: 15px;
+            line-height: 1.6;
+            font-size: 11px;
+            border-radius: 8px;
+            background-color: #f8fafc;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        .text-primary {
+            color: #1e40af;
+        }
     </style>
 </head>
+
 <body>
 
     <header>
@@ -327,7 +586,8 @@
             <img src="{{ $footerKop }}"
                 style="width: 100%; height: auto; display: block; margin: 0; padding: 0; border: none; vertical-align: bottom;">
         @endif
-        <div style="position: absolute; bottom: 30px; right: 50px; color: #ffffff; font-size: 9px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+        <div
+            style="position: absolute; bottom: 30px; right: 50px; color: #ffffff; font-size: 9px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
             {{ $labels['page'][$lang] }} <span class="page-number"></span></div>
     </footer>
 
@@ -342,7 +602,7 @@
             <td>{{ $displaySourceType }}</td>
             <td>: {{ $sourceNumber }}</td>
             <td>{{ $labels['invoice_date'][$lang] }}</td>
-            <td>: {{ $record->invoice_date->translatedFormat('d F Y') }}</td>
+            <td>: {{ $record->invoice_date->locale($lang)->translatedFormat('d F Y') }}</td>
         </tr>
         <tr>
             <td colspan="2" style="border-bottom: 1px solid #000;"></td>
@@ -358,7 +618,7 @@
                 <div class="box" style="height: 90px;">
                     <div style="margin-bottom: 5px;">{{ $labels['to'][$lang] }},</div>
                     <div style="margin-bottom: 3px;">{{ $customerContactDisplay }}</div>
-                    @if($customerContactTitle)
+                    @if ($customerContactTitle)
                         <div style="margin-bottom: 3px;">{{ $customerContactTitle }}</div>
                     @endif
                     <div class="font-bold" style="margin-bottom: 3px;">{{ $record->customer->name ?? '-' }}</div>
@@ -368,7 +628,8 @@
             <td width="4%"></td>
             <td width="48%" style="vertical-align: middle;">
                 <div class="invoice-box" style="height: 110px; display: table; width: 100%;">
-                    <div style="display: table-cell; vertical-align: middle;">{{ strtoupper($record->invoice_type ?? 'INVOICE') }}</div>
+                    <div style="display: table-cell; vertical-align: middle;">
+                        {{ strtoupper($record->invoice_type ?? 'INVOICE') }}</div>
                 </div>
             </td>
         </tr>
@@ -386,22 +647,26 @@
             </tr>
         </thead>
         <tbody>
-            @if(is_array($items) && count($items) > 0)
-                @foreach($items as $index => $item)
-                <tr>
-                    <td class="desc-col text-center">{{ $index + 1 }}</td>
-                    <td class="desc-col">{{ $item['item_name'] ?? 'Item ' . ($index + 1) }}</td>
-                    <td class="desc-col text-center">{{ number_format($item['quantity'] ?? 0) }}</td>
-                    <td class="desc-col text-center">{{ $item['uom'] ?? 'Unit' }}</td>
-                    <td class="desc-col text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
-                    <td class="desc-col text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
-                </tr>
+            @if (is_array($items) && count($items) > 0)
+                @foreach ($items as $index => $item)
+                    <tr>
+                        <td class="desc-col text-center">{{ $index + 1 }}</td>
+                        <td class="desc-col">{{ $item['item_name'] ?? 'Item ' . ($index + 1) }}</td>
+                        <td class="desc-col text-center">{{ number_format($item['quantity'] ?? 0) }}</td>
+                        <td class="desc-col text-center">{{ $item['uom'] ?? 'Unit' }}</td>
+                        <td class="desc-col text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                        <td class="desc-col text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}
+                        </td>
+                    </tr>
                 @endforeach
             @else
                 <tr>
                     <td class="desc-col text-center">1</td>
                     <td class="desc-col">
-                        {{ $lang === 'id' ? 'Tagihan Pekerjaan' : 'Job Invoice for' }} {{ $record->salesOrder->project->name ?? 'Service' }} {{ $lang === 'id' ? 'Periode' : 'Period' }} {{ $record->workCompletionReport ? $record->workCompletionReport->service_period_start->translatedFormat('F Y') : $record->invoice_date->translatedFormat('F Y') }}
+                        {{ $labels['job_invoice'][$lang] }}
+                        {{ $record->salesOrder->project->name ?? 'Service' }}
+                        {{ $labels['period'][$lang] }}
+                        {{ $record->workCompletionReport ? $record->workCompletionReport->service_period_start->locale($lang)->translatedFormat('F Y') : $record->invoice_date->locale($lang)->translatedFormat('F Y') }}
                     </td>
                     <td class="desc-col text-center">1</td>
                     <td class="desc-col text-center">Ls</td>
@@ -442,25 +707,28 @@
                     <div class="font-bold text-primary">{{ $labels['payment_instruction'][$lang] }}</div>
                     <div style="margin-top: 5px;">
                         <span class="font-bold">{{ $labels['an'][$lang] }} {{ $accountName }}</span><br>
-                        @foreach($banks as $bank)
-                            <span class="font-bold">{{ $bank['bank_name'] ?? '' }} : {{ $bank['account_number'] ?? '' }} ({{ $bank['currency'] ?? 'IDR' }})</span><br>
+                        @foreach ($banks as $bank)
+                            <span class="font-bold">{{ $bank['bank_name'] ?? '' }} :
+                                {{ $bank['account_number'] ?? '' }} ({{ $bank['currency'] ?? 'IDR' }})</span><br>
                         @endforeach
                     </div>
                 </div>
             </td>
             <td width="40%" class="text-center" style="vertical-align: bottom;">
-                <div>PT. Garuda Daya Pratama Sejahtera</div>
-                
+                <div>a.n. PT. Garuda Daya Pratama Sejahtera</div>
+
                 <div style="height: 100px; margin: 10px 0; position: relative;">
-                    @if($approverSig)
-                        <div style="border: 2px dashed #4ade80; color: #166534; padding: 20px; font-weight: bold; width: 200px; margin: 0 auto;">
+                    @if ($approverSig)
+                        <div
+                            style="border: 2px dashed #4ade80; color: #166534; padding: 20px; font-weight: bold; width: 200px; margin: 0 auto;">
                             {{ $labels['signed_by'][$lang] }}<br>
                             {{ $approverSig->user->name }}<br>
-                            <small>{{ $approverSig->signed_at->format('d M Y H:i') }}</small>
+                            <small>{{ $approverSig->signed_at->locale($lang)->translatedFormat('d M Y H:i') }}</small>
                         </div>
                     @else
-                        <div style="border: 2px dashed #9ca3af; color: #4b5563; padding: 20px; width: 200px; margin: 0 auto;">
-                            Draft (Unapproved)
+                        <div
+                            style="border: 2px dashed #9ca3af; color: #4b5563; padding: 20px; width: 200px; margin: 0 auto;">
+                            {{ $labels['draft'][$lang] }}
                         </div>
                     @endif
                 </div>
@@ -474,4 +742,5 @@
     </table>
 
 </body>
+
 </html>

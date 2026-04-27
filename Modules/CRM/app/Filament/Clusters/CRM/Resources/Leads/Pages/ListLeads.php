@@ -27,7 +27,7 @@ class ListLeads extends ListRecords
                 ->icon(Heroicon::ViewColumns)
                 ->url(LeadResource::getUrl('index')),
             Actions\CreateAction::make()
-                ->form(fn (Schema $schema) => LeadForm::configure($schema)),
+                ->schema(fn (Schema $schema) => LeadForm::configure($schema)),
         ];
     }
 

@@ -11,8 +11,9 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptions\Schemas\BillingOptionForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
+use Modules\CRM\Models\Customer;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BillingOptions\Schemas\BillingOptionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
@@ -20,7 +21,6 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schem
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkSchemes\Schemas\WorkSchemeForm;
-use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
@@ -70,13 +70,35 @@ class ProjectForm
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->editOptionForm(CustomerForm::schema())
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
-                    Select::make('contract_id')
-                        ->relationship('contract', 'contract_number', fn ($query, $get) => $query->where('customer_id', $get('customer_id')))
-                        ->label('Contract/SPK')
+                    Select::make('sourceable_type')
+                        ->label('Legal Basis Type')
+                        ->options([
+                            \Modules\CRM\Models\PurchaseOrder::class => 'Purchase Order (PO)',
+                            \Modules\CRM\Models\WorkOrder::class => 'Work Order (SPK)',
+                            \Modules\CRM\Models\CooperationAgreement::class => 'Cooperation Agreement (PKS)',
+                        ])
+                        ->live()
+                        ->placeholder('Select document type')
+                        ->afterStateUpdated(fn ($set) => $set('sourceable_id', null)),
+                    Select::make('sourceable_id')
+                        ->label('Source Document')
+                        ->placeholder('Select document')
                         ->searchable()
                         ->preload()
                         ->live()
-                        ->visible(fn ($get) => filled($get('customer_id'))),
+                        ->options(function (Get $get) {
+                            $type = $get('sourceable_type');
+                            $customerId = $get('customer_id');
+                            if (! $type) {
+                                return [];
+                            }
+
+                            return $type::query()
+                                ->when($customerId, fn ($q) => $q->where('customer_id', $customerId))
+                                ->get()
+                                ->pluck('number', 'id');
+                        })
+                        ->visible(fn (Get $get) => filled($get('sourceable_type'))),
                     TextInput::make('project_number')
                         ->required()
                         ->placeholder('01')

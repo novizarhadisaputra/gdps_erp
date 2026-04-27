@@ -109,9 +109,19 @@ class Proposal extends Model implements HasMedia
         return $this->belongsTo(WorkScheme::class);
     }
 
-    public function contracts(): HasMany
+    public function purchaseOrders(): HasMany
     {
-        return $this->hasMany(Contract::class);
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class);
+    }
+
+    public function cooperationAgreements(): HasMany
+    {
+        return $this->hasMany(CooperationAgreement::class);
     }
 
     public function minutesOfAgreements(): HasMany

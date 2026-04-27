@@ -23,7 +23,7 @@ class ListProjects extends ListRecords
                 ->icon(Heroicon::OutlinedViewColumns)
                 ->url(ProjectResource::getUrl('index')),
             CreateAction::make()
-                ->form(fn (Schema $schema) => ProjectForm::configure($schema)),
+                ->schema(fn (Schema $schema) => ProjectForm::configure($schema)),
         ];
     }
 

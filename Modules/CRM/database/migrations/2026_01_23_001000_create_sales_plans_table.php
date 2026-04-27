@@ -42,8 +42,6 @@ return new class extends Migration
 
             $table->string('project_code')->nullable();
             $table->string('proposal_number')->nullable();
-            $table->uuid('agreement_id')->nullable();
-            $table->uuid('work_order_id')->nullable();
             $table->string('po_number')->nullable();
             $table->string('ba_number')->nullable();
             $table->string('so_number')->nullable();

@@ -17,6 +17,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class PurchaseOrder extends Model implements HasMedia
 {
     use HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
+
+    protected static function newFactory(): \Modules\CRM\Database\Factories\PurchaseOrderFactory
+    {
+        return \Modules\CRM\Database\Factories\PurchaseOrderFactory::new();
+    }
     use HasModuleSchema;
 
     protected $fillable = [
@@ -53,5 +58,15 @@ class PurchaseOrder extends Model implements HasMedia
     public function proposal(): BelongsTo
     {
         return $this->belongsTo(Proposal::class);
+    }
+
+    public function projects(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\Modules\Project\Models\Project::class, 'sourceable');
+    }
+
+    public function salesOrders(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(SalesOrder::class, 'sourceable');
     }
 }

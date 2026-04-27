@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Modules\CRM\Models\Contract;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
@@ -30,8 +30,6 @@ use Modules\Project\Observers\ProjectObserver;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 // use Modules\Project\Database\Factories\ProjectFactory;
 
 #[ObservedBy(ProjectObserver::class)]
@@ -48,7 +46,8 @@ class Project extends Model implements HasMedia
         'name',
         'status',
         'customer_id',
-        'contract_id',
+        'sourceable_id',
+        'sourceable_type',
         'project_number',
         'work_scheme_id',
         'product_cluster_id',
@@ -141,6 +140,16 @@ class Project extends Model implements HasMedia
         return $this->hasMany(WorkCompletionReport::class);
     }
 
+    public function salesOrders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\Modules\CRM\Models\SalesOrder::class);
+    }
+
+    public function sourceable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
+    }
+
     public function tasks(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ProjectTask::class);
@@ -159,11 +168,6 @@ class Project extends Model implements HasMedia
     protected static function newFactory(): ProjectFactory
     {
         return ProjectFactory::new();
-    }
-
-    public function contract(): BelongsTo
-    {
-        return $this->belongsTo(Contract::class);
     }
 
     public function lead(): BelongsTo

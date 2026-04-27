@@ -3,8 +3,7 @@
 namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\CRM\Enums\ContractType;
-use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\WorkOrder;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesPlan;
@@ -116,7 +115,7 @@ class SalesPlanTest extends TestCase
         $this->assertEquals('PROJ-999', $salesPlan->project_code);
     }
 
-    public function test_contract_creation_auto_links_to_sales_plan(): void
+    public function test_work_order_creation_auto_links_to_sales_plan(): void
     {
         $salesPlan = $this->lead->refresh()->salesPlan;
 
@@ -128,17 +127,16 @@ class SalesPlanTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $contract = Contract::create([
+        $workOrder = WorkOrder::factory()->create([
             'lead_id' => $this->lead->id,
             'customer_id' => $this->customer->id,
             'proposal_id' => $proposal->id,
             'number' => 'WO-001',
-            'type' => ContractType::WorkOrder,
             'status' => 'draft',
         ]);
 
         $salesPlan->refresh();
-        $this->assertEquals($contract->id, $salesPlan->work_order_id);
+        $this->assertEquals($workOrder->id, $salesPlan->workOrder->id);
     }
 
     public function test_sales_plan_observer_daily_proration_with_cutoff(): void

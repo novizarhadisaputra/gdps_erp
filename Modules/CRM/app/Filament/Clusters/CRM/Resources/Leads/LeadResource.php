@@ -16,7 +16,7 @@ use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\EditLead;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\LeadBoard;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ListLeads;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageContracts;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageCooperationAgreements;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageCostingTemplates;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageGeneralInformations;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageManpowerTemplates;
@@ -25,7 +25,9 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProfitabilityA
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectInformations;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProjectReviews;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageProposals;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManagePurchaseOrders;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageSalesPlans;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ManageWorkOrders;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages\ViewLead;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
@@ -108,7 +110,9 @@ class LeadResource extends Resource
                 ]) && $record->proposals()->where('status', ProposalStatus::Approved)->exists()
                 ))->toArray(),
             ...collect($page->generateNavigationItems([
-                ManageContracts::class,
+                ManagePurchaseOrders::class,
+                ManageWorkOrders::class,
+                ManageCooperationAgreements::class,
             ]))->map(fn (NavigationItem $item) => $item
                 ->group('Stage 3: Contracting (Negotiation)')
                 ->visible(fn () => in_array($record->status, [
@@ -156,7 +160,9 @@ class LeadResource extends Resource
             'manpower-costing' => ManageManpowerTemplates::route('/{record}/manpower-costing'),
             'profitability-analysis' => ManageProfitabilityAnalyses::route('/{record}/profitability-analysis'),
             'project-informations' => ManageProjectInformations::route('/{record}/project-informations'),
-            'contracts' => ManageContracts::route('/{record}/contracts'),
+            'purchase-orders' => ManagePurchaseOrders::route('/{record}/purchase-orders'),
+            'work-orders' => ManageWorkOrders::route('/{record}/work-orders'),
+            'cooperation-agreements' => ManageCooperationAgreements::route('/{record}/cooperation-agreements'),
             'tools-equipment-costing' => ManageCostingTemplates::route('/{record}/tools-equipment-costing'),
             'minutes-of-agreements' => ManageMinutesOfAgreements::route('/{record}/minutes-of-agreements'),
         ];

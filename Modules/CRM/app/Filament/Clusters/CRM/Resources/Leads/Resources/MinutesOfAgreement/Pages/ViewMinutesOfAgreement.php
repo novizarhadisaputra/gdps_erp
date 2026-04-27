@@ -12,11 +12,10 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
-use Modules\CRM\Enums\ContractStatus;
 use Modules\CRM\Enums\MoAStatus;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CooperationAgreement\CooperationAgreementResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
-use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\CooperationAgreement;
 use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\MasterData\Services\SignatureService;
 
@@ -33,7 +32,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                 ->label('Export PDF')
                 ->color('gray')
                 ->icon(Heroicon::OutlinedArrowDownTray)
-                ->form([
+                ->schema([
                     Select::make('language')
                         ->label('Select Document Language')
                         ->options([
@@ -155,26 +154,27 @@ class ViewMinutesOfAgreement extends ViewRecord
                     $this->refreshFormData(['status']);
                 })
                 ->visible(fn () => $this->record->status === MoAStatus::Draft && $this->record->isComplete()),
-            Action::make('convertToContract')
-                ->label('Convert to Contract')
+            Action::make('convertToPKS')
+                ->label('Convert to PKS')
                 ->icon(Heroicon::OutlinedDocumentDuplicate)
                 ->color('primary')
-                ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Approved && ! $record->proposal?->contracts()->exists())
+                ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Approved && ! $record->proposal?->cooperationAgreements()->exists())
                 ->requiresConfirmation()
                 ->action(function (MinutesOfAgreement $record) {
-                    $contract = Contract::create([
+                    $pks = CooperationAgreement::create([
                         'customer_id' => $record->customer_id,
                         'lead_id' => $record->lead_id,
                         'proposal_id' => $record->proposal_id,
-                        'status' => ContractStatus::Draft,
+                        'status' => 'draft',
                     ]);
 
                     Notification::make()
-                        ->title('MoA Converted to Contract')
+                        ->title('MoA Converted to Cooperation Agreement (PKS)')
                         ->success()
                         ->send();
 
-                    $this->redirect(ContractResource::getUrl('edit', ['record' => $contract->id, 'lead' => $record->lead_id]));
+                    // Note: We need to make sure CooperationAgreementResource exists and has the correct path
+                    $this->redirect(CooperationAgreementResource::getUrl('view', ['record' => $pks->id, 'lead' => $record->lead_id]));
                 }),
             Action::make('Reject')
                 ->color('danger')

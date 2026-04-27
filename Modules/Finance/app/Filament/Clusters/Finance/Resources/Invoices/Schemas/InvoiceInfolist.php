@@ -36,7 +36,7 @@ class InvoiceInfolist
                                     ->label('Sales Order'),
                                 TextEntry::make('workCompletionReport.number')
                                     ->label('Work Completion Report (BAPP)'),
-                             ]),
+                            ]),
                     ])->columnSpanFull(),
 
                 Section::make('Financial Information')
@@ -85,7 +85,7 @@ class InvoiceInfolist
                 Section::make('Payment Information')
                     ->schema([
                         TextEntry::make('payment_info.account_name')
-                            ->label('Account Name (A/N)'),
+                            ->label('Account Name (a.n.)'),
                         RepeatableEntry::make('payment_info.banks')
                             ->label('Bank Accounts')
                             ->schema([

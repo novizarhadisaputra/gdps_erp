@@ -99,8 +99,12 @@ class SalesOrderForm
                                                         $set('job_location', $analysis->projectArea?->name ?? $lead->job_location);
                                                     } else {
                                                         $set('service_type', $lead->service_type);
-                                                        $set('job_location', $lead->job_location);
                                                     }
+                                                }
+
+                                                if ($project->sourceable_id) {
+                                                    $set('sourceable_id', $project->sourceable_id);
+                                                    $set('sourceable_type', $project->sourceable_type);
                                                 }
                                             }
                                         }),
@@ -127,6 +131,36 @@ class SalesOrderForm
                                         ->default(SalesOrderType::External)
                                         ->required()
                                         ->live(),
+                                    Select::make('sourceable_type')
+                                        ->label('Source Document Type')
+                                        ->options([
+                                            \Modules\CRM\Models\PurchaseOrder::class => 'Purchase Order (PO)',
+                                            \Modules\CRM\Models\WorkOrder::class => 'Work Order (SPK)',
+                                            \Modules\CRM\Models\CooperationAgreement::class => 'Cooperation Agreement (PKS)',
+                                        ])
+                                        ->live()
+                                        ->placeholder('Select type')
+                                        ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal->value)
+                                        ->afterStateUpdated(fn ($set) => $set('sourceable_id', null)),
+                                    Select::make('sourceable_id')
+                                        ->label('Source Document')
+                                        ->placeholder('Select document')
+                                        ->searchable()
+                                        ->preload()
+                                        ->live()
+                                        ->options(function (Get $get) {
+                                            $type = $get('sourceable_type');
+                                            $customerId = $get('customer_id');
+                                            if (! $type) {
+                                                return [];
+                                            }
+
+                                            return $type::query()
+                                                ->when($customerId, fn ($q) => $q->where('customer_id', $customerId))
+                                                ->get()
+                                                ->pluck('number', 'id');
+                                        })
+                                        ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal->value && filled($get('sourceable_type'))),
                                 ]),
                         ]),
                     Step::make('Execution & Staffing')

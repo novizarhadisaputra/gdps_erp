@@ -41,6 +41,10 @@ class SalesOrderInfolist
                                         TextEntry::make('proposal.number')
                                             ->label('Referenced Proposal')
                                             ->color('primary'),
+                                        TextEntry::make('sourceable.number')
+                                            ->label('Source Document')
+                                            ->color('primary')
+                                            ->placeholder('-'),
                                         TextEntry::make('customer.name')
                                             ->label('Customer')
                                             ->columnSpanFull(),

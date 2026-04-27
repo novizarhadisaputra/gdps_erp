@@ -19,6 +19,7 @@ use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Observers\LeadObserver;
 use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 use Modules\MasterData\Models\BillingOption;
 use Modules\MasterData\Models\Employee;
 use Modules\MasterData\Models\IndustrialSector;
@@ -153,9 +154,19 @@ class Lead extends Model implements HasMedia
         return $this->hasOne(ProjectReview::class)->latest('created_at');
     }
 
-    public function contracts(): HasMany
+    public function purchaseOrders(): HasMany
     {
-        return $this->hasMany(Contract::class);
+        return $this->hasMany(PurchaseOrder::class);
+    }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class);
+    }
+
+    public function cooperationAgreements(): HasMany
+    {
+        return $this->hasMany(CooperationAgreement::class);
     }
 
     public function projectType(): BelongsTo

@@ -35,6 +35,11 @@ class ProjectInfolist
                                         'cancelled' => 'danger',
                                         default => 'gray',
                                     }),
+                                TextEntry::make('sourceable.number')
+                                    ->label('Legal Basis')
+                                    ->icon(Heroicon::OutlinedDocumentText)
+                                    ->color('primary')
+                                    ->placeholder('No Legal Reference'),
                             ]),
                     ])->columnSpanFull(),
                 Section::make('Stakeholders')

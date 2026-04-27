@@ -50,12 +50,13 @@ class ProjectInformationObserver
             $info->oprep_id = $info->oprep_id ?? $lead->oprep_id;
         }
 
-        // Sync from Contract if available (fallback)
-        if ($project->contract_id && ! $info->revenue_per_month) {
-            $contract = $project->contract;
-            $info->revenue_per_month = $contract->proposal?->amount;
-            $info->start_date = $info->start_date ?? now();
-            $info->end_date = $info->end_date ?? $contract->expiry_date;
+        // Sync from Source Document if available (fallback)
+        if ($project->sourceable_id && ! $info->revenue_per_month) {
+            $source = $project->sourceable;
+            $info->revenue_per_month = $source->amount ?? $source->proposal?->amount;
+            $info->start_date = $info->start_date ?? $source->order_date ?? $source->agreement_date ?? now();
+            // We don't have a direct end_date in the new models yet, using start_date + 1 year as a default fallback if needed, or just leave it null.
+            $info->end_date = $info->end_date ?? ($info->start_date ? $info->start_date->copy()->addYear() : null);
         }
 
         // Sync PIC from Customer

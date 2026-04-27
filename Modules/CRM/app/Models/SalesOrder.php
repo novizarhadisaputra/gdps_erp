@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Database\Factories\SalesOrderFactory;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
-use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Observers\SalesOrderObserver;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Models\Employee;
@@ -32,6 +31,8 @@ class SalesOrder extends Model implements HasMedia
         'number',
         'order_date',
         'project_id',
+        'sourceable_id',
+        'sourceable_type',
         'proposal_id',
         'customer_id',
         'type',
@@ -123,5 +124,10 @@ class SalesOrder extends Model implements HasMedia
     public function communicationLogs(): MorphMany
     {
         return $this->morphMany(CommunicationLog::class, 'emailable');
+    }
+
+    public function sourceable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
     }
 }

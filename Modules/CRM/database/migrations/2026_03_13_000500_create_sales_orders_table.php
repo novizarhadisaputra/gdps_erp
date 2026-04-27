@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('number')->unique();
             $table->date('order_date');
+            $table->nullableUuidMorphs('sourceable');
 
             $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects');
             $table->foreignUuid('proposal_id')->constrained(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals');

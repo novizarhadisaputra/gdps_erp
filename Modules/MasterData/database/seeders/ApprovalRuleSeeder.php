@@ -4,7 +4,9 @@ namespace Modules\MasterData\Database\Seeders;
 
 use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Modules\CRM\Models\Contract;
+use Modules\CRM\Models\CooperationAgreement;
+use Modules\CRM\Models\PurchaseOrder;
+use Modules\CRM\Models\WorkOrder;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\CRM\Models\Proposal;
@@ -103,12 +105,32 @@ class ApprovalRuleSeeder extends Seeder
                 'order' => 1,
                 'is_active' => true,
             ],
-            // Contract Rules
+            // Cooperation Agreement Rules
             [
-                'resource_type' => Contract::class,
+                'resource_type' => CooperationAgreement::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['super_admin']])),
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            // Purchase Order Rules
+            [
+                'resource_type' => PurchaseOrder::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            // Work Order Rules
+            [
+                'resource_type' => WorkOrder::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,

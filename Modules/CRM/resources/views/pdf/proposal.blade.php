@@ -426,7 +426,8 @@ if ($hasDetailedLists) {
         @endphp
 
         @if ($hasDetailedLists && $totalBaseCost > 0)
-            <h2 style="margin-top: 20px; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px;">
+            <h2
+                style="margin-top: 20px; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px;">
                 I. DETAIL PENAWARAN HARGA (ITEMIZED COST)
             </h2>
             <table style="font-size: 9px; table-layout: auto;">

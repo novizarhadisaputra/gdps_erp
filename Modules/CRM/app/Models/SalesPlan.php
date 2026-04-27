@@ -47,8 +47,6 @@ class SalesPlan extends Model
         'confidence_level',
         'project_code',
         'proposal_number',
-        'agreement_id',
-        'work_order_id',
         'po_number',
         'ba_number',
         'so_number',
@@ -118,14 +116,14 @@ class SalesPlan extends Model
         return $this->belongsTo(ProjectArea::class);
     }
 
-    public function agreement(): BelongsTo
+    public function agreement(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->belongsTo(Contract::class, 'agreement_id');
+        return $this->hasOne(CooperationAgreement::class, 'lead_id', 'lead_id');
     }
 
-    public function workOrder(): BelongsTo
+    public function workOrder(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->belongsTo(Contract::class, 'work_order_id');
+        return $this->hasOne(WorkOrder::class, 'lead_id', 'lead_id');
     }
 
     public function monthlyBreakdowns(): HasMany
