@@ -51,7 +51,7 @@ class WorkCompletionReportsTable
             ])
             ->filters([
                 SelectFilter::make('project_id')
-                    ->relationship('project', 'code'),
+                    ->relationship('project', 'number'),
                 SelectFilter::make('status')
                     ->options(WorkCompletionStatus::class),
             ])

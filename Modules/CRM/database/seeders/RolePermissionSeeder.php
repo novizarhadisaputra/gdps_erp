@@ -92,10 +92,12 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:ProjectReview', 'View:ProjectReview',
             'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
             'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
+            'ViewAny:Proposal', 'View:Proposal', 'ViewAny:ProposalRevision', 'View:ProposalRevision',
+            'ViewAny:GeneralInformation', 'View:GeneralInformation',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
             'View:FinanceCluster', 'View:CRMCluster', 'View:ProjectReviewDashboard',
             'View:SummaryProfitabilityAnalysis',
-            'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
+            'View:AuditProposalRevision', 'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
         ];
 
         $this->syncPermissions($role, $permissions);
@@ -109,15 +111,20 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:Project', 'View:Project', 'Update:Project',
             'ViewAny:Contract', 'View:Contract',
             'ViewAny:Lead', 'View:Lead',
+            'ViewAny:ProfitabilityAnalysis', 'View:ProfitabilityAnalysis',
             'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport', 'Create:WorkCompletionReport', 'Update:WorkCompletionReport', 'SendEmail:WorkCompletionReport',
             'ViewAny:SalesOrder', 'View:SalesOrder',
             'ViewAny:Invoice', 'View:Invoice',
             'ViewAny:ProjectReview', 'View:ProjectReview',
+            'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
             'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
+            'ViewAny:Proposal', 'View:Proposal', 'ViewAny:ProposalRevision', 'View:ProposalRevision',
+            'ViewAny:MinutesOfAgreement', 'View:MinutesOfAgreement',
+            'ViewAny:GeneralInformation', 'View:GeneralInformation',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
-            'View:ProjectCluster', 'View:CRMCluster', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
-            'View:ProjectBoard',
-            'View:AuditAmendment',
+            'View:ProjectCluster', 'View:CRMCluster', 'View:FinanceCluster', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
+            'View:ProjectBoard', 'View:SummaryProfitabilityAnalysis',
+            'View:AuditProposalRevision', 'View:AuditAmendment',
         ];
 
         $this->syncPermissions($role, $permissions);

@@ -6,8 +6,10 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Widgets\MonthlyPerformanceChartWidget;
 
 class ProfitabilityAnalysisMonthlyForm
 {
@@ -107,6 +109,14 @@ class ProfitabilityAnalysisMonthlyForm
                         ->addable(false)
                         ->deletable(false)
                         ->reorderable(false),
+                ])->columnSpanFull(),
+
+            Section::make('Performance Trend')
+                ->description('Visual overview of revenue performance across the project timeline.')
+                ->visible(fn (string $operation): bool => $operation !== 'create')
+                ->schema([
+                    Livewire::make(MonthlyPerformanceChartWidget::class)
+                        ->key('monthly-performance-chart'),
                 ])->columnSpanFull(),
         ]);
     }

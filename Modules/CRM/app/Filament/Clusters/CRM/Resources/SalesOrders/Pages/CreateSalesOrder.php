@@ -2,9 +2,9 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages;
 
+use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Schemas\Schema;
-use Filament\Forms\Components\Select;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 
 class CreateSalesOrder extends CreateRecord
@@ -16,7 +16,7 @@ class CreateSalesOrder extends CreateRecord
         return $schema
             ->components([
                 Select::make('project_id')
-                    ->relationship('project', 'code')
+                    ->relationship('project', 'number')
                     ->required()
                     ->placeholder('Select project to generate SO...'),
             ]);

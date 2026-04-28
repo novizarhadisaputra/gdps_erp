@@ -39,15 +39,7 @@ class SalesOrderObserver
      */
     public function saving(SalesOrder $salesOrder): void
     {
-        // Distinguish Internal vs External based on attachments
-        // If a signed SO exists, it's external (requires customer signature)
-        // This addresses the feedback regarding attachment-based types
-        if ($salesOrder->hasMedia('signed_so')) {
-            $salesOrder->type = SalesOrderType::External;
-        } else {
-            // Default to internal if no external signature present
-            $salesOrder->type = SalesOrderType::Internal;
-        }
+        // Manual type selection in form is preferred
     }
 
     /**
@@ -65,7 +57,7 @@ class SalesOrderObserver
     public function saved(SalesOrder $salesOrder): void
     {
         // Automation: If Signed SO document is uploaded, flip status to Approved
-        if ($salesOrder->hasMedia('signed_so') && $salesOrder->status === SalesOrderStatus::Draft) {
+        if ($salesOrder->hasMedia('signed_so') && in_array($salesOrder->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted])) {
             $salesOrder->updateQuietly([
                 'status' => SalesOrderStatus::Approved,
             ]);

@@ -20,19 +20,24 @@ class ProjectService
             return null;
         }
 
-        // 1. Find the Winning Proposal (signed)
-        $signedProposal = $lead->proposals()
+        // 1. Try to find a Winning Proposal (signed)
+        $proposal = $lead->proposals()
             ->whereHas('media', function ($query) {
                 $query->where('collection_name', 'signed_proposal');
             })
             ->first();
 
-        if (! $signedProposal) {
+        // Fallback: Use the latest proposal if no signed one exists yet (to allow early project creation)
+        if (! $proposal) {
+            $proposal = $lead->proposals()->latest()->first();
+        }
+
+        if (! $proposal) {
             return null;
         }
 
         // 2. Find the associated PA
-        $analysis = $signedProposal->profitabilityAnalysis;
+        $analysis = $proposal->profitabilityAnalysis;
 
         // If no PA linked to proposal, maybe it's the one that triggered this (if $source is PA)
         if (! $analysis && $source instanceof ProfitabilityAnalysis) {
@@ -54,7 +59,7 @@ class ProjectService
         return Project::updateOrCreate(
             ['lead_id' => $lead->id],
             [
-                'proposal_id' => $signedProposal->id,
+                'proposal_id' => $proposal->id,
                 'profitability_analysis_id' => $analysis->id,
                 'customer_id' => $lead->customer_id,
                 'work_scheme_id' => $analysis->work_scheme_id,
@@ -65,7 +70,7 @@ class ProjectService
                 'payment_term_id' => $analysis->payment_term_id ?? $lead->payment_term_id,
                 'oprep_id' => $this->getEmployeeIdFromUser($lead->pic_costing_id),
                 'ams_id' => $this->getEmployeeIdFromUser($lead->user_id),
-                'name' => $lead->title ?? $lead->name ?? $signedProposal->proposal_number,
+                'name' => $lead->title ?? $lead->name ?? $proposal->number ?? 'New Project',
                 'start_date' => $analysis->start_date ?? now(),
                 'end_date' => $analysis->end_date ?? now()->addYear(),
                 'status' => ProjectStatus::Planning,

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
@@ -16,6 +17,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\HtmlString;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Enums\SalesOrderStatus;
@@ -46,7 +48,7 @@ class SalesOrderForm
                                         ->placeholder('Select order date')
                                         ->default(now()),
                                     Select::make('project_id')
-                                        ->relationship('project', 'code')
+                                        ->relationship('project', 'number')
                                         ->placeholder('Search or select project...')
                                         ->helperText('Connect with a project to automatically retrieve RAB and staffing data.')
                                         ->required()
@@ -140,7 +142,8 @@ class SalesOrderForm
                                         ])
                                         ->live()
                                         ->placeholder('Select type')
-                                        ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal->value)
+                                        ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal)
+                                        ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal)
                                         ->afterStateUpdated(fn ($set) => $set('sourceable_id', null)),
                                     Select::make('sourceable_id')
                                         ->label('Source Document')
@@ -160,7 +163,67 @@ class SalesOrderForm
                                                 ->get()
                                                 ->pluck('number', 'id');
                                         })
-                                        ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal->value && filled($get('sourceable_type'))),
+                                        ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal && filled($get('sourceable_type')))
+                                        ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal)
+                                        ->hintAction(
+                                            Action::make('createSource')
+                                                ->label('Create')
+                                                ->icon(Heroicon::Plus)
+                                                ->color('success')
+                                                ->tooltip('Auto-create source document from SO data')
+                                                ->requiresConfirmation()
+                                                ->modalHeading('Auto-create Source Document?')
+                                                ->modalDescription('System will generate a new document using current SO amount and service type.')
+                                                ->modalSubmitActionLabel('Yes, Create')
+                                                ->action(function (Get $get, Set $set) {
+                                                    $type = $get('sourceable_type');
+                                                    $customerId = $get('customer_id');
+                                                    $amount = $get('amount') ?? 0;
+                                                    $serviceType = $get('service_type') ?? 'Service from Sales Order';
+
+                                                    if (! $type || ! $customerId) {
+                                                        \Filament\Notifications\Notification::make()
+                                                            ->title('Missing Information')
+                                                            ->body('Please ensure Customer and Document Type are selected.')
+                                                            ->danger()
+                                                            ->send();
+
+                                                        return;
+                                                    }
+
+                                                    $recordData = [
+                                                        'customer_id' => $customerId,
+                                                        'amount' => $amount,
+                                                        'is_manual' => true,
+                                                        'items' => [
+                                                            [
+                                                                'item_name' => $serviceType,
+                                                                'quantity' => 1,
+                                                                'uom' => 'Lot',
+                                                                'unit_price' => $amount,
+                                                                'total_price' => $amount,
+                                                            ],
+                                                        ],
+                                                    ];
+
+                                                    if ($type === \Modules\CRM\Models\CooperationAgreement::class) {
+                                                        $recordData['agreement_date'] = now();
+                                                    } else {
+                                                        $recordData['order_date'] = now();
+                                                    }
+
+                                                    $record = $type::create($recordData);
+
+                                                    // Automatically select the new record
+                                                    $set('sourceable_id', $record->id);
+
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('Document Created')
+                                                        ->body("A new record has been generated: {$record->number}")
+                                                        ->success()
+                                                        ->send();
+                                                })
+                                        ),
                                 ]),
                         ]),
                     Step::make('Execution & Staffing')
@@ -180,7 +243,8 @@ class SalesOrderForm
                                         ->searchable(),
                                     TextInput::make('service_type')
                                         ->placeholder('e.g. Manpower Supply, Cleaning Service')
-                                        ->helperText('The main type of service provided.'),
+                                        ->helperText('The main type of service provided.')
+                                        ->live(),
                                     TextInput::make('job_location')
                                         ->placeholder('e.g. Soekarno-Hatta Airport')
                                         ->helperText('Specific location for the project execution.'),
@@ -392,7 +456,8 @@ class SalesOrderForm
                                         ->helperText('Nilai pendapatan kotor per bulan.')
                                         ->numeric()
                                         ->prefix('IDR')
-                                        ->required(),
+                                        ->required()
+                                        ->live(),
                                     TextInput::make('management_fee_percentage')
                                         ->label('Mgt. Fee')
                                         ->numeric()
@@ -437,22 +502,23 @@ class SalesOrderForm
                                                 ->collection('draft_so')
                                                 ->label('Draft SO / Proposal Document')
                                                 ->placeholder('Click or drag file here...')
+                                                ->required(fn (Get $get, string $operation) => $get('type') === SalesOrderType::External && $operation === 'edit')
                                                 ->helperText('Internal review version (Max 10MB).'),
 
                                             SpatieMediaLibraryFileUpload::make('signed_so')
                                                 ->collection('signed_so')
-                                                ->label(fn (Get $get) => $get('type') === SalesOrderType::Internal->value
+                                                ->label(fn (Get $get) => $get('type') === SalesOrderType::Internal
                                                     ? 'Approved Internal Memo / ST / PO (Scan)'
                                                     : 'Signed SO / SPK / PO (Scan)'
                                                 )
                                                 ->placeholder('Click or drag file here...')
-                                                ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal->value)
+                                                ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal)
                                                 ->helperText('Final legal document (Max 10MB).'),
                                         ]),
                                 ]),
                         ]),
                 ])
-                    ->disabled(fn ($record) => $record && $record->status !== SalesOrderStatus::Draft)
+                    ->disabled(fn ($record) => $record && $record->status === SalesOrderStatus::Approved)
                     ->columnSpanFull(),
             ]);
     }

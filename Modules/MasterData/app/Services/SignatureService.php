@@ -183,23 +183,23 @@ class SignatureService
     {
         $required = $this->getRequiredApprovers($model);
 
-        // Find if we are in Margin stage or PA stage (hierarchical stages but parallel within stages)
-        $isMarginStage = method_exists($model, 'isMarginApproved') && ! $model->isMarginApproved();
-        $targetType = $isMarginStage ? 'MarginApproval' : 'Approver';
-
-        // Find all rules of the current stage that are NOT yet satisfied
-        $unsatisfiedRules = $required->filter(function ($rule) use ($model, $targetType) {
-            $ruleType = $rule->signature_type instanceof \BackedEnum ? $rule->signature_type->value : (string) $rule->signature_type;
-
-            return $ruleType === $targetType && ! $model->isRuleSatisfied($rule);
+        // Find all rules that are NOT yet satisfied across all types
+        $unsatisfiedRules = $required->filter(function ($rule) use ($model) {
+            return ! $model->isRuleSatisfied($rule);
         });
 
         if ($unsatisfiedRules->isNotEmpty()) {
+            // Get the lowest order among unsatisfied rules - this is the current active step
+            $currentOrder = $unsatisfiedRules->first()->order;
+
+            // Only notify rules that match this specific order
+            $rulesToNotify = $unsatisfiedRules->filter(fn ($rule) => $rule->order === $currentOrder);
+
             $url = $this->getResourceUrl($model);
             $message = 'A '.class_basename($model).' requires your approval.';
             $notifiedUsers = [];
 
-            foreach ($unsatisfiedRules as $rule) {
+            foreach ($rulesToNotify as $rule) {
                 $eligibleUsers = $this->getEligibleUsers($rule);
                 foreach ($eligibleUsers as $user) {
                     if (! in_array($user->id, $notifiedUsers)) {
@@ -277,7 +277,6 @@ class SignatureService
         $resource = match ($class) {
             \Modules\CRM\Models\Proposal::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource::class,
             \Modules\Finance\Models\ProfitabilityAnalysis::class => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::class,
-            \Modules\CRM\Models\Contract::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Contract\ContractResource::class,
             \Modules\CRM\Models\MinutesOfAgreement::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource::class,
             \Modules\CRM\Models\GeneralInformation::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::class,
             \Modules\Project\Models\ProjectInformation::class => \Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\ProjectInformationResource::class,

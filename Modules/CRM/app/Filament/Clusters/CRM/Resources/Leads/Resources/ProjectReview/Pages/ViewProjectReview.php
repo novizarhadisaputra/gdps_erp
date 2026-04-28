@@ -237,45 +237,45 @@ class ViewProjectReview extends ViewRecord
 
     public function approveGIAction(): Action
     {
-        return $this->getApprovalAction('generalInformation', 'General Info')
+        return $this->getApprovalAction('approveGI', 'generalInformation', 'General Info')
             ->label('Verify General Info')
             ->extraAttributes(['class' => 'flex-1']);
     }
 
     public function rejectGIAction(): Action
     {
-        return $this->getRejectionAction('generalInformation', 'General Info')
+        return $this->getRejectionAction('rejectGI', 'generalInformation', 'General Info')
             ->label('Reject General Info');
     }
 
     public function approvePAAction(): Action
     {
-        return $this->getApprovalAction('profitabilityAnalysis', 'Profitability')
+        return $this->getApprovalAction('approvePA', 'profitabilityAnalysis', 'Profitability')
             ->label('Approve Profitability')
             ->extraAttributes(['class' => 'flex-1']);
     }
 
     public function rejectPAAction(): Action
     {
-        return $this->getRejectionAction('profitabilityAnalysis', 'Profitability')
+        return $this->getRejectionAction('rejectPA', 'profitabilityAnalysis', 'Profitability')
             ->label('Reject Profitability');
     }
 
     public function approveProposalAction(): Action
     {
-        return $this->getApprovalAction('proposal', 'Proposal')
+        return $this->getApprovalAction('approveProposal', 'proposal', 'Proposal')
             ->label('Approve Proposal');
     }
 
     public function rejectProposalAction(): Action
     {
-        return $this->getRejectionAction('proposal', 'Proposal')
+        return $this->getRejectionAction('rejectProposal', 'proposal', 'Proposal')
             ->label('Reject Proposal');
     }
 
-    protected function getApprovalAction(string $relation, string $label): Action
+    protected function getApprovalAction(string $name, string $relation, string $label): Action
     {
-        return Action::make("approve{$label}")
+        return Action::make($name)
             ->icon(Heroicon::CheckBadge)
             ->color('success')
             ->size('xs')
@@ -384,8 +384,10 @@ class ViewProjectReview extends ViewRecord
                     return false;
                 }
 
-                // PA Hierarchy: In fully parallel mode, we don't wait for Margin to be approved
-                // unless specifically requested by business rules. Removing wait-for-margin.
+                // PA Hierarchy: Approve PA (Approver type) only if Margin is already authorized
+                if ($relation === 'profitabilityAnalysis' && ! $subRecord->is_margin_approved) {
+                    return false;
+                }
 
                 if ($subRecord->isFullyApproved()) {
                     return false;
@@ -412,9 +414,9 @@ class ViewProjectReview extends ViewRecord
             });
     }
 
-    protected function getRejectionAction(string $relation, string $label): Action
+    protected function getRejectionAction(string $name, string $relation, string $label): Action
     {
-        return Action::make("reject{$label}")
+        return Action::make($name)
             ->outlined()
             ->icon(Heroicon::XCircle)
             ->color('danger')

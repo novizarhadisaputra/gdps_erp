@@ -106,7 +106,11 @@ class ViewSalesOrder extends ViewRecord
                 Action::make('sendEmail')
                     ->label('Send Email')
                     ->icon(Heroicon::OutlinedPaperAirplane)
-                    ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft)
+                    ->visible(fn (SalesOrder $record) => 
+                        in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]) && 
+                        ($record->hasMedia('draft_so') || $record->proposal?->hasMedia('signed_proposal')) &&
+                        ($record->profitabilityAnalysis?->is_margin_approved ?? false)
+                    )
                     ->url(fn (SalesOrder $record) => SalesOrderResource::getUrl('send', ['record' => $record])),
 
                 Action::make('submit')
@@ -121,96 +125,6 @@ class ViewSalesOrder extends ViewRecord
                         Notification::make()->title('Order Submitted for Approval')->success()->send();
                     }),
 
-                Action::make('approve')
-                    ->label('Approve Order')
-                    ->color('success')
-                    ->icon('heroicon-o-check-badge')
-                    ->visible(function (SalesOrder $record) {
-                        if (! in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted])) {
-                            return false;
-                        }
-
-                        if ($record->isFullyApproved()) {
-                            return false;
-                        }
-
-                        $service = app(SignatureService::class);
-                        $required = $service->getRequiredApprovers($record)
-                            ->where('signature_type', 'Approver');
-
-                        return $required->contains(fn ($rule) => ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user()));
-                    })
-                    ->modalHeading('Approve Sales Order')
-                    ->modalDescription('Please verify the sales order details. Entering your PIN will record your digital signature for this document.')
-                    ->modalSubmitActionLabel('Approve & Sign')
-                    ->schema([
-                        TextInput::make('pin')
-                            ->label('Signature PIN')
-                            ->password()
-                            ->required()
-                            ->helperText('Enter your digital signature PIN to approve the Sales Order.'),
-                    ])
-                    ->action(function (SalesOrder $record, array $data) {
-                        $service = app(SignatureService::class);
-
-                        if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                            Notification::make()
-                                ->title('Invalid PIN')
-                                ->danger()
-                                ->send();
-
-                            return;
-                        }
-
-                        $required = $service->getRequiredApprovers($record)
-                            ->where('signature_type', 'Approver');
-
-                        $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
-
-                        if ($eligibleRules->isEmpty()) {
-                            Notification::make()
-                                ->title('Access Denied')
-                                ->body('You do not have the authority to approve this Sales Order.')
-                                ->warning()
-                                ->send();
-                            return;
-                        }
-
-                        $matchingRule = $eligibleRules->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
-
-                        if (! $matchingRule) {
-                            Notification::make()
-                                ->title('Already Signed')
-                                ->body('You have already signed this approval step.')
-                                ->warning()
-                                ->send();
-                            return;
-                        }
-
-                        $recordedRole = null;
-                        if ($matchingRule->approver_type === 'Role') {
-                            $userRoles = auth()->user()->roles;
-                            $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
-
-                            $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
-                            $recordedRole = $matchedRole?->name;
-                        }
-
-                        $record->addSignature(auth()->user(), 'Approver', $recordedRole);
-
-                        if ($record->isFullyApproved()) {
-                            $record->update(['status' => SalesOrderStatus::Approved]);
-                        }
-
-                        $service->notifyNextApprovers($record);
-                        $service->notifyOwnerOnSignature($record, auth()->user(), 'Approver');
-
-                        Notification::make()
-                            ->title('Sales Order Approved')
-                            ->body('Your signature has been recorded.')
-                            ->success()
-                            ->send();
-                    }),
 
                 Action::make('revisi')
                     ->label('Request Revision')
