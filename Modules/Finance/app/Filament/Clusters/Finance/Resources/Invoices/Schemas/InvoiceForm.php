@@ -26,7 +26,7 @@ class InvoiceForm
         return $schema
             ->components([
                 Section::make('Invoice Identification')
-                    ->description('Define the core identity and dates for this invoice.')
+                    ->description('Define the core identity, reference numbers, and issuance dates for this invoice.')
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('number')
@@ -34,28 +34,30 @@ class InvoiceForm
                             ->required()
                             ->unique(ignoreRecord: true)
                             ->placeholder('e.g. INV/2024/001')
-                            ->helperText('Leave blank or enter "Auto-generated" to let the system sequence it.'),
+                            ->helperText('The unique identifier for this invoice. Leave blank for automatic sequencing.'),
                         DatePicker::make('invoice_date')
                             ->label('Invoice Date')
                             ->required()
                             ->default(now())
-                            ->helperText('The date this invoice is officially issued.'),
+                            ->placeholder('Select date')
+                            ->helperText('The official issuance date of this invoice.'),
                         DatePicker::make('due_date')
                             ->label('Due Date')
                             ->required()
                             ->default(now()->addDays(30))
-                            ->helperText('The deadline for the customer to complete payment.'),
+                            ->placeholder('Select due date')
+                            ->helperText('The deadline for payment completion.'),
                         TextInput::make('invoice_type')
                             ->label('Invoice Label')
                             ->placeholder('e.g. Invoice, Debit Note, Proforma')
                             ->default('Invoice')
-                            ->helperText('Customizes the main title on the PDF document.'),
+                            ->helperText('Customizes the document title on the generated PDF.'),
                         Hidden::make('status')
                             ->default(InvoiceStatus::Draft),
                     ])->columns(2),
 
                 Section::make('Related Documents')
-                    ->description('Link this invoice to its source documents.')
+                    ->description('Link this invoice to its source documents and customer account.')
                     ->columnSpanFull()
                     ->schema([
                         Select::make('customer_id')
@@ -64,8 +66,8 @@ class InvoiceForm
                             ->searchable()
                             ->required()
                             ->live()
-                            ->placeholder('Select a customer...')
-                            ->helperText('The client being billed.'),
+                            ->placeholder('Search and select a customer...')
+                            ->helperText('The client account that will be billed for this invoice.'),
                         MorphToSelect::make('sourceable')
                             ->label('Reference Document')
                             ->types([
@@ -92,12 +94,24 @@ class InvoiceForm
                             ->preload()
                             ->live()
                             ->required()
+                            ->placeholder('Select a source document')
+                            ->helperText('The original document this invoice is based on.')
                             ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                 if (! $state) {
                                     return;
                                 }
 
-                                [$modelClass, $id] = explode(':', $state);
+                                if (is_array($state)) {
+                                    $modelClass = $state['type'] ?? null;
+                                    $id = $state['id'] ?? null;
+                                } else {
+                                    [$modelClass, $id] = explode(':', $state);
+                                }
+
+                                if (! $modelClass || ! $id) {
+                                    return;
+                                }
+
                                 $source = $modelClass::find($id);
 
                                 if (! $source) {
@@ -111,7 +125,7 @@ class InvoiceForm
 
                                 // Sync items and financial details
                                 if ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
-                                    $set('tax_percentage', $source->tax_percentage ?? 11);
+                                    $set('tax_percentage', $source->tax_percentage ?? 12);
                                     $set('tax_wording', $source->tax_wording);
                                     $set('content_config.recipient_name', $source->content_config['recipient_name'] ?? null);
                                     $set('content_config.recipient_title', $source->content_config['recipient_title'] ?? null);
@@ -121,9 +135,31 @@ class InvoiceForm
                                         $set('items', $source->items);
                                         $sum = collect($source->items)->sum('total_price');
                                         $set('amount', $sum);
-                                        $tax = $sum * (($source->tax_percentage ?? 11) / 100);
+                                        $taxPercent = $source->tax_percentage ?? '12';
+                                        $tax = $sum * ($taxPercent / 100);
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $sum + $tax);
+                                    }
+
+                                    // Handle Internal Bank Account via BAPP
+                                    if ($source->sourceable instanceof \Modules\CRM\Models\SalesOrder && $source->sourceable->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
+                                        $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                                            ->where('is_active', true)
+                                            ->first();
+
+                                        if ($internalBank) {
+                                            $set('bank_account_id', $internalBank->id);
+                                            $set('payment_info', [
+                                                'account_name' => $internalBank->account_name,
+                                                'banks' => [
+                                                    [
+                                                        'bank_name' => $internalBank->bank_name,
+                                                        'account_number' => $internalBank->account_number,
+                                                        'currency' => $internalBank->currency,
+                                                    ],
+                                                ],
+                                            ]);
+                                        }
                                     }
                                 } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
                                     $soItems = $source->content_config['items'] ?? [];
@@ -139,7 +175,7 @@ class InvoiceForm
                                         $set('items', $invoiceItems);
                                         $sum = collect($invoiceItems)->sum('total_price');
                                         $set('amount', $sum);
-                                        $taxPercent = $get('tax_percentage') ?? 11;
+                                        $taxPercent = $get('tax_percentage') ?? '12';
                                         $tax = $sum * ($taxPercent / 100);
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $sum + $tax);
@@ -150,8 +186,29 @@ class InvoiceForm
                                         $set('items', $source->items);
                                         $sum = collect($source->items)->sum('total_price');
                                         $set('amount', $sum);
-                                        $set('tax_amount', $sum * 0.11);
-                                        $set('total_amount', $sum * 1.11);
+                                        $set('tax_amount', $sum * 0.12);
+                                        $set('total_amount', $sum * 1.12);
+
+                                        // Handle Internal Bank Account
+                                        if ($source->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
+                                            $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                                                ->where('is_active', true)
+                                                ->first();
+
+                                            if ($internalBank) {
+                                                $set('bank_account_id', $internalBank->id);
+                                                $set('payment_info', [
+                                                    'account_name' => $internalBank->account_name,
+                                                    'banks' => [
+                                                        [
+                                                            'bank_name' => $internalBank->bank_name,
+                                                            'account_number' => $internalBank->account_number,
+                                                            'currency' => $internalBank->currency,
+                                                        ],
+                                                    ],
+                                                ]);
+                                            }
+                                        }
                                     }
                                 }
                             })
@@ -159,7 +216,7 @@ class InvoiceForm
                     ])->columns(1),
 
                 Section::make('Customer Signatory')
-                    ->description('Select or manually enter the person who will receive/sign this invoice from the customer side.')
+                    ->description('Select or manually enter the person who will receive or sign this invoice on behalf of the customer.')
                     ->schema([
                         Select::make('recipient_contact_index')
                             ->label('Customer Contact Reference')
@@ -221,12 +278,20 @@ class InvoiceForm
                                         ->options(Gender::class)
                                         ->required()
                                         ->native(false),
-                                    TextInput::make('name')->required(),
-                                    TextInput::make('job_position')->label('Job Position'),
+                                    TextInput::make('name')
+                                        ->required()
+                                        ->placeholder('Full name'),
+                                    TextInput::make('job_position')
+                                        ->label('Job Position')
+                                        ->placeholder('e.g. Manager'),
                                 ]),
                                 Grid::make(2)->schema([
-                                    TextInput::make('email')->email(),
-                                    TextInput::make('phone')->tel(),
+                                    TextInput::make('email')
+                                        ->email()
+                                        ->placeholder('email@example.com'),
+                                    TextInput::make('phone')
+                                        ->tel()
+                                        ->placeholder('+62...'),
                                 ]),
                             ])
                             ->createOptionUsing(function (array $data, Get $get) {
@@ -254,25 +319,26 @@ class InvoiceForm
 
                                 return count($contacts) - 1;
                             })
-                            ->placeholder('Pick a contact to auto-fill...')
+                            ->placeholder('Select a contact to auto-fill...')
                             ->dehydrated(false)
-                            ->helperText('Selecting a contact will populate the fields below.'),
+                            ->helperText('Selecting a contact will automatically populate the details below.'),
 
                         Grid::make(3)->schema([
                             Select::make('content_config.recipient_gender')
                                 ->label('Salutation')
                                 ->options(Gender::class)
                                 ->required()
+                                ->placeholder('Select...')
                                 ->native(false),
 
                             TextInput::make('content_config.recipient_name')
                                 ->label('Recipient Name')
-                                ->placeholder('Enter full name')
+                                ->placeholder('Full name of the recipient')
                                 ->required(),
 
                             TextInput::make('content_config.recipient_title')
                                 ->label('Recipient Title/Position')
-                                ->placeholder('e.g. Director of Finance'),
+                                ->placeholder('e.g. Finance Director'),
                         ]),
                     ])
                     ->collapsible(),
@@ -296,7 +362,7 @@ class InvoiceForm
                                             ->numeric()
                                             ->required()
                                             ->live(onBlur: true)
-                                            ->afterStateUpdated(fn ($get, $set) => $set('total_price', floatval($get('quantity') ?? 0) * floatval(str_replace('.', '', $get('unit_price') ?? 0)))),
+                                            ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval(str_replace('.', '', $get('unit_price') ?? 0))))),
                                         TextInput::make('uom')
                                             ->label('Unit')
                                             ->required(),
@@ -307,7 +373,7 @@ class InvoiceForm
                                             ->prefix('IDR')
                                             ->required()
                                             ->live(onBlur: true)
-                                            ->afterStateUpdated(fn ($get, $set) => $set('total_price', floatval($get('quantity') ?? 0) * floatval(str_replace('.', '', $get('unit_price') ?? 0)))),
+                                            ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval(str_replace('.', '', $get('unit_price') ?? 0))))),
                                         TextInput::make('total_price')
                                             ->label('Total Price')
                                             ->numeric()
@@ -319,14 +385,15 @@ class InvoiceForm
                             ->columnSpanFull()
                             ->reorderable()
                             ->live(onBlur: true)
-                            ->afterStateUpdated(function ($state, $set) {
+                            ->afterStateUpdated(function ($state, $set, $get) {
                                 // Auto-calculate amount when items change
                                 $sum = 0;
                                 foreach ((array) $state as $item) {
                                     $sum += floatval($item['total_price'] ?? 0);
                                 }
                                 $set('amount', $sum);
-                                $tax = $sum * 0.11;
+                                $taxPercent = (float) $get('tax_percentage') ?? 12;
+                                $tax = round($sum * ($taxPercent / 100));
                                 $set('tax_amount', $tax);
                                 $set('total_amount', $sum + $tax);
                             })
@@ -350,22 +417,35 @@ class InvoiceForm
                                     ->helperText('The principal billable amount excluding tax. Auto-calculated from items.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
                                         $amount = (float) str_replace('.', '', $state);
-                                        $taxPercent = (float) $get('tax_percentage') ?? 11;
-                                        $tax = $amount * ($taxPercent / 100);
+                                        $taxPercent = (float) $get('tax_percentage') ?? 12;
+                                        $tax = round($amount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
                                     }),
-                                TextInput::make('tax_percentage')
-                                    ->label('Tax %')
-                                    ->numeric()
-                                    ->default(11)
+                                Select::make('tax_percentage')
+                                    ->label('VAT Percentage')
+                                    ->options([
+                                        '12' => 'PPN 12%',
+                                        '11' => 'PPN 11%',
+                                    ])
+                                    ->default('12')
+                                    ->selectablePlaceholder(false)
+                                    ->native(false)
                                     ->live(onBlur: true)
+                                    ->placeholder('Select tax')
+                                    ->helperText('The applicable Value Added Tax (PPN) rate.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                        $amount = (float) str_replace('.', '', $get('amount') ?? 0);
-                                        $taxPercent = (float) $state ?? 11;
-                                        $tax = $amount * ($taxPercent / 100);
+                                        $amountString = $get('amount') ?? '0';
+                                        $amount = (float) str_replace('.', '', $amountString);
+                                        $taxPercent = (float) $state;
+                                        $tax = round($amount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
+
+                                        $set('tax_wording', [
+                                            'id' => "PPN {$taxPercent}%",
+                                            'en' => "{$taxPercent}% VAT",
+                                        ]);
                                     }),
                                 TextInput::make('tax_amount')
                                     ->label('Tax Amount')
@@ -392,7 +472,7 @@ class InvoiceForm
                                     ->required(),
                                 TextInput::make('tax_wording')
                                     ->label('Tax Wording (PDF)')
-                                    ->placeholder('e.g. PPN 11%, PPN 12%')
+                                    ->placeholder('e.g. PPN 12%')
                                     ->columnSpan(2)
                                     ->helperText('This text will appear in the tax row of the PDF summary.')
                                     ->translatable(),

@@ -13,6 +13,7 @@ use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkC
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ManageWorkCompletionReportComments;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ViewWorkCompletionReport;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas\WorkCompletionReportForm;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas\WorkCompletionReportInfolist;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Tables\WorkCompletionReportsTable;
 use Modules\Project\Models\WorkCompletionReport;
 
@@ -39,6 +40,11 @@ class WorkCompletionReportResource extends Resource
     public static function table(Table $table): Table
     {
         return WorkCompletionReportsTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return WorkCompletionReportInfolist::configure($schema);
     }
 
     public static function getPages(): array

@@ -54,7 +54,7 @@ class ProjectInformationForm
                         TextInput::make('ppn_percentage')
                             ->numeric()
                             ->suffix('%')
-                            ->default(11),
+                            ->default(12),
                         Select::make('payment_term_id')
                             ->label('Payment Term')
                             ->options(PaymentTerm::all()->pluck('name', 'id'))

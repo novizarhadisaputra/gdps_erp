@@ -2,9 +2,9 @@
 
 namespace Modules\Finance\Observers;
 
+use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Services\SignatureService;
-use Modules\Finance\Enums\InvoiceStatus;
 
 class InvoiceObserver
 {
@@ -30,15 +30,42 @@ class InvoiceObserver
         $invoice->year = (int) $year;
         $invoice->sequence_number = $sequence;
         $invoice->number = sprintf('GDPS/UB/INV-%03d/%s', $sequence, $shortYear);
-        
+
         if (empty($invoice->payment_info)) {
-            $invoice->payment_info = [
-                'account_name' => 'PT. Garuda Daya Pratama Sejahtera',
-                'banks' => [
-                    ['bank_name' => 'Bank Mandiri', 'account_number' => '155-00-1307311-2', 'currency' => 'IDR'],
-                    ['bank_name' => 'BNI', 'account_number' => '7201812017', 'currency' => 'IDR'],
-                ],
-            ];
+            $bank = null;
+
+            // Check if it's an internal SO
+            $isInternal = false;
+            $source = $invoice->sourceable;
+            if ($source instanceof \Modules\CRM\Models\SalesOrder) {
+                $isInternal = $source->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value;
+            } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport && $source->sourceable instanceof \Modules\CRM\Models\SalesOrder) {
+                $isInternal = $source->sourceable->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value;
+            }
+
+            if ($isInternal) {
+                $bank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                    ->where('is_active', true)
+                    ->first();
+            }
+
+            if (! $bank) {
+                $bank = \Modules\MasterData\Models\BankAccount::where('is_active', true)->first();
+            }
+
+            if ($bank) {
+                $invoice->payment_info = [
+                    'account_name' => $bank->account_name,
+                    'banks' => [
+                        [
+                            'bank_name' => $bank->bank_name,
+                            'account_number' => $bank->account_number,
+                            'currency' => $bank->currency,
+                        ],
+                    ],
+                ];
+                $invoice->bank_account_id = $bank->id;
+            }
         }
     }
 

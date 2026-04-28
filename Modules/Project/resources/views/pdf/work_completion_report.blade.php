@@ -36,6 +36,74 @@
         }
     }
 
+    // Bilingual Labels & Config
+    $lang = $language ?? 'id';
+    $tax_percentage = $record->tax_percentage ?? 12;
+
+    $labels = [
+        'title' => [
+            'id' => 'BERITA ACARA PELAKSANAAN PENYELESAIAN PEKERJAAN',
+            'en' => 'WORK COMPLETION PERFORMANCE REPORT',
+        ],
+        'number' => [
+            'id' => 'Nomor',
+            'en' => 'Number',
+        ],
+        'period' => [
+            'id' => 'Periode',
+            'en' => 'Period',
+        ],
+        'page' => [
+            'id' => 'Halaman',
+            'en' => 'Page',
+        ],
+        'between' => [
+            'id' => 'Antara',
+            'en' => 'Between',
+        ],
+        'with' => [
+            'id' => 'Dengan',
+            'en' => 'And',
+        ],
+        'based_on' => [
+            'id' => 'Berdasarkan',
+            'en' => 'Based on',
+        ],
+        'completed_period' => [
+            'id' => 'telah diselesaikan pekerjaan untuk periode',
+            'en' => 'the work has been completed for the period',
+        ],
+        'until' => [
+            'id' => 'sampai dengan',
+            'en' => 'until',
+        ],
+        'summary_intro' => [
+            'id' => 'Rekapitulasi jumlah penyelesaian pekerjaan yang telah dilakukan adalah sebagai berikut:',
+            'en' => 'The recapitulation of the work completion is as follows:',
+        ],
+        'table_no' => ['id' => 'No', 'en' => 'No'],
+        'table_size' => ['id' => 'Uraian Pekerjaan', 'en' => 'Work Description'],
+        'table_qty' => ['id' => 'Kuantitas', 'en' => 'Quantity'],
+        'table_unit' => ['id' => 'Satuan', 'en' => 'Unit'],
+        'table_price' => ['id' => 'Harga', 'en' => 'Price'],
+        'table_total' => ['id' => 'Total Harga', 'en' => 'Total Price'],
+        'table_so' => ['id' => 'Sales Order', 'en' => 'Sales Order'],
+        'table_remarks' => ['id' => 'Keterangan', 'en' => 'Remarks'],
+        'table_grand_total' => ['id' => 'Total Keseluruhan', 'en' => 'Grand Total'],
+        'closing_statement' => [
+            'id' => 'Demikian berita acara ini dibuat untuk dipergunakan sebagai dokumen pelengkap penagihan. Dokumen ini dapat dipertanggungjawabkan sebagaimana mestinya.',
+            'en' => 'This report is made to be used as a supporting document for billing and can be accounted for accordingly.',
+        ],
+        'proposed_by' => ['id' => 'Yang Menyerahkan', 'en' => 'Handed Over By'],
+        'received_by' => ['id' => 'Yang Menerima', 'en' => 'Received By'],
+        'position' => ['id' => 'Jabatan', 'en' => 'Position'],
+        'source_so' => ['id' => 'Sales Order', 'en' => 'Sales Order'],
+        'source_internal' => ['id' => 'Memo Internal / ST', 'en' => 'Internal Memo / Assignment Letter'],
+    ];
+
+    $items = $record->getTranslation('items', $lang) ?? $record->items ?? [];
+    $tax_wording = $record->getTranslation('tax_wording', $lang) ?? $record->tax_wording ?? ($lang === 'id' ? "Penyelesaian pekerjaan tersebut belum termasuk PPN {$tax_percentage}%" : "The above work completion does not include {$tax_percentage}% VAT");
+
     // Branding Assets
     $logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
     $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
@@ -106,70 +174,6 @@
     $customerContactName = $customerContactName ?? '.....................';
     $customerContactDisplay = $salutation ? $salutation . ' ' . $customerContactName : $customerContactName;
     $customerContactTitle = $customerContactTitle ?? 'Jabatan';
-
-    // Bilingual Labels
-    $lang = $language ?? 'id';
-    $items = $record->getTranslation('items', $lang) ?? $record->items ?? [];
-    $tax_wording = $record->getTranslation('tax_wording', $lang) ?? $record->tax_wording ?? ($lang === 'id' ? 'Penyelesaian pekerjaan di atas belum termasuk PPN 11%' : 'The above work completion does not include 11% VAT');
-
-    $labels = [
-        'title' => [
-            'id' => 'BERITA ACARA PENYELESAIAN PEKERJAAN',
-            'en' => 'WORK COMPLETION REPORT',
-        ],
-        'number' => [
-            'id' => 'Nomor',
-            'en' => 'Number',
-        ],
-        'period' => [
-            'id' => 'Periode',
-            'en' => 'Period',
-        ],
-        'page' => [
-            'id' => 'Halaman',
-            'en' => 'Page',
-        ],
-        'between' => [
-            'id' => 'Antara',
-            'en' => 'Between',
-        ],
-        'with' => [
-            'id' => 'Dengan',
-            'en' => 'And',
-        ],
-        'based_on' => [
-            'id' => 'Berdasarkan',
-            'en' => 'Based on',
-        ],
-        'completed_period' => [
-            'id' => 'telah diselesaikan pekerjaan untuk periode',
-            'en' => 'the work has been completed for the period',
-        ],
-        'until' => [
-            'id' => 'sampai dengan',
-            'en' => 'until',
-        ],
-        'summary_intro' => [
-            'id' => 'Ringkasan penyelesaian pekerjaan yang telah diselesaikan adalah sebagai berikut:',
-            'en' => 'The summary of work completion is as follows:',
-        ],
-        'table_no' => ['id' => 'No', 'en' => 'No'],
-        'table_desc' => ['id' => 'Deskripsi Item', 'en' => 'Item Description'],
-        'table_qty' => ['id' => 'Jml', 'en' => 'Qty'],
-        'table_unit' => ['id' => 'Satuan', 'en' => 'Unit'],
-        'table_price' => ['id' => 'Harga Satuan', 'en' => 'Unit Price'],
-        'table_total' => ['id' => 'Total Harga', 'en' => 'Total Price'],
-        'table_grand_total' => ['id' => 'Total Keseluruhan', 'en' => 'Grand Total'],
-        'closing_statement' => [
-            'id' => 'Demikian laporan ini dibuat untuk dipergunakan sebagai dokumen pendukung penagihan dan dapat dipertanggungjawabkan sebagaimana mestinya.',
-            'en' => 'This report is made to be used as a supporting document for billing and can be accounted for accordingly.',
-        ],
-        'proposed_by' => ['id' => 'Diajukan Oleh', 'en' => 'Proposed By'],
-        'received_by' => ['id' => 'Diterima Oleh', 'en' => 'Received By'],
-        'position' => ['id' => 'Jabatan', 'en' => 'Position'],
-        'source_so' => ['id' => 'Sales Order', 'en' => 'Sales Order'],
-        'source_internal' => ['id' => 'Memo Internal / ST', 'en' => 'Internal Memo / Assignment Letter'],
-    ];
 
     $soType = $record->salesOrder?->type;
     $isInternal = $soType === \Modules\CRM\Enums\SalesOrderType::Internal;
@@ -363,11 +367,11 @@
             {{ $labels['number'][$lang] }}: <strong>{{ $sourceNumber }}</strong>
             @if($latestAmendment)
                 (Adendum: {{ $latestAmendment->number }})
-            @endif
-            {{ $labels['completed_period'][$lang] }}
+            @endif,
+            telah dilaksanakan penyelesaian pemborongan pekerjaan periode
             <strong>{{ $record->service_period_start->translatedFormat('d F Y') }}</strong> {{ $labels['until'][$lang] }}
             <strong>{{ $record->service_period_end->translatedFormat('d F Y') }}</strong>
-            {{ $lang === 'id' ? 'dari' : 'from' }} PT Garuda Daya Pratama Sejahtera {{ $lang === 'id' ? 'kepada' : 'to' }} {{ $record->customer->name ?? '-' }}.
+            dari PT Garuda Daya Pratama Sejahtera kepada <strong>{{ $record->customer->name ?? '-' }}</strong>.
         </p>
 
         <p>{{ $labels['summary_intro'][$lang] }}</p>
@@ -375,12 +379,14 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th width="5%">{{ $labels['table_no'][$lang] }}</th>
-                    <th width="40%">{{ $labels['table_desc'][$lang] }}</th>
-                    <th width="10%">{{ $labels['table_qty'][$lang] }}</th>
-                    <th width="10%">{{ $labels['table_unit'][$lang] }}</th>
-                    <th width="17%">{{ $labels['table_price'][$lang] }} (IDR)</th>
-                    <th width="18%">{{ $labels['table_total'][$lang] }} (IDR)</th>
+                    <th width="4%">{{ $labels['table_no'][$lang] }}</th>
+                    <th width="26%">{{ $labels['table_size'][$lang] }}</th>
+                    <th width="6%">{{ $labels['table_qty'][$lang] }}</th>
+                    <th width="7%">{{ $labels['table_unit'][$lang] }}</th>
+                    <th width="14%">{{ $labels['table_price'][$lang] }}</th>
+                    <th width="14%">{{ $labels['table_total'][$lang] }}</th>
+                    <th width="14%">{{ $labels['table_so'][$lang] }}</th>
+                    <th width="15%">{{ $labels['table_remarks'][$lang] }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -391,11 +397,13 @@
                     @php $grandTotal += (float)($item['total_price'] ?? 0); @endphp
                     <tr>
                         <td class="text-center">{{ $no++ }}</td>
-                        <td>{{ $item['item_name'] ?? '-' }}</td>
+                        <td>{{ $item['ukuran_pekerjaan'] ?? $item['item_name'] ?? '-' }}</td>
                         <td class="text-center">{{ number_format($item['quantity'] ?? 0) }}</td>
                         <td class="text-center">{{ $item['uom'] ?? '-' }}</td>
-                        <td class="text-right">{{ \Illuminate\Support\Number::currency($item['unit_price'] ?? 0, 'IDR', 'id') }}</td>
-                        <td class="text-right">{{ \Illuminate\Support\Number::currency($item['total_price'] ?? 0, 'IDR', 'id') }}</td>
+                        <td class="text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
+                        <td class="text-center">{{ $item['so_reference'] ?? '-' }}</td>
+                        <td>{{ $item['keterangan'] ?? '-' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -403,7 +411,8 @@
                 <tr class="font-bold">
                     <td colspan="5" class="text-right" style="background-color: #f2f2f2;">{{ $labels['table_grand_total'][$lang] }}</td>
                     <td class="text-right" style="background-color: #f2f2f2;">
-                        {{ \Illuminate\Support\Number::currency($grandTotal, 'IDR', 'id') }}</td>
+                        {{ number_format($grandTotal, 0, ',', '.') }}</td>
+                    <td colspan="2" style="background-color: #f2f2f2;"></td>
                 </tr>
             </tfoot>
         </table>

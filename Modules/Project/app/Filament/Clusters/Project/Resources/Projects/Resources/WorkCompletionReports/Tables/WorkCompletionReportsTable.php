@@ -64,7 +64,7 @@ class WorkCompletionReportsTable
                         ->visible(fn ($record) => $record->status === WorkCompletionStatus::Draft),
                 ])
                     ->icon(Heroicon::OutlinedEllipsisVertical)
-                    ->tooltip('Actions'),
+                    ->tooltip('General Actions'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

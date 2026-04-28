@@ -45,7 +45,7 @@ class SalesOrderAmendmentObserver
         $soNumberParts = explode('/', $salesOrder->number);
         // SO Format: GDPS/UB/SO-001/25
         // Parts: [0=>GDPS, 1=>UB, 2=>SO-001, 3=>25]
-        
+
         if (count($soNumberParts) >= 4) {
             $basePart = implode('/', array_slice($soNumberParts, 0, 3)); // GDPS/UB/SO-001
             $soYear = $soNumberParts[3]; // 25
@@ -91,8 +91,8 @@ class SalesOrderAmendmentObserver
 
                 // 2. Add Management Fee and Tax (following original SO percentages)
                 $mgtFeeVal = $totalServiceMonth * ($so->management_fee_percentage / 100);
-                $taxVal = ($totalServiceMonth + $mgtFeeVal) * ($so->tax_percentage / 100);
-                $newGrandTotal = $totalServiceMonth + $mgtFeeVal + $taxVal;
+                $taxVal = round(($totalServiceMonth + $mgtFeeVal) * ($so->tax_percentage / 100), 0);
+                $newGrandTotal = round($totalServiceMonth + $mgtFeeVal + $taxVal, 0);
 
                 $so->update([
                     'content_config' => array_merge($so->content_config ?? [], [

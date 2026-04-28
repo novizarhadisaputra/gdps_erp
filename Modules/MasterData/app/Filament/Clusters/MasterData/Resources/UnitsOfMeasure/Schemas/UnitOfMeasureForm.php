@@ -18,15 +18,19 @@ class UnitOfMeasureForm
     {
         return [
             TextInput::make('name')
+                ->label('Unit Name')
                 ->required()
                 ->unique(UnitOfMeasure::class, 'name', ignoreRecord: true)
                 ->maxLength(255)
-                ->placeholder('Kilogram'),
+                ->placeholder('e.g. Kilogram, Piece, Hour')
+                ->helperText('The full descriptive name of the measurement unit.'),
             TextInput::make('code')
+                ->label('Unit Code')
                 ->required()
                 ->unique(UnitOfMeasure::class, 'code', ignoreRecord: true)
                 ->maxLength(10)
-                ->placeholder('KG'),
+                ->placeholder('e.g. KG, Pcs, HR')
+                ->helperText('A short abbreviation for the unit (max 10 chars).'),
         ];
     }
 }

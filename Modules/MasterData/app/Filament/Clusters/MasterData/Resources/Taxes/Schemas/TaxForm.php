@@ -19,16 +19,22 @@ class TaxForm
     {
         return [
             TextInput::make('code')
+                ->label('Tax Code')
                 ->required()
                 ->unique(Tax::class, 'code', ignoreRecord: true)
-                ->placeholder('VAT11'),
+                ->placeholder('e.g. VAT11, PPN12')
+                ->helperText('Unique short code for the tax type.'),
             TextInput::make('name')
+                ->label('Tax Name')
                 ->required()
                 ->maxLength(255)
-                ->placeholder('VAT 11%'),
+                ->placeholder('e.g. Value Added Tax 11%')
+                ->helperText('Descriptive name of the tax.'),
             Toggle::make('is_active')
+                ->label('Active Status')
                 ->default(true)
-                ->required(),
+                ->required()
+                ->helperText('Enable or disable this tax type globally.'),
         ];
     }
 }

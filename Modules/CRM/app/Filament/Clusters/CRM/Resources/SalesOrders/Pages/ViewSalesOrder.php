@@ -6,7 +6,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
@@ -37,48 +36,98 @@ class ViewSalesOrder extends ViewRecord
                 ->modalHeading('Generate Monthly BAPP')
                 ->modalDescription('This will create a new Work Completion Report draft based on this Sales Order.')
                 ->action(function (SalesOrder $record) {
-                    $sequence = WorkCompletionReport::where('sales_order_id', $record->id)->count() + 1;
+                    $sequence = WorkCompletionReport::where('sourceable_id', $record->id)
+                        ->where('sourceable_type', $record->getMorphClass())
+                        ->count() + 1;
                     $reportNumber = sprintf('GDPS/UB/BAPP-%03d/%02d/%s', $record->sequence_number, $sequence, now()->format('y'));
 
                     // Map content_config to BAPP items structure
                     $config = $record->content_config ?? [];
                     $bappItems = [];
+                    $mfRate = (float) ($record->management_fee_percentage ?? 0);
+                    $taxRate = (int) ($record->tax_percentage ?? 12);
 
                     // 1. Map Manpower
+                    $totalCost = 0;
                     foreach ($config['manpower_details'] ?? [] as $mp) {
+                        $cost = (float) ($mp['unit_cost'] ?? 0);
+                        $qty = (float) ($mp['quantity'] ?? 0);
+                        $total = $cost * $qty;
+                        $totalCost += $total;
+
+                        $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
+                        $sellingPrice = $cost + $feeForThisItem;
+
                         $bappItems[] = [
                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
-                            'quantity' => $mp['quantity'] ?? 0,
+                            'ukuran_pekerjaan' => $mp['job_position_name'] ?? '-',
+                            'quantity' => $qty,
                             'uom' => $mp['uom'] ?? 'Person',
-                            'unit_price' => $mp['unit_cost'] ?? 0,
-                            'total_price' => $mp['total_monthly_cost'] ?? 0,
+                            'unit_price' => $sellingPrice,
+                            'total_price' => $sellingPrice * $qty,
+                            'management_fee' => $feeForThisItem * $qty,
                             'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
+                            'keterangan' => null,
                         ];
                     }
 
                     // 2. Map Operational Items
                     foreach ($config['items'] ?? [] as $item) {
+                        $cost = (float) ($item['unit_price'] ?? $item['unit_cost'] ?? 0);
+                        $qty = (float) ($item['quantity'] ?? 0);
+                        $total = $cost * $qty;
+                        $totalCost += $total;
+
+                        $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
+                        $sellingPrice = $cost + $feeForThisItem;
+
                         $bappItems[] = [
                             'item_name' => $item['description'] ?? 'Item',
-                            'quantity' => $item['quantity'] ?? 0,
+                            'ukuran_pekerjaan' => $item['description'] ?? '-',
+                            'quantity' => $qty,
                             'uom' => $item['uom'] ?? 'Unit',
-                            'unit_price' => $item['unit_price'] ?? 0,
-                            'total_price' => $item['total_price'] ?? 0,
+                            'unit_price' => $sellingPrice,
+                            'total_price' => $sellingPrice * $qty,
+                            'management_fee' => $feeForThisItem * $qty,
                             'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
+                            'keterangan' => null,
                         ];
                     }
 
+                    $totalItemsAmount = collect($bappItems)->sum('total_price');
+
                     $bapp = WorkCompletionReport::create([
                         'project_id' => $record->project_id,
-                        'sales_order_id' => $record->id,
+                        'sourceable_id' => $record->id,
+                        'sourceable_type' => $record->getMorphClass(),
                         'customer_id' => $record->customer_id,
                         'number' => $reportNumber,
-                        'items' => $bappItems,
+                        'items' => [
+                            'id' => $bappItems,
+                            'en' => $bappItems,
+                        ],
+                        'total_amount' => round($totalItemsAmount, 0),
+                        'tax_percentage' => $record->type->value === 'internal' ? 0 : $taxRate,
+                        'tax_wording' => $record->type->value === 'internal'
+                            ? ['id' => '-', 'en' => '-']
+                            : [
+                                'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$taxRate}%",
+                                'en' => "The above work completion does not include {$taxRate}% VAT",
+                            ],
                         'document_date' => now(),
                         'service_period_start' => now()->startOfMonth(),
                         'service_period_end' => now()->endOfMonth(),
+                        'work_progress_percentage' => 100,
                         'status' => WorkCompletionStatus::Draft,
-                        'description' => "Monthly BAPP #{$sequence} for SO {$record->number}",
+                        'description' => [
+                            'id' => "Laporan Penyelesaian Pekerjaan Bulanan #{$sequence} untuk SO {$record->number}",
+                            'en' => "Monthly Work Completion Report #{$sequence} for SO {$record->number}",
+                        ],
+                        'content_config' => [
+                            'management_fee_percentage' => $mfRate,
+                            'management_fee_amount' => $feeAmount ?? 0,
+                            'total_cost' => $totalCost,
+                        ],
                     ]);
 
                     Notification::make()
@@ -106,8 +155,7 @@ class ViewSalesOrder extends ViewRecord
                 Action::make('sendEmail')
                     ->label('Send Email')
                     ->icon(Heroicon::OutlinedPaperAirplane)
-                    ->visible(fn (SalesOrder $record) => 
-                        in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]) && 
+                    ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]) &&
                         ($record->hasMedia('draft_so') || $record->proposal?->hasMedia('signed_proposal')) &&
                         ($record->profitabilityAnalysis?->is_margin_approved ?? false)
                     )
@@ -124,7 +172,6 @@ class ViewSalesOrder extends ViewRecord
                         app(SignatureService::class)->notifyNextApprovers($record);
                         Notification::make()->title('Order Submitted for Approval')->success()->send();
                     }),
-
 
                 Action::make('revisi')
                     ->label('Request Revision')

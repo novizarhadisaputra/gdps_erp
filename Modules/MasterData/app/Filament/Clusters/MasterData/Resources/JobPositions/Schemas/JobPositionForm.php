@@ -20,18 +20,26 @@ class JobPositionForm
     public static function schema(): array
     {
         return [
-            Section::make('General Information')
+            Section::make('Job Position Details')
+                ->description('Define the job roles available for project staffing, including their risk levels and labor intensity.')
                 ->schema([
                     TextInput::make('name')
+                        ->label('Position Name')
                         ->required()
-                        ->maxLength(255),
+                        ->maxLength(255)
+                        ->placeholder('e.g. Lead Cleaner, Security Officer')
+                        ->helperText('The official title for this job position.'),
                     Select::make('risk_level')
+                        ->label('Risk Level')
                         ->options(RiskLevel::class)
                         ->default(RiskLevel::VeryLow)
-                        ->required(),
+                        ->required()
+                        ->placeholder('Select risk level')
+                        ->helperText('The workplace safety risk associated with this role.'),
                     Toggle::make('is_labor_intensive')
                         ->label('Labor Intensive')
-                        ->default(false),
+                        ->default(false)
+                        ->helperText('Enable if this role primarily involves physical labor.'),
                 ])->columns(3),
         ];
     }

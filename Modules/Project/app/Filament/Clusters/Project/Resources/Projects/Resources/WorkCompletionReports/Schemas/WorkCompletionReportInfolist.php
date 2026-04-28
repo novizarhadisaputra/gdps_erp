@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas;
 
+use App\Filament\Infolists\Components\DigitalSignatureEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -18,120 +19,121 @@ class WorkCompletionReportInfolist
         return $schema
             ->components([
                 Section::make('Documents')
-                    ->description('Essential project documentation and signed reports.')
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('draft_report_document')
+                                TextEntry::make('draft_report')
                                     ->label('Draft BAPP (Unsigned)')
-                                    ->state(fn ($record) => $record?->getFirstMedia('draft_report')?->file_name ?? 'No Document')
-                                    ->url(function ($record) {
-                                        $media = $record?->getFirstMedia('draft_report');
-                                        if (! $media) {
-                                            return null;
-                                        }
-
-                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
-                                    }, true)
+                                    ->state(fn ($record) => $record->getFirstMedia('draft_report')?->file_name ?? 'No Draft')
+                                    ->url(fn ($record) => $record->getFirstMedia('draft_report')?->getUrl(), true)
                                     ->icon(Heroicon::OutlinedDocumentText)
-                                    ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'primary'),
-                                TextEntry::make('signed_report_document')
-                                    ->label('Signed BAPP (Final Scan)')
-                                    ->state(fn ($record) => $record?->getFirstMedia('signed_report')?->file_name ?? 'No Document')
-                                    ->url(function ($record) {
-                                        $media = $record?->getFirstMedia('signed_report');
-                                        if (! $media) {
-                                            return null;
-                                        }
+                                    ->color(fn ($state) => $state === 'No Draft' ? 'gray' : 'primary'),
 
-                                        return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
-                                    }, true)
+                                TextEntry::make('signed_report')
+                                    ->label('Signed BAPP (Final Scan)')
+                                    ->state(fn ($record) => $record->getFirstMedia('signed_report')?->file_name ?? 'No Scan Uploaded')
+                                    ->url(fn ($record) => $record->getFirstMedia('signed_report')?->getUrl(), true)
                                     ->icon(Heroicon::OutlinedCheckBadge)
-                                    ->color(fn ($state) => $state === 'No Document' ? 'gray' : 'success'),
+                                    ->color(fn ($state) => $state === 'No Scan Uploaded' ? 'gray' : 'success'),
                             ]),
-                    ])->columnSpanFull(),
+                    ])->collapsible(),
 
                 Section::make('Report Details')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('number')
-                                    ->label('Report Number')
+                                    ->label('BAPP Number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('document_date')
+                                    ->label('Document Date')
                                     ->date(),
                                 TextEntry::make('project.name')
                                     ->label('Project'),
                                 TextEntry::make('customer.name')
                                     ->label('Customer'),
+                                TextEntry::make('sourceable.number')
+                                    ->label('Reference Document'),
+                            ]),
+                    ])->collapsible(),
+
+                Section::make('Customer Signatory')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('content_config.recipient_name')
+                                    ->label('Recipient Name')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('content_config.recipient_title')
+                                    ->label('Recipient Title/Position'),
+                                TextEntry::make('status')
+                                    ->badge(),
+                            ]),
+                    ])->collapsible(),
+
+                Section::make('Service & Progress')
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
                                 TextEntry::make('service_period_start')
-                                    ->label('Start Date')
+                                    ->label('Start Period')
                                     ->date(),
                                 TextEntry::make('service_period_end')
-                                    ->label('End Date')
+                                    ->label('End Period')
                                     ->date(),
                                 TextEntry::make('work_progress_percentage')
                                     ->label('Progress')
                                     ->suffix('%')
-                                    ->badge()
-                                    ->color('info'),
-                                TextEntry::make('status')
-                                    ->badge(),
+                                    ->color('info')
+                                    ->weight(FontWeight::Bold),
                             ]),
-                    ])->columnSpanFull(),
+                    ])->collapsible(),
 
                 Section::make('BAPP Line Items')
                     ->schema([
                         RepeatableEntry::make('items')
                             ->schema([
-                                Grid::make(5)
+                                Grid::make(4)
                                     ->schema([
-                                        TextEntry::make('item_name')
-                                            ->label('Item Name')
+                                        TextEntry::make('ukuran_pekerjaan')
+                                            ->label('Description')
                                             ->columnSpan(2),
                                         TextEntry::make('quantity')
-                                            ->numeric(),
+                                            ->label('Qty'),
+                                        TextEntry::make('uom')
+                                            ->label('Unit'),
                                         TextEntry::make('unit_price')
+                                            ->label('Price')
                                             ->money('IDR'),
                                         TextEntry::make('total_price')
+                                            ->label('Total')
                                             ->money('IDR')
                                             ->weight(FontWeight::Bold),
                                     ]),
-                            ])
-                            ->columnSpanFull(),
-                        TextEntry::make('total_amount')
-                            ->label('Grand Total')
-                            ->money('IDR')
-                            ->weight(FontWeight::Bold)
-                            ->size(TextSize::Large)
-                            ->alignEnd(),
-                    ])->columnSpanFull(),
+                            ]),
+                    ])->collapsible(),
 
-                Section::make('Communication History')
-                    ->description('Traceability of emails sent to the customer regarding this BAPP.')
+                Section::make('Total & Tax')
                     ->schema([
-                        RepeatableEntry::make('communicationLogs')
-                            ->label('Sent Emails')
+                        Grid::make(2)
                             ->schema([
-                                Grid::make(4)->schema([
-                                    TextEntry::make('recipient_email')
-                                        ->label('Recipient')
-                                        ->icon('heroicon-m-envelope'),
-                                    TextEntry::make('subject')
-                                        ->label('Subject'),
-                                    TextEntry::make('sender.name')
-                                        ->label('Sent By')
-                                        ->state(fn ($record) => $record->sender?->name ?? $record->sender_email ?? '-'),
-                                    TextEntry::make('sent_at')
-                                        ->label('Sent Date')
-                                        ->dateTime()
-                                        ->color('gray'),
-                                ]),
-                            ])
+                                TextEntry::make('total_amount')
+                                    ->label('Grand Total')
+                                    ->money('IDR')
+                                    ->weight(FontWeight::Bold)
+                                    ->size(TextSize::Large)
+                                    ->color('primary'),
+                                TextEntry::make('tax_wording')
+                                    ->label('Tax Statement')
+                                    ->color('gray'),
+                            ]),
+                    ]),
+
+                Section::make('Digital Signatures')
+                    ->schema([
+                        DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
-                    ])
-                    ->columnSpanFull()
-                    ->visible(fn ($record) => $record?->communicationLogs()->exists()),
+                    ]),
             ]);
     }
 }

@@ -15,42 +15,42 @@ class BankAccountForm
             ->columns(2)
             ->components([
                 Section::make('General Details')
-                    ->description('Fill in the necessary configuration properties below.')
+                    ->description('Provide the banking information required for financial transactions.')
                     ->schema([
                         TextInput::make('bank_name')
                             ->label('Bank Name')
-                            ->placeholder('Enter Bank Name...')
-                            ->helperText('Brief and clear Bank Name for this record.')
+                            ->placeholder('e.g. Bank Mandiri')
+                            ->helperText('The full official name of the banking institution.')
                             ->required(),
                         TextInput::make('account_number')
                             ->label('Account Number')
-                            ->placeholder('Enter Account Number...')
-                            ->helperText('Brief and clear Account Number for this record.')
+                            ->placeholder('e.g. 1234567890')
+                            ->helperText('The unique number assigned to the bank account.')
                             ->required(),
                         TextInput::make('account_name')
                             ->label('Account Name')
-                            ->placeholder('Enter Account Name...')
-                            ->helperText('Brief and clear Account Name for this record.')
+                            ->placeholder('e.g. PT. Global Daya Profesional Solusi')
+                            ->helperText('The name of the entity or individual who owns the account.')
                             ->required(),
                         TextInput::make('swift_code')
-                            ->label('Swift Code')
-                            ->placeholder('Enter Swift Code...')
-                            ->helperText('Brief and clear Swift Code for this record.')
+                            ->label('Swift Code / BIC')
+                            ->placeholder('e.g. BMRIIDJA')
+                            ->helperText('The international standard code for identifying banks globally.')
                             ->required(),
                         TextInput::make('currency')
-                            ->label('Currency')
-                            ->placeholder('Enter Currency...')
-                            ->helperText('Brief and clear Currency for this record.')
+                            ->label('Currency Code')
+                            ->placeholder('e.g. IDR, USD')
+                            ->helperText('The ISO currency code used for this account (e.g., IDR).')
                             ->required(),
                         TextInput::make('account_code')
-                            ->label('Account Code (GL)')
-                            ->placeholder('e.g., 1101')
-                            ->helperText('The General Ledger account code associated with this bank account.')
+                            ->label('General Ledger Code')
+                            ->placeholder('e.g. 110101')
+                            ->helperText('The COA/GL account code associated with this bank account for accounting purposes.')
                             ->required(),
                         Toggle::make('is_active')
                             ->default(true)
-                            ->label('Status (Active / Inactive)')
-                            ->helperText('Toggle on to make this record available in standard lists within the system.'),
+                            ->label('Active Status')
+                            ->helperText('Enable this to allow this account to be selected in payments and invoices.'),
                     ])->columns(2),
             ]);
     }

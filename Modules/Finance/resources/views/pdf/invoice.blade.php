@@ -255,7 +255,7 @@
     $paymentInfo = is_array($record->payment_info)
         ? $record->payment_info
         : (json_decode($record->payment_info, true) ?? []);
-    $accountName = $paymentInfo['account_name'] ?? 'PT. GARUDA DAYA PRATAMA SEJAHTERA';
+    $accountName = strtoupper($paymentInfo['account_name'] ?? 'PT. GARUDA DAYA PRATAMA SEJAHTERA');
     $banks = $paymentInfo['banks'] ?? [];
 
     // Branding Assets
@@ -583,6 +583,9 @@
 
     <footer>
         @if ($footerKop)
+            <div style="font-size: 8pt; color: #555; margin-bottom: 10px; text-align: center; width: 100%;">
+                Soho Pancoran, Tower Splendor 2nd Floor Unit 207, Jl. Letjen MT. Haryono Kav. 2-3, Jakarta Selatan 12810
+            </div>
             <img src="{{ $footerKop }}"
                 style="width: 100%; height: auto; display: block; margin: 0; padding: 0; border: none; vertical-align: bottom;">
         @endif

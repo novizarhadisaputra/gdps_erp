@@ -37,12 +37,13 @@ class CustomerForm
 
         return [
             Section::make('Customer Profile')
+                ->description('Core information for the customer, including legal entity type, identifying code, and contact details.')
                 ->schema([
                     TextInput::make('code')
                         ->label('Customer Code')
                         ->unique(Customer::class, 'code', ignoreRecord: true)
                         ->maxLength(3)
-                        ->placeholder('Auto-generated')
+                        ->placeholder('e.g. GIA')
                         ->helperText('Unique 3-character customer abbreviation used in project codes.')
                         ->disabled(fn ($record) => $record !== null)
                         ->hidden(fn ($record) => $record === null && $isCreateOption)
@@ -53,39 +54,45 @@ class CustomerForm
                         ->required()
                         ->searchable()
                         ->placeholder('Select legal entity')
-                        ->native(false),
+                        ->native(false)
+                        ->helperText('The official legal status of the organization (e.g., PT, CV).'),
                     TextInput::make('name')
                         ->label('Customer Name')
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('Example: Garuda Indonesia'),
+                        ->placeholder('e.g. Garuda Indonesia')
+                        ->helperText('The official registered name of the customer.'),
                     TextInput::make('email')
-                        ->label('Email')
+                        ->label('Corporate Email')
                         ->email()
                         ->maxLength(255)
-                        ->placeholder('example@email.com'),
+                        ->placeholder('example@email.com')
+                        ->helperText('Main contact email for the company.'),
                     TextInput::make('phone')
-                        ->label('Phone')
+                        ->label('Corporate Phone')
                         ->tel()
                         ->maxLength(255)
-                        ->placeholder('081234567890'),
+                        ->placeholder('081234567890')
+                        ->helperText('Main contact phone number for the company.'),
                     Select::make('status')
                         ->label('Status')
                         ->options(ActiveStatus::class)
                         ->required()
-                        ->default(ActiveStatus::Active),
+                        ->default(ActiveStatus::Active)
+                        ->helperText('Enable or disable this customer in the system.'),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
 
             Section::make('Address Details')
-                ->description('Specify the official administrative location for this customer.')
+                ->description('Specify the official administrative and mailing location for this customer.')
                 ->icon('heroicon-o-map-pin')
                 ->schema([
                     TextInput::make('address')
                         ->label('Street Address')
                         ->maxLength(500)
-                        ->placeholder('Example St. No. 123')
+                        ->placeholder('e.g. Soekarno-Hatta International Airport Terminal 3')
+                        ->helperText('Complete physical address of the company.')
                         ->columnSpanFull(),
                     Select::make('province_id')
                         ->label('Province')
@@ -104,7 +111,8 @@ class CustomerForm
                                 }
                             }
                         })
-                        ->placeholder('Select province'),
+                        ->placeholder('Select province')
+                        ->helperText('Geographic province location.'),
                     Select::make('regency_id')
                         ->label('Regency / City')
                         ->relationship('regency', 'name', fn ($query, Get $get) => $query->where('province_id', $get('province_id')))
@@ -122,6 +130,7 @@ class CustomerForm
                             }
                         })
                         ->placeholder('Select regency')
+                        ->helperText('Geographic city or regency location.')
                         ->visible(fn (Get $get) => filled($get('province_id'))),
                     Select::make('district_id')
                         ->label('District')
@@ -139,6 +148,7 @@ class CustomerForm
                             }
                         })
                         ->placeholder('Select district')
+                        ->helperText('Geographic district location.')
                         ->visible(fn (Get $get) => filled($get('regency_id'))),
                     Select::make('village_id')
                         ->label('Village / Ward')
@@ -146,34 +156,51 @@ class CustomerForm
                         ->searchable()
                         ->preload()
                         ->placeholder('Select village')
+                        ->helperText('Geographic village or ward location.')
                         ->visible(fn (Get $get) => filled($get('district_id'))),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
             Repeater::make('contacts')
                 ->label('Customer Contacts')
+                ->description('List of key individual contacts at the customer organization.')
                 ->schema([
                     Select::make('gender')
-                        ->label('Gender')
+                        ->label('Salutation')
                         ->options(\Modules\MasterData\Enums\Gender::class)
                         ->required()
-                        ->native(false),
-                    TextInput::make('name')->required(),
-                    TextInput::make('email')->email(),
-                    TextInput::make('phone')->tel(),
-                    TextInput::make('job_position')->label('Job Position'),
+                        ->native(false)
+                        ->placeholder('Select gender'),
+                    TextInput::make('name')
+                        ->label('Full Name')
+                        ->required()
+                        ->placeholder('e.g. John Doe'),
+                    TextInput::make('email')
+                        ->label('Email Address')
+                        ->email()
+                        ->placeholder('john.doe@example.com'),
+                    TextInput::make('phone')
+                        ->label('Phone Number')
+                        ->tel()
+                        ->placeholder('+62 812 3456 7890'),
+                    TextInput::make('job_position')
+                        ->label('Job Title')
+                        ->placeholder('e.g. Procurement Manager'),
                     Select::make('type')
                         ->label('Functional Role')
                         ->options(ContactRole::pluck('name', 'id'))
                         ->required()
                         ->searchable()
                         ->preload()
+                        ->placeholder('Select role')
+                        ->helperText('The primary function of this contact person.')
                         ->createOptionForm(ContactRoleForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => ContactRole::create($data)->id),
                 ])
                 ->columns(2)
-                ->collapsible(),
+                ->collapsible()
+                ->addActionLabel('Add New Contact Person'),
 
             Section::make('Legal & Company Documents')
                 ->description('Official corporate and legal registration files.')
