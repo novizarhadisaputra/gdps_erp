@@ -6,6 +6,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -33,6 +35,17 @@ class AssetGroupsTable
                     ->label('Rate SM')
                     ->suffix('%')
                     ->numeric(),
+                IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean()
+                    ->sortable(),
+                IconColumn::make('is_default')
+                    ->label('Default')
+                    ->boolean()
+                    ->trueIcon(Heroicon::Star)
+                    ->falseIcon(null)
+                    ->color('warning')
+                    ->sortable(),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

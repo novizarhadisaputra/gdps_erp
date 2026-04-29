@@ -67,6 +67,8 @@ trait HasWorkCompletionReportActions
                     ->required(),
             ])
             ->action(function (WorkCompletionReport $record, array $data) {
+                app()->setLocale($data['language']);
+
                 $pdf = Pdf::loadView('project::pdf.work_completion_report', [
                     'record' => $record,
                     'language' => $data['language'],

@@ -10,11 +10,13 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'fixed_allowances' : 'master_data.fixed_allowances', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('code')->unique()->after('id')->nullable();
             $table->string('name');
             $table->boolean('is_bpjs_base')->default(true);
             $table->boolean('is_taxable')->default(true);
             $table->decimal('default_amount', 15, 2)->default(0);
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

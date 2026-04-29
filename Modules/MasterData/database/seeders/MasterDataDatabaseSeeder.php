@@ -28,6 +28,8 @@ class MasterDataDatabaseSeeder extends Seeder
             JpConfigSeeder::class,
             HealthConfigSeeder::class,
             DirectCostCategorySeeder::class,
+            TaxTerRateSeeder::class,
+            TaxPasal17RateSeeder::class,
             ApiClientSeeder::class,
             ProductClusterLogoSeeder::class,
         ]);

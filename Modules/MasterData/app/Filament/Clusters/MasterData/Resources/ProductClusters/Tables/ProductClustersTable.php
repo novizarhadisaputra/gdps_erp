@@ -28,6 +28,9 @@ class ProductClustersTable
                 IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active'),
+                IconColumn::make('is_default')
+                    ->boolean()
+                    ->label('Default'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -2,6 +2,7 @@
 
 namespace Modules\MasterData\Models;
 
+use App\Traits\HasDefaultRecord;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,8 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Unit extends Model
 {
-    use HasFactory, HasRoles, HasUuids;
-    use HasModuleSchema;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasRoles, HasUuids;
 
     protected string $guard_name = 'web';
 
@@ -38,7 +38,17 @@ class Unit extends Model
         'code',
         'name',
         'superior_unit',
+        'is_active',
+        'is_default',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'is_default' => 'boolean',
+        ];
+    }
 
     public function superiorUnit(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {

@@ -21,17 +21,14 @@ class AccrueRevenue extends Model
         'project_id',
         'month',
         'year',
-        'invoice_id',
-        'amount_revenue',
-        'amount_cost',
+        'total_amount_estimated',
+        'total_amount_actual',
         'description',
     ];
 
     protected function casts(): array
     {
         return [
-            'amount_revenue' => 'decimal:2',
-            'amount_cost' => 'decimal:2',
             'month' => 'integer',
             'year' => 'integer',
         ];
@@ -42,8 +39,8 @@ class AccrueRevenue extends Model
         return $this->belongsTo(Project::class);
     }
 
-    public function invoice(): BelongsTo
+    public function items(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(Invoice::class);
+        return $this->hasMany(AccrueRevenueItem::class);
     }
 }

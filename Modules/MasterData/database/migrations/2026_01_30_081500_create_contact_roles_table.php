@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'contact_roles' : 'master_data.contact_roles', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('code')->unique()->after('id')->nullable();
             $table->string('name')->unique();
             $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

@@ -20,7 +20,7 @@ class ManpowerTemplate extends Model implements HasMedia
     use HasFactory, HasUuids;
     use HasModuleSchema;
     use InteractsWithMedia;
-    
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('source_file')
@@ -81,6 +81,11 @@ class ManpowerTemplate extends Model implements HasMedia
         return $this->hasMany(ManpowerTemplateItem::class);
     }
 
+    public function clusters(): HasMany
+    {
+        return $this->hasMany(ManpowerTemplateCluster::class, 'manpower_template_id');
+    }
+
     public function getCostSimulation(): array
     {
         $service = app(\Modules\Finance\Services\ManpowerCostingService::class);
@@ -93,66 +98,82 @@ class ManpowerTemplate extends Model implements HasMedia
             return ['rows' => [], 'total' => 0];
         }
 
-        foreach ($this->items as $item) {
-            $jpId = $item->job_position_id ?? null;
-            $qty = (int) ($item->quantity ?? 0);
+        // We loop through clusters then items to match the nested structure
+        foreach ($this->clusters as $cluster) {
+            foreach ($cluster->items as $item) {
+                $jpId = $item->job_position_id ?? null;
+                $qty = (int) ($item->quantity ?? 0);
 
-            if (! $jpId || $qty <= 0) {
-                continue;
+                if (! $jpId || $qty <= 0) {
+                    continue;
+                }
+
+                $jp = \Modules\MasterData\Models\JobPosition::find($jpId);
+                if (! $jp) {
+                    continue;
+                }
+
+                $allowances = $item->allowances ?? [];
+                $riskLevel = $item->risk_level ?? 'very_low';
+                $employeeType = $item->employee_type ?? 'ppu';
+
+                // Inherit or override cluster policies
+                $jknCategory = $item->jkn_category ?? $cluster->jkn_category ?? 'PPU';
+                $thrMethod = $item->thr_billing_method ?? $cluster->thr_billing_method ?? 'monthly_accrual';
+                $compMethod = $item->compensation_billing_method ?? $cluster->compensation_billing_method ?? 'monthly_accrual';
+
+                $basicSalary = (float) ($item->basic_salary ?? 0);
+
+                $res = $service->calculate(
+                    basicSalary: $basicSalary,
+                    allowances: $allowances,
+                    projectAreaId: $areaId,
+                    year: (int) date('Y'),
+                    workSchemeId: $this->work_scheme_id,
+                    workPatternId: $item->work_pattern_id,
+                    riskLevel: $riskLevel,
+                    employeeType: $employeeType,
+                    jknCategory: $jknCategory,
+                    thrBillingMethod: $thrMethod,
+                    compensationBillingMethod: $compMethod,
+                    thrBasisId: $item->thr_basis_id,
+                    compensationBasisId: $item->compensation_basis_id,
+                    bpjsBasisId: $item->bpjs_basis_id,
+                    billThrMonthly: (bool) ($item->bill_thr_monthly ?? true),
+                    billCompensationMonthly: (bool) ($item->bill_compensation_monthly ?? true),
+                    includeNonFixedInAccruals: (bool) ($item->include_non_fixed_in_accruals ?? false),
+                    extraCosts: $item->extra_costs ?? [],
+                    ptkpCode: $item->ptkp_status ?? 'TK/0',
+                    isBpjsActive: (bool) ($item->is_bpjs_active ?? true),
+                    borneByCompany: [
+                        'tax' => (bool) ($item->is_tax_borne_by_company ?? false),
+                        'jkn' => (bool) ($item->is_employee_jkn_borne_by_company ?? false),
+                        'jkk' => (bool) ($item->is_employee_jkk_borne_by_company ?? false),
+                        'jkm' => (bool) ($item->is_employee_jkm_borne_by_company ?? false),
+                        'jht' => (bool) ($item->is_employee_jht_borne_by_company ?? false),
+                        'jp' => (bool) ($item->is_employee_jp_borne_by_company ?? false),
+                    ]
+                );
+
+                // Apply Future Scaling Factor if defined
+                $scale = 1 + ((float) ($item->future_adjustment_rate ?? 0) / 100);
+                $unitCost = $res['total_direct_cost'] * $scale;
+                $lineTotal = $unitCost * $qty;
+                $totalTemplateCost += $lineTotal;
+
+                $res['cluster_name'] = $cluster->name;
+                $res['job_position_id'] = $jpId;
+                $res['job_position_name'] = $jp->name;
+                $res['job_position_code'] = $jp->code;
+                $res['qty'] = $qty;
+                $res['basic_salary'] = $basicSalary;
+                $res['scaling_rate'] = (float) ($item->future_adjustment_rate ?? 0);
+                $res['ptkp_status'] = $item->ptkp_status ?? 'TK/0';
+                $res['unit_cost'] = $unitCost;
+                $res['line_total'] = $lineTotal;
+
+                $rows[] = $res;
             }
-
-            $jp = \Modules\MasterData\Models\JobPosition::find($jpId);
-            if (! $jp) {
-                continue;
-            }
-
-            // Allowances are defined per-item (per-project), not from JobPosition master data
-            $allowances = $item->allowances ?? [];
-
-            $riskLevel = $item->risk_level ?? 'very_low';
-            $isLaborIntensive = (bool) ($item->is_labor_intensive ?? false);
-            $employeeType = $item->employee_type ?? 'ppu';
-            $billThr = (bool) ($item->bill_thr_monthly ?? true);
-            $billComp = (bool) ($item->bill_compensation_monthly ?? true);
-            $includeNonFixed = (bool) ($item->include_non_fixed_in_accruals ?? false);
-            $extraCosts = $item->extra_costs ?? [];
-
-            $basicSalary = (float) ($item->basic_salary ?? 0);
-
-            $res = $service->calculate(
-                basicSalary: $basicSalary,
-                allowances: $allowances,
-                projectAreaId: $areaId,
-                year: (int) date('Y'),
-                workSchemeId: $this->work_scheme_id,
-                riskLevel: $riskLevel,
-                isLaborIntensive: $isLaborIntensive,
-                employeeType: $employeeType,
-                billThrMonthly: $billThr,
-                billCompensationMonthly: $billComp,
-                includeNonFixedInAccruals: $includeNonFixed,
-                extraCosts: $extraCosts,
-                ptkpCode: $item->ptkp_status ?? 'TK/0',
-                isBpjsActive: (bool) ($item->is_bpjs_active ?? true)
-            );
-
-            // Apply Future Scaling Factor if defined
-            $scale = 1 + ((float) ($item->future_adjustment_rate ?? 0) / 100);
-            $unitCost = $res['total_direct_cost'] * $scale;
-            $lineTotal = $unitCost * $qty;
-            $totalTemplateCost += $lineTotal;
-
-            $res['job_position_id'] = $jpId;
-            $res['job_position_name'] = $jp->name;
-            $res['job_position_code'] = $jp->code;
-            $res['qty'] = $qty;
-            $res['basic_salary'] = $basicSalary;
-            $res['scaling_rate'] = (float) ($item->future_adjustment_rate ?? 0);
-            $res['ptkp_status'] = $item->ptkp_status ?? 'TK/0';
-            $res['unit_cost'] = $unitCost;
-            $res['line_total'] = $lineTotal;
-
-            $rows[] = $res;
         }
 
         return [

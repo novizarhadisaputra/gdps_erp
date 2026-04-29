@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('risk_level')->default('very_low'); // very_low, low, medium, high, very_high
             $table->boolean('is_labor_intensive')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

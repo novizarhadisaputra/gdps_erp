@@ -2,6 +2,9 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ThrBasisTypes\Schemas;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ThrBasisTypeForm
@@ -10,23 +13,39 @@ class ThrBasisTypeForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('General Details')
-                    ->description('Fill in the necessary configuration properties below.')
+                Section::make('THR Basis Definition')
+                    ->description('Define the calculation basis and formulas used for THR (Religious Holiday Allowance).')
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('name')
-                            ->label('Name')
-                            ->placeholder('Enter Name...')
-                            ->helperText('Brief and clear Name for this record.')
-                            ->required(),
-                        \Filament\Forms\Components\TextInput::make('formula_code')
-                            ->label('Formula Code')
-                            ->placeholder('Enter Formula Code...')
-                            ->helperText('Brief and clear Formula Code for this record.')
-                            ->required(),
-                        \Filament\Forms\Components\Toggle::make('is_active')
+                        TextInput::make('name')
+                            ->label('Basis Name')
+                            ->placeholder('e.g. 1x Gaji Pokok, Pro-rata')
+                            ->required()
+                            ->maxLength(255)
+                            ->helperText('The descriptive name of the THR calculation basis.'),
+                        TextInput::make('code')
+                            ->label('Basis Code')
+                            ->placeholder('e.g. THR-FIXED, THR-PRORATA')
+                            ->required()
+                            ->unique(\Modules\MasterData\Models\ThrBasisType::class, 'code', ignoreRecord: true)
+                            ->helperText('Unique short code for this basis type.'),
+                        TextInput::make('formula_code')
+                            ->label('Formula Identifier')
+                            ->placeholder('e.g. gaji_pokok, total_thp')
+                            ->required()
+                            ->helperText('A unique identifier used in the internal calculation logic.'),
+                    ])->columns(2),
+
+                Section::make('Status & Defaults')
+                    ->description('Manage the availability and default status of this THR basis type.')
+                    ->schema([
+                        Toggle::make('is_active')
+                            ->label('Active Status')
                             ->default(true)
-                            ->label('Status (Active / Inactive)')
-                            ->helperText('Toggle on to make this record available in standard lists within the system.'),
+                            ->helperText('Determines if this basis type can be used for THR configurations.'),
+                        Toggle::make('is_default')
+                            ->label('Default Basis')
+                            ->default(false)
+                            ->helperText('Sets this as the pre-selected option for new THR setups.'),
                     ])->columns(2),
             ]);
     }

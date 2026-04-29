@@ -3,10 +3,10 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\MasterData\Models\Province;
+use Modules\MasterData\Enums\MinimumWageType;
+use Modules\MasterData\Models\MinimumWage;
 use Modules\MasterData\Models\ProjectArea;
-use Modules\MasterData\Models\RegencyMinimumWage;
-use Modules\MasterData\Enums\RegencyMinimumWageType;
+use Modules\MasterData\Models\Province;
 
 class OfficialMinimumWageSeeder extends Seeder
 {
@@ -62,9 +62,10 @@ class OfficialMinimumWageSeeder extends Seeder
         foreach ($umpData as $provinceCode => $amount) {
             // 1. Validate against the provinces table
             $province = Province::where('code', $provinceCode)->first();
-            
-            if (!$province) {
+
+            if (! $province) {
                 $this->command->warn("Province with code {$provinceCode} not found in database. Skipping...");
+
                 continue;
             }
 
@@ -75,12 +76,12 @@ class OfficialMinimumWageSeeder extends Seeder
 
             if ($provinceArea) {
                 // Upsert Provincial Level UMP
-                RegencyMinimumWage::updateOrCreate(
+                MinimumWage::updateOrCreate(
                     ['project_area_id' => $provinceArea->id, 'year' => $year],
                     [
                         'amount' => $amount,
                         'province' => $province->name,
-                        'type' => RegencyMinimumWageType::Province,
+                        'type' => MinimumWageType::Province,
                         'is_active' => true,
                     ]
                 );
@@ -90,16 +91,16 @@ class OfficialMinimumWageSeeder extends Seeder
             $childAreas = ProjectArea::where('province_id', $province->id)
                 ->whereNotNull('regency_id')
                 ->get();
-            
+
             if ($childAreas->count() > 0) {
                 $this->command->info("Applying UMP to {$childAreas->count()} regencies in {$province->name}");
-                
+
                 foreach ($childAreas as $area) {
-                    $type = str_contains(strtolower($area->name), 'kabupaten') 
-                        ? RegencyMinimumWageType::Regency 
-                        : RegencyMinimumWageType::City;
-                    
-                    RegencyMinimumWage::updateOrCreate(
+                    $type = str_contains(strtolower($area->name), 'kabupaten')
+                        ? MinimumWageType::Regency
+                        : MinimumWageType::City;
+
+                    MinimumWage::updateOrCreate(
                         ['project_area_id' => $area->id, 'year' => $year],
                         [
                             'amount' => $amount,
@@ -111,7 +112,7 @@ class OfficialMinimumWageSeeder extends Seeder
                 }
             }
         }
-        
-        $this->command->info("Official Minimum Wage seeding completed consistently.");
+
+        $this->command->info('Official Minimum Wage seeding completed consistently.');
     }
 }

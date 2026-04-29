@@ -21,6 +21,7 @@ return new class extends Migration
             // Snapshots for comparison
             $table->json('before_snapshot')->nullable();
             $table->json('after_snapshot')->nullable();
+            $table->jsonb('content_config')->nullable();
 
             $table->string('status'); // draft, approved, cancelled
             $table->integer('sequence_number')->default(0);

@@ -6,26 +6,32 @@ use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\MasterData\Traits\HasAutoCodeAndSlug;
+use Modules\MasterData\Traits\HasDefaultRecord;
 
 class NonFixedAllowance extends Model
 {
-    use HasFactory, HasUuids;
-    use HasModuleSchema;
+    use HasAutoCodeAndSlug, HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     protected $fillable = [
+        'code',
         'name',
         'is_taxable',
+        'is_bpjs_base',
         'calculation_basis', // per_day, per_hour, flat
         'default_amount',
         'is_active',
+        'is_default',
     ];
 
     protected function casts(): array
     {
         return [
             'is_taxable' => 'boolean',
+            'is_bpjs_base' => 'boolean',
             'default_amount' => 'decimal:2',
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 }

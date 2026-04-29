@@ -10,6 +10,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -56,292 +57,299 @@ class InvoiceForm
                             ->default(InvoiceStatus::Draft),
                     ])->columns(2),
 
-                Section::make('Related Documents')
-                    ->description('Link this invoice to its source documents and customer account.')
+                Grid::make(2)
+                    ->columns(2)
                     ->columnSpanFull()
                     ->schema([
-                        Select::make('customer_id')
-                            ->label('Customer')
-                            ->options(Customer::all()->pluck('name', 'id'))
-                            ->searchable()
-                            ->required()
-                            ->live()
-                            ->placeholder('Search and select a customer...')
-                            ->helperText('The client account that will be billed for this invoice.'),
-                        MorphToSelect::make('sourceable')
-                            ->label('Reference Document')
-                            ->types([
-                                MorphToSelect\Type::make(\Modules\CRM\Models\SalesOrder::class)
-                                    ->titleAttribute('number')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\Project\Models\WorkCompletionReport::class)
-                                    ->titleAttribute('number')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\PurchaseOrder::class)
-                                    ->titleAttribute('number')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\WorkOrder::class)
-                                    ->titleAttribute('number')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\CooperationAgreement::class)
-                                    ->titleAttribute('number')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                MorphToSelect\Type::make(\Modules\CRM\Models\MinutesOfAgreement::class)
-                                    ->titleAttribute('number')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                            ])
-                            ->searchable()
-                            ->preload()
-                            ->live()
-                            ->required()
-                            ->placeholder('Select a source document')
-                            ->helperText('The original document this invoice is based on.')
-                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                                if (! $state) {
-                                    return;
-                                }
-
-                                if (is_array($state)) {
-                                    $modelClass = $state['type'] ?? null;
-                                    $id = $state['id'] ?? null;
-                                } else {
-                                    [$modelClass, $id] = explode(':', $state);
-                                }
-
-                                if (! $modelClass || ! $id) {
-                                    return;
-                                }
-
-                                $source = $modelClass::find($id);
-
-                                if (! $source) {
-                                    return;
-                                }
-
-                                // Sync customer
-                                if (isset($source->customer_id)) {
-                                    $set('customer_id', $source->customer_id);
-                                }
-
-                                // Sync items and financial details
-                                if ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
-                                    $set('tax_percentage', $source->tax_percentage ?? 12);
-                                    $set('tax_wording', $source->tax_wording);
-                                    $set('content_config.recipient_name', $source->content_config['recipient_name'] ?? null);
-                                    $set('content_config.recipient_title', $source->content_config['recipient_title'] ?? null);
-                                    $set('content_config.recipient_gender', $source->content_config['recipient_gender'] ?? null);
-
-                                    if (! empty($source->items)) {
-                                        $set('items', $source->items);
-                                        $sum = collect($source->items)->sum('total_price');
-                                        $set('amount', $sum);
-                                        $taxPercent = $source->tax_percentage ?? '12';
-                                        $tax = $sum * ($taxPercent / 100);
-                                        $set('tax_amount', $tax);
-                                        $set('total_amount', $sum + $tax);
-                                    }
-
-                                    // Handle Internal Bank Account via BAPP
-                                    if ($source->sourceable instanceof \Modules\CRM\Models\SalesOrder && $source->sourceable->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
-                                        $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
-                                            ->where('is_active', true)
-                                            ->first();
-
-                                        if ($internalBank) {
-                                            $set('bank_account_id', $internalBank->id);
-                                            $set('payment_info', [
-                                                'account_name' => $internalBank->account_name,
-                                                'banks' => [
-                                                    [
-                                                        'bank_name' => $internalBank->bank_name,
-                                                        'account_number' => $internalBank->account_number,
-                                                        'currency' => $internalBank->currency,
-                                                    ],
-                                                ],
-                                            ]);
+                        Section::make('Related Documents')
+                            ->description('Link this invoice to its source documents and customer account.')
+                            ->schema([
+                                Select::make('customer_id')
+                                    ->label('Customer')
+                                    ->options(Customer::all()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->required()
+                                    ->live()
+                                    ->placeholder('Search and select a customer...')
+                                    ->helperText('The client account that will be billed for this invoice.'),
+                                MorphToSelect::make('sourceable')
+                                    ->label('Reference Document')
+                                    ->types([
+                                        MorphToSelect\Type::make(\Modules\CRM\Models\SalesOrder::class)
+                                            ->titleAttribute('number')
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                        MorphToSelect\Type::make(\Modules\Project\Models\WorkCompletionReport::class)
+                                            ->titleAttribute('number')
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                        MorphToSelect\Type::make(\Modules\CRM\Models\PurchaseOrder::class)
+                                            ->titleAttribute('number')
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                        MorphToSelect\Type::make(\Modules\CRM\Models\WorkOrder::class)
+                                            ->titleAttribute('number')
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                        MorphToSelect\Type::make(\Modules\CRM\Models\CooperationAgreement::class)
+                                            ->titleAttribute('number')
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                        MorphToSelect\Type::make(\Modules\CRM\Models\MinutesOfAgreement::class)
+                                            ->titleAttribute('number')
+                                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
+                                    ])
+                                    ->searchable()
+                                    ->preload()
+                                    ->live()
+                                    ->required()
+                                    ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                        if (! $state) {
+                                            return;
                                         }
-                                    }
-                                } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
-                                    $soItems = $source->content_config['items'] ?? [];
-                                    if (! empty($soItems)) {
-                                        $invoiceItems = collect($soItems)->map(fn ($item) => [
-                                            'item_name' => $item['description'] ?? $item['item_name'] ?? 'Item',
-                                            'quantity' => $item['quantity'] ?? 0,
-                                            'uom' => $item['uom'] ?? 'Unit',
-                                            'unit_price' => $item['unit_price'] ?? 0,
-                                            'total_price' => $item['total_price'] ?? 0,
-                                        ])->toArray();
 
-                                        $set('items', $invoiceItems);
-                                        $sum = collect($invoiceItems)->sum('total_price');
-                                        $set('amount', $sum);
-                                        $taxPercent = $get('tax_percentage') ?? '12';
-                                        $tax = $sum * ($taxPercent / 100);
-                                        $set('tax_amount', $tax);
-                                        $set('total_amount', $sum + $tax);
-                                    }
-                                } else {
-                                    // Default for other types (PO, SPK, PKS)
-                                    if (isset($source->items)) {
-                                        $set('items', $source->items);
-                                        $sum = collect($source->items)->sum('total_price');
-                                        $set('amount', $sum);
-                                        $set('tax_amount', $sum * 0.12);
-                                        $set('total_amount', $sum * 1.12);
+                                        if (is_array($state)) {
+                                            $modelClass = $state['type'] ?? null;
+                                            $id = $state['id'] ?? null;
+                                        } else {
+                                            [$modelClass, $id] = explode(':', $state);
+                                        }
 
-                                        // Handle Internal Bank Account
-                                        if ($source->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
-                                            $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
-                                                ->where('is_active', true)
-                                                ->first();
+                                        if (! $modelClass || ! $id) {
+                                            return;
+                                        }
 
-                                            if ($internalBank) {
-                                                $set('bank_account_id', $internalBank->id);
-                                                $set('payment_info', [
-                                                    'account_name' => $internalBank->account_name,
-                                                    'banks' => [
-                                                        [
-                                                            'bank_name' => $internalBank->bank_name,
-                                                            'account_number' => $internalBank->account_number,
-                                                            'currency' => $internalBank->currency,
+                                        $source = $modelClass::find($id);
+
+                                        if (! $source) {
+                                            return;
+                                        }
+
+                                        // Sync customer
+                                        if (isset($source->customer_id)) {
+                                            $set('customer_id', $source->customer_id);
+                                        }
+
+                                        // Sync items and financial details
+                                        if ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
+                                            $set('tax_percentage', $source->tax_percentage ?? 12);
+                                            $set('tax_wording', $source->tax_wording);
+                                            $set('content_config.recipient_name', $source->content_config['recipient_name'] ?? null);
+                                            $set('content_config.recipient_title', $source->content_config['recipient_title'] ?? null);
+                                            $set('content_config.recipient_gender', $source->content_config['recipient_gender'] ?? null);
+
+                                            if (! empty($source->getTranslations('items'))) {
+                                                $set('items', $source->getTranslations('items'));
+                                                $items = $source->items ?? []; // Current locale items for calculation
+                                                $sum = collect($items)->sum('total_price');
+                                                $set('amount', $sum);
+                                                $taxPercent = $source->tax_percentage ?? '12';
+                                                $tax = round($sum * ($taxPercent / 100));
+                                                $set('tax_amount', $tax);
+                                                $set('total_amount', $sum + $tax);
+                                            }
+
+                                            // Handle Internal Bank Account via BAPP
+                                            if ($source->sourceable instanceof \Modules\CRM\Models\SalesOrder && $source->sourceable->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
+                                                $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                                                    ->where('is_active', true)
+                                                    ->first();
+
+                                                if ($internalBank) {
+                                                    $set('bank_account_id', $internalBank->id);
+                                                    $set('payment_info', [
+                                                        'account_name' => $internalBank->account_name,
+                                                        'banks' => [
+                                                            [
+                                                                'bank_name' => $internalBank->bank_name,
+                                                                'account_number' => $internalBank->account_number,
+                                                                'currency' => $internalBank->currency,
+                                                            ],
                                                         ],
-                                                    ],
+                                                    ]);
+                                                }
+                                            }
+                                        } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
+                                            $soItems = $source->content_config['items'] ?? [];
+                                            if (! empty($soItems)) {
+                                                $invoiceItems = collect($soItems)->map(fn ($item) => [
+                                                    'item_name' => $item['description'] ?? $item['item_name'] ?? 'Item',
+                                                    'quantity' => $item['quantity'] ?? 0,
+                                                    'uom' => $item['uom'] ?? 'Unit',
+                                                    'unit_price' => $item['unit_price'] ?? 0,
+                                                    'total_price' => $item['total_price'] ?? 0,
+                                                ])->toArray();
+
+                                                // Set translations for both id and en
+                                                $set('items', [
+                                                    'id' => $invoiceItems,
+                                                    'en' => $invoiceItems,
                                                 ]);
+
+                                                $sum = collect($invoiceItems)->sum('total_price');
+                                                $set('amount', $sum);
+                                                $taxPercent = $get('tax_percentage') ?? '12';
+                                                $tax = $sum * ($taxPercent / 100);
+                                                $set('tax_amount', $tax);
+                                                $set('total_amount', $sum + $tax);
+                                            }
+                                        } else {
+                                            // Default for other types (PO, SPK, PKS)
+                                            if (isset($source->items)) {
+                                                $set('items', $source->items);
+                                                $sum = collect($source->items)->sum('total_price');
+                                                $set('amount', $sum);
+                                                $set('tax_amount', $sum * 0.12);
+                                                $set('total_amount', $sum * 1.12);
+
+                                                // Handle Internal Bank Account
+                                                if ($source->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
+                                                    $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                                                        ->where('is_active', true)
+                                                        ->first();
+
+                                                    if ($internalBank) {
+                                                        $set('bank_account_id', $internalBank->id);
+                                                        $set('payment_info', [
+                                                            'account_name' => $internalBank->account_name,
+                                                            'banks' => [
+                                                                [
+                                                                    'bank_name' => $internalBank->bank_name,
+                                                                    'account_number' => $internalBank->account_number,
+                                                                    'currency' => $internalBank->currency,
+                                                                ],
+                                                            ],
+                                                        ]);
+                                                    }
+                                                }
                                             }
                                         }
-                                    }
-                                }
-                            })
-                            ->columnSpanFull(),
-                    ])->columns(1),
-
-                Section::make('Customer Signatory')
-                    ->description('Select or manually enter the person who will receive or sign this invoice on behalf of the customer.')
-                    ->schema([
-                        Select::make('recipient_contact_index')
-                            ->label('Customer Contact Reference')
-                            ->options(function (Get $get) {
-                                $customerId = $get('customer_id');
-                                if (! $customerId) {
-                                    return [];
-                                }
-                                $customer = Customer::find($customerId);
-                                if (! $customer || empty($customer->contacts)) {
-                                    return [];
-                                }
-
-                                return collect($customer->contacts)
-                                    ->mapWithKeys(function ($contact, $index) {
-                                        $label = $contact['name'] ?? 'Unknown';
-                                        $pos = $contact['position'] ?? $contact['job_position'] ?? $contact['role'] ?? $contact['type'] ?? 'No Position';
-
-                                        return [$index => "{$label} ({$pos})"];
                                     })
-                                    ->toArray();
-                            })
-                            ->live()
-                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                if ($state === null || $state === '') {
-                                    return;
-                                }
-                                $customerId = $get('customer_id');
-                                if (! $customerId) {
-                                    return;
-                                }
-                                $customer = Customer::find($customerId);
-                                if (! $customer || empty($customer->contacts)) {
-                                    return;
-                                }
-                                $contact = $customer->contacts[$state] ?? null;
-                                if ($contact) {
-                                    $set('content_config.recipient_name', $contact['name'] ?? '');
+                                    ->columnSpanFull(),
+                            ])->columns(1),
+                        Section::make('Customer Signatory')
+                            ->description('Select or manually enter the person who will receive or sign this invoice on behalf of the customer.')
+                            ->schema([
+                                Select::make('recipient_contact_index')
+                                    ->label('Customer Contact Reference')
+                                    ->options(function (Get $get) {
+                                        $customerId = $get('customer_id');
+                                        if (! $customerId) {
+                                            return [];
+                                        }
+                                        $customer = Customer::find($customerId);
+                                        if (! $customer || empty($customer->contacts)) {
+                                            return [];
+                                        }
 
-                                    $position = $contact['position'] ??
-                                               $contact['job_position'] ??
-                                               $contact['job_title'] ??
-                                               $contact['role'] ??
-                                               $contact['type'] ??
-                                               '';
+                                        return collect($customer->contacts)
+                                            ->mapWithKeys(function ($contact, $index) {
+                                                $label = $contact['name'] ?? 'Unknown';
+                                                $pos = $contact['position'] ?? $contact['job_position'] ?? $contact['role'] ?? $contact['type'] ?? 'No Position';
 
-                                    // If position is a UUID (from type field), we don't want to show it as a title
-                                    if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $position)) {
-                                        $position = '';
-                                    }
+                                                return [$index => "{$label} ({$pos})"];
+                                            })
+                                            ->toArray();
+                                    })
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                        if ($state === null || $state === '') {
+                                            return;
+                                        }
+                                        $customerId = $get('customer_id');
+                                        if (! $customerId) {
+                                            return;
+                                        }
+                                        $customer = Customer::find($customerId);
+                                        if (! $customer || empty($customer->contacts)) {
+                                            return;
+                                        }
+                                        $contact = $customer->contacts[$state] ?? null;
+                                        if ($contact) {
+                                            $set('content_config.recipient_name', $contact['name'] ?? '');
 
-                                    $set('content_config.recipient_title', $position);
-                                    $set('content_config.recipient_gender', $contact['gender'] ?? Gender::Male->value);
-                                }
-                            })
-                            ->createOptionForm([
+                                            $position = $contact['position'] ??
+                                                       $contact['job_position'] ??
+                                                       $contact['job_title'] ??
+                                                       $contact['role'] ??
+                                                       $contact['type'] ??
+                                                       '';
+
+                                            // If position is a UUID (from type field), we don't want to show it as a title
+                                            if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $position)) {
+                                                $position = '';
+                                            }
+
+                                            $set('content_config.recipient_title', $position);
+                                            $set('content_config.recipient_gender', $contact['gender'] ?? Gender::Male->value);
+                                        }
+                                    })
+                                    ->createOptionForm([
+                                        Grid::make(3)->schema([
+                                            Select::make('gender')
+                                                ->options(Gender::class)
+                                                ->required()
+                                                ->native(false),
+                                            TextInput::make('name')
+                                                ->required()
+                                                ->placeholder('Full name'),
+                                            TextInput::make('job_position')
+                                                ->label('Job Position')
+                                                ->placeholder('e.g. Manager'),
+                                        ]),
+                                        Grid::make(2)->schema([
+                                            TextInput::make('email')
+                                                ->email()
+                                                ->placeholder('email@example.com'),
+                                            TextInput::make('phone')
+                                                ->tel()
+                                                ->placeholder('+62...'),
+                                        ]),
+                                    ])
+                                    ->createOptionUsing(function (array $data, Get $get) {
+                                        $customerId = $get('customer_id');
+                                        if (! $customerId) {
+                                            return null;
+                                        }
+                                        $customer = Customer::find($customerId);
+                                        if (! $customer) {
+                                            return null;
+                                        }
+
+                                        $contacts = $customer->contacts ?? [];
+                                        $contacts[] = [
+                                            'gender' => $data['gender'],
+                                            'name' => $data['name'],
+                                            'job_position' => $data['job_position'],
+                                            'email' => $data['email'] ?? null,
+                                            'phone' => $data['phone'] ?? null,
+                                            'type' => null,
+                                        ];
+
+                                        $customer->contacts = $contacts;
+                                        $customer->save();
+
+                                        return count($contacts) - 1;
+                                    })
+                                    ->placeholder('Select a contact to auto-fill...')
+                                    ->dehydrated(false)
+                                    ->helperText('Selecting a contact will automatically populate the details below.'),
+
                                 Grid::make(3)->schema([
-                                    Select::make('gender')
+                                    Select::make('content_config.recipient_gender')
+                                        ->label('Salutation')
                                         ->options(Gender::class)
                                         ->required()
+                                        ->placeholder('Select...')
                                         ->native(false),
-                                    TextInput::make('name')
-                                        ->required()
-                                        ->placeholder('Full name'),
-                                    TextInput::make('job_position')
-                                        ->label('Job Position')
-                                        ->placeholder('e.g. Manager'),
-                                ]),
-                                Grid::make(2)->schema([
-                                    TextInput::make('email')
-                                        ->email()
-                                        ->placeholder('email@example.com'),
-                                    TextInput::make('phone')
-                                        ->tel()
-                                        ->placeholder('+62...'),
+
+                                    TextInput::make('content_config.recipient_name')
+                                        ->label('Recipient Name')
+                                        ->placeholder('Full name of the recipient')
+                                        ->required(),
+
+                                    TextInput::make('content_config.recipient_title')
+                                        ->label('Recipient Title/Position')
+                                        ->placeholder('e.g. Finance Director'),
                                 ]),
                             ])
-                            ->createOptionUsing(function (array $data, Get $get) {
-                                $customerId = $get('customer_id');
-                                if (! $customerId) {
-                                    return null;
-                                }
-                                $customer = Customer::find($customerId);
-                                if (! $customer) {
-                                    return null;
-                                }
-
-                                $contacts = $customer->contacts ?? [];
-                                $contacts[] = [
-                                    'gender' => $data['gender'],
-                                    'name' => $data['name'],
-                                    'job_position' => $data['job_position'],
-                                    'email' => $data['email'] ?? null,
-                                    'phone' => $data['phone'] ?? null,
-                                    'type' => null,
-                                ];
-
-                                $customer->contacts = $contacts;
-                                $customer->save();
-
-                                return count($contacts) - 1;
-                            })
-                            ->placeholder('Select a contact to auto-fill...')
-                            ->dehydrated(false)
-                            ->helperText('Selecting a contact will automatically populate the details below.'),
-
-                        Grid::make(3)->schema([
-                            Select::make('content_config.recipient_gender')
-                                ->label('Salutation')
-                                ->options(Gender::class)
-                                ->required()
-                                ->placeholder('Select...')
-                                ->native(false),
-
-                            TextInput::make('content_config.recipient_name')
-                                ->label('Recipient Name')
-                                ->placeholder('Full name of the recipient')
-                                ->required(),
-
-                            TextInput::make('content_config.recipient_title')
-                                ->label('Recipient Title/Position')
-                                ->placeholder('e.g. Finance Director'),
-                        ]),
-                    ])
-                    ->collapsible(),
+                            ->collapsible(),
+                    ]),
 
                 Section::make('Invoice Line Items')
                     ->description('Detailed breakdown of billable items for this invoice.')
@@ -362,7 +370,12 @@ class InvoiceForm
                                             ->numeric()
                                             ->required()
                                             ->live(onBlur: true)
-                                            ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval(str_replace('.', '', $get('unit_price') ?? 0))))),
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                $qty = (float) ($get('quantity') ?? 0);
+                                                $priceRaw = $get('unit_price') ?? 0;
+                                                $price = ! is_string($priceRaw) ? (float) $priceRaw : (float) str_replace(',', '.', str_replace('.', '', $priceRaw));
+                                                $set('total_price', round($qty * $price));
+                                            }),
                                         TextInput::make('uom')
                                             ->label('Unit')
                                             ->required(),
@@ -373,7 +386,12 @@ class InvoiceForm
                                             ->prefix('IDR')
                                             ->required()
                                             ->live(onBlur: true)
-                                            ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval(str_replace('.', '', $get('unit_price') ?? 0))))),
+                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                $qty = (float) ($get('quantity') ?? 0);
+                                                $priceRaw = $get('unit_price') ?? 0;
+                                                $price = ! is_string($priceRaw) ? (float) $priceRaw : (float) str_replace(',', '.', str_replace('.', '', $priceRaw));
+                                                $set('total_price', round($qty * $price));
+                                            }),
                                         TextInput::make('total_price')
                                             ->label('Total Price')
                                             ->numeric()
@@ -384,20 +402,24 @@ class InvoiceForm
                             ])
                             ->columnSpanFull()
                             ->reorderable()
-                            ->live(onBlur: true)
+                            ->translatable()
                             ->afterStateUpdated(function ($state, $set, $get) {
                                 // Auto-calculate amount when items change
+                                $items = is_array($state) && isset($state['id']) ? $state['id'] : $state;
+
                                 $sum = 0;
-                                foreach ((array) $state as $item) {
-                                    $sum += floatval($item['total_price'] ?? 0);
+                                foreach ((array) $items as $item) {
+                                    $priceRaw = $item['total_price'] ?? 0;
+                                    $price = is_numeric($priceRaw) ? (float) $priceRaw : (float) str_replace(',', '.', str_replace('.', '', (string) $priceRaw));
+                                    $sum += $price;
                                 }
                                 $set('amount', $sum);
-                                $taxPercent = (float) $get('tax_percentage') ?? 12;
+                                $taxPercentRaw = $get('tax_percentage') ?? 12;
+                                $taxPercent = (float) $taxPercentRaw;
                                 $tax = round($sum * ($taxPercent / 100));
                                 $set('tax_amount', $tax);
                                 $set('total_amount', $sum + $tax);
-                            })
-                            ->translatable(),
+                            }),
                     ])->collapsible(),
 
                 Section::make('Financial Details')
@@ -416,8 +438,9 @@ class InvoiceForm
                                     ->placeholder('0')
                                     ->helperText('The principal billable amount excluding tax. Auto-calculated from items.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                        $amount = (float) str_replace('.', '', $state);
-                                        $taxPercent = (float) $get('tax_percentage') ?? 12;
+                                        $amount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
+                                        $taxPercentRaw = $get('tax_percentage') ?? 12;
+                                        $taxPercent = (float) $taxPercentRaw;
                                         $tax = round($amount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
@@ -429,15 +452,32 @@ class InvoiceForm
                                         '11' => 'PPN 11%',
                                     ])
                                     ->default('12')
+                                    ->afterStateHydrated(fn ($state, $set) => $set('tax_percentage', (string) (float) $state))
                                     ->selectablePlaceholder(false)
                                     ->native(false)
                                     ->live(onBlur: true)
                                     ->placeholder('Select tax')
                                     ->helperText('The applicable Value Added Tax (PPN) rate.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                        $amountString = $get('amount') ?? '0';
-                                        $amount = (float) str_replace('.', '', $amountString);
-                                        $taxPercent = (float) $state;
+                                        $amountRaw = $get('amount') ?? 0;
+                                        $amount = is_numeric($amountRaw) ? (float) $amountRaw : (float) str_replace(',', '.', str_replace('.', '', (string) $amountRaw));
+
+                                        // If amount is still 0 but items exist, recalculate from items
+                                        if ($amount <= 0) {
+                                            $items = $get('items') ?? [];
+                                            $sum = 0;
+                                            $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+                                            foreach ((array) $activeItems as $item) {
+                                                $pRaw = $item['total_price'] ?? 0;
+                                                $sum += is_numeric($pRaw) ? (float) $pRaw : (float) str_replace(',', '.', str_replace('.', '', (string) $pRaw));
+                                            }
+                                            $amount = $sum;
+                                            if ($amount > 0) {
+                                                $set('amount', $amount);
+                                            }
+                                        }
+
+                                        $taxPercent = (float) ($state ?? 12);
                                         $tax = round($amount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
@@ -456,9 +496,11 @@ class InvoiceForm
                                     ->live(onBlur: true)
                                     ->placeholder('0')
                                     ->helperText('Value Added Tax (PPN).')
-                                    ->afterStateUpdated(function ($get, $set) {
-                                        $amount = (float) str_replace('.', '', $get('amount') ?? 0);
-                                        $tax = (float) str_replace('.', '', $get('tax_amount') ?? 0);
+                                    ->afterStateUpdated(function (Get $get, $set) {
+                                        $amountRaw = $get('amount') ?? 0;
+                                        $amount = ! is_string($amountRaw) ? (float) $amountRaw : (float) str_replace(',', '.', str_replace('.', '', $amountRaw));
+                                        $taxRaw = $get('tax_amount') ?? 0;
+                                        $tax = ! is_string($taxRaw) ? (float) $taxRaw : (float) str_replace(',', '.', str_replace('.', '', $taxRaw));
                                         $set('total_amount', $amount + $tax);
                                     }),
                                 TextInput::make('total_amount')
@@ -485,6 +527,30 @@ class InvoiceForm
                         Select::make('bank_account_id')
                             ->label('Bank Account')
                             ->options(\Modules\MasterData\Models\BankAccount::query()->where('is_active', true)->pluck('bank_name', 'id'))
+                            ->createOptionForm([
+                                Grid::make(2)
+                                    ->schema([
+                                        TextInput::make('bank_name')
+                                            ->required()
+                                            ->maxLength(255),
+                                        TextInput::make('account_number')
+                                            ->required()
+                                            ->maxLength(255),
+                                        TextInput::make('account_name')
+                                            ->required()
+                                            ->maxLength(255),
+                                        TextInput::make('currency')
+                                            ->required()
+                                            ->default('IDR')
+                                            ->maxLength(3),
+                                        TextInput::make('swift_code')
+                                            ->maxLength(255),
+                                        TextInput::make('account_code')
+                                            ->maxLength(255),
+                                        Toggle::make('is_active')
+                                            ->default(true),
+                                    ]),
+                            ])
                             ->searchable()
                             ->live()
                             ->required()

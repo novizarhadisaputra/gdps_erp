@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\AssetGroups\
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Enums\AssetGroupType;
@@ -55,6 +56,14 @@ class AssetGroupForm
                     Textarea::make('description')
                         ->maxLength(65535)
                         ->columnSpanFull(),
+                    Toggle::make('is_active')
+                        ->label('Active Status')
+                        ->default(true)
+                        ->required(),
+                    Toggle::make('is_default')
+                        ->label('Default Record')
+                        ->helperText('Hanya satu record yang dapat menjadi default.')
+                        ->default(false),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),

@@ -10,9 +10,11 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'benefit_types' : 'master_data.benefit_types', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('code')->unique()->after('id')->nullable();
             $table->string('name');
             $table->string('accrual_method')->default('monthly'); // monthly, one_time
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

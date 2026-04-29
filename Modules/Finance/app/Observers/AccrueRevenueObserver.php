@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Observers;
 
+use Modules\CRM\Models\SalesPlanMonthly;
 use Modules\Finance\Models\AccrueRevenue;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 
@@ -12,7 +13,22 @@ class AccrueRevenueObserver
      */
     public function saved(AccrueRevenue $accrueRevenue): void
     {
-        $this->syncToMonthlyPerformance($accrueRevenue);
+        // 1. Aggregate totals from items
+        $totals = $accrueRevenue->items()
+            ->selectRaw('SUM(amount_estimated) as total_estimated, SUM(amount_actual) as total_actual')
+            ->first();
+
+        $totalEstimated = $totals->total_estimated ?? 0;
+        $totalActual = $totals->total_actual ?? 0;
+
+        // 2. Update header quietly to avoid infinite loop
+        $accrueRevenue->updateQuietly([
+            'total_amount_estimated' => $totalEstimated,
+            'total_amount_actual' => $totalActual,
+        ]);
+
+        // 3. Sync to external performance tables
+        $this->syncPerformance($accrueRevenue, $totalActual);
     }
 
     /**
@@ -20,39 +36,36 @@ class AccrueRevenueObserver
      */
     public function deleted(AccrueRevenue $accrueRevenue): void
     {
-        $this->syncToMonthlyPerformance($accrueRevenue, true);
+        $this->syncPerformance($accrueRevenue, 0);
     }
 
     /**
-     * Handle the AccrueRevenue "restored" event.
+     * Synchronize data to ProfitabilityAnalysisMonthly and SalesPlanMonthly.
      */
-    public function restored(AccrueRevenue $accrueRevenue): void
-    {
-        $this->syncToMonthlyPerformance($accrueRevenue);
-    }
-
-    /**
-     * Synchronize data to ProfitabilityAnalysisMonthly.
-     */
-    protected function syncToMonthlyPerformance(AccrueRevenue $accrueRevenue, bool $isDeleted = false): void
+    protected function syncPerformance(AccrueRevenue $accrueRevenue, $totalActual): void
     {
         $project = $accrueRevenue->project;
-
-        if (! $project?->profitability_analysis_id) {
+        if (! $project) {
             return;
         }
 
-        $monthName = date('F', mktime(0, 0, 0, (int) $accrueRevenue->month, 1));
+        // 1. Sync to ProfitabilityAnalysisMonthly
+        if ($project->profitability_analysis_id) {
+            $monthName = date('F', mktime(0, 0, 0, (int) $accrueRevenue->month, 1));
 
-        $monthly = ProfitabilityAnalysisMonthly::where('profitability_analysis_id', $project->profitability_analysis_id)
-            ->where('month', $monthName)
-            ->where('year', $accrueRevenue->year)
-            ->first();
+            ProfitabilityAnalysisMonthly::where('profitability_analysis_id', $project->profitability_analysis_id)
+                ->where('month', $monthName)
+                ->where('year', $accrueRevenue->year)
+                ->update(['actual_revenue' => $totalActual]);
+        }
 
-        if ($monthly) {
-            $monthly->update([
-                'actual_revenue' => $isDeleted ? 0 : $accrueRevenue->amount_cost,
-            ]);
+        // 2. Sync to SalesPlanMonthly
+        $salesPlanId = $project->lead?->salesPlan?->id;
+        if ($salesPlanId) {
+            SalesPlanMonthly::where('sales_plan_id', $salesPlanId)
+                ->where('month', $accrueRevenue->month)
+                ->where('year', $accrueRevenue->year)
+                ->update(['actual_amount' => $totalActual]);
         }
     }
 }

@@ -5,6 +5,7 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ItemCategori
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -19,6 +20,12 @@ class ItemCategoriesTable
                     ->sortable(),
                 TextColumn::make('description')
                     ->limit(50),
+                IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
+                IconColumn::make('is_default')
+                    ->label('Default')
+                    ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

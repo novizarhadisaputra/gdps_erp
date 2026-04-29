@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\ContractTypeFactory;
+use Modules\MasterData\Traits\HasDefaultRecord;
 
 class ContractType extends Model
 {
-    use HasFactory, HasModuleSchema;
-    use HasUuids;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     protected static function newFactory(): ContractTypeFactory
     {
@@ -22,9 +22,14 @@ class ContractType extends Model
         'code',
         'name',
         'is_active',
+        'is_default',
     ];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'is_default' => 'boolean',
+        ];
+    }
 }

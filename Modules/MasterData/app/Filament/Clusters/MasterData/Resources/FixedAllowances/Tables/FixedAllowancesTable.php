@@ -6,6 +6,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 
 class FixedAllowancesTable
 {
@@ -13,11 +15,11 @@ class FixedAllowancesTable
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                \Filament\Tables\Columns\IconColumn::make('is_bpjs_base')->boolean()->label('BPJS Base')->sortable(),
-                \Filament\Tables\Columns\IconColumn::make('is_taxable')->boolean()->label('Taxable')->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('default_amount')->money('IDR')->sortable(),
-                \Filament\Tables\Columns\IconColumn::make('is_active')->boolean()->label('Active'),
+                TextColumn::make('name')->searchable()->sortable(),
+                IconColumn::make('is_bpjs_base')->boolean()->label('BPJS Base')->sortable(),
+                IconColumn::make('is_taxable')->boolean()->label('Taxable')->sortable(),
+                TextColumn::make('default_amount')->money('IDR')->sortable(),
+                IconColumn::make('is_active')->boolean()->label('Active'),
             ])
             ->filters([
                 //

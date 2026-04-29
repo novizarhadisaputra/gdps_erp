@@ -5,6 +5,8 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class BenefitTypesTable
@@ -13,9 +15,10 @@ class BenefitTypesTable
     {
         return $table
             ->columns([
-                \Filament\Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-                \Filament\Tables\Columns\TextColumn::make('accrual_method')->searchable()->sortable(),
-                \Filament\Tables\Columns\IconColumn::make('is_active')->boolean()->label('Active'),
+                TextColumn::make('name')->searchable()->sortable(),
+                TextColumn::make('accrual_method')->searchable()->sortable(),
+                IconColumn::make('is_active')->boolean()->label('Active'),
+                IconColumn::make('is_default')->boolean()->label('Default'),
             ])
             ->filters([
                 //

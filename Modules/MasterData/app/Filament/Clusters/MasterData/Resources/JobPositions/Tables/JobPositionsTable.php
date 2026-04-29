@@ -6,6 +6,7 @@ use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -18,6 +19,9 @@ class JobPositionsTable
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('code')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('risk_level')
                     ->badge()
                     ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
@@ -28,6 +32,14 @@ class JobPositionsTable
                         'very_high' => 'danger',
                         default => 'gray',
                     }),
+                IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean(),
+                IconColumn::make('is_default')
+                    ->label('Default')
+                    ->boolean()
+                    ->icon(fn ($state) => $state ? 'heroicon-o-star' : null)
+                    ->color('warning'),
             ])
             ->filters([
                 //

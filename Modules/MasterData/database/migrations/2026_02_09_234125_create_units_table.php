@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('code')->nullable();
             $table->string('name');
             $table->string('superior_unit')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

@@ -83,9 +83,24 @@ class ProfitabilityAnalysisForm
             // ID Format: 1.000.000,50
             $value = str_replace('.', '', $value);
             $value = str_replace(',', '.', $value);
+        } elseif ($dots === 1 && $commas === 0) {
+            // Ambiguous Case: 1.000 or 1.23
+            // In ID financial context, we usually use thousand separator with 3 digits
+            $afterDot = substr($value, strpos($value, '.') + 1);
+            if (strlen($afterDot) === 3) {
+                // Likely thousand: 1.000
+                $value = str_replace('.', '', $value);
+            }
+            // If not 3 digits, we leave it as decimal (e.g. 1.23 or 1.5)
         } elseif ($commas > 0) {
-            // US/Mixed Format: 1,000,000.50 or 1,000.00
-            $value = str_replace(',', '', $value);
+            // US/Mixed Format: 1,000,000.50 or 1,000.00 or 1,5
+            // If only commas, it's likely ID decimal or US thousand.
+            // But if it's followed by 2 digits, it's likely decimal in ID.
+            if ($commas === 1 && $dots === 0) {
+                $value = str_replace(',', '.', $value);
+            } else {
+                $value = str_replace(',', '', $value);
+            }
         }
 
         return (float) $value;
@@ -1245,7 +1260,7 @@ class ProfitabilityAnalysisForm
         $set($root.'total_project_depreciation', $totalProjectDepreciation);
 
         // 4. Trigger Global Performance Recalculation
-        self::calculatePerformance($get, $set);
+        self::calculatePerformance($get, $set, $root);
     }
 
     protected static function updateItemTotals($get, $set): void

@@ -23,7 +23,8 @@ return new class extends Migration
             $table->decimal('amount', 20, 2)->default(0);
             $table->decimal('tax_percentage', 5, 2)->default(11.00);
             $table->string('status')->default('draft');
-            
+            $table->boolean('is_manual')->default(false);
+
             $table->jsonb('items')->nullable();
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();

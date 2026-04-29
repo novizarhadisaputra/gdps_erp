@@ -19,6 +19,8 @@ return new class extends Migration
             $table->decimal('rate_straight_line', 5, 2)->nullable();
             $table->decimal('rate_declining_balance', 5, 2)->nullable();
             $table->text('description')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

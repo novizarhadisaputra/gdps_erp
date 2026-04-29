@@ -2,6 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\NonFixedAllowances\Schemas;
 
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class NonFixedAllowanceForm
@@ -10,19 +14,27 @@ class NonFixedAllowanceForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('General Details')
-                    ->description('Fill in the necessary configuration properties below.')
+                Section::make('Allowance Definition')
+                    ->description('Define non-fixed allowance components such as Daily Transport or Shift Premiums.')
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('name')
-                            ->label('Name')
-                            ->placeholder('Enter Name...')
-                            ->helperText('Brief and clear Name for this record.')
-                            ->required(),
-                        \Filament\Forms\Components\Toggle::make('is_taxable')
-                            ->label('Is Taxable')
-                            ->helperText('Enable if this allowance is subject to income tax.')
-                            ->required(),
-                        \Filament\Forms\Components\Select::make('calculation_basis')
+                        TextInput::make('name')
+                            ->label('Allowance Name')
+                            ->placeholder('e.g. Transport Allowance, Lembur')
+                            ->required()
+                            ->maxLength(255)
+                            ->helperText('The official name of this allowance.'),
+                        TextInput::make('code')
+                            ->label('Allowance Code')
+                            ->placeholder('e.g. NFA-TRANS, NFA-OT')
+                            ->required()
+                            ->unique(\Modules\MasterData\Models\NonFixedAllowance::class, 'code', ignoreRecord: true)
+                            ->helperText('Unique short code for this allowance.'),
+                    ])->columns(2),
+
+                Section::make('Calculation Configuration')
+                    ->description('Specify how this allowance is calculated and its financial rules.')
+                    ->schema([
+                        Select::make('calculation_basis')
                             ->label('Calculation Basis')
                             ->options([
                                 'flat' => 'Flat / Fixed Amount',
@@ -33,18 +45,37 @@ class NonFixedAllowanceForm
                             ])
                             ->required()
                             ->native(false)
-                            ->helperText('Basis for calculating this allowance.'),
-                        \Filament\Forms\Components\TextInput::make('default_amount')
+                            ->placeholder('Select basis')
+                            ->helperText('The method used to calculate the final allowance amount.'),
+                        TextInput::make('default_amount')
+                            ->label('Standard Rate/Amount')
                             ->numeric()
-                            ->prefix('Rp')
-                            ->label('Default Amount')
+                            ->prefix('IDR')
                             ->placeholder('0.00')
-                            ->helperText('Enter the numerical Default Amount amount.')
-                            ->required(),
-                        \Filament\Forms\Components\Toggle::make('is_active')
+                            ->default(0)
+                            ->required()
+                            ->helperText('The default monetary value or percentage rate for this allowance.'),
+                        Toggle::make('is_bpjs_base')
+                            ->label('Include in BPJS Base')
+                            ->default(false)
+                            ->helperText('If enabled, this allowance will be included in the BPJS contribution base.'),
+                        Toggle::make('is_taxable')
+                            ->label('Taxable Component')
                             ->default(true)
-                            ->label('Status (Active / Inactive)')
-                            ->helperText('Toggle on to make this record available in standard lists within the system.'),
+                            ->helperText('If enabled, this allowance will be subject to PPh 21 income tax.'),
+                    ])->columns(2),
+
+                Section::make('Status & Defaults')
+                    ->description('Manage the availability and default status of this allowance type.')
+                    ->schema([
+                        Toggle::make('is_active')
+                            ->label('Active Status')
+                            ->default(true)
+                            ->helperText('Determines if this allowance can be assigned to employees.'),
+                        Toggle::make('is_default')
+                            ->label('Default Allowance')
+                            ->default(false)
+                            ->helperText('Sets this as the pre-selected option for new allowance assignments.'),
                     ])->columns(2),
             ]);
     }

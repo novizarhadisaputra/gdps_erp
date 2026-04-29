@@ -26,6 +26,8 @@ trait HasInvoiceActions
                     ->required(),
             ])
             ->action(function (Invoice $record, array $data) {
+                app()->setLocale($data['language']);
+
                 $pdf = Pdf::loadView('finance::pdf.invoice', [
                     'record' => $record,
                     'language' => $data['language'],

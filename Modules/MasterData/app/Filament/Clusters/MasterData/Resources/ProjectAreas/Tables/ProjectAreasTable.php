@@ -50,6 +50,9 @@ class ProjectAreasTable
                 IconColumn::make('is_active')
                     ->boolean()
                     ->label('Active Status'),
+                IconColumn::make('is_default')
+                    ->boolean()
+                    ->label('Default'),
                 TextColumn::make('created_at')
                     ->label('Created At')
                     ->dateTime()

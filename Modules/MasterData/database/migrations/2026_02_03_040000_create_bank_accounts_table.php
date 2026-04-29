@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('account_name');
             $table->string('swift_code')->nullable();
             $table->string('currency')->default('IDR');
+            $table->string('account_code')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();

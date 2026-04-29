@@ -6,9 +6,10 @@ use App\Services\SsoAuthService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Support\Icons\Heroicon;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\UnitResource;
 use Modules\MasterData\Models\Unit;
 use Modules\MasterData\Services\UnitService;
@@ -104,6 +105,17 @@ class UnitsTable
                 TextColumn::make('superior_unit')
                     ->label('Superior Unit')
                     ->searchable()
+                    ->sortable(),
+                IconColumn::make('is_active')
+                    ->label('Active')
+                    ->boolean()
+                    ->sortable(),
+                IconColumn::make('is_default')
+                    ->label('Default')
+                    ->boolean()
+                    ->trueIcon(Heroicon::Star)
+                    ->falseIcon(null)
+                    ->color('warning')
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()

@@ -42,6 +42,7 @@ return new class extends Migration
             $table->string('probation_period')->nullable();
             $table->string('replacement_sla')->nullable();
             $table->string('reporting_schedule')->nullable();
+            $table->jsonb('content_config')->nullable();
             $table->integer('sequence_number')->default(0);
             $table->integer('year')->nullable();
 

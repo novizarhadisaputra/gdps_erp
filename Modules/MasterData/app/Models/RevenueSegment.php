@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\RevenueSegmentFactory;
+use Modules\MasterData\Traits\HasDefaultRecord;
 
 class RevenueSegment extends Model
 {
-    use HasFactory, HasUuids;
-    use HasModuleSchema;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     protected static function newFactory(): RevenueSegmentFactory
     {
@@ -22,12 +22,14 @@ class RevenueSegment extends Model
         'name',
         'code',
         'is_active',
+        'is_default',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 }

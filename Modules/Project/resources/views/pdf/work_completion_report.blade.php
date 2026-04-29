@@ -38,7 +38,7 @@
 
     // Bilingual Labels & Config
     $lang = $language ?? 'id';
-    $tax_percentage = $record->tax_percentage ?? 12;
+    $tax_percentage = $record->tax_percentage ?? 11;
 
     $labels = [
         'title' => [
@@ -70,8 +70,20 @@
             'en' => 'Based on',
         ],
         'completed_period' => [
-            'id' => 'telah diselesaikan pekerjaan untuk periode',
-            'en' => 'the work has been completed for the period',
+            'id' => 'telah dilaksanakan penyelesaian pemborongan pekerjaan periode',
+            'en' => 'work completion has been carried out for the period of',
+        ],
+        'from' => [
+            'id' => 'dari',
+            'en' => 'from',
+        ],
+        'to_recipient' => [
+            'id' => 'kepada',
+            'en' => 'to',
+        ],
+        'addendum' => [
+            'id' => 'Adendum',
+            'en' => 'Addendum',
         ],
         'until' => [
             'id' => 'sampai dengan',
@@ -127,7 +139,7 @@
             $displaySourceType = 'Surat Perintah Kerja (SPK)';
         } elseif ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
             $sourceNumber = $source->number;
-            $displaySourceType = 'Perjanjian Kerja Sama (PKS)';
+            $displaySourceType = $lang === 'id' ? 'Perjanjian Kerja Sama (PKS)' : 'Cooperation Agreement (PKS)';
         } elseif ($source instanceof \Modules\CRM\Models\MinutesOfAgreement) {
             $sourceNumber = $source->number;
             $displaySourceType = 'Memorandum of Agreement (MoA)';
@@ -159,11 +171,11 @@
         ?? $sourceConfig['recipient_gender'] 
         ?? null;
 
-    if (!$customerContactName && !empty($record->customer?->contacts)) {
+    if ((!$customerContactName || !$customerContactTitle) && !empty($record->customer?->contacts)) {
         $firstContact = $record->customer->contacts[0];
-        $customerContactName = $firstContact['name'] ?? null;
-        $customerContactTitle = $firstContact['job_position'] ?? null;
-        $customerContactGender = $firstContact['gender'] ?? null;
+        $customerContactName = $customerContactName ?: ($firstContact['name'] ?? null);
+        $customerContactTitle = $customerContactTitle ?: ($firstContact['job_position'] ?? null);
+        $customerContactGender = $customerContactGender ?: ($firstContact['gender'] ?? null);
     }
 
     $salutation = '';
@@ -173,7 +185,7 @@
 
     $customerContactName = $customerContactName ?? '.....................';
     $customerContactDisplay = $salutation ? $salutation . ' ' . $customerContactName : $customerContactName;
-    $customerContactTitle = $customerContactTitle ?? 'Jabatan';
+    $customerContactTitle = $customerContactTitle ?? '.....................';
 
     $soType = $record->salesOrder?->type;
     $isInternal = $soType === \Modules\CRM\Enums\SalesOrderType::Internal;
@@ -366,12 +378,12 @@
             {{ $labels['based_on'][$lang] }} <strong>{{ $displaySourceType }}</strong>
             {{ $labels['number'][$lang] }}: <strong>{{ $sourceNumber }}</strong>
             @if($latestAmendment)
-                (Adendum: {{ $latestAmendment->number }})
+                ({{ $labels['addendum'][$lang] }}: {{ $latestAmendment->number }})
             @endif,
-            telah dilaksanakan penyelesaian pemborongan pekerjaan periode
+            {{ $labels['completed_period'][$lang] }}
             <strong>{{ $record->service_period_start->translatedFormat('d F Y') }}</strong> {{ $labels['until'][$lang] }}
             <strong>{{ $record->service_period_end->translatedFormat('d F Y') }}</strong>
-            dari PT Garuda Daya Pratama Sejahtera kepada <strong>{{ $record->customer->name ?? '-' }}</strong>.
+            {{ $labels['from'][$lang] }} PT Garuda Daya Pratama Sejahtera {{ $labels['to_recipient'][$lang] }} <strong>{{ $record->customer->name ?? '-' }}</strong>.
         </p>
 
         <p>{{ $labels['summary_intro'][$lang] }}</p>

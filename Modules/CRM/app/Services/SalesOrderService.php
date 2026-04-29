@@ -60,6 +60,7 @@ class SalesOrderService
             if ($mfRate >= 100) {
                 return $cost * 1.15;
             }
+
             return $cost / (1 - ($mfRate / 100));
         };
 
@@ -126,12 +127,18 @@ class SalesOrderService
             if ($so->trashed()) {
                 $so->restore();
             }
-            $so->update($values);
+
+            $so->forceFill($values);
+            $so->save();
 
             return $so;
         }
 
-        return SalesOrder::create(array_merge($attributes, $values));
+        $so = new SalesOrder;
+        $so->forceFill(array_merge($attributes, $values));
+        $so->save();
+
+        return $so;
     }
 
     /**
@@ -149,6 +156,7 @@ class SalesOrderService
             if ($mfRate >= 100) {
                 return $cost * 1.15;
             }
+
             return $cost / (1 - ($mfRate / 100));
         };
 

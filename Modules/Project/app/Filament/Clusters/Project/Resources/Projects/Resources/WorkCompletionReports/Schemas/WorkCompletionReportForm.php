@@ -482,6 +482,7 @@ class WorkCompletionReportForm
                             ])
                             ->columnSpanFull()
                             ->default('12')
+                            ->afterStateHydrated(fn ($state, $set) => $set('tax_percentage', (string) (float) $state))
                             ->selectablePlaceholder(false)
                             ->native(false)
                             ->live()

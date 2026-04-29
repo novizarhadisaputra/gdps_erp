@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\MasterData\Observers\JobPositionObserver;
+use Modules\MasterData\Traits\HasDefaultRecord;
 
 #[ObservedBy(JobPositionObserver::class)]
 class JobPosition extends Model
 {
-    use HasFactory, HasUuids;
-    use HasModuleSchema;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     protected static function newFactory()
     {
@@ -27,12 +27,17 @@ class JobPosition extends Model
         'risk_level',
         'is_labor_intensive',
         'is_active',
+        'is_default',
     ];
 
-    protected $casts = [
-        'is_labor_intensive' => 'boolean',
-        'is_active' => 'boolean',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'is_labor_intensive' => 'boolean',
+            'is_active' => 'boolean',
+            'is_default' => 'boolean',
+        ];
+    }
 
     public function fixedAllowances(): HasMany
     {

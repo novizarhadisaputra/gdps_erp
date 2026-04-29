@@ -3,7 +3,7 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\MasterData\Models\HealthConfig;
+use Modules\MasterData\Models\BpjsHealthConfig;
 
 class HealthConfigSeeder extends Seeder
 {
@@ -12,7 +12,7 @@ class HealthConfigSeeder extends Seeder
      */
     public function run(): void
     {
-        HealthConfig::updateOrCreate(
+        BpjsHealthConfig::updateOrCreate(
             ['name' => 'Kesehatan PPU'],
             [
                 'employee_type' => 'ppu',
@@ -20,24 +20,27 @@ class HealthConfigSeeder extends Seeder
                 'employer_rate' => 0.04,
                 'employee_rate' => 0.01,
                 'cap_nominal' => 12000000,
+                'is_default' => true,
             ]
         );
 
-        HealthConfig::updateOrCreate(
+        BpjsHealthConfig::updateOrCreate(
             ['name' => 'Kesehatan PBPU / Mandiri (Kelas 1)'],
             [
                 'employee_type' => 'pbpu',
                 'employer_nominal' => 0,
                 'employee_nominal' => 150000,
+                'is_default' => false,
             ]
         );
 
-        HealthConfig::updateOrCreate(
+        BpjsHealthConfig::updateOrCreate(
             ['name' => 'Kesehatan PBI'],
             [
                 'employee_type' => 'pbi',
                 'employer_nominal' => 0,
                 'employee_nominal' => 0,
+                'is_default' => false,
             ]
         );
     }

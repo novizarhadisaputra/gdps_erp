@@ -9,7 +9,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
@@ -64,16 +66,19 @@ class ManpowerTemplateForm
                                 }
 
                                 // If Project Area changes, reset all items' basic salary to the new area's UMK
-                                $items = $get('items') ?? [];
-                                foreach ($items as $key => $item) {
-                                    $umk = RegencyMinimumWage::where('project_area_id', $state)
-                                        ->whereIn('year', [2025, 2026])
-                                        ->where('is_active', true)
-                                        ->orderBy('year', 'desc')
-                                        ->first();
+                                $clusters = $get('clusters') ?? [];
+                                foreach ($clusters as $cKey => $cluster) {
+                                    $clusterItems = $cluster['items'] ?? [];
+                                    foreach ($clusterItems as $iKey => $item) {
+                                        $umk = RegencyMinimumWage::where('project_area_id', $state)
+                                            ->whereIn('year', [2025, 2026])
+                                            ->where('is_active', true)
+                                            ->orderBy('year', 'desc')
+                                            ->first();
 
-                                    if ($umk) {
-                                        $set("items.{$key}.basic_salary", $umk->amount);
+                                        if ($umk) {
+                                            $set("clusters.{$cKey}.items.{$iKey}.basic_salary", $umk->amount);
+                                        }
                                     }
                                 }
                             }),
@@ -101,79 +106,90 @@ class ManpowerTemplateForm
 
                 Step::make('Personnel Composition')
                     ->label('Personnel Composition')
-                    ->description('Add job positions and set basic salaries.')
+                    ->description('Organize personnel into clusters (e.g., Aviation, FM) and set basic salaries.')
                     ->icon('heroicon-m-user-group')
                     ->schema([
-                        Repeater::make('items')
-                            ->relationship('items')
-                            ->label('Personnel Requirements')
+                        Repeater::make('clusters')
+                            ->relationship('clusters')
+                            ->label('Product Clusters / Sections')
                             ->schema([
-                                Grid::make(4)
+                                Grid::make(2)
                                     ->schema([
-                                        Select::make('job_position_id')
-                                            ->label('Job Position')
-                                            ->placeholder('Select Position...')
-                                            ->relationship('jobPosition', 'name')
+                                        TextInput::make('name')
+                                            ->label('Cluster Name')
+                                            ->placeholder('e.g., Cluster Aviation, Security Section')
                                             ->required()
+                                            ->columnSpan(1),
+                                        Select::make('product_cluster_id')
+                                            ->label('Product Cluster (Master)')
+                                            ->relationship('productCluster', 'name')
                                             ->searchable()
                                             ->preload()
-                                            ->live()
-                                            ->helperText('Position or role for this project.')
-                                            ->afterStateUpdated(function (Set $set, Get $get, $state, $component) {
-                                                if (! $state) {
-                                                    return;
-                                                }
-
-                                                // In Filament Wizards and Repeaters, finding a sibling outside the repeater
-                                                // often requires multiple path attempts or absolute path.
-                                                $areaId = $get('../../project_area_id') 
-                                                    ?? $get('../../../project_area_id') 
-                                                    ?? $get('project_area_id');
-
-                                                if (! $areaId) {
-                                                    return;
-                                                }
-
-                                                $umk = RegencyMinimumWage::where('project_area_id', $areaId)
-                                                    ->where('is_active', true)
-                                                    ->orderBy('year', 'desc')
-                                                    ->first();
-
-                                                if ($umk) {
-                                                    $set('basic_salary', $umk->amount);
-                                                }
-                                            })
-                                            ->createOptionForm(JobPositionForm::schema())
-                                            ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                            ->columnSpan(2),
-                                        TextInput::make('quantity')
-                                            ->label('Qty (Pax)')
-                                            ->placeholder('e.g., 10')
-                                            ->numeric()
-                                            ->default(1)
                                             ->required()
-                                            ->live(onBlur: true)
-                                            ->helperText('Number of personnel.')
                                             ->columnSpan(1),
-                                        TextInput::make('basic_salary')
-                                            ->label('Basic Salary')
-                                            ->placeholder('Base Salary')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->required()
-                                            ->live(onBlur: true)
-                                            ->helperText('Monthly base salary (Default to UMK).')
-                                            ->suffixAction(
-                                                Action::make('reset_to_umk')
-                                                    ->icon('heroicon-m-arrow-path')
-                                                    ->tooltip('Reset to UMK')
-                                                    ->action(function (Set $set, Get $get) {
-                                                        $areaId = $get('../../project_area_id') ?? $get('project_area_id');
+                                    ]),
+
+                                Section::make('Cluster Defaults')
+                                    ->description('Default policies for all personnel in this cluster.')
+                                    ->compact()
+                                    ->collapsible()
+                                    ->collapsed()
+                                    ->schema([
+                                        Grid::make(3)
+                                            ->schema([
+                                                Select::make('jkn_category')
+                                                    ->label('JKN Category')
+                                                    ->options([
+                                                        'PPU' => 'PPU (Salaried)',
+                                                        'PBPU' => 'PBPU (Informal)',
+                                                    ])
+                                                    ->default('PPU')
+                                                    ->required()
+                                                    ->helperText('Default participation type for personnel in this cluster.'),
+                                                Select::make('thr_billing_method')
+                                                    ->label('THR Billing')
+                                                    ->options([
+                                                        'monthly_accrual' => 'Monthly Accrual',
+                                                        'one_time' => 'One-time Payment',
+                                                    ])
+                                                    ->default('monthly_accrual')
+                                                    ->required()
+                                                    ->helperText('Determines if THR is accrued monthly or billed in full.'),
+                                                Select::make('compensation_billing_method')
+                                                    ->label('Comp. Billing')
+                                                    ->options([
+                                                        'monthly_accrual' => 'Monthly Accrual',
+                                                        'one_time' => 'One-time Payment',
+                                                    ])
+                                                    ->default('monthly_accrual')
+                                                    ->required()
+                                                    ->helperText('Determines if compensation is accrued monthly or billed in full.'),
+                                            ]),
+                                    ]),
+
+                                Repeater::make('items')
+                                    ->relationship('items')
+                                    ->label('Personnel within this Cluster')
+                                    ->schema([
+                                        Grid::make(4)
+                                            ->schema([
+                                                Select::make('job_position_id')
+                                                    ->label('Job Position')
+                                                    ->placeholder('Select Position...')
+                                                    ->relationship('jobPosition', 'name')
+                                                    ->required()
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->live()
+                                                    ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                                        if (! $state) {
+                                                            return;
+                                                        }
+                                                        $areaId = $get('../../../project_area_id');
                                                         if (! $areaId) {
                                                             return;
                                                         }
                                                         $umk = RegencyMinimumWage::where('project_area_id', $areaId)
-                                                            ->whereIn('year', [2025, 2026])
                                                             ->where('is_active', true)
                                                             ->orderBy('year', 'desc')
                                                             ->first();
@@ -181,323 +197,350 @@ class ManpowerTemplateForm
                                                             $set('basic_salary', $umk->amount);
                                                         }
                                                     })
-                                            )
-                                            ->columnSpan(1),
-                                    ]),
-
-                                Grid::make(3)
-                                    ->schema([
-                                        TextInput::make('future_adjustment_rate')
-                                            ->label('Salary Scaling (%)')
-                                            ->placeholder('e.g., 5')
-                                            ->numeric()
-                                            ->default(0)
-                                            ->step(0.1)
-                                            ->live(onBlur: true)
-                                            ->helperText('Est. future salary increase.')
-                                            ->columnSpan(1),
-                                        Select::make('ptkp_status')
-                                            ->label('Tax Status (PTKP)')
-                                            ->placeholder('Select PTKP...')
-                                            ->options(PtkpConfig::pluck('code', 'code'))
-                                            ->default('TK/0')
-                                            ->required()
-                                            ->preload()
-                                            ->searchable()
-                                            ->live()
-                                            ->helperText('Taxable status (PPh 21 TER).')
-                                            ->columnSpan(1),
-                                        TextInput::make('notes')
-                                            ->label('Notes')
-                                            ->placeholder('Specific requirements...')
-                                            ->maxLength(255)
-                                            ->helperText('Internal notes for this role.')
-                                            ->columnSpan(1),
-                                    ]),
-
-                                Grid::make(2)
-                                    ->schema([
-                                        Select::make('risk_level')
-                                            ->label('Insurance Level (JKK)')
-                                            ->placeholder('Select hazard risk level...')
-                                            ->options([
-                                                'very_low' => 'Very Low (0.24%)',
-                                                'low' => 'Low (0.54%)',
-                                                'medium' => 'Medium (0.89%)',
-                                                'high' => 'High (1.27%)',
-                                                'very_high' => 'Very High (1.74%)',
-                                            ])
-                                            ->required()
-                                            ->default('very_low')
-                                            ->live()
-                                            ->helperText('Determines BPJS JKK insurance rate.')
-                                            ->columnSpan(1),
-                                        Select::make('employee_type')
-                                            ->label('Standard Participation')
-                                            ->placeholder('Select participation type...')
-                                            ->options([
-                                                'ppu' => 'PPU (Salaried Employees)',
-                                                'pbpu' => 'PBPU (Freelancers/Daily)',
-                                            ])
-                                            ->required()
-                                            ->default('ppu')
-                                            ->live()
-                                            ->helperText('PPU category is the standard for staff.')
-                                            ->columnSpan(1),
-                                    ]),
-
-                                \Filament\Schemas\Components\Section::make('Advanced Cost Configuration')
-                                    ->compact()
-                                    ->collapsible()
-                                    ->collapsed()
-                                    ->schema([
-                                        Grid::make(5)
-                                            ->schema([
-                                                Toggle::make('is_bpjs_active')
-                                                    ->label('BPJS Active')
-                                                    ->helperText('Health & Employment coverage.')
-                                                    ->default(true)
-                                                    ->live(),
-                                                Toggle::make('bill_thr_monthly')
-                                                    ->label('Accrue THR')
-                                                    ->helperText('Accrue THR cost monthly.')
-                                                    ->default(true)
-                                                    ->live(),
-                                                Toggle::make('bill_compensation_monthly')
-                                                    ->label('Accrue Compensation')
-                                                    ->helperText('Accrue severance/comp monthly.')
-                                                    ->default(true)
-                                                    ->live(),
-                                                Toggle::make('is_labor_intensive')
-                                                    ->label('Labor Intensive')
-                                                    ->helperText('Eligible for reduced JKK rate.')
-                                                    ->default(false)
-                                                    ->live(),
-                                                Toggle::make('include_non_fixed_in_accruals')
-                                                    ->label('Incl. Non-Fixed')
-                                                    ->helperText('Include non-fixed allowances in THR basis.')
-                                                    ->default(false)
-                                                    ->live(),
-                                            ]),
-                                    ]),
-
-                                \Filament\Schemas\Components\Section::make('Allowances')
-                                    ->description('Define monthly remuneration components for this position.')
-                                    ->compact()
-                                    ->collapsible()
-                                    ->collapsed()
-                                    ->schema([
-                                        Repeater::make('allowances')
-                                            ->label('')
-                                            ->schema([
-                                                Grid::make(4)
-                                                    ->schema([
-                                                        TextInput::make('name')
-                                                            ->label('Allowance Name')
-                                                            ->placeholder('e.g., Meal, Transport, Position')
-                                                            ->required()
-                                                            ->columnSpan(2),
-                                                        Select::make('type')
-                                                            ->label('Calculation Type')
-                                                            ->options([
-                                                                'nominal' => 'Nominal (IDR)',
-                                                                'percentage' => 'Percentage of Base (%)',
-                                                            ])
-                                                            ->default('nominal')
-                                                            ->required()
-                                                            ->live()
-                                                            ->columnSpan(1),
-                                                        Toggle::make('is_fixed')
-                                                            ->label('Fixed Allowance')
-                                                            ->default(true)
-                                                            ->helperText('Fixed = BPJS/Tax basis.')
-                                                            ->columnSpan(1),
-                                                        TextInput::make('value')
-                                                            ->label(fn (Get $get) => $get('type') === 'percentage' ? 'Rate (%)' : 'Amount (IDR)')
-                                                            ->placeholder(fn (Get $get) => $get('type') === 'percentage' ? 'e.g., 5' : 'e.g., 500,000')
-                                                            ->numeric()
-                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix(fn (Get $get) => $get('type') === 'percentage' ? null : 'IDR ')
-                                                            ->suffix(fn (Get $get) => $get('type') === 'percentage' ? '%' : null)
-                                                            ->required()
-                                                            ->live(onBlur: true)
-                                                            ->columnSpanFull(),
-                                                    ]),
-                                            ])
-                                            ->defaultItems(0)
-                                            ->addActionLabel('Add Allowance')
-                                            ->live(),
-                                    ]),
-
-                                Repeater::make('extra_costs')
-                                    ->label('Equipment & Training (Annual)')
-                                    ->schema([
-                                        Grid::make(3)
-                                            ->schema([
-                                                TextInput::make('name')
-                                                    ->label('Item/Training Name')
-                                                    ->placeholder('e.g., Uniform, Certification')
-                                                    ->required()
-                                                    ->columnSpan(1),
-                                                TextInput::make('annual_amount')
-                                                    ->label('Annual Budget')
-                                                    ->placeholder('Total cost per year')
+                                                    ->createOptionForm(JobPositionForm::schema())
+                                                    ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                                    ->columnSpan(2),
+                                                TextInput::make('quantity')
+                                                    ->label('Qty (Pax)')
                                                     ->numeric()
+                                                    ->placeholder('e.g., 5')
+                                                    ->default(1)
+                                                    ->required()
+                                                    ->live(onBlur: true)
+                                                    ->helperText('Number of personnel for this position.')
+                                                    ->columnSpan(1),
+                                                TextInput::make('basic_salary')
+                                                    ->label('Basic Salary')
+                                                    ->placeholder('0.00')
                                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                                     ->prefix('IDR ')
                                                     ->required()
                                                     ->live(onBlur: true)
-                                                    ->helperText('Est. cost per pax per year.')
-                                                    ->afterStateUpdated(fn ($state, Set $set) => $set('amount', round((float) ($state ?? 0) / 12, 0)))
+                                                    ->helperText('Base monthly salary (before allowances).')
                                                     ->columnSpan(1),
-                                                TextInput::make('monthly_display')
-                                                    ->label('Monthly Cost')
-                                                    ->prefix('Rp ')
-                                                    ->disabled()
-                                                    ->dehydrated(false)
-                                                    ->afterStateHydrated(function (TextInput $component, Get $get) {
-                                                        $annual = (float) ($get('annual_amount') ?? 0);
-                                                        $component->state(number_format(round($annual / 12, 0), 0, ',', '.'));
-                                                    })
+                                            ]),
+
+                                        Grid::make(3)
+                                            ->schema([
+                                                TextInput::make('future_adjustment_rate')
+                                                    ->label('Salary Scaling (%)')
+                                                    ->numeric()
+                                                    ->placeholder('e.g., 5.0')
+                                                    ->default(0)
+                                                    ->live(onBlur: true)
+                                                    ->helperText('Percentage increase for future salary forecasts/scaling.')
                                                     ->columnSpan(1),
-                                                Hidden::make('amount')
-                                                    ->dehydrated(),
+                                                Select::make('ptkp_status')
+                                                    ->label('Tax Status (PTKP)')
+                                                    ->placeholder('Select Status')
+                                                    ->options(PtkpConfig::pluck('code', 'code'))
+                                                    ->default('TK/0')
+                                                    ->required()
+                                                    ->searchable()
+                                                    ->live()
+                                                    ->helperText('Used to calculate PPh 21 personal tax relief.')
+                                                    ->columnSpan(1),
+                                                Select::make('work_pattern_id')
+                                                    ->label('Work Pattern')
+                                                    ->relationship('workPattern', 'name')
+                                                    ->searchable()
+                                                    ->preload()
+                                                    ->required()
+                                                    ->live()
+                                                    ->columnSpan(1),
+                                            ]),
+
+                                        Section::make('Remuneration & BPJS Policy')
+                                            ->compact()
+                                            ->collapsible()
+                                            ->collapsed()
+                                            ->schema([
+                                                Grid::make(3)
+                                                    ->schema([
+                                                        Select::make('thr_basis_id')
+                                                            ->label('THR Basis')
+                                                            ->placeholder('Select Basis')
+                                                            ->relationship('thrBasis', 'name')
+                                                            ->preload()
+                                                            ->required()
+                                                            ->helperText('Salary components included in THR calculation.'),
+                                                        Select::make('compensation_basis_id')
+                                                            ->label('Comp. Basis')
+                                                            ->placeholder('Select Basis')
+                                                            ->relationship('compensationBasis', 'name')
+                                                            ->preload()
+                                                            ->required()
+                                                            ->helperText('Salary components included in Compensation calculation.'),
+                                                        Select::make('bpjs_basis_id')
+                                                            ->label('BPJS Basis')
+                                                            ->placeholder('Select Basis')
+                                                            ->relationship('bpjsBasis', 'name')
+                                                            ->preload()
+                                                            ->required()
+                                                            ->helperText('Salary basis used for BPJS percentage calculations.'),
+                                                    ]),
+
+                                                Grid::make(2)
+                                                    ->schema([
+                                                        Select::make('risk_level')
+                                                            ->label('JKK Risk Level')
+                                                            ->options([
+                                                                'very_low' => 'Very Low (0.24%)',
+                                                                'low' => 'Low (0.54%)',
+                                                                'medium' => 'Medium (0.89%)',
+                                                                'high' => 'High (1.27%)',
+                                                                'very_high' => 'Very High (1.74%)',
+                                                            ])
+                                                            ->default('very_low')
+                                                            ->required()
+                                                            ->helperText('Determines the BPJS JKK (Work Accident) premium rate.'),
+                                                        Select::make('employee_type')
+                                                            ->label('Standard Participation')
+                                                            ->options([
+                                                                'ppu' => 'PPU (Salaried)',
+                                                                'pbpu' => 'PBPU (Freelancers)',
+                                                            ])
+                                                            ->default('ppu')
+                                                            ->required()
+                                                            ->helperText('Standard BPJS participation type for this specific role.'),
+                                                    ]),
+
+                                                Section::make('Company Coverage')
+                                                    ->schema([
+                                                        Grid::make(3)
+                                                            ->schema([
+                                                                Toggle::make('is_bpjs_active')
+                                                                    ->label('BPJS Active')
+                                                                    ->default(true)
+                                                                    ->live()
+                                                                    ->helperText('Enable/disable all BPJS calculations for this role.'),
+                                                                Toggle::make('is_tax_borne_by_company')
+                                                                    ->label('Tax Borne by Co.')
+                                                                    ->default(false)
+                                                                    ->live()
+                                                                    ->helperText('If enabled, the company pays the employee\'s PPh 21 tax.'),
+                                                                Toggle::make('is_employee_jkn_borne_by_company')
+                                                                    ->label('Cover Employee JKN')
+                                                                    ->default(false)
+                                                                    ->helperText('Company covers the 1% employee portion of BPJS Health.'),
+                                                                Toggle::make('is_employee_jkk_borne_by_company')
+                                                                    ->label('Cover Employee JKK')
+                                                                    ->default(false),
+                                                                Toggle::make('is_employee_jkm_borne_by_company')
+                                                                    ->label('Cover Employee JKM')
+                                                                    ->default(false),
+                                                                Toggle::make('is_employee_jht_borne_by_company')
+                                                                    ->label('Cover Employee JHT')
+                                                                    ->default(false)
+                                                                    ->helperText('Company covers the 2% employee portion of BPJS JHT.'),
+                                                                Toggle::make('is_employee_jp_borne_by_company')
+                                                                    ->label('Cover Employee JP')
+                                                                    ->default(false)
+                                                                    ->helperText('Company covers the 1% employee portion of BPJS JP.'),
+                                                            ]),
+                                                    ]),
+                                            ]),
+
+                                        Section::make('Allowances & Extra Costs')
+                                            ->compact()
+                                            ->collapsible()
+                                            ->collapsed()
+                                            ->schema([
+                                                Repeater::make('allowances')
+                                                    ->schema([
+                                                        Grid::make(4)
+                                                            ->schema([
+                                                                TextInput::make('name')
+                                                                    ->placeholder('e.g., Tunjangan Makan')
+                                                                    ->required()
+                                                                    ->columnSpan(2),
+                                                                Select::make('type')
+                                                                    ->options(['nominal' => 'IDR', 'percentage' => '%'])
+                                                                    ->default('nominal')
+                                                                    ->required()
+                                                                    ->live()
+                                                                    ->columnSpan(1),
+                                                                Toggle::make('is_fixed')
+                                                                    ->label('Fixed')
+                                                                    ->default(true)
+                                                                    ->columnSpan(1)
+                                                                    ->helperText('Fixed allowances are included in THR/Compensation basis by default.'),
+                                                                TextInput::make('value')
+                                                                    ->numeric()
+                                                                    ->placeholder('0.00')
+                                                                    ->required()
+                                                                    ->live(onBlur: true)
+                                                                    ->columnSpanFull(),
+                                                            ]),
+                                                    ])->defaultItems(0)->addActionLabel('Add Allowance'),
+
+                                                Repeater::make('extra_costs')
+                                                    ->schema([
+                                                        Grid::make(2)
+                                                            ->schema([
+                                                                TextInput::make('name')
+                                                                    ->placeholder('e.g., Seragam, Pelatihan Tahunan')
+                                                                    ->required(),
+                                                                TextInput::make('annual_amount')
+                                                                    ->label('Annual Budget')
+                                                                    ->numeric()
+                                                                    ->placeholder('0.00')
+                                                                    ->required()
+                                                                    ->live(onBlur: true)
+                                                                    ->afterStateUpdated(fn ($state, Set $set) => $set('amount', round((float) ($state ?? 0) / 12, 0)))
+                                                                    ->helperText('The total annual budget. This will be divided by 12 for monthly costing.'),
+                                                                Hidden::make('amount')->dehydrated(),
+                                                            ]),
+                                                    ])->defaultItems(0)->addActionLabel('Add Extra Cost'),
                                             ]),
                                     ])
-                                    ->defaultItems(0)
-                                    ->addActionLabel('Add Item')
-                                    ->collapsible()
-                                    ->collapsed(),
+                                    ->columnSpanFull()
+                                    ->defaultItems(1)
+                                    ->addActionLabel('Add Personnel Position')
+                                    ->itemLabel(fn (array $state): ?string => filled($state['job_position_id'] ?? null) ? JobPosition::find($state['job_position_id'])?->name : 'New Position')
+                                    ->live(),
                             ])
                             ->columnSpanFull()
                             ->defaultItems(1)
-                            ->addActionLabel('Add Position/Role')
-                            ->itemLabel(fn (array $state): ?string => filled($state['job_position_id'] ?? null) ? JobPosition::find($state['job_position_id'])?->name : 'New Position')
+                            ->addActionLabel('Add Cluster / Section')
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? 'New Cluster')
                             ->live()
-                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                            ->afterStateUpdated(function ($state, Set $set) {
                                 $set('simulation_trigger', uniqid());
-                            })
-                            ->extraAttributes(['class' => 'ring-1 ring-gray-200 dark:ring-gray-800 rounded-xl p-4 bg-gray-50/30 dark:bg-gray-900/10']),
+                            }),
                     ])
                     ->columns(2),
 
                 Step::make('Cost Simulation')
                     ->label('Cost Simulation')
-                    ->description('Review projected monthly cost details for this template.')
+                    ->description('Review projected monthly cost details grouped by cluster.')
                     ->icon('heroicon-m-calculator')
                     ->schema([
-                        \Filament\Infolists\Components\TextEntry::make('cost_simulation_table')
-                            ->label('Projected Cost Breakdown per Role')
+                        TextEntry::make('cost_simulation_table')
+                            ->label('Projected Cost Breakdown')
                             ->html()
                             ->state(function (Get $get) {
-                                $items = $get('items') ?? [];
+                                $clusters = $get('clusters') ?? [];
                                 $areaId = $get('project_area_id');
+                                $workSchemeId = $get('work_scheme_id');
 
-                                if (empty($items) || ! $areaId) {
+                                if (empty($clusters) || ! $areaId) {
                                     return new HtmlString('<div class="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500"><p class="text-sm">Please complete the previous steps to view the cost simulation.</p></div>');
                                 }
 
                                 $service = app(ManpowerCostingService::class);
                                 $totalTemplateCost = 0;
-                                $rows = '';
+                                $tableContent = '';
 
-                                foreach ($items as $item) {
-                                    $jpId = $item['job_position_id'] ?? null;
-                                    $qty = (int) ($item['quantity'] ?? 0);
+                                foreach ($clusters as $cluster) {
+                                    $clusterName = $cluster['name'] ?? 'Unnamed Cluster';
+                                    $clusterItems = $cluster['items'] ?? [];
 
-                                    if (! $jpId || $qty <= 0) {
+                                    if (empty($clusterItems)) {
                                         continue;
                                     }
 
-                                    // Get item-level configuration
-                                    $riskLevel = $item['risk_level'] ?? 'very_low';
-                                    $isLaborIntensive = (bool) ($item['is_labor_intensive'] ?? false);
-                                    $employeeType = $item['employee_type'] ?? 'ppu';
-                                    $billThr = (bool) ($item['bill_thr_monthly'] ?? true);
-                                    $billComp = (bool) ($item['bill_compensation_monthly'] ?? true);
-                                    $incNonFixed = (bool) ($item['include_non_fixed_in_accruals'] ?? false);
-                                    $extraCosts = $item['extra_costs'] ?? [];
+                                    $tableContent .= "<tr class='bg-gray-100/50 dark:bg-gray-800/80'><td colspan='8' class='px-2 py-2 font-bold text-gray-900 dark:text-white uppercase text-[10px]'>Cluster: {$clusterName}</td></tr>";
 
-                                    $jp = JobPosition::find($jpId);
-                                    if (! $jp) {
-                                        continue;
+                                    foreach ($clusterItems as $item) {
+                                        $jpId = $item['job_position_id'] ?? null;
+                                        $qty = (int) ($item['quantity'] ?? 0);
+                                        if (! $jpId || $qty <= 0) {
+                                            continue;
+                                        }
+
+                                        $jp = JobPosition::find($jpId);
+                                        if (! $jp) {
+                                            continue;
+                                        }
+
+                                        // Merge cluster policies if item doesn't have them (though Repeater usually has defaults)
+                                        $jknCategory = $item['jkn_category'] ?? $cluster['jkn_category'] ?? 'PPU';
+                                        $thrMethod = $item['thr_billing_method'] ?? $cluster['thr_billing_method'] ?? 'monthly_accrual';
+                                        $compMethod = $item['compensation_billing_method'] ?? $cluster['compensation_billing_method'] ?? 'monthly_accrual';
+
+                                        $res = $service->calculate(
+                                            basicSalary: (float) ($item['basic_salary'] ?? 0),
+                                            allowances: $item['allowances'] ?? [],
+                                            projectAreaId: $areaId,
+                                            year: date('Y'),
+                                            workSchemeId: $workSchemeId,
+                                            workPatternId: $item['work_pattern_id'] ?? null,
+                                            riskLevel: $item['risk_level'] ?? 'very_low',
+                                            employeeType: $item['employee_type'] ?? 'ppu',
+                                            jknCategory: $jknCategory,
+                                            thrBillingMethod: $thrMethod,
+                                            compensationBillingMethod: $compMethod,
+                                            thrBasisId: $item['thr_basis_id'] ?? null,
+                                            compensationBasisId: $item['compensation_basis_id'] ?? null,
+                                            bpjsBasisId: $item['bpjs_basis_id'] ?? null,
+                                            billThrMonthly: (bool) ($item['bill_thr_monthly'] ?? true),
+                                            billCompensationMonthly: (bool) ($item['bill_compensation_monthly'] ?? true),
+                                            includeNonFixedInAccruals: (bool) ($item['include_non_fixed_in_accruals'] ?? false),
+                                            extraCosts: $item['extra_costs'] ?? [],
+                                            ptkpCode: $item['ptkp_status'] ?? 'TK/0',
+                                            isBpjsActive: (bool) ($item['is_bpjs_active'] ?? true),
+                                            borneByCompany: [
+                                                'tax' => (bool) ($item['is_tax_borne_by_company'] ?? false),
+                                                'jkn' => (bool) ($item['is_employee_jkn_borne_by_company'] ?? false),
+                                                'jkk' => (bool) ($item['is_employee_jkk_borne_by_company'] ?? false),
+                                                'jkm' => (bool) ($item['is_employee_jkm_borne_by_company'] ?? false),
+                                                'jht' => (bool) ($item['is_employee_jht_borne_by_company'] ?? false),
+                                                'jp' => (bool) ($item['is_employee_jp_borne_by_company'] ?? false),
+                                            ]
+                                        );
+
+                                        $scale = 1 + ((float) ($item['future_adjustment_rate'] ?? 0) / 100);
+                                        $unitCost = $res['total_direct_cost'] * $scale;
+                                        $lineTotal = $unitCost * $qty;
+                                        $totalTemplateCost += $lineTotal;
+
+                                        $fmt = fn ($val) => number_format($val, 0, ',', '.');
+                                        $subA = ($res['upah'] + $res['allowances']['non_fixed']) * $scale;
+                                        $subB = ($res['accruals']['thr'] + $res['accruals']['compensation']) * $scale;
+                                        $subC = $res['bpjs_total'] * $scale;
+                                        $subD = $res['pph21']['total'] * $scale;
+                                        $subE = $res['extra_costs_total'] * $scale;
+
+                                        $tableContent .= "
+                                            <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs'>
+                                                <td class='px-2 py-3'>
+                                                    <div class='font-medium text-gray-900 dark:text-gray-100'>{$jp->name}</div>
+                                                    <div class='text-[9px] text-gray-400'>{$jp->code} | PTKP: ".($item['ptkp_status'] ?? 'TK/0')."</div>
+                                                </td>
+                                                <td class='px-2 py-3 text-center font-bold'>{$qty}</td>
+                                                <td class='px-2 py-3 text-right'>Rp {$fmt($subA)}</td>
+                                                <td class='px-2 py-3 text-right'>Rp {$fmt($subB)}</td>
+                                                <td class='px-2 py-3 text-right'>Rp {$fmt($subC)}</td>
+                                                <td class='px-2 py-3 text-right'>Rp {$fmt($subD)}</td>
+                                                <td class='px-2 py-3 text-right'>Rp {$fmt($subE)}</td>
+                                                <td class='px-2 py-3 text-right font-bold text-primary-600'>Rp {$fmt($unitCost)}</td>
+                                            </tr>
+                                        ";
                                     }
-
-                                    // Read allowances directly from item
-                                    $allowances = $item['allowances'] ?? [];
-
-                                    $basicSalary = (float) ($item['basic_salary'] ?? 0);
-
-                                    $res = $service->calculate(
-                                        basicSalary: $basicSalary,
-                                        allowances: $allowances,
-                                        projectAreaId: $areaId,
-                                        year: date('Y'),
-                                        workSchemeId: $get('work_scheme_id'),
-                                        riskLevel: $riskLevel,
-                                        isLaborIntensive: $isLaborIntensive,
-                                        employeeType: $employeeType,
-                                        billThrMonthly: $billThr,
-                                        billCompensationMonthly: $billComp,
-                                        includeNonFixedInAccruals: $incNonFixed,
-                                        extraCosts: $extraCosts,
-                                        ptkpCode: $item['ptkp_status'] ?? 'TK/0',
-                                        isBpjsActive: (bool) ($item['is_bpjs_active'] ?? true)
-                                    );
-
-                                    // Apply Future Scaling Factor if defined
-                                    $scale = 1 + ((float) ($item['future_adjustment_rate'] ?? 0) / 100);
-                                    $unitCost = $res['total_direct_cost'] * $scale;
-                                    $lineTotal = $unitCost * $qty;
-                                    $totalTemplateCost += $lineTotal;
-
-                                    $fmt = fn ($val) => number_format($val, 0, ',', '.');
-
-                                    // Subtotals for display
-                                    $subA = ($res['upah'] + $res['allowances']['non_fixed']) * $scale;
-                                    $subB = ($res['accruals']['thr'] + $res['accruals']['compensation']) * $scale;
-                                    $subC = $res['bpjs_total'] * $scale;
-                                    $subD = $res['pph21']['total'] * $scale;
-                                    $subE = $res['extra_costs_total'] * $scale;
-
-                                    $rows .= "
-                                        <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs'>
-                                            <td class='px-2 py-3'>
-                                                <div class='font-medium text-gray-900 dark:text-gray-100'>{$jp->code}</div>
-                                                <div class='text-[9px] text-gray-400'>PTKP: ".($item['ptkp_status'] ?? 'TK/0').' | Scale: '.($item['future_adjustment_rate'] ?? 0)."%</div>
-                                            </td>
-                                            <td class='px-2 py-3 text-center font-bold text-gray-900 dark:text-white'>{$qty}</td>
-                                            <td class='px-2 py-3 text-right'>Rp {$fmt($subA)}</td>
-                                            <td class='px-2 py-3 text-right'>Rp {$fmt($subB)}</td>
-                                            <td class='px-2 py-3 text-right'>Rp {$fmt($subC)}</td>
-                                            <td class='px-2 py-3 text-right'>Rp {$fmt($subD)}</td>
-                                            <td class='px-2 py-3 text-right'>Rp {$fmt($subE)}</td>
-                                            <td class='px-2 py-3 text-right font-bold text-primary-600'>Rp {$fmt($unitCost)}</td>
-                                        </tr>
-                                    ";
                                 }
 
                                 return new HtmlString("
                                     <div class='relative overflow-x-auto shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-700'>
-                                        <table class='w-full text-[11px] text-left rtl:text-right text-gray-500 dark:text-gray-400'>
+                                        <table class='w-full text-[11px] text-left text-gray-500 dark:text-gray-400'>
                                             <thead class='text-[10px] text-gray-700 uppercase bg-gray-50 dark:bg-gray-800 dark:text-gray-400'>
                                                 <tr>
                                                     <th scope='col' class='px-2 py-3'>Position</th>
                                                     <th scope='col' class='px-2 py-3 text-center'>Qty</th>
-                                                    <th scope='col' class='px-2 py-3 text-right'>Monthly Wage</th>
-                                                    <th scope='col' class='px-2 py-3 text-right' title='THR & Compensation'>Accruals</th>
-                                                    <th scope='col' class='px-2 py-3 text-right' title='BPJS Health & Employment'>BPJS</th>
-                                                    <th scope='col' class='px-2 py-3 text-right'>Tax/PPh 21</th>
-                                                    <th scope='col' class='px-2 py-3 text-right' title='Equipment & Training'>Extra</th>
+                                                    <th scope='col' class='px-2 py-3 text-right'>Wage</th>
+                                                    <th scope='col' class='px-2 py-3 text-right'>Accruals</th>
+                                                    <th scope='col' class='px-2 py-3 text-right'>BPJS</th>
+                                                    <th scope='col' class='px-2 py-3 text-right'>PPh 21</th>
+                                                    <th scope='col' class='px-2 py-3 text-right'>Extra</th>
                                                     <th scope='col' class='px-2 py-3 text-right bg-blue-50/50 dark:bg-blue-900/10 text-primary-600'>Total/Pax</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {$rows}
+                                                {$tableContent}
                                             </tbody>
                                             <tfoot>
                                                 <tr class='font-bold text-gray-900 dark:text-white bg-gray-100/50 dark:bg-gray-800/50'>
-                                                    <td colspan='7' class='px-2 py-4 text-right uppercase tracking-wider'>Total Estimated Monthly Cost</td>
+                                                    <td colspan='7' class='px-2 py-4 text-right uppercase tracking-wider text-[10px]'>Total Estimated Monthly Cost</td>
                                                     <td class='px-2 py-4 text-right text-sm text-primary-600'>Rp ".number_format($totalTemplateCost, 0, ',', '.')."</td>
                                                 </tr>
                                             </tfoot>
@@ -509,7 +552,8 @@ class ManpowerTemplateForm
                                             <ul class='list-disc list-inside space-y-1 opacity-80'>
                                                 <li>Calculations follow BPJS PPU and latest JKK risk categories.</li>
                                                 <li>PPh 21 Tax uses the TER (Monthly Effective Rate) method.</li>
-                                                <li>Extra costs are monthly accruals from annual equipment/training budgets.</li>
+                                                <li>Extra costs are monthly accruals from annual budgets.</li>
+                                                <li>Policies can be defined at Cluster level or overridden per Personnel.</li>
                                             </ul>
                                         </div>
                                     </div>

@@ -67,7 +67,7 @@
     $labels = [
         'invoice_no' => ['id' => 'No Invoice', 'en' => 'Invoice No'],
         'top' => ['id' => 'Term of Payment', 'en' => 'Term of Payment'],
-        'source_doc' => ['id' => 'No PO / No. Kontrak', 'en' => 'PO No / Contract No'],
+        'source_doc' => ['id' => 'No PKS / No. PO', 'en' => 'PKS No / PO No'],
         'invoice_date' => ['id' => 'Tanggal Invoice', 'en' => 'Invoice Date'],
         'ref_no' => ['id' => 'No Ref', 'en' => 'Ref No'],
         'to' => ['id' => 'Kepada yang terhormat', 'en' => 'To the honorable'],
@@ -209,7 +209,7 @@
 
     $items = $record->getTranslation('items', $lang) ?? ($record->items ?? []);
     $tax_percentage =
-        $record->tax_percentage ?? ($record->amount > 0 ? round(($record->tax_amount / $record->amount) * 100) : 12);
+        $record->tax_percentage ?? ($record->amount > 0 ? round(($record->tax_amount / $record->amount) * 100) : 11);
     $tax_wording =
         $record->getTranslation('tax_wording', $lang) ?? ($record->tax_wording ?? 'PPN ' . $tax_percentage . '%');
 
@@ -232,7 +232,7 @@
                 $so = $source->sourceable;
             }
             $sourceNumber = $source->number;
-            $displaySourceType = 'BAPP';
+            $displaySourceType = $lang === 'en' ? 'WCR' : 'BAPP';
         } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
             $sourceNumber = $source->number;
             $displaySourceType = $labels['po'][$lang];
@@ -264,19 +264,24 @@
     $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
 
     // Customer Contact Logic
-    $customerContactName =
-        $record->content_config['recipient_name'] ?? ($so?->content_config['recipient_name'] ?? null);
-    $customerContactTitle =
-        $record->content_config['recipient_title'] ?? ($so?->content_config['recipient_title'] ?? null);
-    $customerContactGender =
-        $record->content_config['recipient_gender'] ?? ($so?->content_config['recipient_gender'] ?? null);
+    $customerContactName = $record->content_config['recipient_name'] 
+        ?? $so?->content_config['recipient_name'] 
+        ?? null;
+    $customerContactTitle = $record->content_config['recipient_title'] 
+        ?? $so?->content_config['recipient_title'] 
+        ?? null;
+    $customerContactGender = $record->content_config['recipient_gender'] 
+        ?? $so?->content_config['recipient_gender'] 
+        ?? null;
 
-    if (!$customerContactName && !empty($record->customer?->contacts)) {
+    if ((!$customerContactName || !$customerContactTitle) && !empty($record->customer?->contacts)) {
         $firstContact = $record->customer->contacts[0];
-        $customerContactName = $firstContact['name'] ?? null;
-        $customerContactTitle = $firstContact['job_position'] ?? null;
-        $customerContactGender = $firstContact['gender'] ?? null;
+        $customerContactName = $customerContactName ?: ($firstContact['name'] ?? null);
+        $customerContactTitle = $customerContactTitle ?: ($firstContact['job_position'] ?? null);
+        $customerContactGender = $customerContactGender ?: ($firstContact['gender'] ?? null);
     }
+
+    $customerContactTitle = $customerContactTitle ?? '.....................';
 
     $salutation = '';
     if ($customerContactGender) {
@@ -718,7 +723,7 @@
                 </div>
             </td>
             <td width="40%" class="text-center" style="vertical-align: bottom;">
-                <div>a.n. PT. Garuda Daya Pratama Sejahtera</div>
+                <div>{{ $labels['an'][$lang] }} PT. Garuda Daya Pratama Sejahtera</div>
 
                 <div style="height: 100px; margin: 10px 0; position: relative;">
                     @if ($approverSig)

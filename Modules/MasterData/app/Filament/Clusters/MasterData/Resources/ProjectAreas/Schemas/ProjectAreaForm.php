@@ -2,16 +2,15 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas;
 
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Province;
 use Modules\MasterData\Models\Regency;
-use Filament\Forms\Components\Hidden;
 
 class ProjectAreaForm
 {
@@ -24,85 +23,105 @@ class ProjectAreaForm
     public static function schema(): array
     {
         return [
-            TextInput::make('name')
-                ->label('Area Name')
-                ->placeholder('Start typing or choose from suggestions...')
-                ->required()
-                ->maxLength(255)
-                ->datalist(function () {
-                    return Province::pluck('name')
-                        ->merge(Regency::pluck('name'))
-                        ->unique()
-                        ->sort()
-                        ->toArray();
-                })
-                ->live(onBlur: true)
-                ->afterStateUpdated(function ($state, Set $set) {
-                    if (!$state) {
-                        $set('province_id', null);
-                        $set('regency_id', null);
-                        $set('province_name', null);
-                        $set('regency_name', null);
-                        $set('api_code', null);
-                        return;
-                    }
+            Section::make('Location Details')
+                ->description('Specify the geographic location and official regional data for this project area.')
+                ->schema([
+                    TextInput::make('name')
+                        ->label('Area Name')
+                        ->placeholder('Start typing to find location (e.g. Jakarta, Bali)...')
+                        ->required()
+                        ->maxLength(255)
+                        ->datalist(function () {
+                            return Province::pluck('name')
+                                ->merge(Regency::pluck('name'))
+                                ->unique()
+                                ->sort()
+                                ->toArray();
+                        })
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(function ($state, Set $set) {
+                            if (! $state) {
+                                $set('province_id', null);
+                                $set('regency_id', null);
+                                $set('province_name', null);
+                                $set('regency_name', null);
+                                $set('api_code', null);
 
-                    // Look for existing Regency first (most common level for project areas)
-                    $regency = Regency::with('province')->where('name', 'ILIKE', "%{$state}%")->first();
-                    if ($regency) {
-                        $set('province_id', $regency->province_id);
-                        $set('regency_id', $regency->id);
-                        $set('province_name', $regency->province?->name);
-                        $set('regency_name', $regency->name);
-                        $set('api_code', $regency->code);
-                        return;
-                    }
+                                return;
+                            }
 
-                    // Look for existing Province
-                    $province = Province::where('name', 'ILIKE', "%{$state}%")->first();
-                    if ($province) {
-                        $set('province_id', $province->id);
-                        $set('regency_id', null);
-                        $set('province_name', $province->name);
-                        $set('regency_name', null);
-                        $set('api_code', $province->code);
-                        return;
-                    }
+                            // Look for existing Regency first (most common level for project areas)
+                            $regency = Regency::with('province')->where('name', 'ILIKE', "%{$state}%")->first();
+                            if ($regency) {
+                                $set('province_id', $regency->province_id);
+                                $set('regency_id', $regency->id);
+                                $set('province_name', $regency->province?->name);
+                                $set('regency_name', $regency->name);
+                                $set('api_code', $regency->code);
 
-                    // Clear geographic associations if name doesn't match official data
-                    $set('province_id', null);
-                    $set('regency_id', null);
-                    $set('province_name', null);
-                    $set('regency_name', null);
-                    $set('api_code', null);
-                })
-                ->columnSpanFull(),
-            Hidden::make('province_id'),
-            Hidden::make('regency_id'),
-            TextInput::make('province_name')
-                ->label('Province')
-                ->readOnly()
-                ->dehydrated(false)
-                ->formatStateUsing(fn ($record) => $record?->province?->name),
-            TextInput::make('regency_name')
-                ->label('Regency / City')
-                ->readOnly()
-                ->dehydrated(false)
-                ->formatStateUsing(fn ($record) => $record?->regency?->name),
-            TextInput::make('api_code')
-                ->label('Region Code (Official)')
-                ->readOnly()
-                ->placeholder('Auto-filled from search')
-                ->dehydrated(),
-            TextInput::make('code')
-                ->label('Internal Code')
-                ->unique(ProjectArea::class, 'code', ignoreRecord: true)
-                ->nullable()
-                ->placeholder('e.g. PAR-001')
-                ->hint('Leave empty to auto-generate based on name.'),
-            Toggle::make('is_active')
-                ->label('Active Status')
-                ->default(true),
+                                return;
+                            }
+
+                            // Look for existing Province
+                            $province = Province::where('name', 'ILIKE', "%{$state}%")->first();
+                            if ($province) {
+                                $set('province_id', $province->id);
+                                $set('regency_id', null);
+                                $set('province_name', $province->name);
+                                $set('regency_name', null);
+                                $set('api_code', $province->code);
+
+                                return;
+                            }
+
+                            // Clear geographic associations if name doesn't match official data
+                            $set('province_id', null);
+                            $set('regency_id', null);
+                            $set('province_name', null);
+                            $set('regency_name', null);
+                            $set('api_code', null);
+                        })
+                        ->columnSpanFull(),
+                    Hidden::make('province_id'),
+                    Hidden::make('regency_id'),
+                    TextInput::make('province_name')
+                        ->label('Province')
+                        ->readOnly()
+                        ->placeholder('Auto-filled')
+                        ->dehydrated(false)
+                        ->formatStateUsing(fn ($record) => $record?->province?->name),
+                    TextInput::make('regency_name')
+                        ->label('Regency / City')
+                        ->readOnly()
+                        ->placeholder('Auto-filled')
+                        ->dehydrated(false)
+                        ->formatStateUsing(fn ($record) => $record?->regency?->name),
+                    TextInput::make('api_code')
+                        ->label('Official Region Code')
+                        ->readOnly()
+                        ->placeholder('Auto-filled')
+                        ->dehydrated()
+                        ->helperText('BPS/Official geographic code.'),
+                ])->columns(3),
+
+            Section::make('Internal Identification')
+                ->description('Provide internal coding and status for this project area.')
+                ->schema([
+                    TextInput::make('code')
+                        ->label('Internal Area Code')
+                        ->unique(ProjectArea::class, 'code', ignoreRecord: true)
+                        ->nullable()
+                        ->placeholder('e.g. AREA-001')
+                        ->helperText('Internal identifier for project mapping.'),
+                    Toggle::make('is_active')
+                        ->label('Active Status')
+                        ->default(true)
+                        ->helperText('Determines if this area is currently available for project assignment.'),
+                    Toggle::make('is_default')
+                        ->label('Default Area')
+                        ->default(false)
+                        ->helperText('Sets this as the primary default area for new projects.'),
+                ])->columns(3),
         ];
     }
 }

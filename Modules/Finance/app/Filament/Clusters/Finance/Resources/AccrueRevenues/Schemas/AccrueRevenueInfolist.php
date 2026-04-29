@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\AccrueRevenues\Schemas;
 
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -24,21 +25,43 @@ class AccrueRevenueInfolist
                         ]),
                 ]),
 
-            Section::make('Revenue Details')
+            Section::make('Revenue Items')
+                ->schema([
+                    RepeatableEntry::make('items')
+                        ->schema([
+                            Grid::make(4)
+                                ->schema([
+                                    TextEntry::make('revenue_type')
+                                        ->badge(),
+                                    TextEntry::make('invoice.number')
+                                        ->label('Invoice'),
+                                    TextEntry::make('amount_estimated')
+                                        ->money('IDR'),
+                                    TextEntry::make('amount_actual')
+                                        ->money('IDR'),
+                                ]),
+                            TextEntry::make('description')
+                                ->markdown(),
+                        ])
+                        ->columnSpanFull(),
+                ]),
+
+            Section::make('Summary')
                 ->schema([
                     Grid::make(2)
                         ->schema([
-                            TextEntry::make('amount_revenue')
-                                ->label('Accrued Revenue')
-                                ->money('IDR'),
-                            TextEntry::make('amount_cost')
-                                ->label('Actual Amount (Invoice)')
-                                ->money('IDR'),
+                            TextEntry::make('total_amount_estimated')
+                                ->label('Total Estimated Revenue')
+                                ->money('IDR')
+                                ->weight('bold'),
+                            TextEntry::make('total_amount_actual')
+                                ->label('Total Actual Revenue')
+                                ->money('IDR')
+                                ->weight('bold')
+                                ->color('success'),
                         ]),
-                    TextEntry::make('invoice.number')
-                        ->label('Invoice Reference')
-                        ->placeholder('No Invoice Linked'),
                     TextEntry::make('description')
+                        ->label('General Notes')
                         ->markdown()
                         ->columnSpanFull(),
                 ]),

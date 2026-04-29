@@ -4,6 +4,7 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApprovalRule
 
 use App\Models\User;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -12,12 +13,13 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\CooperationAgreement;
-use Modules\CRM\Models\PurchaseOrder;
-use Modules\CRM\Models\WorkOrder;
+use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\CRM\Models\Proposal;
+use Modules\CRM\Models\PurchaseOrder;
+use Modules\CRM\Models\WorkOrder;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\ProductCluster;
@@ -51,7 +53,7 @@ class ApprovalRuleForm
                             ->required()
                             ->live(),
 
-                        \Filament\Forms\Components\Repeater::make('conditions')
+                        Repeater::make('conditions')
                             ->label('Conditions (ALL must be met - AND logic)')
                             ->schema([
                                 Select::make('field')
@@ -66,7 +68,7 @@ class ApprovalRuleForm
                                                 'net_profit' => 'Net Profit',
                                                 'product_cluster_id' => 'Product Cluster',
                                             ],
-                                            PurchaseOrder::class, WorkOrder::class, CooperationAgreement::class, 'Modules\CRM\Models\Project', Project::class, Proposal::class => [
+                                            PurchaseOrder::class, WorkOrder::class, CooperationAgreement::class, Project::class, Proposal::class => [
                                                 'amount' => 'Amount / Value',
                                             ],
                                             MinutesOfAgreement::class => [
@@ -284,7 +286,7 @@ class ApprovalRuleForm
                 'label' => 'name',
             ],
             'customer_id' => [
-                'model' => \Modules\CRM\Models\Customer::class,
+                'model' => Customer::class,
                 'label' => 'name',
             ],
             'lead_id' => [

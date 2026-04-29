@@ -29,20 +29,18 @@ class AccrueRevenueTable
                 TextColumn::make('year')
                     ->label('Year')
                     ->sortable(),
-                TextColumn::make('amount_revenue')
-                    ->label('Accrue Revenue')
-                    ->money('IDR')
-                    ->sortable(),
-                TextColumn::make('invoice.number')
-                    ->label('Invoice Number')
-                    ->placeholder('Belum terbit')
-                    ->searchable(),
-                TextColumn::make('amount_cost')
-                    ->label('Actual Revenue (Amount Cost)')
+                TextColumn::make('total_amount_estimated')
+                    ->label('Estimated Revenue')
                     ->money('IDR')
                     ->sortable()
-                    ->color(fn ($record) => $record->invoice_id ? 'success' : 'warning')
-                    ->weight('bold'),
+                    ->summarize(\Filament\Tables\Columns\Summarizers\Sum::make()->label('Total Estimated')),
+                TextColumn::make('total_amount_actual')
+                    ->label('Actual Revenue')
+                    ->money('IDR')
+                    ->sortable()
+                    ->summarize(\Filament\Tables\Columns\Summarizers\Sum::make()->label('Total Actual'))
+                    ->weight('bold')
+                    ->color(fn ($record) => $record->total_amount_actual > 0 ? 'success' : 'gray'),
                 TextColumn::make('description')
                     ->label('Notes')
                     ->limit(20),

@@ -9,12 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\ProjectAreaFactory;
 use Modules\MasterData\Observers\ProjectAreaObserver;
+use Modules\MasterData\Traits\HasDefaultRecord;
 
 #[ObservedBy(ProjectAreaObserver::class)]
 class ProjectArea extends Model
 {
-    use HasFactory, HasUuids;
-    use HasModuleSchema;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -26,12 +26,14 @@ class ProjectArea extends Model
         'regency_id',
         'name',
         'is_active',
+        'is_default',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 

@@ -10,7 +10,7 @@ use Modules\MasterData\Models\ContractType;
 use Modules\MasterData\Models\FixedAllowance;
 use Modules\MasterData\Models\NonFixedAllowance;
 use Modules\MasterData\Models\PartnerFeeType;
-use Modules\MasterData\Models\PtkpConfig;
+use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\TaxScheme;
 use Modules\MasterData\Models\ThrBasisType;
 
@@ -139,17 +139,17 @@ class RemunerationParameterSeeder extends Seeder
 
         // Kol R: PTKP
         $ptkpConfigs = [
-            ['code' => 'TK/0', 'name' => 'Tidak Kawin, 0 Tanggungan', 'tax_category' => 'A', 'annual_amount' => 54000000],
-            ['code' => 'TK/1', 'name' => 'Tidak Kawin, 1 Tanggungan', 'tax_category' => 'A', 'annual_amount' => 58500000],
-            ['code' => 'TK/2', 'name' => 'Tidak Kawin, 2 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 63000000],
-            ['code' => 'TK/3', 'name' => 'Tidak Kawin, 3 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 67500000],
-            ['code' => 'K/0', 'name' => 'Kawin, 0 Tanggungan', 'tax_category' => 'A', 'annual_amount' => 58500000],
-            ['code' => 'K/1', 'name' => 'Kawin, 1 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 63000000],
-            ['code' => 'K/2', 'name' => 'Kawin, 2 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 67500000],
-            ['code' => 'K/3', 'name' => 'Kawin, 3 Tanggungan', 'tax_category' => 'C', 'annual_amount' => 72000000],
+            ['code' => 'TK/0', 'name' => 'Tidak Kawin, 0 Tanggungan', 'tax_category' => 'A', 'annual_amount' => 54000000, 'is_default' => true],
+            ['code' => 'TK/1', 'name' => 'Tidak Kawin, 1 Tanggungan', 'tax_category' => 'A', 'annual_amount' => 58500000, 'is_default' => false],
+            ['code' => 'TK/2', 'name' => 'Tidak Kawin, 2 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 63000000, 'is_default' => false],
+            ['code' => 'TK/3', 'name' => 'Tidak Kawin, 3 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 67500000, 'is_default' => false],
+            ['code' => 'K/0', 'name' => 'Kawin, 0 Tanggungan', 'tax_category' => 'A', 'annual_amount' => 58500000, 'is_default' => false],
+            ['code' => 'K/1', 'name' => 'Kawin, 1 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 63000000, 'is_default' => false],
+            ['code' => 'K/2', 'name' => 'Kawin, 2 Tanggungan', 'tax_category' => 'B', 'annual_amount' => 67500000, 'is_default' => false],
+            ['code' => 'K/3', 'name' => 'Kawin, 3 Tanggungan', 'tax_category' => 'C', 'annual_amount' => 72000000, 'is_default' => false],
         ];
         foreach ($ptkpConfigs as $data) {
-            PtkpConfig::updateOrCreate(['code' => $data['code']], array_merge(['is_active' => true], $data));
+            TaxPtkpConfig::updateOrCreate(['code' => $data['code']], array_merge(['is_active' => true], $data));
         }
     }
 }

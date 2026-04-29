@@ -161,46 +161,49 @@ class CustomerForm
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
-            Repeater::make('contacts')
-                ->label('Customer Contacts')
+            Section::make('Customer Contacts')
                 ->description('List of key individual contacts at the customer organization.')
                 ->schema([
-                    Select::make('gender')
-                        ->label('Salutation')
-                        ->options(\Modules\MasterData\Enums\Gender::class)
-                        ->required()
-                        ->native(false)
-                        ->placeholder('Select gender'),
-                    TextInput::make('name')
-                        ->label('Full Name')
-                        ->required()
-                        ->placeholder('e.g. John Doe'),
-                    TextInput::make('email')
-                        ->label('Email Address')
-                        ->email()
-                        ->placeholder('john.doe@example.com'),
-                    TextInput::make('phone')
-                        ->label('Phone Number')
-                        ->tel()
-                        ->placeholder('+62 812 3456 7890'),
-                    TextInput::make('job_position')
-                        ->label('Job Title')
-                        ->placeholder('e.g. Procurement Manager'),
-                    Select::make('type')
-                        ->label('Functional Role')
-                        ->options(ContactRole::pluck('name', 'id'))
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->placeholder('Select role')
-                        ->helperText('The primary function of this contact person.')
-                        ->createOptionForm(ContactRoleForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->createOptionUsing(fn (array $data) => ContactRole::create($data)->id),
-                ])
-                ->columns(2)
-                ->collapsible()
-                ->addActionLabel('Add New Contact Person'),
+                    Repeater::make('contacts')
+                        ->label('')
+                        ->schema([
+                            Select::make('gender')
+                                ->label('Salutation')
+                                ->options(\Modules\MasterData\Enums\Gender::class)
+                                ->required()
+                                ->native(false)
+                                ->placeholder('Select gender'),
+                            TextInput::make('name')
+                                ->label('Full Name')
+                                ->required()
+                                ->placeholder('e.g. John Doe'),
+                            TextInput::make('email')
+                                ->label('Email Address')
+                                ->email()
+                                ->placeholder('john.doe@example.com'),
+                            TextInput::make('phone')
+                                ->label('Phone Number')
+                                ->tel()
+                                ->placeholder('+62 812 3456 7890'),
+                            TextInput::make('job_position')
+                                ->label('Job Title')
+                                ->placeholder('e.g. Procurement Manager'),
+                            Select::make('type')
+                                ->label('Functional Role')
+                                ->options(ContactRole::pluck('name', 'id'))
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->placeholder('Select role')
+                                ->helperText('The primary function of this contact person.')
+                                ->createOptionForm(ContactRoleForm::schema())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                ->createOptionUsing(fn (array $data) => ContactRole::create($data)->id),
+                        ])
+                        ->columns(2)
+                        ->collapsible()
+                        ->addActionLabel('Add New Contact Person'),
+                ]),
 
             Section::make('Legal & Company Documents')
                 ->description('Official corporate and legal registration files.')

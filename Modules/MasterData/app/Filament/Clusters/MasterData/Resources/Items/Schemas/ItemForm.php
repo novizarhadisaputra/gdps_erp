@@ -133,26 +133,29 @@ class ItemForm
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
-            Repeater::make('itemPrices')
-                ->label('Regional Pricing Overrides')
+            Section::make('Regional Pricing Overrides')
                 ->description('Specify different prices for specific project areas or locations.')
                 ->schema([
-                    Select::make('project_area_id')
-                        ->label('Project Area')
-                        ->relationship('projectArea', 'name')
-                        ->createOptionForm(ProjectAreaForm::schema())
-                        ->createOptionAction(fn (Action $action) => $action->slideOver())
-                        ->required()
-                        ->searchable()
-                        ->distinct(),
-                    TextInput::make('price')
-                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                        ->prefix('IDR ')
-                        ->required(),
-                ])
-                ->columnSpanFull()
-                ->grid(2)
-                ->defaultItems(0),
+                    Repeater::make('itemPrices')
+                        ->label('')
+                        ->schema([
+                            Select::make('project_area_id')
+                                ->label('Project Area')
+                                ->relationship('projectArea', 'name')
+                                ->createOptionForm(ProjectAreaForm::schema())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                ->required()
+                                ->searchable()
+                                ->distinct(),
+                            TextInput::make('price')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->prefix('IDR ')
+                                ->required(),
+                        ])
+                        ->columnSpanFull()
+                        ->grid(2)
+                        ->defaultItems(0),
+                ]),
         ];
     }
 }

@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Manpower Template - {{ $record->name }}</title>
+    <title>Manpower Costing Template - {{ $record->name }}</title>
     <style>
         @page {
             margin: 0;
@@ -15,7 +15,7 @@
             padding: 0;
             background-color: #ffffff;
             color: #1e293b;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .container {
@@ -24,158 +24,93 @@
         }
 
         .header {
-            padding: 40px 50px 24px 50px;
+            padding: 30px 40px 20px 40px;
             border-bottom: 2px solid #e2e8f0;
             background-color: #f8fafc;
         }
 
         .logo {
-            height: 44px;
+            height: 36px;
         }
 
         .company-name {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
             color: #64748b;
             letter-spacing: 1px;
-            margin-top: 6px;
-        }
-
-        .doc-type {
-            float: right;
-            font-size: 9px;
-            font-weight: bold;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: right;
+            margin-top: 4px;
         }
 
         .doc-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
             color: #0f172a;
+            margin-top: 5px;
         }
 
         .content {
-            padding: 30px 50px;
+            padding: 20px 40px;
         }
 
-        .section-title {
-            font-size: 10px;
-            font-weight: bold;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 6px;
-        }
-
-        .info-table {
-            width: 100%;
-            margin-bottom: 28px;
-        }
-
-        .info-label {
-            font-size: 9px;
-            font-weight: bold;
-            color: #94a3b8;
-            text-transform: uppercase;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .info-value {
-            font-size: 13px;
-            font-weight: bold;
-            color: #1e293b;
-        }
-
-        .description-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 12px 16px;
-            margin-bottom: 28px;
-            font-size: 11px;
-            color: #475569;
-            line-height: 1.6;
-        }
-
-        table.items {
+        table.costing-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 24px;
+            margin-top: 15px;
         }
 
-        table.items thead th {
+        table.costing-table th {
             background-color: #1e293b;
             color: #ffffff;
-            font-size: 9px;
-            font-weight: bold;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #334155;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 10px 8px;
-            text-align: left;
+            font-size: 9px;
         }
 
-        table.items thead th.right {
+        table.costing-table td {
+            padding: 6px 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .label-cell {
+            background-color: #f1f5f9;
+            font-weight: bold;
+            color: #475569;
+            width: 30%;
+        }
+
+        .data-cell {
             text-align: right;
+            font-family: 'Courier New', monospace;
+            width: 23%;
         }
 
-        table.items thead th.center {
-            text-align: center;
+        .subtotal-row {
+            background-color: #e2e8f0;
+            font-weight: bold;
         }
 
-        table.items tbody tr:nth-child(even) {
-            background-color: #f8fafc;
-        }
-
-        table.items tbody td {
-            padding: 9px 8px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 10px;
-            color: #374151;
-            vertical-align: top;
-        }
-
-        table.items tbody td.right {
-            text-align: right;
-        }
-
-        table.items tbody td.center {
-            text-align: center;
-        }
-
-        table.items tfoot td {
-            padding: 12px 8px;
-            background-color: #0f172a;
+        .total-row {
+            background-color: #1e293b;
             color: #ffffff;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 11px;
         }
 
-        table.items tfoot td.right {
-            text-align: right;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 99px;
-            font-size: 9px;
-            font-weight: bold;
-            background-color: #e2e8f0;
-            color: #475569;
+        .total-row td {
+            border-color: #1e293b;
         }
 
         .footer {
-            padding: 20px 50px;
+            padding: 15px 40px;
             background-color: #f8fafc;
             border-top: 1px solid #e2e8f0;
-            font-size: 9px;
+            font-size: 8px;
             color: #94a3b8;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
@@ -187,100 +122,59 @@
                 <img src="{{ public_path('images/logo.png') }}" class="logo" alt="Logo">
                 <div class="company-name">PT GARUDA DAYA PRATAMA SEJAHTERA</div>
             </div>
-            <div class="doc-type" style="width: 50%; float: right;">
-                <div style="font-size: 9px; color: #94a3b8; margin-bottom: 4px;">DOKUMEN INTERNAL</div>
-                <div class="doc-title">Manpower Template</div>
-                <div style="font-size: 10px; color: #64748b; margin-top: 4px;">{{ $record->name }}</div>
+            <div style="width: 50%; float: right; text-align: right;">
+                <div style="font-size: 8px; color: #94a3b8;">DOKUMEN PENAWARAN / COSTING</div>
+                <div class="doc-title">Costing Manpower R1</div>
+                <div style="font-size: 9px; color: #64748b;">Template: {{ $record->name }}</div>
             </div>
             <div style="clear: both;"></div>
         </div>
 
         <div class="content">
-            <div class="section-title">I. Informasi Template</div>
-            <table class="info-table">
-                <tr>
-                    <td width="50%" style="padding-bottom: 12px; vertical-align: top;">
-                        <span class="info-label">Nama Template</span>
-                        <span class="info-value">{{ $record->name }}</span>
-                    </td>
-                    <td width="50%" style="padding-bottom: 12px; vertical-align: top;">
-                        <span class="info-label">Area Proyek</span>
-                        <span class="info-value">{{ $record->projectArea?->name ?? '-' }}</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td width="50%" style="padding-bottom: 12px; vertical-align: top;">
-                        <span class="info-label">Tipe Kontrak</span>
-                        <span class="info-value">{{ $record->contractType?->name ?? '-' }}</span>
-                    </td>
-                    <td width="50%" style="padding-bottom: 12px; vertical-align: top;">
-                        <span class="info-label">Pola Kerja</span>
-                        <span class="info-value">{{ $record->workScheme?->name ?? '-' }}
-                            ({{ $record->workScheme?->working_days ?? 21 }} Hari)</span>
-                    </td>
-                </tr>
-                <tr>
-                    <td width="33%" style="padding-bottom: 12px; vertical-align: top;">
-                        <span class="info-label">Dibuat pada</span>
-                        <span class="info-value">{{ $record->created_at->format('d M Y') }}</span>
-                    </td>
-                    <td width="33%" style="padding-bottom: 12px; vertical-align: top;">
-                        <span class="info-label">Total Posisi</span>
-                        <span class="info-value">{{ collect($costSimulation['rows'])->count() }} item</span>
-                    </td>
-                    <td width="34%" style="padding-bottom: 12px; vertical-align: top;">
-                        <span class="info-label">Total Manpower</span>
-                        <span class="info-value">{{ collect($costSimulation['rows'])->sum('qty') }} orang</span>
-                    </td>
-                </tr>
-            </table>
-
-            @if ($record->description)
-                <div class="section-title">II. Deskripsi</div>
-                <div class="description-box">{{ $record->description }}</div>
-            @endif
-
-            <div class="section-title">{{ $record->description ? 'III.' : 'II.' }} Rincian Simulasi Biaya Manpower
-            </div>
-
-            <table class="items">
+            <table class="costing-table">
                 <thead>
                     <tr>
-                        <th width="4%">#</th>
-                        <th width="36%">Code</th>
-                        <th class="center" width="10%">Qty</th>
-                        <th class="right" width="25%">Direct Cost / Person</th>
-                        <th class="right" width="25%">Subtotal</th>
+                        <th class="label-cell">Komponen Biaya (Field)</th>
+                        @php
+                            $displayItems = collect($costSimulation['rows'])->take(3); // Show up to 3 examples as D, E, F
+                        @endphp
+                        @foreach($displayItems as $index => $item)
+                            <th>Contoh {{ chr(68 + $index) }}<br><small>{{ $item['job_position_name'] }}</small></th>
+                        @endforeach
+                        @if($displayItems->count() < 3)
+                            @for($i = $displayItems->count(); $i < 3; $i++)
+                                <th>Placeholder {{ chr(68 + $i) }}</th>
+                            @endfor
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($costSimulation['rows'] as $i => $row)
-                        <tr>
-                            <td>{{ $i + 1 }}</td>
-                            <td>{{ $row['job_position_code'] ?? \Modules\MasterData\Models\JobPosition::find($row['job_position_id'])?->code }}</td>
-                            <td class="center">{{ $row['qty'] }}</td>
-                            <td class="right">Rp {{ number_format($row['unit_cost'], 0, ',', '.') }}</td>
-                            <td class="right">Rp {{ number_format($row['line_total'], 0, ',', '.') }}</td>
+                    @php
+                        $firstBreakdown = $displayItems->first()['breakdown'] ?? [];
+                        $labels = array_keys($firstBreakdown);
+                    @endphp
+
+                    @foreach($labels as $label)
+                        <tr class="{{ str_contains($label, 'SUBTOTAL') ? 'subtotal-row' : (str_contains($label, 'TOTAL') ? 'total-row' : '') }}">
+                            <td class="label-cell">{{ $label }}</td>
+                            @foreach($displayItems as $item)
+                                <td class="data-cell">
+                                    Rp {{ number_format($item['breakdown'][$label] ?? 0, 0, ',', '.') }}
+                                </td>
+                            @endforeach
+                            @if($displayItems->count() < 3)
+                                @for($i = $displayItems->count(); $i < 3; $i++)
+                                    <td class="data-cell">-</td>
+                                @endfor
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3" class="right"
-                            style="font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;">Total Estimasi
-                            Biaya / Bulan</td>
-                        <td colspan="2" class="right" style="font-size: 13px;">Rp
-                            {{ number_format($costSimulation['total'], 0, ',', '.') }}</td>
-                    </tr>
-                </tfoot>
             </table>
         </div>
 
         <div class="footer">
-            Dicetak pada: {{ now()->format('d M Y H:i') }} WIB &mdash; Dokumen ini digenerate secara otomatis oleh
-            sistem ERP PT. GDPS. Evaluasi tagihan BPJS berdasarkan parameter {{ $record->employee_type }} dan asuransi
-            kecelakaan kerja {{ $record->risk_level }}%
-            ({{ $record->is_labor_intensive ? 'Padat Karya' : 'Normal' }}).
+            Dicetak pada: {{ now()->format('d M Y H:i') }} WIB &mdash; Dokumen ini adalah simulasi biaya manpower berdasarkan parameter UMK Area: {{ $record->projectArea?->name }} ({{ $record->year }}).
         </div>
     </div>
 </body>

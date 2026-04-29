@@ -12,11 +12,9 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
-use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Observers\InvoiceObserver;
 use Modules\MasterData\Traits\HasDigitalSignatures;
-use Modules\Project\Models\WorkCompletionReport;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\Translatable\HasTranslations;
@@ -88,6 +86,11 @@ class Invoice extends Model implements HasMedia
     public function communicationLogs(): MorphMany
     {
         return $this->morphMany(CommunicationLog::class, 'emailable');
+    }
+
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\BankAccount::class);
     }
 
     public function registerMediaCollections(): void

@@ -2,7 +2,11 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\FixedAllowances\Schemas;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\MasterData\Models\FixedAllowance;
 
 class FixedAllowanceForm
 {
@@ -10,33 +14,55 @@ class FixedAllowanceForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('General Details')
-                    ->description('Fill in the necessary configuration properties below.')
+                Section::make('Allowance Definition')
+                    ->description('Define fixed allowance components such as Base Salary or Fixed Transport Allowance.')
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('name')
-                            ->label('Name')
-                            ->placeholder('Enter Name...')
-                            ->helperText('Brief and clear Name for this record.')
-                            ->required(),
-                        \Filament\Forms\Components\Toggle::make('is_bpjs_base')
-                            ->label('Is BPJS Base')
-                            ->helperText('Enable if this allowance is part of the BPJS calculation base.')
-                            ->required(),
-                        \Filament\Forms\Components\Toggle::make('is_taxable')
-                            ->label('Is Taxable')
-                            ->helperText('Enable if this allowance is subject to income tax.')
-                            ->required(),
-                        \Filament\Forms\Components\TextInput::make('default_amount')
+                        TextInput::make('name')
+                            ->label('Allowance Name')
+                            ->placeholder('e.g. Gaji Pokok, Tunjangan Jabatan')
+                            ->required()
+                            ->maxLength(255)
+                            ->helperText('The official name of this allowance.'),
+                        TextInput::make('code')
+                            ->label('Allowance Code')
+                            ->placeholder('e.g. FA-BASE, FA-POS')
+                            ->required()
+                            ->unique(FixedAllowance::class, 'code', ignoreRecord: true)
+                            ->helperText('Unique short code for this allowance.'),
+                    ])->columns(2),
+
+                Section::make('Configuration & Rules')
+                    ->description('Set financial and tax rules for this allowance.')
+                    ->schema([
+                        TextInput::make('default_amount')
+                            ->label('Standard Amount')
                             ->numeric()
-                            ->prefix('Rp')
-                            ->label('Default Amount')
+                            ->prefix('IDR')
                             ->placeholder('0.00')
-                            ->helperText('Enter the numerical Default Amount amount.')
-                            ->required(),
-                        \Filament\Forms\Components\Toggle::make('is_active')
+                            ->default(0)
+                            ->required()
+                            ->helperText('Default monetary value for this allowance.'),
+                        Toggle::make('is_bpjs_base')
+                            ->label('Include in BPJS Base')
+                            ->default(false)
+                            ->helperText('If enabled, this allowance will be included in the BPJS contribution base.'),
+                        Toggle::make('is_taxable')
+                            ->label('Taxable Component')
                             ->default(true)
-                            ->label('Status (Active / Inactive)')
-                            ->helperText('Toggle on to make this record available in standard lists within the system.'),
+                            ->helperText('If enabled, this allowance will be subject to PPh 21 income tax.'),
+                    ])->columns(2),
+
+                Section::make('Status & Defaults')
+                    ->description('Manage visibility and default usage.')
+                    ->schema([
+                        Toggle::make('is_active')
+                            ->label('Active Status')
+                            ->default(true)
+                            ->helperText('Inactive allowances cannot be selected for new employee costings.'),
+                        Toggle::make('is_default')
+                            ->label('Set as Default')
+                            ->default(false)
+                            ->helperText('If enabled, this allowance will be pre-added to new costing templates.'),
                     ])->columns(2),
             ]);
     }

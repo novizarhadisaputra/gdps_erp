@@ -10,13 +10,28 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\MasterData\Database\Factories\ItemCategoryFactory;
 use Modules\MasterData\Traits\HasAutoCodeAndSlug;
+use Modules\MasterData\Traits\HasDefaultRecord;
 
 class ItemCategory extends Model
 {
-    use HasAutoCodeAndSlug, HasFactory, HasUuids;
-    use HasModuleSchema;
+    use HasAutoCodeAndSlug, HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
-    protected $fillable = ['code', 'name', 'description', 'asset_group_id'];
+    protected $fillable = [
+        'code',
+        'name',
+        'description',
+        'asset_group_id',
+        'is_active',
+        'is_default',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'is_default' => 'boolean',
+        ];
+    }
 
     protected static function newFactory(): ItemCategoryFactory
     {

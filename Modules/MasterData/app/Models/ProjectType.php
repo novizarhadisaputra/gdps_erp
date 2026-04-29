@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\ProjectTypeFactory;
+use Modules\MasterData\Traits\HasDefaultRecord;
 
 // use Modules\MasterData\Database\Factories\ProjectTypeFactory;
 
 class ProjectType extends Model
 {
-    use HasFactory, HasUuids;
-    use HasModuleSchema;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     /**
      * The attributes that are mass assignable.
@@ -22,7 +22,16 @@ class ProjectType extends Model
         'code',
         'name',
         'is_active',
+        'is_default',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+            'is_default' => 'boolean',
+        ];
+    }
 
     protected static function newFactory(): ProjectTypeFactory
     {

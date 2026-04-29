@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\ProductClusterFactory;
+use Modules\MasterData\Traits\HasDefaultRecord;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class ProductCluster extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, InteractsWithMedia;
-    use HasModuleSchema;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia;
 
     /**
      * The attributes that are mass assignable.
@@ -23,12 +23,14 @@ class ProductCluster extends Model implements HasMedia
         'code',
         'name',
         'is_active',
+        'is_default',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'is_default' => 'boolean',
         ];
     }
 

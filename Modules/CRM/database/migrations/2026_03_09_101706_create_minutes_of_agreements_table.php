@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('number')->unique();
             $table->decimal('amount', 15, 2)->default(0);
             $table->string('status')->default('draft'); // draft, submitted, approved, cancelled
+            $table->boolean('is_manual')->default(false);
             $table->date('negotiation_date')->nullable();
             $table->jsonb('notes')->nullable();
             $table->jsonb('scope_of_work')->nullable();

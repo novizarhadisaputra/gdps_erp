@@ -21,6 +21,9 @@ class ManpowerTemplateItem extends Model
 
     protected $fillable = [
         'manpower_template_id',
+        'manpower_template_cluster_id',
+        'product_cluster_id',
+        'work_pattern_id',
         'job_position_id',
         'quantity',
         'basic_salary',
@@ -36,6 +39,18 @@ class ManpowerTemplateItem extends Model
         'future_adjustment_rate',
         'ptkp_status',
         'is_bpjs_active',
+        'is_tax_borne_by_company',
+        'is_employee_jkn_borne_by_company',
+        'is_employee_jkk_borne_by_company',
+        'is_employee_jkm_borne_by_company',
+        'is_employee_jht_borne_by_company',
+        'is_employee_jp_borne_by_company',
+        'jkn_category',
+        'thr_billing_method',
+        'compensation_billing_method',
+        'thr_basis_id',
+        'compensation_basis_id',
+        'bpjs_basis_id',
     ];
 
     protected function casts(): array
@@ -51,7 +66,43 @@ class ManpowerTemplateItem extends Model
             'allowances' => 'array',
             'future_adjustment_rate' => 'float',
             'is_bpjs_active' => 'boolean',
+            'is_tax_borne_by_company' => 'boolean',
+            'is_employee_jkn_borne_by_company' => 'boolean',
+            'is_employee_jkk_borne_by_company' => 'boolean',
+            'is_employee_jkm_borne_by_company' => 'boolean',
+            'is_employee_jht_borne_by_company' => 'boolean',
+            'is_employee_jp_borne_by_company' => 'boolean',
         ];
+    }
+
+    public function cluster(): BelongsTo
+    {
+        return $this->belongsTo(ManpowerTemplateCluster::class, 'manpower_template_cluster_id');
+    }
+
+    public function productCluster(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\ProductCluster::class);
+    }
+
+    public function workPattern(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\WorkPattern::class);
+    }
+
+    public function thrBasis(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\ThrBasisType::class, 'thr_basis_id');
+    }
+
+    public function compensationBasis(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\ThrBasisType::class, 'compensation_basis_id');
+    }
+
+    public function bpjsBasis(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\BpjsBasisType::class, 'bpjs_basis_id');
     }
 
     public function template(): BelongsTo

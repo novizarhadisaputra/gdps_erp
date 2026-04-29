@@ -2,6 +2,9 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ContractTypes\Schemas;
 
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ContractTypeForm
@@ -10,22 +13,31 @@ class ContractTypeForm
     {
         return $schema
             ->components([
-                \Filament\Schemas\Components\Section::make('General Details')
-                    ->description('Fill in the necessary configuration properties below.')
+                Section::make('Contract Classification')
+                    ->description('Define the various types of employment contracts supported by the organization.')
                     ->schema([
-                        \Filament\Forms\Components\TextInput::make('code')
-                            ->label('Code Identifier')
-                            ->placeholder('e.g., KODE-01 (Auto-generated if empty)')
-                            ->helperText('Unique 3-10 character code. Leave empty to auto-generate from Name.'),
-                        \Filament\Forms\Components\TextInput::make('name')
-                            ->label('Name')
-                            ->placeholder('Enter Name...')
-                            ->helperText('Brief and clear Name for this record.')
+                        TextInput::make('name')
+                            ->label('Contract Name')
+                            ->placeholder('e.g. PKWT, PKWTT, Freelance')
+                            ->helperText('The descriptive name of the contract type.')
                             ->required(),
-                        \Filament\Forms\Components\Toggle::make('is_active')
+                        TextInput::make('code')
+                            ->label('Contract Code')
+                            ->placeholder('e.g. C01, PKWT-01')
+                            ->helperText('A unique short identifier for this contract type.'),
+                    ])->columns(2),
+
+                Section::make('Status & Defaults')
+                    ->description('Manage the availability and default status of this contract type.')
+                    ->schema([
+                        Toggle::make('is_active')
+                            ->label('Active Status')
                             ->default(true)
-                            ->label('Status (Active / Inactive)')
-                            ->helperText('Toggle on to make this record available in standard lists within the system.'),
+                            ->helperText('Determines if this contract type can be used for new employee contracts.'),
+                        Toggle::make('is_default')
+                            ->label('Default Contract')
+                            ->default(false)
+                            ->helperText('Sets this as the pre-selected option for new contract entries.'),
                     ])->columns(2),
             ]);
     }

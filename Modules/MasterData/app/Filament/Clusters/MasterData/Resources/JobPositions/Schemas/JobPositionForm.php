@@ -20,7 +20,7 @@ class JobPositionForm
     public static function schema(): array
     {
         return [
-            Section::make('Job Position Details')
+            Section::make('Job Position Information')
                 ->description('Define the job roles available for project staffing, including their risk levels and labor intensity.')
                 ->schema([
                     TextInput::make('name')
@@ -29,6 +29,12 @@ class JobPositionForm
                         ->maxLength(255)
                         ->placeholder('e.g. Lead Cleaner, Security Officer')
                         ->helperText('The official title for this job position.'),
+                    TextInput::make('code')
+                        ->label('Position Code')
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
+                        ->hiddenOn('create')
+                        ->helperText('The unique identifier for this role.'),
                     Select::make('risk_level')
                         ->label('Risk Level')
                         ->options(RiskLevel::class)
@@ -40,7 +46,20 @@ class JobPositionForm
                         ->label('Labor Intensive')
                         ->default(false)
                         ->helperText('Enable if this role primarily involves physical labor.'),
-                ])->columns(3),
+                ])->columns(2),
+
+            Section::make('Status & Defaults')
+                ->description('Manage the availability and default status of this job position.')
+                ->schema([
+                    Toggle::make('is_active')
+                        ->label('Active Status')
+                        ->default(true)
+                        ->helperText('Determines if this position can be assigned to manpower records.'),
+                    Toggle::make('is_default')
+                        ->label('Default Position')
+                        ->default(false)
+                        ->helperText('Set as the default choice for new manpower assignments.'),
+                ])->columns(2),
         ];
     }
 }

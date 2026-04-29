@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
-use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Enums\WorkCompletionStatus;
@@ -51,6 +50,7 @@ class WorkCompletionReport extends Model implements HasMedia
         'sourceable_type',
         'tax_percentage',
         'tax_wording',
+        'content_config',
     ];
 
     protected function casts(): array
