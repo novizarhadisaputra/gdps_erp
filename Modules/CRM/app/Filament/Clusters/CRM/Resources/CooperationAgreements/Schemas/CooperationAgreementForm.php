@@ -36,7 +36,7 @@ class CooperationAgreementForm
                             ->live(),
                         TextInput::make('amount')
                             ->label('Total Amount')
-                            ->numeric()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->readonly()
                             ->afterStateHydrated(fn ($set, $get) => $set('amount', collect($get('items'))->sum('total_price'))),
@@ -60,13 +60,13 @@ class CooperationAgreementForm
                                         ->label('Unit')
                                         ->required(),
                                     TextInput::make('unit_price')
-                                        ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->required()
                                         ->live()
                                         ->afterStateUpdated(fn ($get, $set) => $set('total_price', floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0))),
                                     TextInput::make('total_price')
-                                        ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->readonly(),
                                 ]),

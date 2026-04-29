@@ -11,9 +11,13 @@ use Modules\Project\Models\Project;
 
 class ProjectStatsWidget extends BaseWidget
 {
-    protected static ?int $sort = 1;
-
     protected int|string|array $columnSpan = 'full';
+
+    public static function canView(): bool
+    {
+        return false;
+    }
+    protected static ?int $sort = 1;
 
     protected function getStats(): array
     {

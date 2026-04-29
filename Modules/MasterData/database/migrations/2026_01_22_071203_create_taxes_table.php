@@ -15,6 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('name');
+            $table->decimal('rate', 5, 2)->default(0);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->timestamps();

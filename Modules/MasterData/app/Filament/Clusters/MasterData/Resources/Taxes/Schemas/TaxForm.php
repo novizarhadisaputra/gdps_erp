@@ -34,7 +34,14 @@ class TaxForm
                         ->required()
                         ->unique(Tax::class, 'code', ignoreRecord: true)
                         ->helperText('Unique short identifier for the tax type.'),
-                ])->columns(2),
+                    TextInput::make('rate')
+                        ->label('Tax Rate')
+                        ->numeric()
+                        ->suffix('%')
+                        ->default(0)
+                        ->required()
+                        ->helperText('The percentage rate for this tax (e.g., 11 or 12).'),
+                ])->columns(3),
 
             Section::make('Status & Defaults')
                 ->description('Manage the availability and default status of this tax.')

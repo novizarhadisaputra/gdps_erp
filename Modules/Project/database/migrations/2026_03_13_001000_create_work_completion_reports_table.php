@@ -29,6 +29,9 @@ return new class extends Migration
             $blueprint->jsonb('description')->nullable();
             $blueprint->jsonb('items')->nullable();
             $blueprint->decimal('tax_percentage', 5, 2)->default(12.00);
+            $blueprint->string('tax_basis')->default('total');
+            $blueprint->decimal('tax_base_amount', 15, 2)->nullable();
+            $blueprint->decimal('tax_amount', 15, 2)->default(0);
             $blueprint->jsonb('tax_wording')->nullable();
             $blueprint->decimal('total_amount', 15, 2)->default(0);
 

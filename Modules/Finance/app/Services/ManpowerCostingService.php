@@ -9,7 +9,7 @@ use Modules\MasterData\Models\JhtConfig;
 use Modules\MasterData\Models\JkkConfig;
 use Modules\MasterData\Models\JkmConfig;
 use Modules\MasterData\Models\JpConfig;
-use Modules\MasterData\Models\PtkpConfig;
+use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\RegencyMinimumWage;
 use Modules\MasterData\Models\TaxRateTer;
 use Modules\MasterData\Models\ThrBasisType;
@@ -418,8 +418,8 @@ class ManpowerCostingService
     protected function calculatePph21(float $taxableIncome, array $bpjsHealth, array $bpjsEmployment, string $ptkpCode = 'TK/0'): array
     {
         // 1. Get Category from PTKP Code (A, B, or C)
-        /** @var PtkpConfig|null $ptkp */
-        $ptkp = PtkpConfig::where('code', $ptkpCode)->first();
+        /** @var TaxPtkpConfig|null $ptkp */
+        $ptkp = TaxPtkpConfig::where('code', $ptkpCode)->first();
         $category = $ptkp?->tax_category ?? 'A';
 
         // JKK, JKM, JP, and Health (Employer portion) are tax objects for the employee in this spreadsheet template.

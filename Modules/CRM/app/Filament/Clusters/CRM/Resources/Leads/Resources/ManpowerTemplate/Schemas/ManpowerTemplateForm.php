@@ -21,7 +21,7 @@ use Illuminate\Support\HtmlString;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\PtkpConfig;
+use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\RegencyMinimumWage;
 
 class ManpowerTemplateForm
@@ -233,7 +233,7 @@ class ManpowerTemplateForm
                                                 Select::make('ptkp_status')
                                                     ->label('Tax Status (PTKP)')
                                                     ->placeholder('Select Status')
-                                                    ->options(PtkpConfig::pluck('code', 'code'))
+                                                    ->options(TaxPtkpConfig::pluck('code', 'code'))
                                                     ->default('TK/0')
                                                     ->required()
                                                     ->searchable()

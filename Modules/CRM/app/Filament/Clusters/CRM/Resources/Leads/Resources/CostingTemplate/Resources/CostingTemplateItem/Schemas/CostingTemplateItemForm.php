@@ -113,7 +113,7 @@ class CostingTemplateItemForm
                                     \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             TextInput::make('unit_price')
-                                ->numeric()
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR')
                                 ->required()
                                 ->live(onBlur: true)

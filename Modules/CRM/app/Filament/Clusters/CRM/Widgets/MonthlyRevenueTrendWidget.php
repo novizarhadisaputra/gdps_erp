@@ -2,14 +2,23 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 
-use App\Services\AnalyticsCacheService;
 use Carbon\Carbon;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
+use Illuminate\Contracts\View\View;
 
 class MonthlyRevenueTrendWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'monthlyRevenueTrendChart';
+
+    protected int|string|array $columnSpan = 'full';
+
+    public static function canView(): bool
+    {
+        return true;
+    }
 
     protected static ?string $heading = 'Monthly Revenue Performance (RoFo vs Actual)';
 
@@ -19,34 +28,29 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $cache = app(AnalyticsCacheService::class);
+        $categories = [];
+        $revenueData = [];
+        $costData = [];
 
-        $data = $cache->rememberHourly('crm.so_monthly_revenue_trend', function () {
-            $categories = [];
-            $targetData = [];
-            $actualData = [];
-            $grossProfitData = [];
+        $currentYear = Carbon::now()->year;
 
-            $currentYear = Carbon::now()->year;
+        for ($m = 1; $m <= 12; $m++) {
+            $date = Carbon::create($currentYear, $m, 1);
+            $monthName = $date->format('F');
 
-            for ($m = 1; $m <= 12; $m++) {
-                $date = Carbon::create()->year($currentYear)->month($m);
-                $monthName = $date->format('F');
+            $categories[] = $date->format('M'); // Jan, Feb, etc.
 
-                $categories[] = $date->format('M Y');
+            $monthlyStats = ProfitabilityAnalysisMonthly::where('year', $currentYear)
+                ->where('month', $monthName)
+                ->selectRaw('SUM(actual_revenue) as revenue, SUM(actual_cost) as cost')
+                ->first();
 
-                $monthlyStats = ProfitabilityAnalysisMonthly::where('year', $currentYear)
-                    ->where('month', $monthName)
-                    ->selectRaw('SUM(target_revenue) as target, SUM(actual_revenue) as actual, SUM(gross_profit) as gp')
-                    ->first();
+            $revenueData[] = round(($monthlyStats->revenue ?? 0) / 1000000, 2);
+            // Cost is negative to show downwards
+            $costData[] = -round(($monthlyStats->cost ?? 0) / 1000000, 2);
+        }
 
-                $targetData[] = round(($monthlyStats->target ?? 0) / 1000000, 2);
-                $actualData[] = round(($monthlyStats->actual ?? 0) / 1000000, 2);
-                $grossProfitData[] = round(($monthlyStats->gp ?? 0) / 1000000, 2);
-            }
-
-            return compact('categories', 'targetData', 'actualData', 'grossProfitData');
-        });
+        $data = compact('categories', 'revenueData', 'costData');
 
         return [
             'chart' => [
@@ -57,15 +61,29 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
                     'show' => true,
                 ],
             ],
+            'dataLabels' => [
+                'enabled' => false,
+            ],
             'plotOptions' => [
                 'bar' => [
                     'horizontal' => false,
-                    'columnWidth' => '55%',
-                    'borderRadius' => 4,
+                    'columnWidth' => '60%',
+                    'borderRadius' => 2,
+                    'colors' => [
+                        'ranges' => [
+                            [
+                                'from' => -1000000,
+                                'to' => 0,
+                                'color' => '#f97316' // Orange for cost
+                            ],
+                            [
+                                'from' => 0,
+                                'to' => 1000000,
+                                'color' => '#fbbf24' // Yellow for revenue
+                            ]
+                        ]
+                    ]
                 ],
-            ],
-            'dataLabels' => [
-                'enabled' => false,
             ],
             'stroke' => [
                 'show' => true,
@@ -74,16 +92,12 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'Target RoFo',
-                    'data' => $data['targetData'],
+                    'name' => 'Revenue',
+                    'data' => $data['revenueData'],
                 ],
                 [
-                    'name' => 'Actual Revenue',
-                    'data' => $data['actualData'],
-                ],
-                [
-                    'name' => 'Gross Profit',
-                    'data' => $data['grossProfitData'],
+                    'name' => 'Cost',
+                    'data' => $data['costData'],
                 ],
             ],
             'xaxis' => [
@@ -94,18 +108,18 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
                     'text' => 'Value (Million IDR)',
                 ],
                 'labels' => [
-                    'formatter' => null,
+                    'style' => [
+                        'fontFamily' => 'inherit',
+                    ],
                 ],
             ],
-            'fill' => [
-                'opacity' => 1,
-            ],
+
             'tooltip' => [
                 'y' => [
                     'formatter' => null,
                 ],
             ],
-            'colors' => ['#6366f1', '#10b981', '#f59e0b'],
+            'colors' => ['#fbbf24', '#f97316'],
             'legend' => [
                 'position' => 'top',
                 'horizontalAlign' => 'center',
@@ -114,5 +128,10 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
                 'borderColor' => '#f1f1f1',
             ],
         ];
+    }
+
+    protected function getFooter(): string|Htmlable|View|null
+    {
+        return new HtmlString('<p class="text-xs text-gray-500 mt-2">Comparison of monthly Rolling Forecast (RoFo) against Actual Revenue realization.</p>');
     }
 }

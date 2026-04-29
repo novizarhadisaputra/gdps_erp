@@ -42,7 +42,7 @@ class PurchaseOrderForm
                             ->helperText('The client who issued this Purchase Order.'),
                         TextInput::make('amount')
                             ->label('Total PO Value')
-                            ->numeric()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->readonly()
                             ->placeholder('0')
@@ -76,7 +76,7 @@ class PurchaseOrderForm
                                         ->placeholder('e.g. Unit, Lot, Service'),
                                     TextInput::make('unit_price')
                                         ->label('Unit Price')
-                                        ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->required()
                                         ->live()
@@ -84,7 +84,7 @@ class PurchaseOrderForm
                                         ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0)))),
                                     TextInput::make('total_price')
                                         ->label('Line Total')
-                                        ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->readonly()
                                         ->placeholder('0'),

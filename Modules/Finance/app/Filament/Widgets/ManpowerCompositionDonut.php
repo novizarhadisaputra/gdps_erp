@@ -10,6 +10,13 @@ class ManpowerCompositionDonut extends ApexChartWidget
 {
     protected static ?string $chartId = 'manpowerCompositionDonut';
 
+    protected int|string|array $columnSpan = 'full';
+
+    public static function canView(): bool
+    {
+        return false;
+    }
+
     protected static ?string $heading = 'Average Manpower Cost Composition';
 
     protected function getOptions(): array

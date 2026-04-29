@@ -24,6 +24,9 @@ return new class extends Migration
             $blueprint->date('due_date')->nullable();
 
             $blueprint->decimal('amount', 15, 2);
+            $blueprint->decimal('tax_percentage', 5, 2)->default(12.00);
+            $blueprint->string('tax_basis')->default('total');
+            $blueprint->decimal('tax_base_amount', 15, 2)->nullable();
             $blueprint->decimal('tax_amount', 15, 2)->default(0);
             $blueprint->decimal('total_amount', 15, 2);
 

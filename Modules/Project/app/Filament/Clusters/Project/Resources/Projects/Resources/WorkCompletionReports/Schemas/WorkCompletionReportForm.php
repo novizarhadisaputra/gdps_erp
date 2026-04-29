@@ -474,29 +474,77 @@ class WorkCompletionReportForm
                 Section::make('Tax Configuration')
                     ->description('Set the VAT percentage and official tax wording for the report.')
                     ->schema([
-                        Select::make('tax_percentage')
-                            ->label('VAT Percentage')
-                            ->options([
-                                '12' => 'PPN 12%',
-                                '11' => 'PPN 11%',
-                            ])
-                            ->columnSpanFull()
-                            ->default('12')
-                            ->afterStateHydrated(fn ($state, $set) => $set('tax_percentage', (string) (float) $state))
-                            ->selectablePlaceholder(false)
-                            ->native(false)
-                            ->live()
-                            ->afterStateUpdated(function ($state, $set) {
-                                if (! $state) {
-                                    return;
-                                }
+                        Grid::make(3)->schema([
+                            Select::make('tax_percentage')
+                                ->label('VAT Percentage')
+                                ->options([
+                                    '12' => 'PPN 12%',
+                                    '11' => 'PPN 11%',
+                                ])
+                                ->default('12')
+                                ->live()
+                                ->afterStateUpdated(function ($state, $set, $get) {
+                                    $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                    $taxPercent = (float) ($state ?? 12);
+                                    $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                    
+                                    $set('tax_wording', [
+                                        'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$state}%",
+                                        'en' => "The above work completion does not include {$state}% VAT",
+                                    ]);
+                                }),
 
-                                $set('tax_wording', [
-                                    'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$state}%",
-                                    'en' => "The above work completion does not include {$state}% VAT",
-                                ]);
-                            })
-                            ->helperText('Select the applicable VAT rate as per tax regulations.'),
+                            Select::make('tax_basis')
+                                ->label('Tax Basis (DPP)')
+                                ->options([
+                                    'total' => 'Total Amount',
+                                    'management_fee' => 'Management Fee Only',
+                                    'custom' => 'Custom / Manual',
+                                ])
+                                ->default('total')
+                                ->live()
+                                ->required()
+                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                    $totalAmount = collect($get('items'))->sum('total_price');
+                                    $baseAmount = $totalAmount;
+
+                                    if ($state === 'management_fee') {
+                                        $items = $get('items') ?? [];
+                                        $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+                                        
+                                        $mfSum = collect($activeItems)->filter(function ($item) {
+                                            $name = strtolower($item['item_name'] ?? '');
+                                            return str_contains($name, 'management fee') || str_contains($name, 'fee');
+                                        })->sum(function ($item) {
+                                            return is_numeric($item['total_price']) ? (float)$item['total_price'] : 0;
+                                        });
+                                        
+                                        $baseAmount = $mfSum;
+                                    } elseif ($state === 'custom') {
+                                        $baseAmount = $get('tax_base_amount') ?? 0;
+                                    }
+
+                                    $set('tax_base_amount', $baseAmount);
+                                    
+                                    $taxPercent = (float) ($get('tax_percentage') ?? 12);
+                                    $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                }),
+
+                            TextInput::make('tax_base_amount')
+                                ->label('Taxable Amount (DPP)')
+                                ->numeric()
+                                ->prefix('IDR')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->required()
+                                ->live(onBlur: true)
+                                ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
+                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                    $baseAmount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
+                                    $taxPercent = (float) ($get('tax_percentage') ?? 12);
+                                    $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                }),
+                        ]),
+
                         TextInput::make('tax_wording')
                             ->label('Official Tax Wording')
                             ->placeholder('e.g. The above work completion does not include 12% VAT')
@@ -512,16 +560,42 @@ class WorkCompletionReportForm
                 Section::make('Summary')
                     ->description('Review the calculated grand total of all report line items.')
                     ->schema([
-                        TextInput::make('total_amount')
-                            ->label('Grand Total Amount')
-                            ->numeric()
-                            ->prefix('IDR')
-                            ->placeholder('0')
-                            ->helperText('Auto-calculated sum of all line item total prices.')
-                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                            ->readonly()
-                            ->live()
-                            ->afterStateHydrated(fn ($set, $get) => $set('total_amount', collect($get('items'))->sum('total_price'))),
+                        Grid::make(3)->schema([
+                            TextInput::make('total_amount')
+                                ->label('Base Amount (Gross)')
+                                ->numeric()
+                                ->prefix('IDR')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->readonly()
+                                ->live()
+                                ->afterStateHydrated(function ($set, $get) {
+                                    $sum = collect($get('items'))->sum('total_price');
+                                    $set('total_amount', $sum);
+                                    
+                                    // If tax_base_amount is not set, default to total
+                                    if (! $get('tax_base_amount')) {
+                                        $set('tax_base_amount', $sum);
+                                        $taxPercent = (float) ($get('tax_percentage') ?? 12);
+                                        $set('tax_amount', round($sum * ($taxPercent / 100)));
+                                    }
+                                }),
+
+                            TextInput::make('tax_amount')
+                                ->label('Tax Amount (VAT)')
+                                ->numeric()
+                                ->prefix('IDR')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->readonly(),
+
+                            TextInput::make('grand_total')
+                                ->label('Grand Total')
+                                ->numeric()
+                                ->prefix('IDR')
+                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                ->readonly()
+                                ->placeholder('0')
+                                ->state(fn (Get $get) => (float)($get('total_amount') ?? 0) + (float)($get('tax_amount') ?? 0)),
+                        ]),
                     ]),
 
             ]);

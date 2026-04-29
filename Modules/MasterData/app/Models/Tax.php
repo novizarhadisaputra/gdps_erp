@@ -22,6 +22,7 @@ class Tax extends Model
     protected $fillable = [
         'code',
         'name',
+        'rate',
         'is_active',
         'is_default',
     ];
@@ -29,6 +30,7 @@ class Tax extends Model
     protected function casts(): array
     {
         return [
+            'rate' => 'decimal:2',
             'is_active' => 'boolean',
             'is_default' => 'boolean',
         ];

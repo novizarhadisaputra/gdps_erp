@@ -49,6 +49,9 @@ class WorkCompletionReport extends Model implements HasMedia
         'sourceable_id',
         'sourceable_type',
         'tax_percentage',
+        'tax_basis',
+        'tax_base_amount',
+        'tax_amount',
         'tax_wording',
         'content_config',
     ];
@@ -61,6 +64,8 @@ class WorkCompletionReport extends Model implements HasMedia
             'service_period_end' => 'date',
             'work_progress_percentage' => 'decimal:2',
             'tax_percentage' => 'decimal:2',
+            'tax_base_amount' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
             'items' => 'array',
             'status' => WorkCompletionStatus::class,
             'content_config' => 'array',

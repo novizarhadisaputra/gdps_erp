@@ -38,7 +38,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schem
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\PtkpConfig;
+use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\UnitOfMeasure;
 
 class ProfitabilityAnalysisForm
@@ -211,6 +211,8 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('document_number')
                                     ->label('Document Number')
                                     ->disabled()
+                                    ->hiddenOn(operations: ['create'])
+                                    ->dehydrated()
                                     ->placeholder('Auto-generated')
                                     ->columnSpan(1),
                                 Hidden::make('lead_id'),
@@ -218,6 +220,7 @@ class ProfitabilityAnalysisForm
                                     ->label('Revision #')
                                     ->disabled()
                                     ->default(0)
+                                    ->hiddenOn(operations: ['create'])
                                     ->dehydrated()
                                     ->columnSpan(1),
                                 TextInput::make('previous_code')
@@ -1321,7 +1324,7 @@ class ProfitabilityAnalysisForm
                 billCompensationMonthly: (bool) ($get('bill_compensation_monthly') ?? true),
                 includeNonFixedInAccruals: (bool) ($get('include_non_fixed_in_accruals') ?? false),
                 extraCosts: $get('extra_costs') ?? [],
-                ptkpCode: filled($get('ptkp_config_id')) ? PtkpConfig::find($get('ptkp_config_id'))?->code ?? 'TK/0' : 'TK/0',
+                ptkpCode: filled($get('ptkp_config_id')) ? TaxPtkpConfig::find($get('ptkp_config_id'))?->code ?? 'TK/0' : 'TK/0',
                 isBpjsActive: (bool) ($get('is_bpjs_active') ?? true)
             );
 

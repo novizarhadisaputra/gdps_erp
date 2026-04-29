@@ -42,7 +42,7 @@ class WorkOrderForm
                             ->helperText('The client for whom this work is being performed.'),
                         TextInput::make('amount')
                             ->label('Total Estimated Amount')
-                            ->numeric()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->readonly()
                             ->placeholder('0')
@@ -76,7 +76,7 @@ class WorkOrderForm
                                         ->placeholder('e.g. Hour, Visit, Lot'),
                                     TextInput::make('unit_price')
                                         ->label('Unit Rate')
-                                        ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->required()
                                         ->live()
@@ -84,7 +84,7 @@ class WorkOrderForm
                                         ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0)))),
                                     TextInput::make('total_price')
                                         ->label('Line Total')
-                                        ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->readonly()
                                         ->placeholder('0'),

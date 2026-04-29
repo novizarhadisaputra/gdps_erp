@@ -13,6 +13,13 @@ class FinanceRevenueChart extends ApexChartWidget
      */
     protected static ?string $chartId = 'financeRevenueChart';
 
+    protected int|string|array $columnSpan = 'full';
+
+    public static function canView(): bool
+    {
+        return false;
+    }
+
     /**
      * Widget Title
      */
@@ -25,16 +32,14 @@ class FinanceRevenueChart extends ApexChartWidget
     protected function getOptions(): array
     {
         $data = AccrueRevenue::query()
-            ->select(
-                DB::raw('DATE_FORMAT(period_date, "%Y-%m") as month'),
-                DB::raw('SUM(total_amount_actual) as total')
-            )
-            ->groupBy('month')
+            ->select('month', 'year', DB::raw('SUM(total_amount_actual) as total'))
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
             ->limit(6)
             ->get();
 
-        $labels = $data->pluck('month')->toArray();
+        $labels = $data->map(fn ($item) => sprintf('%04d-%02d', $item->year, $item->month))->toArray();
         $values = $data->pluck('total')->toArray();
 
         return [

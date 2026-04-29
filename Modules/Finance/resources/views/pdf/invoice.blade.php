@@ -695,8 +695,13 @@
             <td width="25%" class="text-right">{{ number_format($record->amount, 0, ',', '.') }}</td>
         </tr>
         <tr>
-            <td>{{ $labels['tax_base'][$lang] }}</td>
-            <td class="text-right">{{ $isInternal ? '-' : number_format($record->amount, 0, ',', '.') }}</td>
+            <td>
+                {{ $labels['tax_base'][$lang] }}
+                @if($record->tax_basis === 'management_fee')
+                    (Fee)
+                @endif
+            </td>
+            <td class="text-right">{{ $isInternal ? '-' : number_format($record->tax_base_amount ?? $record->amount, 0, ',', '.') }}</td>
         </tr>
         <tr>
             <td>{{ $isInternal ? '-' : $tax_wording }}</td>

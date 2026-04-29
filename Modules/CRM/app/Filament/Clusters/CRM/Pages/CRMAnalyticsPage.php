@@ -5,14 +5,10 @@ namespace Modules\CRM\Filament\Clusters\CRM\Pages;
 use App\Filament\Pages\AnalyticsBasePage;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\CRMStatsOverviewWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\DealStatusDistributionWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\LeadConversionTrendWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\LeadPipelineWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\MonthlyRevenueTrendWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\PerformanceOverviewWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\RevenueForecastWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesPerformanceChartWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesTeamPerformanceWidget;
 
 class CRMAnalyticsPage extends AnalyticsBasePage
 {
@@ -34,27 +30,23 @@ class CRMAnalyticsPage extends AnalyticsBasePage
     public function getWidgets(): array
     {
         return [
-            // Row 1: High-Level Stats (RoFo vs Actual Performance)
+            // Row 1: Sales Activity Stats
+            CRMStatsOverviewWidget::class,
+
+            // Row 2: Financial Performance Stats
             PerformanceOverviewWidget::class,
 
-            // Row 2: Revenue Performance & Trends (Target vs Actual)
-            MonthlyRevenueTrendWidget::class,       // Bar Chart (Monthly)
-            SalesPerformanceChartWidget::class,     // Line Chart (Cumulative)
+            // Row 3: Revenue Performance & Trends
+            MonthlyRevenueTrendWidget::class,
+            SalesPerformanceChartWidget::class,
 
-            // Row 3: Pipeline & Projections
-            RevenueForecastWidget::class,           // Revenue projection
+            // Row 4: Pipeline & Projections
+            RevenueForecastWidget::class,
         ];
     }
 
     public function getWidgetColumns(): int|array
     {
-        return [
-            'default' => 1,  // Mobile: single column
-            'sm' => 1,       // Small tablet: single column
-            'md' => 2,       // Tablet: 2 columns
-            'lg' => 2,       // Desktop: 2 columns
-            'xl' => 2,       // Large desktop: 2 columns
-            '2xl' => 2,      // Extra large: 2 columns
-        ];
+        return 1;
     }
 }

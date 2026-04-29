@@ -429,22 +429,86 @@ class InvoiceForm
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('amount')
-                                    ->label('Base Amount')
+                                    ->label('Base Amount (Gross)')
                                     ->numeric()
                                     ->prefix('IDR')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->required()
                                     ->live(onBlur: true)
                                     ->placeholder('0')
-                                    ->helperText('The principal billable amount excluding tax. Auto-calculated from items.')
+                                    ->helperText('The total billable amount before tax.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
                                         $amount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
-                                        $taxPercentRaw = $get('tax_percentage') ?? 12;
-                                        $taxPercent = (float) $taxPercentRaw;
-                                        $tax = round($amount * ($taxPercent / 100));
+                                        
+                                        // Update Tax Base Amount if basis is total
+                                        if ($get('tax_basis') === 'total' || ! $get('tax_basis')) {
+                                            $set('tax_base_amount', $amount);
+                                            
+                                            $taxPercent = (float) ($get('tax_percentage') ?? 12);
+                                            $tax = round($amount * ($taxPercent / 100));
+                                            $set('tax_amount', $tax);
+                                            $set('total_amount', $amount + $tax);
+                                        }
+                                    }),
+
+                                Select::make('tax_basis')
+                                    ->label('Tax Basis (DPP)')
+                                    ->options([
+                                        'total' => 'Total Amount',
+                                        'management_fee' => 'Management Fee Only',
+                                        'custom' => 'Custom / Manual',
+                                    ])
+                                    ->default('total')
+                                    ->live()
+                                    ->required()
+                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                        $amount = (float) ($get('amount') ?? 0);
+                                        $baseAmount = $amount;
+
+                                        if ($state === 'management_fee') {
+                                            $items = $get('items') ?? [];
+                                            $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+                                            
+                                            $mfSum = collect($activeItems)->filter(function ($item) {
+                                                $name = strtolower($item['item_name'] ?? '');
+                                                return str_contains($name, 'management fee') || str_contains($name, 'fee');
+                                            })->sum(function ($item) {
+                                                return is_numeric($item['total_price']) ? (float)$item['total_price'] : 0;
+                                            });
+                                            
+                                            $baseAmount = $mfSum;
+                                        } elseif ($state === 'custom') {
+                                            // Keep current or set to 0
+                                            $baseAmount = $get('tax_base_amount') ?? 0;
+                                        }
+
+                                        $set('tax_base_amount', $baseAmount);
+                                        
+                                        $taxPercent = (float) ($get('tax_percentage') ?? 12);
+                                        $tax = round($baseAmount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
                                     }),
+
+                                TextInput::make('tax_base_amount')
+                                    ->label('Taxable Amount (DPP)')
+                                    ->numeric()
+                                    ->prefix('IDR')
+                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->helperText('The amount used to calculate VAT (PPN).')
+                                    ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
+                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                        $baseAmount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
+                                        $amount = (float) ($get('amount') ?? 0);
+                                        
+                                        $taxPercent = (float) ($get('tax_percentage') ?? 12);
+                                        $tax = round($baseAmount * ($taxPercent / 100));
+                                        $set('tax_amount', $tax);
+                                        $set('total_amount', $amount + $tax);
+                                    }),
+
                                 Select::make('tax_percentage')
                                     ->label('VAT Percentage')
                                     ->options([
@@ -452,33 +516,13 @@ class InvoiceForm
                                         '11' => 'PPN 11%',
                                     ])
                                     ->default('12')
-                                    ->afterStateHydrated(fn ($state, $set) => $set('tax_percentage', (string) (float) $state))
-                                    ->selectablePlaceholder(false)
-                                    ->native(false)
-                                    ->live(onBlur: true)
-                                    ->placeholder('Select tax')
-                                    ->helperText('The applicable Value Added Tax (PPN) rate.')
+                                    ->live()
                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                        $amountRaw = $get('amount') ?? 0;
-                                        $amount = is_numeric($amountRaw) ? (float) $amountRaw : (float) str_replace(',', '.', str_replace('.', '', (string) $amountRaw));
-
-                                        // If amount is still 0 but items exist, recalculate from items
-                                        if ($amount <= 0) {
-                                            $items = $get('items') ?? [];
-                                            $sum = 0;
-                                            $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
-                                            foreach ((array) $activeItems as $item) {
-                                                $pRaw = $item['total_price'] ?? 0;
-                                                $sum += is_numeric($pRaw) ? (float) $pRaw : (float) str_replace(',', '.', str_replace('.', '', (string) $pRaw));
-                                            }
-                                            $amount = $sum;
-                                            if ($amount > 0) {
-                                                $set('amount', $amount);
-                                            }
-                                        }
+                                        $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                        $amount = (float) ($get('amount') ?? 0);
 
                                         $taxPercent = (float) ($state ?? 12);
-                                        $tax = round($amount * ($taxPercent / 100));
+                                        $tax = round($baseAmount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
 
@@ -487,35 +531,34 @@ class InvoiceForm
                                             'en' => "{$taxPercent}% VAT",
                                         ]);
                                     }),
+
                                 TextInput::make('tax_amount')
-                                    ->label('Tax Amount')
+                                    ->label('Tax Amount (VAT)')
                                     ->numeric()
                                     ->prefix('IDR')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->required()
                                     ->live(onBlur: true)
-                                    ->placeholder('0')
                                     ->helperText('Value Added Tax (PPN).')
                                     ->afterStateUpdated(function (Get $get, $set) {
-                                        $amountRaw = $get('amount') ?? 0;
-                                        $amount = ! is_string($amountRaw) ? (float) $amountRaw : (float) str_replace(',', '.', str_replace('.', '', $amountRaw));
-                                        $taxRaw = $get('tax_amount') ?? 0;
-                                        $tax = ! is_string($taxRaw) ? (float) $taxRaw : (float) str_replace(',', '.', str_replace('.', '', $taxRaw));
+                                        $amount = (float) ($get('amount') ?? 0);
+                                        $tax = (float) ($get('tax_amount') ?? 0);
                                         $set('total_amount', $amount + $tax);
                                     }),
+
                                 TextInput::make('total_amount')
-                                    ->label('Total Amount')
+                                    ->label('Total Billed')
                                     ->numeric()
                                     ->prefix('IDR')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->readonly()
-                                    ->placeholder('0')
-                                    ->helperText('The grand total to be paid by the customer.')
+                                    ->helperText('The grand total (Base Amount + VAT).')
                                     ->required(),
+
                                 TextInput::make('tax_wording')
                                     ->label('Tax Wording (PDF)')
                                     ->placeholder('e.g. PPN 12%')
-                                    ->columnSpan(2)
+                                    ->columnSpanFull()
                                     ->helperText('This text will appear in the tax row of the PDF summary.')
                                     ->translatable(),
                             ]),

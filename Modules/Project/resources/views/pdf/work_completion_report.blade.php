@@ -126,25 +126,37 @@
     $displaySourceType = '';
     $isInternal = false;
 
-    if ($source) {
-        if ($source instanceof \Modules\CRM\Models\SalesOrder) {
-            $isInternal = $source->type === \Modules\CRM\Enums\SalesOrderType::Internal;
-            $sourceNumber = $isInternal ? '-' : $source->number;
-            $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
-        } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
-            $sourceNumber = $source->number;
-            $displaySourceType = 'Purchase Order (PO)';
-        } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
-            $sourceNumber = $source->number;
-            $displaySourceType = 'Surat Perintah Kerja (SPK)';
-        } elseif ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
-            $sourceNumber = $source->number;
+    // Hierarchy Implementation: PKS > PO/SPK > SO
+    $displaySource = $source;
+    if ($source instanceof \Modules\CRM\Models\SalesOrder && $source->sourceable) {
+        // If it's an SO, check if it's based on a higher-tier document
+        $parentSource = $source->sourceable;
+        if ($parentSource instanceof \Modules\CRM\Models\CooperationAgreement || 
+            $parentSource instanceof \Modules\CRM\Models\PurchaseOrder || 
+            $parentSource instanceof \Modules\CRM\Models\WorkOrder) {
+            $displaySource = $parentSource;
+        }
+    }
+
+    if ($displaySource) {
+        if ($displaySource instanceof \Modules\CRM\Models\CooperationAgreement) {
+            $sourceNumber = $displaySource->number;
             $displaySourceType = $lang === 'id' ? 'Perjanjian Kerja Sama (PKS)' : 'Cooperation Agreement (PKS)';
-        } elseif ($source instanceof \Modules\CRM\Models\MinutesOfAgreement) {
-            $sourceNumber = $source->number;
+        } elseif ($displaySource instanceof \Modules\CRM\Models\PurchaseOrder) {
+            $sourceNumber = $displaySource->number;
+            $displaySourceType = 'Purchase Order (PO)';
+        } elseif ($displaySource instanceof \Modules\CRM\Models\WorkOrder) {
+            $sourceNumber = $displaySource->number;
+            $displaySourceType = $lang === 'id' ? 'Surat Perintah Kerja (SPK)' : 'Work Order (SPK)';
+        } elseif ($displaySource instanceof \Modules\CRM\Models\SalesOrder) {
+            $isInternal = $displaySource->type === \Modules\CRM\Enums\SalesOrderType::Internal;
+            $sourceNumber = $isInternal ? '-' : $displaySource->number;
+            $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
+        } elseif ($displaySource instanceof \Modules\CRM\Models\MinutesOfAgreement) {
+            $sourceNumber = $displaySource->number;
             $displaySourceType = 'Memorandum of Agreement (MoA)';
-        } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
-            $sourceNumber = $source->number;
+        } elseif ($displaySource instanceof \Modules\Project\Models\WorkCompletionReport) {
+            $sourceNumber = $displaySource->number;
             $displaySourceType = 'BAPP';
         }
     }
@@ -421,21 +433,38 @@
             </tbody>
             <tfoot>
                 <tr class="font-bold">
-                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">{{ $labels['table_grand_total'][$lang] }}</td>
+                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">Subtotal</td>
                     <td class="text-right" style="background-color: #f2f2f2;">
-                        {{ number_format($grandTotal, 0, ',', '.') }}</td>
+                        {{ number_format($record->total_amount, 0, ',', '.') }}</td>
                     <td colspan="2" style="background-color: #f2f2f2;"></td>
                 </tr>
+                @if($record->tax_amount > 0)
+                <tr class="font-bold">
+                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">
+                        PPN {{ (float)$record->tax_percentage }}%
+                        @if($record->tax_basis === 'management_fee')
+                            (DPP: Management Fee)
+                        @elseif($record->tax_basis === 'custom')
+                            (DPP: Manual)
+                        @endif
+                    </td>
+                    <td class="text-right" style="background-color: #f2f2f2;">
+                        {{ number_format($record->tax_amount, 0, ',', '.') }}</td>
+                    <td colspan="2" style="background-color: #f2f2f2;"></td>
+                </tr>
+                <tr class="font-bold">
+                    <td colspan="5" class="text-right" style="background-color: #f2f2f2;">{{ $labels['table_grand_total'][$lang] }}</td>
+                    <td class="text-right" style="background-color: #f2f2f2;">
+                        {{ number_format($record->total_amount + $record->tax_amount, 0, ',', '.') }}</td>
+                    <td colspan="2" style="background-color: #f2f2f2;"></td>
+                </tr>
+                @endif
             </tfoot>
         </table>
 
         @if($tax_wording && $tax_wording !== '-')
         <p class="font-bold" style="font-style: italic;">
             * {{ $tax_wording }}
-        </p>
-        @elseif($isInternal)
-        <p class="font-bold" style="font-style: italic;">
-            * -
         </p>
         @endif
 

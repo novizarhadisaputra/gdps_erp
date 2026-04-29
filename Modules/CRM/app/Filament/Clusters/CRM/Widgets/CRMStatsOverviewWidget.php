@@ -17,94 +17,95 @@ class CRMStatsOverviewWidget extends BaseWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    public static function canView(): bool
+    {
+        return true;
+    }
+
     protected function getStats(): array
     {
-        $cache = app(AnalyticsCacheService::class);
+        // Total Active Leads (not Won or Closed Lost)
+        $activeLeads = Lead::whereNotIn('status', [
+            LeadStatus::Won,
+            LeadStatus::ClosedLost,
+        ])->count();
 
-        return $cache->rememberRealtime('crm.stats_overview', function () {
-            // Total Active Leads (not Won or Closed Lost)
-            $activeLeads = Lead::whereNotIn('status', [
-                LeadStatus::Won,
-                LeadStatus::ClosedLost,
-            ])->count();
+        // This Month Conversion Rate
+        $thisMonthStart = Carbon::now()->startOfMonth();
+        $thisMonthLeads = Lead::where('created_at', '>=', $thisMonthStart)->count();
+        $thisMonthWon = Lead::where('status', LeadStatus::Won)
+            ->where('created_at', '>=', $thisMonthStart)
+            ->count();
+        $conversionRate = $thisMonthLeads > 0
+            ? round(($thisMonthWon / $thisMonthLeads) * 100, 2)
+            : 0;
 
-            // This Month Conversion Rate
-            $thisMonthStart = Carbon::now()->startOfMonth();
-            $thisMonthLeads = Lead::where('created_at', '>=', $thisMonthStart)->count();
-            $thisMonthWon = Lead::where('status', LeadStatus::Won)
-                ->where('created_at', '>=', $thisMonthStart)
-                ->count();
-            $conversionRate = $thisMonthLeads > 0
-                ? round(($thisMonthWon / $thisMonthLeads) * 100, 2)
-                : 0;
+        // Previous month for comparison
+        $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
+        $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
+        $lastMonthLeads = Lead::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
+        $lastMonthWon = Lead::where('status', LeadStatus::Won)
+            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->count();
+        $lastMonthConversionRate = $lastMonthLeads > 0
+            ? round(($lastMonthWon / $lastMonthLeads) * 100, 2)
+            : 0;
 
-            // Previous month for comparison
-            $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
-            $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
-            $lastMonthLeads = Lead::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
-            $lastMonthWon = Lead::where('status', LeadStatus::Won)
-                ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
-                ->count();
-            $lastMonthConversionRate = $lastMonthLeads > 0
-                ? round(($lastMonthWon / $lastMonthLeads) * 100, 2)
-                : 0;
+        $conversionTrend = $conversionRate - $lastMonthConversionRate;
 
-            $conversionTrend = $conversionRate - $lastMonthConversionRate;
+        // Total Pipeline Value
+        $pipelineValue = Lead::whereNotIn('status', [
+            LeadStatus::Won,
+            LeadStatus::ClosedLost,
+        ])->sum('estimated_amount');
 
-            // Total Pipeline Value
-            $pipelineValue = Lead::whereNotIn('status', [
-                LeadStatus::Won,
-                LeadStatus::ClosedLost,
-            ])->sum('estimated_amount');
+        // Average Deal Size
+        $avgDealSize = Lead::where('status', LeadStatus::Won)
+            ->avg('estimated_amount') ?? 0;
 
-            // Average Deal Size
-            $avgDealSize = Lead::where('status', LeadStatus::Won)
-                ->avg('estimated_amount') ?? 0;
+        // Leads Created This Month
+        $leadsThisMonth = Lead::where('created_at', '>=', $thisMonthStart)->count();
+        $leadsLastMonth = Lead::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
+        $leadsTrend = $leadsLastMonth > 0
+            ? round((($leadsThisMonth - $leadsLastMonth) / $leadsLastMonth) * 100, 1)
+            : 0;
 
-            // Leads Created This Month
-            $leadsThisMonth = Lead::where('created_at', '>=', $thisMonthStart)->count();
-            $leadsLastMonth = Lead::whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])->count();
-            $leadsTrend = $leadsLastMonth > 0
-                ? round((($leadsThisMonth - $leadsLastMonth) / $leadsLastMonth) * 100, 1)
-                : 0;
+        return [
+            Stat::make('Active Leads', number_format($activeLeads))
+                ->description('Leads in pipeline')
+                ->descriptionIcon(Heroicon::Funnel)
+                ->color('primary')
+                ->chart($this->getLeadsSparklineData()),
 
-            return [
-                Stat::make('Active Leads', number_format($activeLeads))
-                    ->description('Leads in pipeline')
-                    ->descriptionIcon(Heroicon::Funnel)
-                    ->color('primary')
-                    ->chart($this->getLeadsSparklineData()),
+            Stat::make('Conversion Rate', $conversionRate.'%')
+                ->description(
+                    $conversionTrend >= 0
+                        ? '+'.$conversionTrend.'% from last month'
+                        : $conversionTrend.'% from last month'
+                )
+                ->descriptionIcon($conversionTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
+                ->color($conversionTrend >= 0 ? 'success' : 'danger'),
 
-                Stat::make('Conversion Rate', $conversionRate.'%')
-                    ->description(
-                        $conversionTrend >= 0
-                            ? '+'.$conversionTrend.'% from last month'
-                            : $conversionTrend.'% from last month'
-                    )
-                    ->descriptionIcon($conversionTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
-                    ->color($conversionTrend >= 0 ? 'success' : 'danger'),
+            Stat::make('Pipeline Value', 'Rp '.number_format($pipelineValue, 0, ',', '.'))
+                ->description('Total estimated value')
+                ->descriptionIcon(Heroicon::CurrencyDollar)
+                ->color('warning'),
 
-                Stat::make('Pipeline Value', 'Rp '.number_format($pipelineValue, 0, ',', '.'))
-                    ->description('Total estimated value')
-                    ->descriptionIcon(Heroicon::CurrencyDollar)
-                    ->color('warning'),
+            Stat::make('Avg Deal Size', 'Rp '.number_format($avgDealSize, 0, ',', '.'))
+                ->description('From won deals')
+                ->descriptionIcon(Heroicon::Calculator)
+                ->color('info'),
 
-                Stat::make('Avg Deal Size', 'Rp '.number_format($avgDealSize, 0, ',', '.'))
-                    ->description('From won deals')
-                    ->descriptionIcon(Heroicon::Calculator)
-                    ->color('info'),
-
-                Stat::make('New Leads', number_format($leadsThisMonth))
-                    ->description(
-                        $leadsTrend >= 0
-                            ? '+'.$leadsTrend.'% from last month'
-                            : $leadsTrend.'% from last month'
-                    )
-                    ->descriptionIcon($leadsTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
-                    ->color($leadsTrend >= 0 ? 'success' : 'danger')
-                    ->chart($this->getNewLeadsSparklineData()),
-            ];
-        });
+            Stat::make('New Leads', number_format($leadsThisMonth))
+                ->description(
+                    $leadsTrend >= 0
+                        ? '+'.$leadsTrend.'% from last month'
+                        : $leadsTrend.'% from last month'
+                )
+                ->descriptionIcon($leadsTrend >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
+                ->color($leadsTrend >= 0 ? 'success' : 'danger')
+                ->chart($this->getNewLeadsSparklineData()),
+        ];
     }
 
     protected function getLeadsSparklineData(): array

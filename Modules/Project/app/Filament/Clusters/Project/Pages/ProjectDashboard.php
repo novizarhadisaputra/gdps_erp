@@ -36,7 +36,7 @@ class ProjectDashboard extends Page
     {
         return $schema
             ->components([
-                Grid::make(2)
+                Grid::make(1)
                     ->schema(fn (): array => $this->getWidgetsSchemaComponents($this->getWidgets())),
             ]);
     }

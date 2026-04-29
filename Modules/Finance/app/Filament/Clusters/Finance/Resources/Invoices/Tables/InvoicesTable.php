@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Tables;
 
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -11,7 +12,6 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Traits\HasInvoiceActions;
 
 class InvoicesTable
 {
@@ -44,17 +44,9 @@ class InvoicesTable
             ])
             ->recordActions([
                 ActionGroup::make([
-                    (new class
-                    {
-                        use HasInvoiceActions;
-
-                        public function getAction()
-                        {
-                            return $this->getExportPdfAction();
-                        }
-                    })->getAction(),
                     ViewAction::make(),
                     EditAction::make(),
+                    DeleteAction::make(),
                 ])
                     ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->tooltip('Actions'),

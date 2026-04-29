@@ -8,10 +8,20 @@ use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
+use Illuminate\Contracts\View\View;
 
 class RevenueForecastWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'revenueForecastChart';
+
+    protected int|string|array $columnSpan = 'full';
+
+    public static function canView(): bool
+    {
+        return true;
+    }
 
     protected static ?string $heading = 'Revenue Forecast';
 
@@ -21,77 +31,55 @@ class RevenueForecastWidget extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $cache = app(AnalyticsCacheService::class);
+        $months = [];
+        $actualRevenue = [];
+        $forecastedRevenue = [];
+        $optimisticForecast = [];
 
-        $data = $cache->rememberHourly('crm.revenue_forecast', function () {
-            $months = [];
-            $actualRevenue = [];
-            $forecastedRevenue = [];
-            $optimisticForecast = [];
+        // Get historical data (last 6 months)
+        for ($i = 5; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $monthStart = $date->copy()->startOfMonth();
+            $monthEnd = $date->copy()->endOfMonth();
 
-            // Get historical data (last 6 months)
-            for ($i = 5; $i >= 0; $i--) {
-                $date = Carbon::now()->subMonths($i);
-                $monthStart = $date->copy()->startOfMonth();
-                $monthEnd = $date->copy()->endOfMonth();
+            $months[] = $date->format('M Y');
 
-                $months[] = $date->format('M Y');
+            // Actual revenue from won deals
+            $actual = Lead::where('status', LeadStatus::Won)
+                ->whereBetween('created_at', [$monthStart, $monthEnd])
+                ->sum('estimated_amount');
 
-                // Actual revenue from won deals
-                $actual = Lead::where('status', LeadStatus::Won)
-                    ->whereBetween('created_at', [$monthStart, $monthEnd])
-                    ->sum('estimated_amount');
+            $actualRevenue[] = round($actual / 1000000, 2);
+            $forecastedRevenue[] = null;
+            $optimisticForecast[] = null;
+        }
 
-                $actualRevenue[] = round($actual / 1000000, 2);
-                $forecastedRevenue[] = null;
-                $optimisticForecast[] = null;
-            }
+        // Get forecast data (next 6 months)
+        for ($i = 0; $i < 6; $i++) {
+            $date = Carbon::now()->addMonths($i);
+            $months[] = $date->format('M Y');
 
-            // Get forecast data (next 6 months)
-            for ($i = 0; $i < 6; $i++) {
-                $date = Carbon::now()->addMonths($i);
-                $months[] = $date->format('M Y');
+            // Get all active prospects for this period
+            $leads = Lead::whereNotIn('status', [LeadStatus::Won, LeadStatus::ClosedLost])
+                ->whereDate('expected_closing_date', '>=', $date->copy()->startOfMonth())
+                ->whereDate('expected_closing_date', '<=', $date->copy()->endOfMonth())
+                ->get();
 
-                // Get all active prospects for this period
-                $leads = Lead::whereNotIn('status', [LeadStatus::Won, LeadStatus::ClosedLost])
-                    ->whereDate('expected_closing_date', '>=', $date->copy()->startOfMonth())
-                    ->whereDate('expected_closing_date', '<=', $date->copy()->endOfMonth())
-                    ->with(['profitabilityAnalysis.monthlies' => function ($query) use ($date) {
-                        $query->where('month', $date->format('F'))
-                              ->where('year', $date->year);
-                    }])
-                    ->get();
+            $weighted = $leads->sum(function ($lead) {
+                return ($lead->estimated_amount * ($lead->probability ?? 50)) / 100;
+            });
 
-                $weighted = $leads->sum(function ($lead) use ($date) {
-                    $monthly = $lead->profitabilityAnalysis?->monthlies
-                        ->where('month', $date->format('F'))
-                        ->where('year', $date->year)
-                        ->first();
-                    
-                    $amount = $monthly ? $monthly->forecast_revenue : $lead->estimated_amount;
+            // Optimistic forecast
+            $optimistic = $leads->sum(function ($lead) {
+                return $lead->estimated_amount * 0.9;
+            });
 
-                    return ($amount * ($lead->probability ?? 50)) / 100;
-                });
+            $actualRevenue[] = null;
+            $forecastedRevenue[] = round($weighted / 1000000, 2);
+            $optimisticForecast[] = round($optimistic / 1000000, 2);
+        }
 
-                // Optimistic forecast
-                $optimistic = $leads->sum(function ($lead) use ($date) {
-                    $monthly = $lead->profitabilityAnalysis?->monthlies
-                        ->where('month', $date->format('F'))
-                        ->where('year', $date->year)
-                        ->first();
-                        
-                    $amount = $monthly ? $monthly->forecast_revenue : $lead->estimated_amount;
-
-                    return $amount * 0.9;
-                });
-
-                $actualRevenue[] = null;
-                $forecastedRevenue[] = round($weighted / 1000000, 2);
-                $optimisticForecast[] = round($optimistic / 1000000, 2);
-            }
-
-            return compact('months', 'actualRevenue', 'forecastedRevenue', 'optimisticForecast');
-        });
+        $data = compact('months', 'actualRevenue', 'forecastedRevenue', 'optimisticForecast');
 
         return [
             'chart' => [
@@ -152,40 +140,23 @@ class RevenueForecastWidget extends ApexChartWidget
                     'style' => [
                         'fontFamily' => 'inherit',
                     ],
-                    'formatter' => null,
                 ],
             ],
             'tooltip' => [
+                'enabled' => true,
                 'theme' => 'dark',
-                'x' => [
-                    'format' => 'MMM yyyy',
-                ],
-                'y' => [
-                    'formatter' => null,
-                ],
             ],
             'legend' => [
                 'position' => 'top',
                 'horizontalAlign' => 'left',
                 'fontFamily' => 'inherit',
             ],
-            'annotations' => [
-                'xaxis' => [
-                    [
-                        'x' => $data['months'][5],
-                        'borderColor' => '#999',
-                        'label' => [
-                            'borderColor' => '#999',
-                            'style' => [
-                                'color' => '#fff',
-                                'background' => '#999',
-                                'fontFamily' => 'inherit',
-                            ],
-                            'text' => 'Today',
-                        ],
-                    ],
-                ],
-            ],
+
         ];
+    }
+
+    protected function getFooter(): string|Htmlable|View|null
+    {
+        return new HtmlString('<p class="text-xs text-gray-500 mt-2">Future revenue projection based on active leads pipeline and expected closing dates.</p>');
     }
 }
