@@ -19,6 +19,12 @@ class ProjectChangeRequestForm
             Section::make('Change Request Details')
                 ->description('Specify the project, the type of change and provide detailed notes regarding the adjustment.')
                 ->schema([
+                    TextInput::make('number')
+                        ->label('PCR Number')
+                        ->disabled()
+                        ->placeholder('Will be generated automatically')
+                        ->visible(fn (?ProjectChangeRequest $record) => $record !== null),
+
                     Select::make('project_id')
                         ->relationship('project', 'number')
                         ->required()

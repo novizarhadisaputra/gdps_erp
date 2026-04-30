@@ -25,6 +25,7 @@ return new class extends Migration
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
             $table->integer('progress_percentage')->default(0);
+            $table->nullableUuidMorphs('sourceable');
             $table->timestamps();
         });
 

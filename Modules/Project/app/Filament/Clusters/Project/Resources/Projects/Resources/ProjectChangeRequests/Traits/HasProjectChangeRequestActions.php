@@ -3,7 +3,10 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Traits;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Modules\Project\Enums\ProjectChangeRequestStatus;
@@ -14,19 +17,29 @@ trait HasProjectChangeRequestActions
     protected function getProjectChangeRequestHeaderActions(): array
     {
         return [
-            EditAction::make()
-                ->visible(fn (ProjectChangeRequest $record) => $record->status === ProjectChangeRequestStatus::Draft),
-
             $this->getSubmitAction(),
             $this->getApproveAction(),
-            $this->getRejectAction(),
+
+            ActionGroup::make([
+                EditAction::make()
+                    ->visible(fn (ProjectChangeRequest $record) => $record->status === ProjectChangeRequestStatus::Draft),
+
+                $this->getRejectAction(),
+
+                DeleteAction::make()
+                    ->visible(fn (ProjectChangeRequest $record) => $record->status === ProjectChangeRequestStatus::Draft),
+            ])
+                ->label('Options')
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
         ];
     }
 
     protected function getSubmitAction(): Action
     {
         return Action::make('submit')
-            ->label('Submit Request')
+            ->label('Submit')
             ->color('info')
             ->icon(Heroicon::OutlinedPaperAirplane)
             ->visible(fn (ProjectChangeRequest $record) => $record->status === ProjectChangeRequestStatus::Draft)
@@ -76,7 +89,7 @@ trait HasProjectChangeRequestActions
             ->modalHeading('Reject Change Request')
             ->modalDescription('Please provide a reason for rejecting this request.')
             ->form([
-                \Filament\Forms\Components\Textarea::make('reason')
+                Textarea::make('reason')
                     ->label('Rejection Reason')
                     ->required(),
             ])

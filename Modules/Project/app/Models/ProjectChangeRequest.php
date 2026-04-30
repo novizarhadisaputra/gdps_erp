@@ -3,10 +3,12 @@
 namespace Modules\Project\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Project\Enums\ProjectChangeRequestStatus;
 use Modules\Project\Enums\ProjectChangeRequestType;
@@ -42,6 +44,11 @@ class ProjectChangeRequest extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function tasks(): MorphMany
+    {
+        return $this->morphMany(ProjectTask::class, 'sourceable');
+    }
+
     public function approve(): void
     {
         if ($this->status !== ProjectChangeRequestStatus::Submitted) {
@@ -56,6 +63,8 @@ class ProjectChangeRequest extends Model
             'description' => $this->notes,
             'status' => TaskStatus::Todo,
             'priority' => TaskPriority::Medium,
+            'sourceable_id' => $this->id,
+            'sourceable_type' => $this->getMorphClass(),
         ]);
     }
 

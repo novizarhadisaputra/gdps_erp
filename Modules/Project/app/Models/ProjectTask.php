@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Modules\Project\Enums\TaskPriority;
 use Modules\Project\Enums\TaskStatus;
 use Modules\Project\Observers\ProjectTaskObserver;
@@ -35,6 +36,8 @@ class ProjectTask extends Model
         'start_date',
         'end_date',
         'progress_percentage',
+        'sourceable_id',
+        'sourceable_type',
     ];
 
     protected function casts(): array
@@ -71,5 +74,10 @@ class ProjectTask extends Model
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable')->oldest();
+    }
+
+    public function sourceable(): MorphTo
+    {
+        return $this->morphTo();
     }
 }

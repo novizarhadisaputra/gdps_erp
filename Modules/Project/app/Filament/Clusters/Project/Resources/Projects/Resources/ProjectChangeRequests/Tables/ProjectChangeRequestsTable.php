@@ -3,7 +3,6 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Tables;
 
 use Filament\Actions;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\Project\Enums\ProjectChangeRequestStatus;
@@ -57,42 +56,9 @@ class ProjectChangeRequestsTable
                     Actions\ViewAction::make(),
                     Actions\EditAction::make()
                         ->visible(fn ($record) => $record->status === ProjectChangeRequestStatus::Draft),
-
-                    Actions\Action::make('submit')
-                        ->label('Submit')
-                        ->icon('heroicon-o-paper-airplane')
-                        ->color('info')
-                        ->requiresConfirmation()
-                        ->visible(fn ($record) => $record->status === ProjectChangeRequestStatus::Draft)
-                        ->action(fn ($record) => $record->submit()),
-
-                    Actions\Action::make('approve')
-                        ->label('Approve')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->requiresConfirmation()
-                        ->visible(fn ($record) => $record->status === ProjectChangeRequestStatus::Submitted)
-                        ->action(fn ($record) => $record->approve()),
-
-                    Actions\Action::make('reject')
-                        ->label('Reject')
-                        ->icon('heroicon-o-x-circle')
-                        ->color('danger')
-                        ->requiresConfirmation()
-                        ->visible(fn ($record) => $record->status === ProjectChangeRequestStatus::Submitted)
-                        ->form([
-                            \Filament\Forms\Components\Textarea::make('reason')
-                                ->label('Reason')
-                                ->required(),
-                        ])
-                        ->action(fn ($record, array $data) => $record->reject($data['reason'] ?? null)),
-
                     Actions\DeleteAction::make()
                         ->visible(fn ($record) => $record->status === ProjectChangeRequestStatus::Draft),
                 ]),
-            ])
-            ->headerActions([
-                Actions\CreateAction::make(),
             ])
             ->toolbarActions([
                 Actions\BulkActionGroup::make([

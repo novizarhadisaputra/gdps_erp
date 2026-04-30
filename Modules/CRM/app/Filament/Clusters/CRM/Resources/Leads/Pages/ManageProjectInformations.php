@@ -54,9 +54,9 @@ class ManageProjectInformations extends ManageRelatedRecords
     public function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('document_number')
+            ->recordTitleAttribute('number')
             ->columns([
-                TextColumn::make('document_number'),
+                TextColumn::make('number'),
                 TextColumn::make('status')
                     ->badge(),
                 TextColumn::make('name')
@@ -89,8 +89,8 @@ class ManageProjectInformations extends ManageRelatedRecords
                     EditAction::make(),
                     DeleteAction::make(),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('primary'),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('primary'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
