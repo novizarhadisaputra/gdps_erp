@@ -46,8 +46,12 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'project_change_requests' : 'project.project_change_requests', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->onDelete('cascade');
+            $table->string('number')->nullable()->unique();
+            $table->integer('sequence_number')->nullable();
+            $table->integer('year')->nullable();
             $table->string('type');
             $table->text('notes')->nullable();
+            $table->string('status')->default('draft');
             $table->softDeletes();
             $table->timestamps();
         });

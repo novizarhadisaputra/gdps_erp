@@ -10,6 +10,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes\Pages\CreateBenefitType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes\Pages\EditBenefitType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes\Pages\ListBenefitTypes;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes\Pages\ViewBenefitType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes\Schemas\BenefitTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BenefitTypes\Tables\BenefitTypesTable;
 use Modules\MasterData\Models\BenefitType;
@@ -21,6 +22,8 @@ class BenefitTypeResource extends Resource
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = MasterDataCluster::class;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Payroll & Benefits';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -46,6 +49,7 @@ class BenefitTypeResource extends Resource
         return [
             'index' => ListBenefitTypes::route('/'),
             'create' => CreateBenefitType::route('/create'),
+            'view' => ViewBenefitType::route('/{record}'),
             'edit' => EditBenefitType::route('/{record}/edit'),
         ];
     }

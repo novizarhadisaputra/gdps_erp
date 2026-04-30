@@ -2,15 +2,18 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\SkillCategories\Pages;
 
-use Filament\Resources\Pages\CreateRecord;
+use Filament\Actions\EditAction;
+use Filament\Resources\Pages\ViewRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\SkillCategories\SkillCategoryResource;
 
-class CreateSkillCategory extends CreateRecord
+class ViewSkillCategory extends ViewRecord
 {
     protected static string $resource = SkillCategoryResource::class;
 
-    protected function getRedirectUrl(): string
+    protected function getHeaderActions(): array
     {
-        return $this->getResource()::getUrl('index');
+        return [
+            EditAction::make(),
+        ];
     }
 }

@@ -1,16 +1,16 @@
 <?php
 
-namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests;
+namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectChangeRequests;
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
-use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Pages\CreateProjectChangeRequest;
-use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Pages\EditProjectChangeRequest;
-use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Pages\ListProjectChangeRequests;
-use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Pages\ViewProjectChangeRequest;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectChangeRequests\Pages\CreateProjectChangeRequest;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectChangeRequests\Pages\EditProjectChangeRequest;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectChangeRequests\Pages\ListProjectChangeRequests;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectChangeRequests\Pages\ViewProjectChangeRequest;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Schemas\ProjectChangeRequestForm;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Tables\ProjectChangeRequestsTable;
 use Modules\Project\Models\ProjectChangeRequest;

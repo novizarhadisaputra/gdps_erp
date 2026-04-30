@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Pages\CreateJobPosition;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Pages\EditJobPosition;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Pages\ListJobPositions;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Pages\ViewJobPosition;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Tables\JobPositionsTable;
 use Modules\MasterData\Models\JobPosition;
@@ -22,7 +25,7 @@ class JobPositionResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
+    protected static string|\UnitEnum|null $navigationGroup = 'HR & Organization';
 
     public static function form(Schema $schema): Schema
     {
@@ -45,6 +48,9 @@ class JobPositionResource extends Resource
     {
         return [
             'index' => ListJobPositions::route('/'),
+            'create' => CreateJobPosition::route('/create'),
+            'view' => ViewJobPosition::route('/{record}'),
+            'edit' => EditJobPosition::route('/{record}/edit'),
         ];
     }
 }

@@ -8,4 +8,9 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxObjects\TaxObje
 class CreateTaxObject extends CreateRecord
 {
     protected static string $resource = TaxObjectResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

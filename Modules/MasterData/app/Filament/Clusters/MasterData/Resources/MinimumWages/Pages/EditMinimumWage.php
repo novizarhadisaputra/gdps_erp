@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\Pages;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\UnitResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\MinimumWageResource;
 
-class EditUnit extends EditRecord
+class EditMinimumWage extends EditRecord
 {
-    protected static string $resource = UnitResource::class;
+    protected static string $resource = MinimumWageResource::class;
 
     protected function getHeaderActions(): array
     {

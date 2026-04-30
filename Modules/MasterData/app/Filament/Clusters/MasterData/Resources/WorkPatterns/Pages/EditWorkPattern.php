@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkPatterns\Pages;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\UnitResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkPatterns\WorkPatternResource;
 
-class EditUnit extends EditRecord
+class EditWorkPattern extends EditRecord
 {
-    protected static string $resource = UnitResource::class;
+    protected static string $resource = WorkPatternResource::class;
 
     protected function getHeaderActions(): array
     {

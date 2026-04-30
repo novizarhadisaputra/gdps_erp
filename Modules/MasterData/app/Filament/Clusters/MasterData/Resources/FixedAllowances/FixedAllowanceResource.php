@@ -10,6 +10,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\FixedAllowances\Pages\CreateFixedAllowance;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\FixedAllowances\Pages\EditFixedAllowance;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\FixedAllowances\Pages\ListFixedAllowances;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\FixedAllowances\Pages\ViewFixedAllowance;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\FixedAllowances\Schemas\FixedAllowanceForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\FixedAllowances\Tables\FixedAllowancesTable;
 use Modules\MasterData\Models\FixedAllowance;
@@ -21,6 +22,8 @@ class FixedAllowanceResource extends Resource
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = MasterDataCluster::class;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Payroll & Benefits';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -46,6 +49,7 @@ class FixedAllowanceResource extends Resource
         return [
             'index' => ListFixedAllowances::route('/'),
             'create' => CreateFixedAllowance::route('/create'),
+            'view' => ViewFixedAllowance::route('/{record}'),
             'edit' => EditFixedAllowance::route('/{record}/edit'),
         ];
     }

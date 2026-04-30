@@ -2,22 +2,12 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages;
 
-use Filament\Actions\DeleteAction;
-use Filament\Actions\ViewAction;
-use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\CreateRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\UnitResource;
 
-class EditUnit extends EditRecord
+class CreateUnit extends CreateRecord
 {
     protected static string $resource = UnitResource::class;
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            ViewAction::make(),
-            DeleteAction::make(),
-        ];
-    }
 
     protected function getRedirectUrl(): string
     {

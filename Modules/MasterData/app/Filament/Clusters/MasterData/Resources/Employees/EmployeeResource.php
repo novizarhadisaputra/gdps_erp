@@ -26,7 +26,7 @@ class EmployeeResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
+    protected static string|\UnitEnum|null $navigationGroup = 'HR & Organization';
 
     public static function canCreate(): bool
     {

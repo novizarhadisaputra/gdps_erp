@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\Pages\CreateMinimumWage;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\Pages\EditMinimumWage;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\Pages\ListMinimumWages;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\Pages\ViewMinimumWage;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\Schemas\MinimumWageForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\MinimumWages\Tables\MinimumWagesTable;
 use Modules\MasterData\Models\MinimumWage;
@@ -28,7 +31,7 @@ class MinimumWageResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Human Resources';
+    protected static string|\UnitEnum|null $navigationGroup = 'Payroll & Benefits';
 
     public static function form(Schema $schema): Schema
     {
@@ -51,6 +54,9 @@ class MinimumWageResource extends Resource
     {
         return [
             'index' => ListMinimumWages::route('/'),
+            'create' => CreateMinimumWage::route('/create'),
+            'view' => ViewMinimumWage::route('/{record}'),
+            'edit' => EditMinimumWage::route('/{record}/edit'),
         ];
     }
 }

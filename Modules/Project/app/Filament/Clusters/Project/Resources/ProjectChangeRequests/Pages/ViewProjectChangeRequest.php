@@ -1,12 +1,12 @@
 <?php
 
-namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Pages;
+namespace Modules\Project\Filament\Clusters\Project\Resources\ProjectChangeRequests\Pages;
 
-use Filament\Resources\Pages\EditRecord;
-use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\ProjectChangeRequestResource;
+use Filament\Resources\Pages\ViewRecord;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectChangeRequests\ProjectChangeRequestResource;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Traits\HasProjectChangeRequestActions;
 
-class EditProjectChangeRequest extends EditRecord
+class ViewProjectChangeRequest extends ViewRecord
 {
     use HasProjectChangeRequestActions;
 

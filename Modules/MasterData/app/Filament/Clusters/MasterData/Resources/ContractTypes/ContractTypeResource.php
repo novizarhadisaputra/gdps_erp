@@ -10,6 +10,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContractTypes\Pages\CreateContractType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContractTypes\Pages\EditContractType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContractTypes\Pages\ListContractTypes;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContractTypes\Pages\ViewContractType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContractTypes\Schemas\ContractTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContractTypes\Tables\ContractTypesTable;
 use Modules\MasterData\Models\ContractType;
@@ -21,6 +22,8 @@ class ContractTypeResource extends Resource
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $cluster = MasterDataCluster::class;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'HR & Organization';
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -46,6 +49,7 @@ class ContractTypeResource extends Resource
         return [
             'index' => ListContractTypes::route('/'),
             'create' => CreateContractType::route('/create'),
+            'view' => ViewContractType::route('/{record}'),
             'edit' => EditContractType::route('/{record}/edit'),
         ];
     }

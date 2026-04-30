@@ -4,8 +4,10 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources
 
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Modules\Project\Enums\ProjectChangeRequestStatus;
 use Modules\Project\Enums\ProjectChangeRequestType;
 use Modules\Project\Models\ProjectChangeRequest;
 
@@ -28,6 +30,12 @@ class ProjectChangeRequestForm
                         ->columnSpanFull()
                         ->hidden(fn (?ProjectChangeRequest $record) => $record && $record->project_id),
 
+                    TextInput::make('status')
+                        ->label('Status')
+                        ->default('draft')
+                        ->disabled()
+                        ->visible(fn (?ProjectChangeRequest $record) => $record !== null),
+
                     Select::make('type')
                         ->label('Request Type')
                         ->options(ProjectChangeRequestType::class)
@@ -35,14 +43,16 @@ class ProjectChangeRequestForm
                         ->searchable()
                         ->preload()
                         ->placeholder('Select the type of change')
-                        ->helperText('Choose whether this change relates to Manpower or Scope of Work.'),
+                        ->helperText('Choose whether this change relates to Manpower or Scope of Work.')
+                        ->disabled(fn (?ProjectChangeRequest $record) => $record && $record->status !== ProjectChangeRequestStatus::Draft),
 
                     RichEditor::make('notes')
                         ->label('Detailed Notes')
                         ->required()
                         ->placeholder('Provide a comprehensive description of the change request...')
                         ->helperText('Include specific details, reasons, and any relevant background information for this request.')
-                        ->columnSpanFull(),
+                        ->columnSpanFull()
+                        ->disabled(fn (?ProjectChangeRequest $record) => $record && $record->status !== ProjectChangeRequestStatus::Draft),
                 ])
                 ->columns(1)
                 ->columnSpanFull(),
