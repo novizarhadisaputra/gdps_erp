@@ -4,10 +4,10 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages;
 
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Support\Icons\Heroicon;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
 

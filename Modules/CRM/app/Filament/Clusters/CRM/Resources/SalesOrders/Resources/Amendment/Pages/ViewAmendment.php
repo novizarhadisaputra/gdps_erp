@@ -3,7 +3,9 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages;
 
 use Barryvdh\DomPDF\Facade\Pdf;
-use Filament\Actions\{Action, ActionGroup, EditAction};
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -18,29 +20,29 @@ class ViewAmendment extends ViewRecord
     use InteractsWithParentRecord;
 
     protected static string $resource = AmendmentResource::class;
- 
-     protected function mutateFormDataBeforeFill(array $data): array
-     {
-         $after = $data['after_snapshot'] ?? [];
-         $unified = [];
- 
-         // Add Items
-         foreach ($after['items'] ?? [] as $item) {
-             $unified[] = array_merge($item, ['type' => 'item']);
-         }
- 
-         // Add Manpower
-         foreach ($after['manpower_details'] ?? [] as $mp) {
-             $unified[] = array_merge($mp, [
-                 'type' => 'personnel',
-                 'description' => $mp['job_position_name'] ?? '',
-             ]);
-         }
- 
-         $data['after_snapshot_unified'] = $unified;
- 
-         return $data;
-     }
+
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $after = $data['after_snapshot'] ?? [];
+        $unified = [];
+
+        // Add Items
+        foreach ($after['items'] ?? [] as $item) {
+            $unified[] = array_merge($item, ['type' => 'item']);
+        }
+
+        // Add Manpower
+        foreach ($after['manpower_details'] ?? [] as $mp) {
+            $unified[] = array_merge($mp, [
+                'type' => 'personnel',
+                'description' => $mp['job_position_name'] ?? '',
+            ]);
+        }
+
+        $data['after_snapshot_unified'] = $unified;
+
+        return $data;
+    }
 
     protected function getHeaderActions(): array
     {
@@ -87,9 +89,12 @@ class ViewAmendment extends ViewRecord
                     ->color('gray')
                     ->action(function (SalesOrderAmendment $record) {
                         $pdf = Pdf::loadView('crm::pdf.sales-order-amendment', ['record' => $record]);
-                        $filename = str_replace(['/', '\\'], '-', $record->amendment_number);
+                        $name = str_replace(['/', '\\'], '-', $record->number);
+                        $soName = str_replace(['/', '\\'], '-', $record->salesOrder?->number ?? 'Unknown-SO');
+                        $leadName = \Illuminate\Support\Str::slug($record->salesOrder?->lead?->company_name ?? $record->salesOrder?->lead?->title ?? 'Unknown-Lead', '-');
+                        $fileName = "SOA_{$name}_{$soName}_{$leadName}.pdf";
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "soa-{$filename}.pdf");
+                        return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
             ])
                 ->label('More Actions')

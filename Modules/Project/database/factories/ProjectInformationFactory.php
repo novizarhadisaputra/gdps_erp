@@ -3,8 +3,8 @@
 namespace Modules\Project\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Project\Models\Project;
 use Modules\Project\Enums\ProjectInformationStatus;
+use Modules\Project\Models\Project;
 
 class ProjectInformationFactory extends Factory
 {

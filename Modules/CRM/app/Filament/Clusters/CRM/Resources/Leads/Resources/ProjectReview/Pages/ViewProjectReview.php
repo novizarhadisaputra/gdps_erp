@@ -44,12 +44,12 @@ class ViewProjectReview extends ViewRecord
                 ->action(function () {
                     $pdf = Pdf::loadView('crm::pdf.project-review', ['record' => $this->record]);
 
-                    $filename = 'Project-Review-'.($this->record->lead?->reference_no ?: $this->record->id);
-                    $filename = str_replace(['/', '\\'], '-', $filename);
+                    $leadName = \Illuminate\Support\Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
+                    $fileName = "ProjectReview_{$leadName}.pdf";
 
                     return response()->streamDownload(
                         fn () => print ($pdf->output()),
-                        "{$filename}.pdf"
+                        "{$fileName}"
                     );
                 }),
         ];

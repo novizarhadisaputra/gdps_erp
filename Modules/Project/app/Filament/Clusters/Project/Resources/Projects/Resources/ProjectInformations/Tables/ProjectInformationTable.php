@@ -129,12 +129,13 @@ class ProjectInformationTable
                                         ]
                                     )->setPaper('a4', 'portrait');
 
-                                    $filename = 'project_info_'.($record->project?->code ?? $record->id).'.pdf';
-                                    $filename = str_replace(['/', '\\'], '_', $filename);
+                                    $name = str_replace(['/', '\\'], '-', $record->project?->project_code ?? $record->project?->code ?? 'Draft');
+                                    $customerName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                                    $fileName = "ProjectInfo_{$name}_{$customerName}.pdf";
 
                                     return response()->streamDownload(function () use ($pdf) {
                                         echo $pdf->output();
-                                    }, $filename, [
+                                    }, $fileName, [
                                         'Content-Type' => 'application/pdf',
                                     ]);
                                 }),
@@ -153,12 +154,13 @@ class ProjectInformationTable
                                 ]
                             )->setPaper('a4', 'portrait');
 
-                            $filename = 'project_info_'.($record->project?->project_code ?? $record->id).'.pdf';
-                            $filename = str_replace(['/', '\\'], '_', $filename);
+                            $name = str_replace(['/', '\\'], '-', $record->project?->project_code ?? $record->project?->code ?? 'Draft');
+                            $customerName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                            $fileName = "ProjectInfo_{$name}_{$customerName}.pdf";
 
                             return response()->streamDownload(function () use ($pdf) {
                                 echo $pdf->output();
-                            }, $filename, [
+                            }, $fileName, [
                                 'Content-Type' => 'application/pdf',
                             ]);
                         }),

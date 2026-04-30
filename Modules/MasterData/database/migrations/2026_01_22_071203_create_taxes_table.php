@@ -15,9 +15,14 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('name');
+            $table->string('category')->default('sales'); // sales, purchase, internal
+            $table->string('calculation_type')->default('exclusive'); // exclusive, inclusive, formula
             $table->decimal('rate', 5, 2)->default(0);
+            $table->integer('base_rate_numerator')->default(1);
+            $table->integer('base_rate_denominator')->default(1);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

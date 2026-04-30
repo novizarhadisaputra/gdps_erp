@@ -3,8 +3,6 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Modules\MasterData\Models\Province;
-use Modules\MasterData\Models\Regency;
 use Modules\MasterData\Services\WilayahSyncService;
 
 class ProvincialRegencySeeder extends Seeder
@@ -14,7 +12,7 @@ class ProvincialRegencySeeder extends Seeder
      */
     public function run(): void
     {
-        $syncService = new WilayahSyncService();
+        $syncService = new WilayahSyncService;
 
         // 1. Sync Provinces (Level 1)
         if ($this->command) {
@@ -27,7 +25,7 @@ class ProvincialRegencySeeder extends Seeder
             $this->command->info('Syncing Regencies from wilayah.id...');
         }
         $syncService->syncAllRegencies();
-        
+
         $this->command->info('Geographic data synced successfully.');
     }
 }

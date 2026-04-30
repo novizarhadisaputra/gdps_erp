@@ -2,12 +2,12 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\WorkPatterns\Tables;
 
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Actions\EditAction;
-use Filament\Actions\DeleteAction;
 
 class WorkPatternsTable
 {

@@ -6,11 +6,13 @@ use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\EditProject;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ListProjects;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageDailyReports;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectChangeRequests;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectComments;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectInformations;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ManageProjectMembers;
@@ -21,7 +23,6 @@ use Modules\Project\Filament\Clusters\Project\Resources\Projects\Pages\ViewProje
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectForm;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Schemas\ProjectInfolist;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Tables\ProjectsTable;
-use Filament\Support\Icons\Heroicon;
 use Modules\Project\Models\Project;
 
 class ProjectResource extends Resource
@@ -32,7 +33,7 @@ class ProjectResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
 
     public static function getSubNavigationPosition(): SubNavigationPosition
     {
@@ -48,6 +49,7 @@ class ProjectResource extends Resource
             ManageProjectMembers::class,
             ManageProjectTasks::class,
             ManageDailyReports::class,
+            ManageProjectChangeRequests::class,
             ManageProjectComments::class,
             ManageWorkCompletionReports::class,
         ]);
@@ -87,6 +89,7 @@ class ProjectResource extends Resource
             'project-tasks' => ManageProjectTasks::route('/{record}/tasks'),
             'project-daily-reports' => ManageDailyReports::route('/{record}/daily-reports'),
             'project-comments' => ManageProjectComments::route('/{record}/discussions'),
+            'project-change-requests' => ManageProjectChangeRequests::route('/{record}/change-requests'),
             'work-completion-reports' => ManageWorkCompletionReports::route('/{record}/work-completion-reports'),
         ];
     }

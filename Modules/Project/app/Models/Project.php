@@ -160,6 +160,11 @@ class Project extends Model implements HasMedia
         return $this->hasMany(DailyReport::class);
     }
 
+    public function changeRequests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ProjectChangeRequest::class);
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable')->oldest();
@@ -228,7 +233,6 @@ class Project extends Model implements HasMedia
     public function getAmountAttribute(): float
     {
         return $this->proposal?->amount
-            ?? $this->contract?->proposal?->amount
             ?? $this->profitabilityAnalysis?->revenue_per_month
             ?? 0.0;
     }

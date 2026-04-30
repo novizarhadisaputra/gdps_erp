@@ -2,14 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 
-use App\Services\AnalyticsCacheService;
+use App\Services\CRMAnalyticsService;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
-use Modules\CRM\Enums\LeadStatus;
-use Modules\CRM\Models\Lead;
+use Livewire\Attributes\Locked;
 
 class LeadPipelineWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'leadPipelineChart';
+
+    #[Locked]
+    public ?array $options = null;
 
     protected static ?string $heading = 'Sales Pipeline';
 
@@ -19,35 +21,7 @@ class LeadPipelineWidget extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $cache = app(AnalyticsCacheService::class);
-
-        $data = $cache->rememberRealtime('crm.lead_pipeline_levels', function () {
-            $levels = [
-                'level_1' => [LeadStatus::Lead, LeadStatus::Approach],
-                'level_2' => [LeadStatus::Proposal],
-                'level_3' => [LeadStatus::Negotiation],
-                'level_4' => [LeadStatus::Contract],
-            ];
-
-            $results = [];
-
-            foreach ($levels as $key => $statuses) {
-                $leads = Lead::whereIn('status', $statuses)
-                    ->with('profitabilityAnalyses')
-                    ->get();
-
-                $results[$key . '_count'] = $leads->count();
-                $results[$key . '_value'] = $leads->sum(function ($lead) {
-                    $pa = $lead->profitabilityAnalyses->sortByDesc('created_at')->first();
-                    
-                    return $pa 
-                        ? (float) $pa->revenue_per_month 
-                        : (float) $lead->estimated_amount;
-                });
-            }
-
-            return $results;
-        });
+        $data = app(CRMAnalyticsService::class)->getLeadPipelineData();
 
         $stages = ['Prospecting (Level 1)', 'Proposal (Level 2)', 'Negotiation (Level 3)', 'Finalization (Level 4)'];
         $counts = [

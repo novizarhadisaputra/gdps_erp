@@ -81,7 +81,25 @@ class WorkCompletionReportForm
                             ->options(Project::all()->pluck('name', 'id'))
                             ->searchable()
                             ->required()
-                            ->live(),
+                            ->live()
+                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                if (! $state) {
+                                    return;
+                                }
+
+                                $project = Project::find($state);
+                                if ($project?->lead?->industrialSector?->name === 'FMCG') {
+                                    $set('tax_percentage', '11');
+
+                                    // Update related fields
+                                    $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                    $set('tax_amount', round($baseAmount * 0.11));
+                                    $set('tax_wording', [
+                                        'id' => 'Penyelesaian pekerjaan di atas belum termasuk PPN 11%',
+                                        'en' => 'The above work completion does not include 11% VAT',
+                                    ]);
+                                }
+                            }),
                         Select::make('customer_id')
                             ->label('Customer')
                             ->placeholder('Select customer')
@@ -478,16 +496,16 @@ class WorkCompletionReportForm
                             Select::make('tax_percentage')
                                 ->label('VAT Percentage')
                                 ->options([
-                                    '12' => 'PPN 12%',
                                     '11' => 'PPN 11%',
+                                    '12' => 'PPN 12%',
                                 ])
-                                ->default('12')
+                                ->default(fn (Get $get) => $get('project_id') && \Modules\Project\Models\Project::find($get('project_id'))?->lead?->industrialSector?->name === 'FMCG' ? '11' : '12')
                                 ->live()
                                 ->afterStateUpdated(function ($state, $set, $get) {
                                     $baseAmount = (float) ($get('tax_base_amount') ?? 0);
                                     $taxPercent = (float) ($state ?? 12);
                                     $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
-                                    
+
                                     $set('tax_wording', [
                                         'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$state}%",
                                         'en' => "The above work completion does not include {$state}% VAT",
@@ -511,21 +529,22 @@ class WorkCompletionReportForm
                                     if ($state === 'management_fee') {
                                         $items = $get('items') ?? [];
                                         $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
-                                        
+
                                         $mfSum = collect($activeItems)->filter(function ($item) {
-                                            $name = strtolower($item['item_name'] ?? '');
-                                            return str_contains($name, 'management fee') || str_contains($name, 'fee');
+                                            $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+
+                                            return str_contains($name, 'management fee');
                                         })->sum(function ($item) {
-                                            return is_numeric($item['total_price']) ? (float)$item['total_price'] : 0;
+                                            return is_numeric($item['total_price']) ? (float) $item['total_price'] : 0;
                                         });
-                                        
+
                                         $baseAmount = $mfSum;
                                     } elseif ($state === 'custom') {
                                         $baseAmount = $get('tax_base_amount') ?? 0;
                                     }
 
                                     $set('tax_base_amount', $baseAmount);
-                                    
+
                                     $taxPercent = (float) ($get('tax_percentage') ?? 12);
                                     $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
                                 }),
@@ -548,9 +567,9 @@ class WorkCompletionReportForm
                         TextInput::make('tax_wording')
                             ->label('Official Tax Wording')
                             ->placeholder('e.g. The above work completion does not include 12% VAT')
-                            ->default(fn () => [
-                                'id' => 'Penyelesaian pekerjaan di atas belum termasuk PPN 12%',
-                                'en' => 'The above work completion does not include 12% VAT',
+                            ->default(fn (Get $get) => [
+                                'id' => 'Penyelesaian pekerjaan di atas belum termasuk PPN '.($get('tax_percentage') ?? '12').'%',
+                                'en' => 'The above work completion does not include '.($get('tax_percentage') ?? '12').'% VAT',
                             ])
                             ->helperText('This text will appear on the generated document.')
                             ->required()
@@ -571,7 +590,7 @@ class WorkCompletionReportForm
                                 ->afterStateHydrated(function ($set, $get) {
                                     $sum = collect($get('items'))->sum('total_price');
                                     $set('total_amount', $sum);
-                                    
+
                                     // If tax_base_amount is not set, default to total
                                     if (! $get('tax_base_amount')) {
                                         $set('tax_base_amount', $sum);
@@ -594,7 +613,7 @@ class WorkCompletionReportForm
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->readonly()
                                 ->placeholder('0')
-                                ->state(fn (Get $get) => (float)($get('total_amount') ?? 0) + (float)($get('tax_amount') ?? 0)),
+                                ->state(fn (Get $get) => (float) ($get('total_amount') ?? 0) + (float) ($get('tax_amount') ?? 0)),
                         ]),
                     ]),
 

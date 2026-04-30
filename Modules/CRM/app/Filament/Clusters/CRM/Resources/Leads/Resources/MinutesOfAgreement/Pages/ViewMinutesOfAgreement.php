@@ -49,9 +49,11 @@ class ViewMinutesOfAgreement extends ViewRecord
                         'language' => $language,
                     ]);
 
-                    $filename = str_replace(['/', '\\'], '-', $this->record->moa_number ?? $this->record->id);
+                    $name = str_replace(['/', '\\'], '-', $this->record->number ?? 'Draft');
+                    $leadName = \Illuminate\Support\Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
+                    $fileName = "MoA_{$name}_{$leadName}_{$language}.pdf";
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "moa-{$filename}-{$language}.pdf");
+                    return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
             Action::make('sign')
                 ->label('Digital Signature')

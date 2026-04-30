@@ -10,12 +10,7 @@ class ProjectsByStatusWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'projectsByStatusChart';
 
-    protected int|string|array $columnSpan = 'full';
-
-    public static function canView(): bool
-    {
-        return false;
-    }
+    protected int|string|array $columnSpan = 1;
 
     protected static ?string $heading = 'Projects by Status';
 

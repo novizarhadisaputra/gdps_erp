@@ -113,6 +113,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'revision_number' => 'integer',
             'start_date' => 'date',
             'end_date' => 'date',
+            'salary_increase_rate' => 'decimal:2',
         ];
     }
 

@@ -3,7 +3,6 @@
 namespace Modules\Project\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\CRM\Models\Customer;
 use Modules\Project\Models\Project;
 use Tests\TestCase;
 

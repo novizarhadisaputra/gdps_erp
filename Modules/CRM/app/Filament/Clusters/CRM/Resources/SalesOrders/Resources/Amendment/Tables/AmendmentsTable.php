@@ -42,16 +42,18 @@ class AmendmentsTable
                         ->color('gray')
                         ->action(function (SalesOrderAmendment $record) {
                             $pdf = Pdf::loadView('crm::pdf.sales-order-amendment', ['record' => $record]);
-                            $filename = "soa-{$record->salesOrder->number}-rev{$record->number}";
-                            $filename = str_replace(['/', '\\'], '-', $filename);
+                            $name = str_replace(['/', '\\'], '-', $record->number);
+                            $soName = str_replace(['/', '\\'], '-', $record->salesOrder?->number ?? 'Unknown-SO');
+                            $leadName = \Illuminate\Support\Str::slug($record->salesOrder?->lead?->company_name ?? $record->salesOrder?->lead?->title ?? 'Unknown-Lead', '-');
+                            $fileName = "SOA_{$name}_{$soName}_{$leadName}.pdf";
 
-                            return response()->streamDownload(fn () => print ($pdf->output()), "{$filename}.pdf");
+                            return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                         }),
                 ])
-                ->icon(Heroicon::EllipsisVertical)
-                ->color('gray')
-                ->button()
-                ->label('Actions'),
+                    ->icon(Heroicon::EllipsisVertical)
+                    ->color('gray')
+                    ->button()
+                    ->label('Actions'),
             ]);
     }
 }

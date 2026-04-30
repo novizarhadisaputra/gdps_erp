@@ -12,7 +12,7 @@ class RegencyMinimumWageSeeder extends Seeder
     public function run(): void
     {
         $year = 2025;
-        
+
         $umkData = [
             // DKI Jakarta
             ['Jakarta', 5067381, 'DKI Jakarta', RegencyMinimumWageType::City],
@@ -21,7 +21,7 @@ class RegencyMinimumWageSeeder extends Seeder
             ['Jakarta Barat', 5067381, 'DKI Jakarta', RegencyMinimumWageType::City],
             ['Jakarta Selatan', 5067381, 'DKI Jakarta', RegencyMinimumWageType::City],
             ['Jakarta Timur', 5067381, 'DKI Jakarta', RegencyMinimumWageType::City],
-            
+
             // Jawa Barat
             ['Bekasi', 5343430, 'Jawa Barat', RegencyMinimumWageType::City],
             ['Karawang', 5257834, 'Jawa Barat', RegencyMinimumWageType::Regency],
@@ -52,7 +52,7 @@ class RegencyMinimumWageSeeder extends Seeder
             ['Serang', 4500000, 'Banten', RegencyMinimumWageType::City],
             ['Pandeglang', 3000000, 'Banten', RegencyMinimumWageType::Regency],
             ['Lebak', 3000000, 'Banten', RegencyMinimumWageType::Regency],
-            
+
             // Jawa Timur
             ['Surabaya', 4725000, 'Jawa Timur', RegencyMinimumWageType::City],
             ['Gresik', 4522030, 'Jawa Timur', RegencyMinimumWageType::Regency],
@@ -137,7 +137,7 @@ class RegencyMinimumWageSeeder extends Seeder
             $type = $item[3];
 
             $area = ProjectArea::where('name', $areaName)->first();
-            
+
             if ($area) {
                 RegencyMinimumWage::updateOrCreate(
                     ['project_area_id' => $area->id, 'year' => $year],
@@ -145,22 +145,22 @@ class RegencyMinimumWageSeeder extends Seeder
                         'amount' => $amount,
                         'province' => $province,
                         'type' => $type,
-                        'is_active' => true
+                        'is_active' => true,
                     ]
                 );
             } else {
                 $newArea = ProjectArea::create([
                     'name' => $areaName,
-                    'is_active' => true
+                    'is_active' => true,
                 ]);
-                
+
                 RegencyMinimumWage::create([
                     'project_area_id' => $newArea->id,
                     'year' => $year,
                     'amount' => $amount,
                     'province' => $province,
                     'type' => $type,
-                    'is_active' => true
+                    'is_active' => true,
                 ]);
             }
         }

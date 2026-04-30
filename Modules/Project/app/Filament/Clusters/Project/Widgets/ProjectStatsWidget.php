@@ -4,19 +4,15 @@ namespace Modules\Project\Filament\Clusters\Project\Widgets;
 
 use App\Services\AnalyticsCacheService;
 use Carbon\Carbon;
+use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Filament\Support\Icons\Heroicon;
 use Modules\Project\Models\Project;
 
 class ProjectStatsWidget extends BaseWidget
 {
     protected int|string|array $columnSpan = 'full';
 
-    public static function canView(): bool
-    {
-        return false;
-    }
     protected static ?int $sort = 1;
 
     protected function getStats(): array

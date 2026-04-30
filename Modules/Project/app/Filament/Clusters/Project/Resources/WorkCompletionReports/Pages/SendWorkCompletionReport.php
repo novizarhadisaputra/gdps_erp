@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -14,7 +15,6 @@ use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource;
 
@@ -71,8 +71,8 @@ class SendWorkCompletionReport extends Page
             ->mapWithKeys(function ($contact) {
                 $email = $contact['email'] ?? ($contact['name'] ?? 'No Email');
                 $name = $contact['name'] ?? 'Unnamed';
-                $value = $email . '|' . $name;
-                $label = $name . ($email ? " ({$email})" : '');
+                $value = $email.'|'.$name;
+                $label = $name.($email ? " ({$email})" : '');
 
                 return [$value => $label];
             })->toArray();
@@ -144,12 +144,13 @@ class SendWorkCompletionReport extends Page
     {
         $formData = $this->form->getState();
 
-        if (!$formData || empty($formData['recipient_email'])) {
+        if (! $formData || empty($formData['recipient_email'])) {
             Notification::make()
                 ->title('Validation Error')
                 ->body('Please ensure all required fields are filled correctly.')
                 ->danger()
                 ->send();
+
             return;
         }
 
@@ -166,7 +167,7 @@ class SendWorkCompletionReport extends Page
             } else {
                 // Generate PDF on the fly if no media uploaded
                 $pdf = Pdf::loadView('project::pdf.work_completion_report', ['record' => $this->record]);
-                $filename = 'bapp-' . str_replace(['/', '\\'], '-', $this->record->number) . '.pdf';
+                $filename = 'bapp-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
 
                 // Store temporarily on S3 to get a URL
                 $tempPath = "temp/bapps/{$filename}";
@@ -206,7 +207,7 @@ class SendWorkCompletionReport extends Page
                     ],
                 ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $errorMsg = $response->json('message') ?? $response->status();
 
                 Log::error('BAPP Email Sending Failed', [
@@ -215,7 +216,7 @@ class SendWorkCompletionReport extends Page
                     'body' => $response->body(),
                 ]);
 
-                throw new \Exception('Email system error: ' . $errorMsg);
+                throw new \Exception('Email system error: '.$errorMsg);
             }
 
             // 4. Update BAPP status to Sent
@@ -241,7 +242,7 @@ class SendWorkCompletionReport extends Page
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
         } catch (\Throwable $e) {
-            Log::error('BAPP Email Failure: ' . $e->getMessage(), [
+            Log::error('BAPP Email Failure: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),

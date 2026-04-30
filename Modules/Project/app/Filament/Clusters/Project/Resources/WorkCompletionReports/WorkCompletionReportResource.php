@@ -33,6 +33,8 @@ class WorkCompletionReportResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Schema $schema): Schema
     {
         return WorkCompletionReportForm::configure($schema);

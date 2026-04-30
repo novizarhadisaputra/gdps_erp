@@ -32,7 +32,6 @@ use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\DirectCostCategories\Schemas\DirectCostCategoryForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Models\DirectCostCategory;
@@ -407,7 +406,6 @@ class ProfitabilityAnalysisForm
                                     ->live(onBlur: true)
                                     ->placeholder('Select payment term')
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
-                                    ->createOptionForm(PaymentTermForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->dehydrated(),
                             ]),
@@ -1560,7 +1558,7 @@ class ProfitabilityAnalysisForm
         self::calculateIndirectCost($get, $set, '../../../../');
     }
 
-    public static function calculateIndirectCost(Get $get, Set $set, string $root = ''): void
+    public static function calculateIndirectCost($get, $set, string $root = ''): void
     {
         $indirectCosts = $get($root.'analysis_details.indirect_costs') ?? $get('analysis_details.indirect_costs') ?? $get('/analysis_details.indirect_costs') ?? [];
         $total = 0;
@@ -1590,7 +1588,7 @@ class ProfitabilityAnalysisForm
         self::calculatePerformance($get, $set, $root);
     }
 
-    public static function calculatePerformance(Get $get, Set $set, string $root = ''): void
+    public static function calculatePerformance($get, $set, string $root = ''): void
     {
         // 1. Core Inputs
         $directCost = self::parseNumericValue($get($root.'direct_cost') ?? $get('/direct_cost') ?? 0);
@@ -1601,9 +1599,16 @@ class ProfitabilityAnalysisForm
         $duration = self::getProjectDurationMonths($get, $root);
         $depreciation = self::parseNumericValue($get($root.'manual_depreciation') ?? $get('/manual_depreciation') ?? 0);
 
-        // 2. Revenue Calculation (Cost-Plus / Target GPM Model)
-        // Formula: Revenue = Cost / (1 - Margin)
-        $revenue = ($gpmTarget < 100) ? ($directCost / (1 - ($gpmTarget / 100))) : ($directCost * 1.15);
+        // 2. Revenue Calculation (Target GPM / Cost-Plus Model)
+        $nominalFee = self::parseNumericValue($get($root.'management_fee') ?? $get('/management_fee') ?? 0);
+
+        if ($gpmTarget > 0) {
+            // Formula: Revenue = Cost / (1 - Margin)
+            $revenue = $directCost / (1 - ($gpmTarget / 100));
+        } else {
+            // Fallback to nominal fee if rate is not specified
+            $revenue = $directCost + $nominalFee;
+        }
 
         // 3. Performance Metrics (Monthly)
         $grossProfit = $revenue - $directCost;

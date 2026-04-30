@@ -42,6 +42,15 @@ return new class extends Migration
             $table->index(['status', 'end_date'], 'idx_projects_status_end');
             $table->index('created_at', 'idx_projects_created');
         });
+
+        Schema::create(config('database.default') === 'sqlite' ? 'project_change_requests' : 'project.project_change_requests', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->onDelete('cascade');
+            $table->string('type');
+            $table->text('notes')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -49,6 +58,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'project_change_requests' : 'project.project_change_requests');
         Schema::dropIfExists(config('database.default') === 'sqlite' ? 'projects' : 'project.projects');
     }
 };

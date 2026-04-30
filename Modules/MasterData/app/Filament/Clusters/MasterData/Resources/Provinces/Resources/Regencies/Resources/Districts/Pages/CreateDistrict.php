@@ -2,8 +2,8 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\Pages;
 
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
+use Filament\Resources\Pages\CreateRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\DistrictResource;
 
 class CreateDistrict extends CreateRecord
@@ -24,7 +24,7 @@ class CreateDistrict extends CreateRecord
         return $this->getResource()::getUrl('view', [
             'province' => $this->parentRecord->province,
             'regency' => $this->parentRecord,
-            'record' => $this->getRecord()
+            'record' => $this->getRecord(),
         ]);
     }
 }

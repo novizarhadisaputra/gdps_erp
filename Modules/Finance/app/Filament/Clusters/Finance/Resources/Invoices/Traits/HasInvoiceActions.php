@@ -33,12 +33,14 @@ trait HasInvoiceActions
                     'language' => $data['language'],
                 ]);
 
-                $filename = str_replace(['/', '\\'], '-', $record->number);
+                $name = str_replace(['/', '\\'], '-', $record->number);
+                $customerName = \Illuminate\Support\Str::slug($record->customer?->company_name ?? $record->customer?->name ?? 'Unknown-Customer', '-');
                 $langSuffix = strtoupper($data['language']);
+                $fileName = "Invoice_{$name}_{$customerName}_{$langSuffix}.pdf";
 
                 return response()->streamDownload(
                     fn () => print ($pdf->output()),
-                    "invoice-{$filename}-{$langSuffix}.pdf"
+                    $fileName
                 );
             });
     }

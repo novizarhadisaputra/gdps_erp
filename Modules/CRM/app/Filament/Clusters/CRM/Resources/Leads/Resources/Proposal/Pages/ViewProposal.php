@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\MoAStatus;
 use Modules\CRM\Enums\ProposalStatus;
@@ -58,9 +59,11 @@ class ViewProposal extends ViewRecord
                             'isHtml5ParserEnabled' => true,
                             'defaultFont' => 'sans-serif',
                         ]);
-                    $filename = str_replace(['/', '\\'], '-', $this->record->proposal_number);
+                    $name = str_replace(['/', '\\'], '-', $this->record->number);
+                    $leadName = Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
+                    $fileName = "Proposal_{$name}_{$leadName}.pdf";
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "proposal-{$filename}.pdf");
+                    return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
 
             Action::make('incompleteWarning')
@@ -132,7 +135,7 @@ class ViewProposal extends ViewRecord
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
                     ]))
-                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Approved, ProposalStatus::Sent]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? false)),
+                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Sent]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? false)),
 
                 EditAction::make()
                     ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [

@@ -5,6 +5,10 @@ namespace Modules\CRM\Filament\Clusters\CRM\Pages;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\CRMStatsOverviewWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\MonthlyPerformanceTrendWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\ProductClusterChartWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\RevenueSegmentDonutWidget;
 
 class ProjectReviewDashboard extends Page
 {
@@ -25,12 +29,15 @@ class ProjectReviewDashboard extends Page
     protected function getHeaderWidgets(): array
     {
         return [
-            \Modules\CRM\Filament\Widgets\ProjectReviewWaitingWidget::class,
+            CRMStatsOverviewWidget::class,
+            RevenueSegmentDonutWidget::class,
+            ProductClusterChartWidget::class,
+            MonthlyPerformanceTrendWidget::class,
         ];
     }
 
     public function getHeaderWidgetsColumns(): int|array
     {
-        return 1;
+        return 2;
     }
 }

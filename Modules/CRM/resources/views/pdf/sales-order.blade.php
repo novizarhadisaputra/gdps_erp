@@ -271,13 +271,13 @@
             <td class="bg-gray">Project Name</td>
             <td class="bg-white">{{ $record->project->name ?? '-' }}</td>
             <td class="bg-gray">Project Code</td>
-            <td class="bg-white">{{ $record->project->code ?? '-' }}</td>
+            <td class="bg-white">{{ $record->project->number ?? '-' }}</td>
         </tr>
         <tr>
             <td class="bg-gray">Customer</td>
             <td class="bg-white">{{ $record->customer->name ?? '-' }}</td>
             <td class="bg-gray">Ordering Unit</td>
-            <td class="bg-white">{{ $record->orderingUnit->name ?? '-' }}</td>
+            <td class="bg-white">{{ $record->project->projectArea->name ?? '-' }}</td>
         </tr>
         <tr>
             <td class="bg-gray">Service Type</td>
@@ -325,8 +325,8 @@
                     <td>{{ $mp['job_position_name'] ?? '-' }}</td>
                     <td class="text-center">Person</td>
                     <td class="text-right">{{ number_format($mp['quantity'] ?? 0) }}</td>
-                    <td class="text-right">{{ number_format($mp['unit_cost'] ?? 0, 0, ',', '.') }}</td>
-                    <td class="text-right">{{ number_format($mp['total_monthly_cost'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($mp['unit_price'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-right">{{ number_format($mp['total_price'] ?? 0, 0, ',', '.') }}</td>
                 </tr>
             @empty
             @endforelse
@@ -339,29 +339,49 @@
         </tbody>
     </table>
 
+    @php
+        $taxBaseFactor = 1;
+        if ($record->tax) {
+            $taxBaseFactor = ($record->tax->base_rate_numerator ?? 1) / ($record->tax->base_rate_denominator ?? 1);
+        }
+        $taxRate = ($record->tax_percentage / 100) * $taxBaseFactor;
+        $mgtFeeRate = $record->management_fee_percentage / 100;
+        
+        $subtotal = collect($items)->sum('total_price') + collect($manpower)->sum('total_price');
+        
+        // Backward compatibility: If unit_cost is missing, reverse calculate it
+        // cost = price * (1 - margin)
+        $totalCost = collect($items)->sum(fn($i) => ($i['unit_cost'] ?? ($i['unit_price'] * (1 - $mgtFeeRate))) * ($i['quantity'] ?? 0)) + 
+                    collect($manpower)->sum(fn($m) => ($m['unit_cost'] ?? ($m['unit_price'] * (1 - $mgtFeeRate))) * ($m['quantity'] ?? 0));
+        
+        $mgtFee = $subtotal - $totalCost;
+        $vat = $subtotal * $taxRate;
+        $grandTotal = $subtotal + $vat;
+    @endphp
+
     <div class="total-box">
         <table>
             <tr>
-                <td class="bg-gray" style="width: 50%;">Subtotal</td>
+                <td class="bg-gray" style="width: 50%;">Subtotal (Net Cost)</td>
                 <td class="text-right font-bold" style="width: 50%;">
-                    {{ number_format($record->amount / (1 + $record->tax_percentage / 100 + $record->management_fee_percentage / 100), 0, ',', '.') }}
+                    {{ number_format($totalCost, 0, ',', '.') }}
                 </td>
             </tr>
             <tr>
-                <td class="bg-gray">Mgt Fee ({{ $record->management_fee_percentage }}%)</td>
+                <td class="bg-gray">Management Fee ({{ $record->management_fee_percentage }}%)</td>
                 <td class="text-right">
-                    {{ number_format(($record->amount / (1 + $record->tax_percentage / 100 + $record->management_fee_percentage / 100)) * ($record->management_fee_percentage / 100), 0, ',', '.') }}
+                    {{ number_format($mgtFee, 0, ',', '.') }}
                 </td>
             </tr>
             <tr>
                 <td class="bg-gray">VAT ({{ $record->tax_percentage }}%)</td>
                 <td class="text-right">
-                    {{ number_format(($record->amount / (1 + $record->tax_percentage / 100)) * ($record->tax_percentage / 100), 0, ',', '.') }}
+                    {{ number_format($vat, 0, ',', '.') }}
                 </td>
             </tr>
             <tr>
                 <td class="bg-gray" style="background-color: #000; color: #fff;">Grand Total / Month</td>
-                <td class="text-right font-bold" style="background-color: #f3f4f6;">IDR {{ number_format($record->amount, 0, ',', '.') }}</td>
+                <td class="text-right font-bold" style="background-color: #f3f4f6;">IDR {{ number_format($grandTotal, 0, ',', '.') }}</td>
             </tr>
         </table>
     </div>
@@ -420,13 +440,15 @@
                 </td>
             @endforeach
 
-            {{-- Client Signature Placeholder (Manual) --}}
-            <td>
-                <div class="font-bold">Approved By (Customer)</div>
-                <div class="sig-space" style="height: 40px;"></div>
-                <div class="font-bold">( ........................................ )</div>
-                <div>Authorized Representative</div>
-            </td>
+            {{-- Client Signature Placeholder (Manual) - Only for External --}}
+            @if($record->type === \Modules\CRM\Enums\SalesOrderType::External)
+                <td>
+                    <div class="font-bold">Approved By (Customer)</div>
+                    <div class="sig-space" style="height: 40px;"></div>
+                    <div class="font-bold">( ........................................ )</div>
+                    <div>Authorized Representative</div>
+                </td>
+            @endif
         </tr>
     </table>
 </body>

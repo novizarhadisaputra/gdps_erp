@@ -4,7 +4,6 @@ namespace Modules\MasterData\Observers;
 
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Signature;
-use Modules\Project\Models\Project;
 
 class SignatureObserver
 {

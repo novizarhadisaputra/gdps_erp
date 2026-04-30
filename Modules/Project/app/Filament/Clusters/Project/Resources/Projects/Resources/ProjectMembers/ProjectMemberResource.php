@@ -4,8 +4,8 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources
 
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Tables\Table;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectMembers\Schemas\ProjectMemberForm;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectMembers\Tables\ProjectMembersTable;

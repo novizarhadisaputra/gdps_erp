@@ -4,14 +4,13 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
-use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Str;
 
 class CostingTemplatesTable
 {
@@ -47,9 +46,11 @@ class CostingTemplatesTable
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function ($record) {
                         $pdf = Pdf::loadView('crm::pdf.costing_template', ['record' => $record]);
-                        $name = Str::slug($record->name, '-');
+                        $name = str_replace(['/', '\\'], '-', $record->name);
+                        $leadName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                        $fileName = "Costing_{$name}_{$leadName}.pdf";
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "costing-template-{$name}.pdf");
+                        return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
                 ViewAction::make(),
                 DeleteAction::make(),

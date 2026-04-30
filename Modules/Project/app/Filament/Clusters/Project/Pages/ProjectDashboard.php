@@ -7,8 +7,11 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Modules\Project\Filament\Clusters\Project\ProjectCluster;
+use Modules\Project\Filament\Clusters\Project\Widgets\ProjectBudgetAnalysisWidget;
 use Modules\Project\Filament\Clusters\Project\Widgets\ProjectsByStatusWidget;
+use Modules\Project\Filament\Clusters\Project\Widgets\ProjectsByTypeWidget;
 use Modules\Project\Filament\Clusters\Project\Widgets\ProjectStatsWidget;
+use Modules\Project\Filament\Clusters\Project\Widgets\ProjectTimelineWidget;
 
 class ProjectDashboard extends Page
 {
@@ -29,6 +32,9 @@ class ProjectDashboard extends Page
         return [
             ProjectStatsWidget::class,
             ProjectsByStatusWidget::class,
+            ProjectsByTypeWidget::class,
+            ProjectBudgetAnalysisWidget::class,
+            ProjectTimelineWidget::class,
         ];
     }
 
@@ -36,7 +42,7 @@ class ProjectDashboard extends Page
     {
         return $schema
             ->components([
-                Grid::make(1)
+                Grid::make(2)
                     ->schema(fn (): array => $this->getWidgetsSchemaComponents($this->getWidgets())),
             ]);
     }

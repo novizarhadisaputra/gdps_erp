@@ -3,9 +3,9 @@
 namespace Modules\MasterData\Services;
 
 use Illuminate\Support\Facades\Http;
+use Modules\MasterData\Models\District;
 use Modules\MasterData\Models\Province;
 use Modules\MasterData\Models\Regency;
-use Modules\MasterData\Models\District;
 use Modules\MasterData\Models\Village;
 
 class WilayahSyncService

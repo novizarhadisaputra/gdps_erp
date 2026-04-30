@@ -2,16 +2,19 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 
-use Carbon\Carbon;
-use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
-use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use App\Services\CRMAnalyticsService;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\HtmlString;
+use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
+use Livewire\Attributes\Locked;
 
 class MonthlyRevenueTrendWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'monthlyRevenueTrendChart';
+
+    #[Locked]
+    public ?array $options = null;
 
     protected int|string|array $columnSpan = 'full';
 
@@ -28,29 +31,7 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $categories = [];
-        $revenueData = [];
-        $costData = [];
-
-        $currentYear = Carbon::now()->year;
-
-        for ($m = 1; $m <= 12; $m++) {
-            $date = Carbon::create($currentYear, $m, 1);
-            $monthName = $date->format('F');
-
-            $categories[] = $date->format('M'); // Jan, Feb, etc.
-
-            $monthlyStats = ProfitabilityAnalysisMonthly::where('year', $currentYear)
-                ->where('month', $monthName)
-                ->selectRaw('SUM(actual_revenue) as revenue, SUM(actual_cost) as cost')
-                ->first();
-
-            $revenueData[] = round(($monthlyStats->revenue ?? 0) / 1000000, 2);
-            // Cost is negative to show downwards
-            $costData[] = -round(($monthlyStats->cost ?? 0) / 1000000, 2);
-        }
-
-        $data = compact('categories', 'revenueData', 'costData');
+        $data = app(CRMAnalyticsService::class)->getMonthlyRevenueTrend();
 
         return [
             'chart' => [
@@ -74,15 +55,15 @@ class MonthlyRevenueTrendWidget extends ApexChartWidget
                             [
                                 'from' => -1000000,
                                 'to' => 0,
-                                'color' => '#f97316' // Orange for cost
+                                'color' => '#f97316', // Orange for cost
                             ],
                             [
                                 'from' => 0,
                                 'to' => 1000000,
-                                'color' => '#fbbf24' // Yellow for revenue
-                            ]
-                        ]
-                    ]
+                                'color' => '#fbbf24', // Yellow for revenue
+                            ],
+                        ],
+                    ],
                 ],
             ],
             'stroke' => [

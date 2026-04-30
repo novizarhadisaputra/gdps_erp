@@ -42,8 +42,10 @@ class ViewGeneralInformation extends ViewRecord
                         $record = $this->getRecord();
                         $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
                         $name = Str::slug($record->number, '-');
+                        $leadName = Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                        $fileName = "GI_{$name}_{$leadName}.pdf";
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "general-information-{$name}.pdf");
+                        return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
             ])
                 ->label('Export')
@@ -211,10 +213,10 @@ class ViewGeneralInformation extends ViewRecord
                     ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 PIC untuk dapat melakukan Submit.')
                     ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && ! $this->getRecord()->isComplete()),
             ])
-            ->label('Workflow')
-            ->icon(Heroicon::OutlinedPlay)
-            ->color('primary')
-            ->button(),
+                ->label('Workflow')
+                ->icon(Heroicon::OutlinedPlay)
+                ->color('primary')
+                ->button(),
 
         ];
     }

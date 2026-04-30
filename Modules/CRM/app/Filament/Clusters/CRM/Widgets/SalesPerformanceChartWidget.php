@@ -2,17 +2,19 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 
-use App\Services\AnalyticsCacheService;
-use Carbon\Carbon;
-use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
-use Modules\CRM\Models\SalesPlanMonthly;
+use App\Services\CRMAnalyticsService;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\HtmlString;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\HtmlString;
+use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
+use Livewire\Attributes\Locked;
 
 class SalesPerformanceChartWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'salesPerformanceChart';
+
+    #[Locked]
+    public ?array $options = null;
 
     protected int|string|array $columnSpan = 'full';
 
@@ -29,47 +31,7 @@ class SalesPerformanceChartWidget extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $year = now()->year;
-        $months = [];
-        $budgetData = [];
-        $forecastData = [];
-        $actualData = [];
-
-        $monthlyMetrics = SalesPlanMonthly::query()
-            ->where('year', $year)
-            ->get()
-            ->groupBy('month');
-
-        $cumulativeBudget = 0;
-        $cumulativeForecast = 0;
-        $cumulativeActual = 0;
-
-        for ($m = 1; $m <= 12; $m++) {
-            $date = Carbon::create($year, $m, 1);
-            $monthName = $date->format('F');
-            $months[] = $date->format('M');
-
-            $monthData = $monthlyMetrics->get($m);
-
-            $monthlyBudget = $monthData ? $monthData->sum('budget_amount') : 0;
-            $monthlyForecast = $monthData ? $monthData->sum('forecast_amount') : 0;
-            $monthlyActual = $monthData ? $monthData->sum('actual_amount') : 0;
-
-            $cumulativeBudget += (float) $monthlyBudget;
-            $cumulativeForecast += (float) $monthlyForecast;
-            $cumulativeActual += (float) $monthlyActual;
-
-            $budgetData[] = round($cumulativeBudget / 1000000, 2); // Million IDR
-            $forecastData[] = round($cumulativeForecast / 1000000, 2);
-
-            if ($date->lte(now()->startOfMonth())) {
-                $actualData[] = round($cumulativeActual / 1000000, 2);
-            } else {
-                $actualData[] = null;
-            }
-        }
-
-        $data = compact('months', 'budgetData', 'forecastData', 'actualData');
+        $data = app(CRMAnalyticsService::class)->getSalesPerformance();
 
         return [
             'chart' => [

@@ -9,7 +9,9 @@ use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
 use Modules\CRM\Enums\SalesOrderStatus;
+use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 use Modules\CRM\Models\SalesOrder;
 use Modules\MasterData\Services\SignatureService;
@@ -214,10 +216,50 @@ class ViewSalesOrder extends ViewRecord
                     ->color('gray')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function (SalesOrder $record) {
-                        $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
-                        $filename = str_replace(['/', '\\'], '-', $record->number);
+                        // 1. Validate Tax
+                        if (! $record->tax_percentage) {
+                            Notification::make()
+                                ->title('Incomplete Financial Data')
+                                ->body('Please ensure the Tax Percentage is set before exporting.')
+                                ->danger()
+                                ->send();
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "so-{$filename}.pdf");
+                            return;
+                        }
+
+                        // 2. Validate Data Source for Internal SO
+                        if ($record->type === SalesOrderType::Internal && ! $record->sourceable_id) {
+                            Notification::make()
+                                ->title('Missing Source Document')
+                                ->body('Internal Sales Orders must reference a Source Document (PO/SPK/PKS).')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        // 3. Validate Items Content
+                        $config = $record->content_config ?? [];
+                        if (empty($config['items'] ?? []) && empty($config['manpower_details'] ?? [])) {
+                            Notification::make()
+                                ->title('No Items Found')
+                                ->body('This Sales Order has no line items. Please select a Project reference to retrieve data.')
+                                ->danger()
+                                ->send();
+
+                            return;
+                        }
+
+                        $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
+                        $name = str_replace(['/', '\\'], '-', $record->number);
+                        $clientName = $record->customer?->name
+                            ?? $record->proposal?->lead?->company_name
+                            ?? $record->proposal?->lead?->title
+                            ?? 'Client';
+                        $slugName = Str::slug($clientName, '-');
+                        $fileName = "SO_{$name}_{$slugName}.pdf";
+
+                        return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
             ])
                 ->label('Options')

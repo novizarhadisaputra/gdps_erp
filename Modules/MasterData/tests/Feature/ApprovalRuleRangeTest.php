@@ -87,7 +87,7 @@ class ApprovalRuleRangeTest extends TestCase
             'is_active' => true,
         ]);
 
-        $pa = new \Modules\Finance\Models\ProfitabilityAnalysis();
+        $pa = new \Modules\Finance\Models\ProfitabilityAnalysis;
 
         // 1. Both met
         $pa->revenue_per_month = 2000;

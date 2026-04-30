@@ -38,10 +38,10 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                 $this->getApprovePAAction(),
                 $this->getGenerateProjectAction(),
             ])
-            ->label('Workflow')
-            ->icon(Heroicon::OutlinedPlay)
-            ->color('primary')
-            ->button(),
+                ->label('Workflow')
+                ->icon(Heroicon::OutlinedPlay)
+                ->color('primary')
+                ->button(),
 
             // 2. Document Data Actions
             \Filament\Actions\ActionGroup::make($this->getStepActions())
@@ -57,8 +57,9 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                     ->icon(Heroicon::OutlinedTableCells)
                     ->color('success')
                     ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
-                        $filename = 'profitability_analysis_'.($record->number ?? $record->id).'.xlsx';
-                        $filename = str_replace(['/', '\\'], '_', $filename);
+                        $leadName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                        $number = str_replace(['/', '\\'], '-', $record->number ?? 'Draft');
+                        $filename = "PA_{$number}_{$leadName}.xlsx";
 
                         return Excel::download(
                             new \Modules\Finance\Exports\ProfitabilityAnalysisExport($record),
@@ -79,8 +80,9 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                             ]
                         )->setPaper('a4', 'portrait');
 
-                        $filename = 'profitability_summary_'.($record->number ?? $record->id).'.pdf';
-                        $filename = str_replace(['/', '\\'], '_', $filename);
+                        $leadName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                        $number = str_replace(['/', '\\'], '-', $record->number ?? 'Draft');
+                        $filename = "PA_{$number}_{$leadName}.pdf";
 
                         return response()->streamDownload(function () use ($pdf) {
                             echo $pdf->output();

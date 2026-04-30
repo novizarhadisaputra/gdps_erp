@@ -16,6 +16,7 @@ enum ProjectReviewStatus: string implements HasColor, HasIcon, HasLabel
     case Completed = 'completed';
     case RevisionNeeded = 'revision_needed';
     case Cancelled = 'cancelled';
+    case Review = 'Review';
 
     public function getLabel(): ?string
     {
@@ -25,6 +26,7 @@ enum ProjectReviewStatus: string implements HasColor, HasIcon, HasLabel
             self::Completed => 'Completed',
             self::RevisionNeeded => 'Revision Needed',
             self::Cancelled => 'Cancelled',
+            self::Review => 'Review',
         };
     }
 
@@ -36,6 +38,7 @@ enum ProjectReviewStatus: string implements HasColor, HasIcon, HasLabel
             self::Completed => 'success',
             self::RevisionNeeded => 'warning',
             self::Cancelled => 'danger',
+            self::Review => 'info',
         };
     }
 
@@ -47,6 +50,7 @@ enum ProjectReviewStatus: string implements HasColor, HasIcon, HasLabel
             self::Completed => Heroicon::CheckCircle,
             self::RevisionNeeded => Heroicon::ExclamationTriangle,
             self::Cancelled => Heroicon::XCircle,
+            self::Review => Heroicon::MagnifyingGlass,
         };
     }
 }

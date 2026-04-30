@@ -2,7 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 
-use App\Services\AnalyticsCacheService;
+use App\Services\CRMAnalyticsService;
 use Carbon\Carbon;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
@@ -15,6 +15,13 @@ class PerformanceOverviewWidget extends BaseWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected CRMAnalyticsService $service;
+
+    public function __construct()
+    {
+        $this->service = app(CRMAnalyticsService::class);
+    }
+
     public static function canView(): bool
     {
         return true;
@@ -22,52 +29,31 @@ class PerformanceOverviewWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $currentYear = Carbon::now()->year;
-
-        // 1. Total Target RoFo (YTD)
-        $totalTarget = ProfitabilityAnalysisMonthly::where('year', $currentYear)
-            ->sum('target_revenue');
-
-        // 2. Total Actual Revenue (YTD)
-        $totalActual = ProfitabilityAnalysisMonthly::where('year', $currentYear)
-            ->sum('actual_revenue');
-
-        // 3. Realization Rate
-        $realizationRate = $totalTarget > 0 
-            ? round(($totalActual / $totalTarget) * 100, 1) 
-            : 0;
-
-        // 4. Actual Gross Profit
-        $totalGrossProfit = ProfitabilityAnalysisMonthly::where('year', $currentYear)
-            ->sum('gross_profit');
-
-        // 5. EBIT
-        $totalEbit = ProfitabilityAnalysisMonthly::where('year', $currentYear)
-            ->sum('ebit');
+        $metrics = $this->service->getFinancialPerformance();
 
         return [
-            Stat::make('Total Target RoFo (YTD)', 'Rp ' . number_format($totalTarget, 0, ',', '.'))
+            Stat::make('Total Target RoFo (YTD)', 'Rp '.number_format($metrics['target'], 0, ',', '.'))
                 ->description('Aggregated target from Sales Plans')
                 ->descriptionIcon(Heroicon::Flag)
                 ->color('primary'),
 
-            Stat::make('Actual Revenue (YTD)', 'Rp ' . number_format($totalActual, 0, ',', '.'))
+            Stat::make('Actual Revenue (YTD)', 'Rp '.number_format($metrics['actual'], 0, ',', '.'))
                 ->description('Realized revenue collected')
                 ->descriptionIcon(Heroicon::CurrencyDollar)
-                ->color($realizationRate >= 90 ? 'success' : ($realizationRate >= 70 ? 'warning' : 'danger')),
+                ->color($metrics['realization_rate'] >= 90 ? 'success' : ($metrics['realization_rate'] >= 70 ? 'warning' : 'danger')),
 
-            Stat::make('Realization Rate', $realizationRate . '%')
+            Stat::make('Realization Rate', $metrics['realization_rate'].'%')
                 ->description('Target accomplishment rate')
-                ->descriptionIcon($realizationRate >= 100 ? Heroicon::CheckBadge : Heroicon::ArrowPath)
-                ->color($realizationRate >= 90 ? 'success' : ($realizationRate >= 70 ? 'warning' : 'danger'))
+                ->descriptionIcon($metrics['realization_rate'] >= 100 ? Heroicon::CheckBadge : Heroicon::ArrowPath)
+                ->color($metrics['realization_rate'] >= 90 ? 'success' : ($metrics['realization_rate'] >= 70 ? 'warning' : 'danger'))
                 ->chart($this->getRealizationTrendData()),
 
-            Stat::make('Realized Gross Profit', 'Rp ' . number_format($totalGrossProfit, 0, ',', '.'))
+            Stat::make('Realized Gross Profit', 'Rp '.number_format($metrics['gross_profit'], 0, ',', '.'))
                 ->description('Revenue - Direct Costs')
                 ->descriptionIcon(Heroicon::Banknotes)
                 ->color('success'),
 
-            Stat::make('Total EBIT (YTD)', 'Rp ' . number_format($totalEbit, 0, ',', '.'))
+            Stat::make('Total EBIT (YTD)', 'Rp '.number_format($metrics['ebit'], 0, ',', '.'))
                 ->description('Earnings Before Interest & Taxes')
                 ->descriptionIcon(Heroicon::ChartBar)
                 ->color('info'),

@@ -15,8 +15,8 @@ use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Database\Factories\ProjectInformationFactory;
-use Modules\Project\Observers\ProjectInformationObserver;
 use Modules\Project\Enums\ProjectInformationStatus;
+use Modules\Project\Observers\ProjectInformationObserver;
 
 #[ObservedBy(ProjectInformationObserver::class)]
 class ProjectInformation extends Model

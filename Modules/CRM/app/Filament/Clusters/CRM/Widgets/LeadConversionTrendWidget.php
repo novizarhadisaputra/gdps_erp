@@ -2,15 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Widgets;
 
-use App\Services\AnalyticsCacheService;
-use Carbon\Carbon;
+use App\Services\CRMAnalyticsService;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
-use Modules\CRM\Enums\LeadStatus;
-use Modules\CRM\Models\Lead;
+use Livewire\Attributes\Locked;
 
 class LeadConversionTrendWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'leadConversionTrendChart';
+
+    #[Locked]
+    public ?array $options = null;
 
     protected static ?string $heading = 'Lead Conversion Trend';
 
@@ -20,37 +21,7 @@ class LeadConversionTrendWidget extends ApexChartWidget
 
     protected function getOptions(): array
     {
-        $cache = app(AnalyticsCacheService::class);
-
-        $data = $cache->rememberHourly('crm.conversion_trend', function () {
-            $months = [];
-            $wonData = [];
-            $lostData = [];
-            $conversionRateData = [];
-
-            for ($i = 11; $i >= 0; $i--) {
-                $date = Carbon::now()->subMonths($i);
-                $monthStart = $date->copy()->startOfMonth();
-                $monthEnd = $date->copy()->endOfMonth();
-
-                $totalLeads = Lead::whereBetween('created_at', [$monthStart, $monthEnd])->count();
-                $wonLeads = Lead::where('status', LeadStatus::Won)
-                    ->whereBetween('created_at', [$monthStart, $monthEnd])
-                    ->count();
-                $lostLeads = Lead::where('status', LeadStatus::ClosedLost)
-                    ->whereBetween('created_at', [$monthStart, $monthEnd])
-                    ->count();
-
-                $conversionRate = $totalLeads > 0 ? round(($wonLeads / $totalLeads) * 100, 1) : 0;
-
-                $months[] = $date->format('M Y');
-                $wonData[] = $wonLeads;
-                $lostData[] = $lostLeads;
-                $conversionRateData[] = $conversionRate;
-            }
-
-            return compact('months', 'wonData', 'lostData', 'conversionRateData');
-        });
+        $data = app(CRMAnalyticsService::class)->getLeadConversionTrend();
 
         return [
             'chart' => [

@@ -11,6 +11,8 @@ class ProjectTimelineWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'projectTimelineChart';
 
+    protected int|string|array $columnSpan = 'full';
+
     protected static ?string $heading = 'Project Timeline Overview';
 
     protected static ?int $contentHeight = 400;

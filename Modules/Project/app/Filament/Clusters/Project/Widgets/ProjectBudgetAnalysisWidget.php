@@ -10,6 +10,8 @@ class ProjectBudgetAnalysisWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'projectBudgetAnalysisChart';
 
+    protected int|string|array $columnSpan = 'full';
+
     protected static ?string $heading = 'Project Budget Analysis';
 
     protected static ?int $contentHeight = 350;
@@ -21,7 +23,7 @@ class ProjectBudgetAnalysisWidget extends ApexChartWidget
         $cache = app(AnalyticsCacheService::class);
 
         $data = $cache->rememberHourly('project.budget_analysis', function () {
-            $projects = Project::with(['proposal', 'contract', 'profitabilityAnalysis'])
+            $projects = Project::with(['proposal', 'profitabilityAnalysis'])
                 ->whereNotNull('start_date')
                 ->get()
                 ->take(15);

@@ -4,8 +4,8 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Pa
 
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
-use Filament\Tables\Table;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\ProvinceResource;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\RegencyResource;
 use Modules\MasterData\Services\WilayahSyncService;
@@ -33,16 +33,15 @@ class ManageRegencies extends ManageRelatedRecords
 
     public function getTitle(): string
     {
-        return 'Regencies in ' . $this->getOwnerRecord()->name;
+        return 'Regencies in '.$this->getOwnerRecord()->name;
     }
 
     public function getHeading(): string
     {
-        return 'Regencies in ' . $this->getOwnerRecord()->name;
+        return 'Regencies in '.$this->getOwnerRecord()->name;
     }
 
-
-    public function mount(int | string $record): void
+    public function mount(int|string $record): void
     {
         parent::mount($record);
 

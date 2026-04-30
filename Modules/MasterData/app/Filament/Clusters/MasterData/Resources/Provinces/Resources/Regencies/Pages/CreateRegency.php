@@ -2,8 +2,8 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Pages;
 
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
+use Filament\Resources\Pages\CreateRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\RegencyResource;
 
 class CreateRegency extends CreateRecord

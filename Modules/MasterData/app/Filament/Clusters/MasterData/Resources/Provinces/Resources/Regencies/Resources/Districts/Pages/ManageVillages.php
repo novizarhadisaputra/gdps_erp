@@ -2,11 +2,11 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\Pages;
 
+use Exception;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
-use Filament\Tables\Table;
-use Exception;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\ProvinceResource;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\RegencyResource;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\DistrictResource;
@@ -62,20 +62,21 @@ class ManageVillages extends ManageRelatedRecords
         }
 
         $breadcrumbs[] = 'Villages';
+
         return $breadcrumbs;
     }
 
     public function getTitle(): string
     {
-        return 'Villages in ' . $this->getOwnerRecord()->name;
+        return 'Villages in '.$this->getOwnerRecord()->name;
     }
 
     public function getHeading(): string
     {
-        return 'Villages in ' . $this->getOwnerRecord()->name;
+        return 'Villages in '.$this->getOwnerRecord()->name;
     }
 
-    public function mount(int | string $record): void
+    public function mount(int|string $record): void
     {
         parent::mount($record);
 

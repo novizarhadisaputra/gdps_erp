@@ -58,9 +58,14 @@ class ProjectReviewWaitingWidget extends TableWidget
                     ->merge(Proposal::whereIn('id', $proposalIds)->pluck('lead_id'))
                     ->unique();
 
-                // Ensure ProjectReview records exist for these Leads
+                // Ensure ProjectReview records exist and are linked for these Leads
                 foreach ($leadIds as $leadId) {
-                    ProjectReview::firstOrCreate(['lead_id' => $leadId]);
+                    $review = ProjectReview::firstOrCreate(['lead_id' => $leadId]);
+
+                    // Proactively trigger document linking if any document is missing
+                    if (! $review->general_information_id || ! $review->profitability_analysis_id || ! $review->proposal_id) {
+                        $review->save();
+                    }
                 }
 
                 return ProjectReview::query()
@@ -70,15 +75,16 @@ class ProjectReviewWaitingWidget extends TableWidget
             ->columns([
                 TextColumn::make('lead.company_name')
                     ->label('Company / Lead')
+                    ->state(fn ($record) => $record->lead?->company_name ?? $record->lead?->title ?? 'Unnamed Lead')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('generalInformation.document_number')
+                TextColumn::make('generalInformation.number')
                     ->label('GI #')
                     ->placeholder('-'),
-                TextColumn::make('profitabilityAnalysis.document_number')
+                TextColumn::make('profitabilityAnalysis.number')
                     ->label('PA #')
                     ->placeholder('-'),
-                TextColumn::make('proposal.proposal_number')
+                TextColumn::make('proposal.number')
                     ->label('Proposal #')
                     ->placeholder('-'),
                 TextColumn::make('status')

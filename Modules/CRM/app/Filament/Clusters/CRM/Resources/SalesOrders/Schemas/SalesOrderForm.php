@@ -22,6 +22,10 @@ use Illuminate\Support\HtmlString;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
+use Modules\CRM\Models\CooperationAgreement;
+use Modules\CRM\Models\PurchaseOrder;
+use Modules\CRM\Models\WorkOrder;
+use Modules\MasterData\Models\Tax;
 use Modules\Project\Models\Project;
 
 class SalesOrderForm
@@ -74,18 +78,32 @@ class SalesOrderForm
                                                 if ($analysis) {
                                                     $set('manpower_initial_qty', $analysis->total_manpower);
                                                     $set('management_fee_percentage', $analysis->management_fee_rate);
-                                                    $set('tax_percentage', $analysis->tax_rate ?? '12');
+                                                    $set('tax_percentage', (string) (float) ($analysis->tax?->rate ?? 12));
+
+                                                    $mfRate = (float) ($analysis->management_fee_rate ?? 0);
+                                                    $calculateRevenue = function ($cost) use ($mfRate) {
+                                                        if ($mfRate >= 100) {
+                                                            return $cost * 1.15;
+                                                        }
+
+                                                        return $cost / (1 - ($mfRate / 100));
+                                                    };
 
                                                     // Auto-fill states from PA
-                                                    $manpowerData = $analysis->manpower_requirements ?? [];
+                                                    $manpowerData = collect($analysis->manpower_requirements ?? [])->map(fn ($mp) => array_merge($mp, [
+                                                        'unit_price' => $calculateRevenue($mp['unit_cost'] ?? 0),
+                                                        'total_price' => $calculateRevenue($mp['unit_cost'] ?? 0) * ($mp['quantity'] ?? 0),
+                                                    ]))->toArray();
+
                                                     $financialData = $analysis->financial_assumptions ?? [];
 
                                                     $items = collect($financialData['operational_costs'] ?? [])->map(fn ($item) => [
                                                         'description' => $item['item_name'] ?? ($item['description'] ?? 'Unnamed Item'),
                                                         'uom' => $item['uom'] ?? 'Unit',
                                                         'quantity' => (float) ($item['quantity'] ?? 0),
-                                                        'unit_price' => (float) ($item['unit_cost'] ?? 0),
-                                                        'total_price' => (float) ($item['total_monthly_cost'] ?? 0),
+                                                        'unit_cost' => (float) ($item['unit_cost'] ?? 0),
+                                                        'unit_price' => $calculateRevenue($item['unit_cost'] ?? 0),
+                                                        'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
                                                     ])->toArray();
 
                                                     $set('manpower_composition', $manpowerData);
@@ -139,9 +157,9 @@ class SalesOrderForm
                                     Select::make('sourceable_type')
                                         ->label('Source Document Type')
                                         ->options([
-                                            \Modules\CRM\Models\PurchaseOrder::class => 'Purchase Order (PO)',
-                                            \Modules\CRM\Models\WorkOrder::class => 'Work Order (SPK)',
-                                            \Modules\CRM\Models\CooperationAgreement::class => 'Cooperation Agreement (PKS)',
+                                            PurchaseOrder::class => 'Purchase Order (PO)',
+                                            WorkOrder::class => 'Work Order (SPK)',
+                                            CooperationAgreement::class => 'Cooperation Agreement (PKS)',
                                         ])
                                         ->live()
                                         ->placeholder('Select type')
@@ -209,7 +227,7 @@ class SalesOrderForm
                                                         ],
                                                     ];
 
-                                                    if ($type === \Modules\CRM\Models\CooperationAgreement::class) {
+                                                    if ($type === CooperationAgreement::class) {
                                                         $recordData['agreement_date'] = now();
                                                     } else {
                                                         $recordData['order_date'] = now();
@@ -279,8 +297,8 @@ class SalesOrderForm
                                             $rows = collect($manpower)->map(function ($item) use (&$totalQty, &$totalAmount) {
                                                 $pos = $item['job_position_name'] ?? 'Unknown Member';
                                                 $qty = (int) ($item['quantity'] ?? 0);
-                                                $cost = (float) ($item['unit_cost'] ?? 0);
-                                                $total = (float) ($item['total_monthly_cost'] ?? ($qty * $cost));
+                                                $price = (float) ($item['unit_price'] ?? 0);
+                                                $total = (float) ($item['total_price'] ?? ($qty * $price));
 
                                                 $totalQty += $qty;
                                                 $totalAmount += $total;
@@ -289,7 +307,7 @@ class SalesOrderForm
                                                 <tr class='hover:bg-gray-50/50 transition-colors'>
                                                     <td class='px-4 py-2 border-b border-gray-100 text-sm font-medium text-gray-900'>{$pos}</td>
                                                     <td class='px-4 py-2 border-b border-gray-100 text-sm text-gray-600 text-right'>".number_format($qty)."</td>
-                                                    <td class='px-4 py-2 border-b border-gray-100 text-sm text-gray-600 text-right'>".number_format($cost, 0, ',', '.')."</td>
+                                                    <td class='px-4 py-2 border-b border-gray-100 text-sm text-gray-600 text-right'>".number_format($price, 0, ',', '.')."</td>
                                                     <td class='px-4 py-2 border-b border-gray-100 text-sm font-semibold text-gray-900 text-right'>".number_format($total, 0, ',', '.').'</td>
                                                 </tr>';
                                             })->implode('');
@@ -301,14 +319,14 @@ class SalesOrderForm
                                                             <tr class='bg-gray-50/80'>
                                                                 <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200'>Position / Rank</th>
                                                                 <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-200'>Qty</th>
-                                                                <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-200'>Unit Cost</th>
+                                                                <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-200'>Unit Price</th>
                                                                 <th class='px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right border-b border-gray-200'>Total Monthly</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>{$rows}</tbody>
                                                         <tfoot class='bg-gray-50/30'>
                                                             <tr class='font-bold bg-blue-50/30'>
-                                                                <td class='px-4 py-3 text-sm text-gray-900 uppercase italic font-bold'>Total Staffing Cost</td>
+                                                                <td class='px-4 py-3 text-sm text-gray-900 uppercase italic font-bold'>Total Staffing Revenue</td>
                                                                 <td class='px-4 py-3 text-sm text-gray-900 text-right'>".number_format($totalQty)."</td>
                                                                 <td class='px-4 py-3'></td>
                                                                 <td class='px-4 py-3 text-sm text-blue-700 text-right font-black'>IDR ".number_format($totalAmount, 0, ',', '.').'</td>
@@ -470,19 +488,18 @@ class SalesOrderForm
                                         ->suffix('%')
                                         ->helperText('The agreed fee percentage for managing the project.')
                                         ->default(10),
-                                    Select::make('tax_percentage')
-                                        ->label('VAT Percentage')
-                                        ->options([
-                                            '12' => 'PPN 12%',
-                                            '11' => 'PPN 11%',
-                                        ])
-                                        ->default('12')
-                                        ->afterStateHydrated(fn ($state, $set) => $set('tax_percentage', (string) (float) $state))
-                                        ->selectablePlaceholder(false)
-                                        ->native(false)
+                                    Select::make('tax_id')
+                                        ->label('VAT Scheme')
+                                        ->relationship('tax', 'name', fn ($query) => $query->where('category', 'sales')->where('is_active', true))
+                                        ->required()
                                         ->live()
-                                        ->placeholder('Select tax rate')
-                                        ->helperText('The applicable Value Added Tax (PPN) rate.'),
+                                        ->afterStateUpdated(fn ($state, Set $set) => $set('tax_percentage', Tax::find($state)?->rate ?? 0))
+                                        ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id),
+                                    TextInput::make('tax_percentage')
+                                        ->label('VAT Percentage')
+                                        ->numeric()
+                                        ->readOnly()
+                                        ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12.00),
                                 ]),
                             Section::make('Contractual Terms')
                                 ->description('Administrative terms and personnel replacement SLA.')
@@ -506,8 +523,8 @@ class SalesOrderForm
                                                 ->default('5th of each month'),
                                         ]),
                                 ]),
-                            Section::make('Official Document Upload')
-                                ->description('Upload the reference draf and signed physical documents.')
+                            Section::make('Official Document Attachments')
+                                ->description('Manage draft proposals and final signed contract documents. Note: Uploading the signed document will automatically activate the Sales Order.')
                                 ->schema([
                                     Grid::make(2)
                                         ->schema([
@@ -515,8 +532,8 @@ class SalesOrderForm
                                                 ->collection('draft_so')
                                                 ->label('Draft SO / Proposal Document')
                                                 ->placeholder('Click or drag file here...')
-                                                ->required(fn (Get $get, string $operation) => $get('type') === SalesOrderType::External && $operation === 'edit')
-                                                ->helperText('Internal review version (Max 10MB).'),
+                                                ->required(false)
+                                                ->helperText('Internal review version or initial proposal (Optional).'),
 
                                             SpatieMediaLibraryFileUpload::make('signed_so')
                                                 ->collection('signed_so')
@@ -525,8 +542,9 @@ class SalesOrderForm
                                                     : 'Signed SO / SPK / PO (Scan)'
                                                 )
                                                 ->placeholder('Click or drag file here...')
-                                                ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal)
-                                                ->helperText('Final legal document (Max 10MB).'),
+                                                ->visible(fn (Get $get) => $get('status') !== SalesOrderStatus::Draft->value)
+                                                ->required(false)
+                                                ->helperText('Final signed document. Uploading this will automatically set the SO status to Approved.'),
                                         ]),
                                 ]),
                         ]),

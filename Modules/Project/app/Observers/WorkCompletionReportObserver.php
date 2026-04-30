@@ -13,10 +13,9 @@ class WorkCompletionReportObserver
      */
     public function creating(WorkCompletionReport $report): void
     {
-        $year = date('Y');
-        $month = date('n'); // Month without leading zeros
-        $shortYear = date('Y');
-
+        $date = $report->document_date ? \Carbon\Carbon::parse($report->document_date) : now();
+        $year = $date->format('Y');
+        $month = (int) $date->format('n'); // Month without leading zeros
         // Roman numeral mapping
         $romans = [
             1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',

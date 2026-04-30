@@ -69,9 +69,16 @@ class SalesOrderService
             'description' => $item['item_name'],
             'uom' => $item['uom'] ?? 'Unit',
             'quantity' => $item['quantity'],
+            'unit_cost' => $item['unit_cost'] ?? 0,
             'unit_price' => $calculateRevenue($item['unit_cost'] ?? 0),
             'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
         ])->toArray();
+
+        // Apply revenue calculation to manpower as well for SO display
+        $manpowerDetails = collect($manpower)->map(fn ($mp) => array_merge($mp, [
+            'unit_price' => $calculateRevenue($mp['unit_cost'] ?? 0),
+            'total_price' => $calculateRevenue($mp['unit_cost'] ?? 0) * ($mp['quantity'] ?? 0),
+        ]))->toArray();
 
         // 5. Generate SO Number
         $year = date('Y');
@@ -101,7 +108,7 @@ class SalesOrderService
             'status' => SalesOrderStatus::Draft,
             'amount' => $analysis->revenue_per_month,
             'management_fee_percentage' => $analysis->management_fee_rate,
-            'tax_percentage' => $analysis->tax_rate ?? 11,
+            'tax_percentage' => $analysis->tax?->rate ?? 11,
             'sales_pic_id' => $project->ams_id ?? $analysis->lead?->ams_id,
             'project_manager_id' => $project->oprep_id ?? $analysis->lead?->oprep_id,
             'service_type' => $analysis->productCluster?->name,
@@ -112,7 +119,7 @@ class SalesOrderService
             'year' => $year,
             'content_config' => [
                 'items' => $items,
-                'manpower_details' => $manpower,
+                'manpower_details' => $manpowerDetails,
                 'payment_terms' => $analysis->paymentTerm?->name,
                 'probation_period' => '3 Months',
                 'replacement_sla' => '3 Working Days',
@@ -168,9 +175,15 @@ class SalesOrderService
             'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
         ])->toArray();
 
+        // Apply revenue calculation to manpower as well for SO display
+        $manpowerDetails = collect($manpower)->map(fn ($mp) => array_merge($mp, [
+            'unit_price' => $calculateRevenue($mp['unit_cost'] ?? 0),
+            'total_price' => $calculateRevenue($mp['unit_cost'] ?? 0) * ($mp['quantity'] ?? 0),
+        ]))->toArray();
+
         $afterSnapshot = [
             'items' => $items,
-            'manpower_details' => $manpower,
+            'manpower_details' => $manpowerDetails,
             'payment_terms' => $analysis->paymentTerm?->name,
             'pa_revision_number' => $analysis->revision_number ?? 0,
         ];

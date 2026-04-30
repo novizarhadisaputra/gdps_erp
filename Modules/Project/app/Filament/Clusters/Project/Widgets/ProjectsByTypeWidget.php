@@ -10,6 +10,8 @@ class ProjectsByTypeWidget extends ApexChartWidget
 {
     protected static ?string $chartId = 'projectsByTypeChart';
 
+    protected int|string|array $columnSpan = 1;
+
     protected static ?string $heading = 'Projects by Type & Area';
 
     protected static ?int $contentHeight = 300;

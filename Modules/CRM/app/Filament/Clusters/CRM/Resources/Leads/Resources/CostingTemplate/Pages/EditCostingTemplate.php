@@ -7,7 +7,6 @@ use Filament\Actions\Action;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource;
 
@@ -27,9 +26,11 @@ class EditCostingTemplate extends EditRecord
                 ->action(function () {
                     $record = $this->getRecord();
                     $pdf = Pdf::loadView('crm::pdf.costing_template', ['record' => $record]);
-                    $name = Str::slug($record->name, '-');
+                    $name = str_replace(['/', '\\'], '-', $this->record->name);
+                    $leadName = \Illuminate\Support\Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
+                    $fileName = "Costing_{$name}_{$leadName}.pdf";
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "costing-template-{$name}.pdf");
+                    return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
             \Filament\Actions\DeleteAction::make(),
         ];

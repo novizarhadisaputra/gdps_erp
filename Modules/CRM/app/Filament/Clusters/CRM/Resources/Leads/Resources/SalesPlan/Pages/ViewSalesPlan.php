@@ -29,9 +29,11 @@ class ViewSalesPlan extends ViewRecord
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function () {
                         $pdf = Pdf::loadView('crm::pdf.sales_plan', ['record' => $this->record]);
-                        $filename = str_replace(['/', '\\'], '-', $this->record->document_number);
+                        $name = str_replace(['/', '\\'], '-', $this->record->project_code ?? 'Draft');
+                        $leadName = \Illuminate\Support\Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
+                        $fileName = "SalesPlan_{$name}_{$leadName}.pdf";
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "sales-plan-{$filename}.pdf");
+                        return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
 
                 Action::make('generateGI')

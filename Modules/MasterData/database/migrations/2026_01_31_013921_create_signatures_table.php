@@ -17,7 +17,7 @@ return new class extends Migration
             $table->uuidMorphs('signable'); // signable_type & signable_id
             $table->string('role'); // e.g. 'Director', 'Manager'
             $table->string('signature_type'); // e.g. 'approved', 'acknowledged'
-            
+
             $table->string('signer_name')->nullable();
             $table->string('signer_title')->nullable();
 

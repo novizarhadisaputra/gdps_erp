@@ -2,7 +2,6 @@
 
 namespace Modules\Project\Services;
 
-use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Project\Enums\ProjectStatus;

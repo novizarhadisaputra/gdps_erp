@@ -2,7 +2,7 @@
 
 namespace Modules\Finance\Observers;
 
-use Modules\CRM\Models\SalesPlanMonthly;
+use Illuminate\Support\Carbon;
 use Modules\Finance\Models\AccrueRevenue;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 
@@ -40,32 +40,27 @@ class AccrueRevenueObserver
     }
 
     /**
-     * Synchronize data to ProfitabilityAnalysisMonthly and SalesPlanMonthly.
+     * Synchronize data to ProfitabilityAnalysisMonthly.
+     * Downstream sync to SalesPlanMonthly is handled by ProfitabilityAnalysisMonthlyObserver.
      */
     protected function syncPerformance(AccrueRevenue $accrueRevenue, $totalActual): void
     {
         $project = $accrueRevenue->project;
-        if (! $project) {
+        if (! $project || ! $project->profitability_analysis_id) {
             return;
         }
 
-        // 1. Sync to ProfitabilityAnalysisMonthly
-        if ($project->profitability_analysis_id) {
-            $monthName = date('F', mktime(0, 0, 0, (int) $accrueRevenue->month, 1));
+        $monthName = Carbon::create()->month((int) $accrueRevenue->month)->format('F');
 
-            ProfitabilityAnalysisMonthly::where('profitability_analysis_id', $project->profitability_analysis_id)
-                ->where('month', $monthName)
-                ->where('year', $accrueRevenue->year)
-                ->update(['actual_revenue' => $totalActual]);
-        }
+        $monthlyPerformance = ProfitabilityAnalysisMonthly::where('profitability_analysis_id', $project->profitability_analysis_id)
+            ->where('month', $monthName)
+            ->where('year', $accrueRevenue->year)
+            ->first();
 
-        // 2. Sync to SalesPlanMonthly
-        $salesPlanId = $project->lead?->salesPlan?->id;
-        if ($salesPlanId) {
-            SalesPlanMonthly::where('sales_plan_id', $salesPlanId)
-                ->where('month', $accrueRevenue->month)
-                ->where('year', $accrueRevenue->year)
-                ->update(['actual_amount' => $totalActual]);
+        if ($monthlyPerformance) {
+            $monthlyPerformance->update([
+                'actual_revenue' => $totalActual,
+            ]);
         }
     }
 }

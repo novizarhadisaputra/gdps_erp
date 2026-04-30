@@ -40,6 +40,7 @@ class SalesOrder extends Model implements HasMedia
         'amount',
         'management_fee_percentage',
         'tax_percentage',
+        'tax_id',
         'sales_pic_id',
         'project_manager_id',
         'service_type',
@@ -129,5 +130,10 @@ class SalesOrder extends Model implements HasMedia
     public function sourceable(): \Illuminate\Database\Eloquent\Relations\MorphTo
     {
         return $this->morphTo();
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\Tax::class);
     }
 }

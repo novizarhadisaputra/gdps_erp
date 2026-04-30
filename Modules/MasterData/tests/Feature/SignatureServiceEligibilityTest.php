@@ -3,10 +3,10 @@
 namespace Modules\MasterData\Tests\Feature;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Services\SignatureService;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class SignatureServiceEligibilityTest extends TestCase
@@ -23,14 +23,17 @@ class SignatureServiceEligibilityTest extends TestCase
 
     protected function createRole(string $name): Role
     {
-        $role = new class extends Role {
+        $role = new class extends Role
+        {
             public $incrementing = false;
+
             protected $keyType = 'string';
         };
         $role->id = \Illuminate\Support\Str::uuid()->toString();
         $role->name = $name;
         $role->guard_name = 'web';
         $role->save();
+
         return $role;
     }
 

@@ -2,8 +2,8 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\Resources\Villages\Pages;
 
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
+use Filament\Resources\Pages\CreateRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Resources\Districts\Resources\Villages\VillageResource;
 
 class CreateVillage extends CreateRecord
@@ -25,7 +25,7 @@ class CreateVillage extends CreateRecord
             'province' => $this->parentRecord->regency->province,
             'regency' => $this->parentRecord->regency,
             'district' => $this->parentRecord,
-            'record' => $this->getRecord()
+            'record' => $this->getRecord(),
         ]);
     }
 }

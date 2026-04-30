@@ -68,7 +68,7 @@ trait HasDigitalSignatures
         return $signatures->contains(function ($signature) use ($rule) {
             if ($rule->approver_type === 'Role') {
                 $ruleRoleIdentifiers = $rule->approver_role ?? [];
-                
+
                 // If signature role matches any of the identifiers directly (either both are IDs or both are names)
                 if (in_array($signature->role, $ruleRoleIdentifiers)) {
                     return true;

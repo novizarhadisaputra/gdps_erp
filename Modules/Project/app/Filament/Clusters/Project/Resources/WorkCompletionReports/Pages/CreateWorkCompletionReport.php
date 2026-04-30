@@ -3,11 +3,11 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages;
 
 use Filament\Forms\Components\Select;
-use Filament\Schemas\Schema;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Schemas\Schema;
+use Modules\CRM\Models\Customer;
 use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource;
 use Modules\Project\Models\Project;
-use Modules\CRM\Models\Customer;
 
 class CreateWorkCompletionReport extends CreateRecord
 {

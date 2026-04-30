@@ -9,7 +9,6 @@ use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Str;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 
 class EditManpowerTemplate extends EditRecord
@@ -32,9 +31,11 @@ class EditManpowerTemplate extends EditRecord
                         'record' => $record,
                         'costSimulation' => $costSimulation,
                     ]);
-                    $name = Str::slug($record->name, '-');
+                    $name = str_replace(['/', '\\'], '-', $this->record->name);
+                    $leadName = \Illuminate\Support\Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
+                    $fileName = "Manpower_{$name}_{$leadName}.pdf";
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
+                    return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
             ViewAction::make(),
             DeleteAction::make(),

@@ -5,16 +5,15 @@ namespace Modules\CRM\Filament\Clusters\CRM\Pages;
 use App\Filament\Pages\AnalyticsBasePage;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\CRMStatsOverviewWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\MonthlyRevenueTrendWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\PerformanceOverviewWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\RevenueForecastWidget;
-use Modules\CRM\Filament\Clusters\CRM\Widgets\SalesPerformanceChartWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\MonthlyPerformanceTrendWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\ProductClusterChartWidget;
+use Modules\CRM\Filament\Clusters\CRM\Widgets\RevenueSegmentDonutWidget;
 
 class CRMAnalyticsPage extends AnalyticsBasePage
 {
     public function getSubheading(): ?string
     {
-        return 'Visual insights and analytics for CRM data.';
+        return 'Visual insights and analytics for CRM data (Updated per April Sales Plan).';
     }
 
     protected static ?string $navigationLabel = 'Analytics';
@@ -30,23 +29,15 @@ class CRMAnalyticsPage extends AnalyticsBasePage
     public function getWidgets(): array
     {
         return [
-            // Row 1: Sales Activity Stats
             CRMStatsOverviewWidget::class,
-
-            // Row 2: Financial Performance Stats
-            PerformanceOverviewWidget::class,
-
-            // Row 3: Revenue Performance & Trends
-            MonthlyRevenueTrendWidget::class,
-            SalesPerformanceChartWidget::class,
-
-            // Row 4: Pipeline & Projections
-            RevenueForecastWidget::class,
+            RevenueSegmentDonutWidget::class,
+            ProductClusterChartWidget::class,
+            MonthlyPerformanceTrendWidget::class,
         ];
     }
 
     public function getWidgetColumns(): int|array
     {
-        return 1;
+        return 2;
     }
 }

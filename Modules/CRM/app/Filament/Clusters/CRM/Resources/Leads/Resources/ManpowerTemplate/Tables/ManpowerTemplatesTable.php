@@ -4,15 +4,14 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTe
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
-use Filament\Support\Icons\Heroicon;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Str;
 
 class ManpowerTemplatesTable
 {
@@ -56,9 +55,11 @@ class ManpowerTemplatesTable
                             'record' => $record,
                             'costSimulation' => $costSimulation,
                         ]);
-                        $name = Str::slug($record->name, '-');
+                        $name = str_replace(['/', '\\'], '-', $record->name);
+                        $leadName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                        $fileName = "Manpower_{$name}_{$leadName}.pdf";
 
-                        return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
+                        return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
                 ViewAction::make(),
                 DeleteAction::make(),

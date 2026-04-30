@@ -2,7 +2,6 @@
 
 namespace Modules\MasterData\Observers;
 
-use Illuminate\Support\Str;
 use Modules\MasterData\Models\ProjectArea;
 
 class ProjectAreaObserver
@@ -33,12 +32,12 @@ class ProjectAreaObserver
     protected function generateCode(ProjectArea $projectArea): string
     {
         $name = $projectArea->name;
-        
+
         // If it's a known city/regency, try to get some initials
         $words = explode(' ', preg_replace('/[^A-Za-z0-9 ]/', ' ', $name));
         $initials = '';
         foreach ($words as $word) {
-            if (!empty($word)) {
+            if (! empty($word)) {
                 $initials .= strtoupper($word[0]);
             }
         }
@@ -49,14 +48,14 @@ class ProjectAreaObserver
         // Ensure uniqueness
         $counter = 1;
         $finalCode = $prefix;
-        
+
         // If the code is too short or common, add a number
         if (strlen($finalCode) < 3 || ProjectArea::where('code', $finalCode)->exists()) {
-             $finalCode = $prefix . '-' . str_pad((string)$counter, 3, '0', STR_PAD_LEFT);
-             while (ProjectArea::where('code', $finalCode)->exists()) {
-                 $counter++;
-                 $finalCode = $prefix . '-' . str_pad((string)$counter, 3, '0', STR_PAD_LEFT);
-             }
+            $finalCode = $prefix.'-'.str_pad((string) $counter, 3, '0', STR_PAD_LEFT);
+            while (ProjectArea::where('code', $finalCode)->exists()) {
+                $counter++;
+                $finalCode = $prefix.'-'.str_pad((string) $counter, 3, '0', STR_PAD_LEFT);
+            }
         }
 
         return $finalCode;

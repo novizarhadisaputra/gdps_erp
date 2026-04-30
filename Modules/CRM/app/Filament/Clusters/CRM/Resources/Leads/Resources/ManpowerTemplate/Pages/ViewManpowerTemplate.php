@@ -32,8 +32,10 @@ class ViewManpowerTemplate extends ViewRecord
                         'costSimulation' => $costSimulation,
                     ]);
                     $name = Str::slug($record->name, '-');
+                    $leadName = Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                    $fileName = "Manpower_{$name}_{$leadName}.pdf";
 
-                    return response()->streamDownload(fn () => print ($pdf->output()), "manpower-template-{$name}.pdf");
+                    return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
             EditAction::make(),
             \Filament\Actions\DeleteAction::make(),

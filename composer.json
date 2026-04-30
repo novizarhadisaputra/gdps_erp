@@ -24,7 +24,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "league/flysystem-aws-s3-v3": "^3.0",
-        "leandrocfe/filament-apex-charts": "^4.0",
+        "leandrocfe/filament-apex-charts": "^5.0",
         "mwguerra/filemanager": "^0.1",
         "outerweb/filament-translatable-fields": "^4.1",
         "pxlrbt/filament-excel": "^3.4",

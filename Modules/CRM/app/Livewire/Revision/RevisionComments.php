@@ -5,10 +5,13 @@ namespace Modules\CRM\Livewire\Revision;
 use App\Models\Comment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class RevisionComments extends Component
 {
+    #[Locked]
     public Model $record;
 
     public string $body = '';
@@ -86,7 +89,8 @@ class RevisionComments extends Component
         $this->editingBody = '';
     }
 
-    public function getCommentsProperty()
+    #[Computed]
+    public function comments()
     {
         return $this->record->comments()
             ->with('user')
