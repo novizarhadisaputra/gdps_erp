@@ -2,15 +2,18 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Pages;
 
-use Filament\Resources\Pages\CreateRecord;
+use Filament\Actions\EditAction;
+use Filament\Resources\Pages\ViewRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\IndustrialSectorResource;
 
-class CreateIndustrialSector extends CreateRecord
+class ViewIndustrialSector extends ViewRecord
 {
     protected static string $resource = IndustrialSectorResource::class;
 
-    protected function getRedirectUrl(): string
+    protected function getHeaderActions(): array
     {
-        return $this->getResource()::getUrl('index');
+        return [
+            EditAction::make(),
+        ];
     }
 }

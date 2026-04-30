@@ -25,9 +25,13 @@ class ProjectChangeRequestResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentDuplicate;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Project Management';
+
+    protected static ?int $navigationSort = 2;
+
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        return true;
     }
 
     public static function form(Schema $schema): Schema

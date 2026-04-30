@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxObjects\Pages;
+namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Pages;
 
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxObjects\TaxObjectResource;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\ProductClusterResource;
 
-class EditTaxObject extends EditRecord
+class EditProductCluster extends EditRecord
 {
-    protected static string $resource = TaxObjectResource::class;
+    protected static string $resource = ProductClusterResource::class;
 
     protected function getHeaderActions(): array
     {

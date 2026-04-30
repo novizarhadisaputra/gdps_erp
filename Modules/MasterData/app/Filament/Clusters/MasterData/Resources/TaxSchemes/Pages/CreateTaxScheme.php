@@ -13,4 +13,9 @@ class CreateTaxScheme extends CreateRecord
     {
         return 'Add a new tax scheme with detailed notes and codes.';
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

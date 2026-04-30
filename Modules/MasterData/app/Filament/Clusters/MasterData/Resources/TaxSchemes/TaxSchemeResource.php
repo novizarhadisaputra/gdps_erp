@@ -10,6 +10,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxSchemes\Pages\CreateTaxScheme;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxSchemes\Pages\EditTaxScheme;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxSchemes\Pages\ListTaxSchemes;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxSchemes\Pages\ViewTaxScheme;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxSchemes\Schemas\TaxSchemeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxSchemes\Tables\TaxSchemesTable;
 use Modules\MasterData\Models\TaxScheme;
@@ -19,6 +20,8 @@ class TaxSchemeResource extends Resource
     protected static ?string $model = TaxScheme::class;
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Taxation';
 
     protected static ?string $cluster = MasterDataCluster::class;
 
@@ -46,6 +49,7 @@ class TaxSchemeResource extends Resource
         return [
             'index' => ListTaxSchemes::route('/'),
             'create' => CreateTaxScheme::route('/create'),
+            'view' => ViewTaxScheme::route('/{record}'),
             'edit' => EditTaxScheme::route('/{record}/edit'),
         ];
     }

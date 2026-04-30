@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Pages\CreatePaymentTerm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Pages\EditPaymentTerm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Pages\ListPaymentTerms;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Pages\ViewPaymentTerm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Schemas\PaymentTermForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\PaymentTerms\Tables\PaymentTermsTable;
 use Modules\MasterData\Models\PaymentTerm;
@@ -45,6 +48,9 @@ class PaymentTermResource extends Resource
     {
         return [
             'index' => ListPaymentTerms::route('/'),
+            'create' => CreatePaymentTerm::route('/create'),
+            'view' => ViewPaymentTerm::route('/{record}'),
+            'edit' => EditPaymentTerm::route('/{record}/edit'),
         ];
     }
 }

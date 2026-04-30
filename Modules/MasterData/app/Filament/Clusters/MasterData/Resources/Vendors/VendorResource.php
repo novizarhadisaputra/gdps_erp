@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors\Pages\CreateVendor;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors\Pages\EditVendor;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors\Pages\ListVendors;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors\Pages\ViewVendor;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors\Schemas\VendorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Vendors\Tables\VendorsTable;
 use Modules\MasterData\Models\Vendor;
@@ -45,6 +48,9 @@ class VendorResource extends Resource
     {
         return [
             'index' => ListVendors::route('/'),
+            'create' => CreateVendor::route('/create'),
+            'view' => ViewVendor::route('/{record}'),
+            'edit' => EditVendor::route('/{record}/edit'),
         ];
     }
 }

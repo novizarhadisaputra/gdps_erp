@@ -10,6 +10,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxPtkpConfigs\Pages\CreateTaxPtkpConfig;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxPtkpConfigs\Pages\EditTaxPtkpConfig;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxPtkpConfigs\Pages\ListTaxPtkpConfigs;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxPtkpConfigs\Pages\ViewTaxPtkpConfig;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxPtkpConfigs\Schemas\TaxPtkpConfigForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\TaxPtkpConfigs\Tables\TaxPtkpConfigsTable;
 use Modules\MasterData\Models\TaxPtkpConfig;
@@ -48,6 +49,7 @@ class TaxPtkpConfigResource extends Resource
         return [
             'index' => ListTaxPtkpConfigs::route('/'),
             'create' => CreateTaxPtkpConfig::route('/create'),
+            'view' => ViewTaxPtkpConfig::route('/{record}'),
             'edit' => EditTaxPtkpConfig::route('/{record}/edit'),
         ];
     }

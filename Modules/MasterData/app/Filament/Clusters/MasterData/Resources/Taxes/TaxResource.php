@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Pages\CreateTax;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Pages\EditTax;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Pages\ListTaxes;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Pages\ViewTax;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Tables\TaxesTable;
 use Modules\MasterData\Models\Tax;
@@ -45,6 +48,9 @@ class TaxResource extends Resource
     {
         return [
             'index' => ListTaxes::route('/'),
+            'create' => CreateTax::route('/create'),
+            'view' => ViewTax::route('/{record}'),
+            'edit' => EditTax::route('/{record}/edit'),
         ];
     }
 }

@@ -7,6 +7,7 @@ use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Modules\Project\Enums\ProjectChangeRequestType;
+use Modules\Project\Models\ProjectChangeRequest;
 
 class ProjectChangeRequestForm
 {
@@ -14,8 +15,19 @@ class ProjectChangeRequestForm
     {
         return [
             Section::make('Change Request Details')
-                ->description('Specify the type of change and provide detailed notes regarding the adjustment.')
+                ->description('Specify the project, the type of change and provide detailed notes regarding the adjustment.')
                 ->schema([
+                    Select::make('project_id')
+                        ->relationship('project', 'number')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->label('Project')
+                        ->placeholder('Select a project')
+                        ->helperText('The project associated with this change request.')
+                        ->columnSpanFull()
+                        ->hidden(fn (?ProjectChangeRequest $record) => $record && $record->project_id),
+
                     Select::make('type')
                         ->label('Request Type')
                         ->options(ProjectChangeRequestType::class)

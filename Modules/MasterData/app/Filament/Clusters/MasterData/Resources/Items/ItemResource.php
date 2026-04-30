@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Pages\CreateItem;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Pages\EditItem;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Pages\ListItems;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Pages\ViewItem;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Tables\ItemsTable;
 use Modules\MasterData\Models\Item;
@@ -38,6 +41,9 @@ class ItemResource extends Resource
     {
         return [
             'index' => ListItems::route('/'),
+            'create' => CreateItem::route('/create'),
+            'view' => ViewItem::route('/{record}'),
+            'edit' => EditItem::route('/{record}/edit'),
         ];
     }
 }

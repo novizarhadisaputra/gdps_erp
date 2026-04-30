@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Pages\CreateBankAccount;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Pages\EditBankAccount;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Pages\ListBankAccounts;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Pages\ViewBankAccount;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Schemas\BankAccountForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BankAccounts\Tables\BankAccountsTable;
 use Modules\MasterData\Models\BankAccount;
@@ -45,6 +48,9 @@ class BankAccountResource extends Resource
     {
         return [
             'index' => ListBankAccounts::route('/'),
+            'create' => CreateBankAccount::route('/create'),
+            'view' => ViewBankAccount::route('/{record}'),
+            'edit' => EditBankAccount::route('/{record}/edit'),
         ];
     }
 }

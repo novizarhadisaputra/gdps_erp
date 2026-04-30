@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Pages\CreateEmployee;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Pages\EditEmployee;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Pages\ListEmployees;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Pages\ViewEmployee;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeInfolist;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Tables\EmployeesTable;
@@ -56,6 +59,9 @@ class EmployeeResource extends Resource
     {
         return [
             'index' => ListEmployees::route('/'),
+            'create' => CreateEmployee::route('/create'),
+            'view' => ViewEmployee::route('/{record}'),
+            'edit' => EditEmployee::route('/{record}/edit'),
         ];
     }
 }

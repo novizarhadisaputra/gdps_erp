@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Pages\CreateProjectArea;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Pages\EditProjectArea;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Pages\ListProjectAreas;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Pages\ViewProjectArea;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Tables\ProjectAreasTable;
 use Modules\MasterData\Models\ProjectArea;
@@ -45,6 +48,9 @@ class ProjectAreaResource extends Resource
     {
         return [
             'index' => ListProjectAreas::route('/'),
+            'create' => CreateProjectArea::route('/create'),
+            'view' => ViewProjectArea::route('/{record}'),
+            'edit' => EditProjectArea::route('/{record}/edit'),
         ];
     }
 }

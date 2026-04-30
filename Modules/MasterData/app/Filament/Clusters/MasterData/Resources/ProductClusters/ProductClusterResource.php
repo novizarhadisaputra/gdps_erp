@@ -7,7 +7,10 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Pages\CreateProductCluster;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Pages\EditProductCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Pages\ListProductClusters;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Pages\ViewProductCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Tables\ProductClustersTable;
 use Modules\MasterData\Models\ProductCluster;
@@ -45,6 +48,9 @@ class ProductClusterResource extends Resource
     {
         return [
             'index' => ListProductClusters::route('/'),
+            'create' => CreateProductCluster::route('/create'),
+            'view' => ViewProductCluster::route('/{record}'),
+            'edit' => EditProductCluster::route('/{record}/edit'),
         ];
     }
 }

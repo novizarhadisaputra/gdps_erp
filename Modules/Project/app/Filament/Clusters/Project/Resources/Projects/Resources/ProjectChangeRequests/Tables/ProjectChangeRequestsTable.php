@@ -12,6 +12,12 @@ class ProjectChangeRequestsTable
     {
         return $table
             ->columns([
+                TextColumn::make('project.number')
+                    ->label('Project Number')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('type')
                     ->label('Request Type')
                     ->badge()

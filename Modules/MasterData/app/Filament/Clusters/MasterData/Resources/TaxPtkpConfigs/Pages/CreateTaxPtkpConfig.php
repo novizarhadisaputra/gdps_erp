@@ -13,4 +13,9 @@ class CreateTaxPtkpConfig extends CreateRecord
     {
         return 'Define a new PTKP code with its corresponding annual amount.';
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
