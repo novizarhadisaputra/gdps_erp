@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -17,10 +18,10 @@ trait HasProjectChangeRequestActions
     protected function getProjectChangeRequestHeaderActions(): array
     {
         return [
-            $this->getSubmitAction(),
-            $this->getApproveAction(),
 
             ActionGroup::make([
+                $this->getSubmitAction(),
+                $this->getApproveAction(),
                 EditAction::make()
                     ->visible(fn (ProjectChangeRequest $record) => $record->status === ProjectChangeRequestStatus::Draft),
 
@@ -66,13 +67,45 @@ trait HasProjectChangeRequestActions
             ->visible(fn (ProjectChangeRequest $record) => $record->status === ProjectChangeRequestStatus::Submitted)
             ->requiresConfirmation()
             ->modalHeading('Approve Change Request')
-            ->modalDescription('By approving this, the changes will be officially acknowledged.')
-            ->action(function (ProjectChangeRequest $record) {
-                $record->approve();
+            ->modalDescription('Please assign a member to handle the new task created from this request.')
+            ->form([
+                Select::make('assigned_member_id')
+                    ->label('Assigned To')
+                    ->options(fn (ProjectChangeRequest $record) => $record->project?->members()
+                        ->with('memberable')
+                        ->get()
+                        ->pluck('memberable.name', 'id')
+                    )
+                    ->searchable()
+                    ->required()
+                    ->createOptionForm([
+                        Select::make('memberable_id')
+                            ->label('Employee')
+                            ->options(\Modules\MasterData\Models\Employee::pluck('name', 'id'))
+                            ->searchable()
+                            ->required(),
+                        Select::make('role')
+                            ->options(\Modules\Project\Enums\ProjectMemberRole::class)
+                            ->default(\Modules\Project\Enums\ProjectMemberRole::Member)
+                            ->required(),
+                    ])
+                    ->createOptionUsing(function (array $data, ProjectChangeRequest $record): string {
+                        $member = $record->project->members()->create([
+                            'memberable_id' => $data['memberable_id'],
+                            'memberable_type' => \Modules\MasterData\Models\Employee::class,
+                            'role' => $data['role'],
+                            'joined_at' => now(),
+                        ]);
+
+                        return $member->id;
+                    }),
+            ])
+            ->action(function (ProjectChangeRequest $record, array $data) {
+                $record->approve($data['assigned_member_id']);
 
                 Notification::make()
                     ->title('Request Approved & Task Created')
-                    ->body('The change request has been approved and a new task has been added to the project.')
+                    ->body('The change request has been approved and a new task has been assigned.')
                     ->success()
                     ->send();
             });

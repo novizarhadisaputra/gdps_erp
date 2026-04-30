@@ -23,8 +23,7 @@ class ProjectBudgetAnalysisWidget extends ApexChartWidget
         $cache = app(AnalyticsCacheService::class);
 
         $data = $cache->rememberHourly('project.budget_analysis', function () {
-            $projects = Project::with(['proposal', 'profitabilityAnalysis'])
-                ->whereNotNull('start_date')
+            $projects = Project::query()
                 ->get()
                 ->take(15);
 
@@ -33,19 +32,18 @@ class ProjectBudgetAnalysisWidget extends ApexChartWidget
             $actuals = [];
 
             foreach ($projects as $project) {
-                $names[] = $project->code ?? $project->name ?? 'Unknown';
-                $budget = $project->amount;
+                $names[] = $project->number ?? $project->name ?? 'Unknown';
+                $budget = (float) ($project->amount ?? 0);
                 $budgets[] = round($budget / 1000000, 2);
 
-                // For now, actual is simulated as 70-120% of budget
-                // In production, this should come from actual expense tracking
-                $actual = $budget * (rand(70, 120) / 100);
+                // Simulation for now
+                $actual = $budget * (rand(70, 110) / 100);
                 $actuals[] = round($actual / 1000000, 2);
             }
 
             if (empty($names)) {
                 return [
-                    'names' => ['No Data'],
+                    'names' => ['No Projects'],
                     'budgets' => [0],
                     'actuals' => [0],
                 ];

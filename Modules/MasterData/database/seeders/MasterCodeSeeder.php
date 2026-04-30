@@ -95,18 +95,29 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'SFA', 'name' => 'Smart Facilities'],
             ['code' => 'GTR', 'name' => 'GDPS Terrace'],
             ['code' => 'MGT', 'name' => 'GDPS Other'],
-            ['code' => 'OTS', 'name' => 'Others_'],
+            ['code' => 'OTS', 'name' => 'Others'],
         ];
         foreach ($productClusters as $data) {
             ProductCluster::updateOrCreate(['code' => $data['code']], $data);
         }
 
-        // Taxes
+        // Taxes (VAT & PPh Schemes)
         $taxes = [
-            ['code' => 'P1', 'name' => 'PPh 21 ditanggung perusahaan/customer'],
-            ['code' => 'P2', 'name' => 'PPh 21 ditanggung karyawan'],
-            ['code' => 'P3', 'name' => 'PPh 21 Final - perusahaan/customer'],
-            ['code' => 'OT', 'name' => 'Others'],
+            // Original Records
+            ['code' => 'P1', 'name' => 'PPh 21 ditanggung perusahaan/customer', 'category' => 'purchase'],
+            ['code' => 'P2', 'name' => 'PPh 21 ditanggung karyawan', 'category' => 'purchase'],
+            ['code' => 'P3', 'name' => 'PPh 21 Final - perusahaan/customer', 'category' => 'purchase'],
+            ['code' => 'OT', 'name' => 'Others', 'category' => 'sales'],
+
+            // New VAT Records
+            ['code' => 'PPN00', 'name' => 'Non PPN (0%)', 'category' => 'sales', 'rate' => 0, 'is_default' => false],
+            ['code' => 'PPN11', 'name' => 'PPN 11%', 'category' => 'sales', 'rate' => 11, 'is_default' => false],
+            ['code' => 'PPN12', 'name' => 'PPN 12%', 'category' => 'sales', 'rate' => 12, 'is_default' => true],
+
+            // New Standardized PPh Records
+            ['code' => 'P21-CMP', 'name' => 'PPh 21 ditanggung perusahaan/customer (Std)', 'category' => 'purchase', 'rate' => 0],
+            ['code' => 'P21-EMP', 'name' => 'PPh 21 ditanggung karyawan (Std)', 'category' => 'purchase', 'rate' => 0],
+            ['code' => 'P21-FIN', 'name' => 'PPh 21 Final - perusahaan/customer (Std)', 'category' => 'purchase', 'rate' => 0],
         ];
         foreach ($taxes as $data) {
             Tax::updateOrCreate(['code' => $data['code']], $data);

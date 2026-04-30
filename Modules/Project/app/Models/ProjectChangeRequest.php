@@ -49,7 +49,7 @@ class ProjectChangeRequest extends Model
         return $this->morphMany(ProjectTask::class, 'sourceable');
     }
 
-    public function approve(): void
+    public function approve(?string $assignedMemberId = null): void
     {
         if ($this->status !== ProjectChangeRequestStatus::Submitted) {
             return;
@@ -59,6 +59,7 @@ class ProjectChangeRequest extends Model
 
         ProjectTask::create([
             'project_id' => $this->project_id,
+            'assigned_member_id' => $assignedMemberId,
             'name' => 'Change Request: '.($this->type?->getLabel() ?? 'General'),
             'description' => $this->notes,
             'status' => TaskStatus::Todo,

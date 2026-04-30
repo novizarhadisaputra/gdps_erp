@@ -29,6 +29,7 @@ class ProjectMember extends Model
     {
         return [
             'joined_at' => 'datetime',
+            'role' => \Modules\Project\Enums\ProjectMemberRole::class,
         ];
     }
 

@@ -14,6 +14,7 @@ use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 use Modules\CRM\Models\SalesOrder;
+use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\WorkCompletionReportResource;
@@ -47,27 +48,33 @@ class ViewSalesOrder extends ViewRecord
                     $config = $record->content_config ?? [];
                     $bappItems = [];
                     $mfRate = (float) ($record->management_fee_percentage ?? 0);
-                    $taxRate = (int) ($record->tax_percentage ?? 12);
+                    $taxRate = (float) ($record->tax_percentage ?? Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12);
 
                     // 1. Map Manpower
                     $totalCost = 0;
                     foreach ($config['manpower_details'] ?? [] as $mp) {
+                        $sellingPrice = (float) ($mp['unit_price'] ?? 0);
                         $cost = (float) ($mp['unit_cost'] ?? 0);
                         $qty = (float) ($mp['quantity'] ?? 0);
-                        $total = $cost * $qty;
-                        $totalCost += $total;
+                        $totalCost += ($cost * $qty);
 
-                        $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
-                        $sellingPrice = $cost + $feeForThisItem;
+                        if ($sellingPrice <= 0) {
+                            $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
+                            $sellingPrice = $cost + $feeForThisItem;
+                        } else {
+                            $feeForThisItem = ($sellingPrice - $cost);
+                        }
+
+                        $roundedUnitPrice = round($sellingPrice, 0);
 
                         $bappItems[] = [
                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
                             'ukuran_pekerjaan' => $mp['job_position_name'] ?? '-',
                             'quantity' => $qty,
                             'uom' => $mp['uom'] ?? 'Person',
-                            'unit_price' => $sellingPrice,
-                            'total_price' => $sellingPrice * $qty,
-                            'management_fee' => $feeForThisItem * $qty,
+                            'unit_price' => $roundedUnitPrice,
+                            'total_price' => round($roundedUnitPrice * $qty, 0),
+                            'management_fee' => round($feeForThisItem * $qty, 0),
                             'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
                             'keterangan' => null,
                         ];
@@ -75,46 +82,59 @@ class ViewSalesOrder extends ViewRecord
 
                     // 2. Map Operational Items
                     foreach ($config['items'] ?? [] as $item) {
-                        $cost = (float) ($item['unit_price'] ?? $item['unit_cost'] ?? 0);
+                        $sellingPrice = (float) ($item['unit_price'] ?? 0);
+                        $cost = (float) ($item['unit_cost'] ?? 0);
                         $qty = (float) ($item['quantity'] ?? 0);
-                        $total = $cost * $qty;
-                        $totalCost += $total;
+                        $totalCost += ($cost * $qty);
 
-                        $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
-                        $sellingPrice = $cost + $feeForThisItem;
+                        if ($sellingPrice <= 0) {
+                            $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
+                            $sellingPrice = $cost + $feeForThisItem;
+                        } else {
+                            $feeForThisItem = ($sellingPrice - $cost);
+                        }
+
+                        $roundedUnitPrice = round($sellingPrice, 0);
 
                         $bappItems[] = [
                             'item_name' => $item['description'] ?? 'Item',
                             'ukuran_pekerjaan' => $item['description'] ?? '-',
                             'quantity' => $qty,
                             'uom' => $item['uom'] ?? 'Unit',
-                            'unit_price' => $sellingPrice,
-                            'total_price' => $sellingPrice * $qty,
-                            'management_fee' => $feeForThisItem * $qty,
+                            'unit_price' => $roundedUnitPrice,
+                            'total_price' => round($roundedUnitPrice * $qty, 0),
+                            'management_fee' => round($feeForThisItem * $qty, 0),
                             'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
                             'keterangan' => null,
                         ];
                     }
 
                     $totalItemsAmount = collect($bappItems)->sum('total_price');
+                    $feeAmount = collect($bappItems)->sum('management_fee');
 
+                    $vatLabelId = $config['vat_label'] ?? 'PPN';
+                    $vatLabelEn = $config['vat_label'] ?? 'VAT';
                     $bapp = WorkCompletionReport::create([
                         'project_id' => $record->project_id,
                         'sourceable_id' => $record->id,
                         'sourceable_type' => $record->getMorphClass(),
                         'customer_id' => $record->customer_id,
                         'number' => $reportNumber,
+                        'tax_id' => $record->tax_id,
                         'items' => [
                             'id' => $bappItems,
                             'en' => $bappItems,
                         ],
                         'total_amount' => round($totalItemsAmount, 0),
                         'tax_percentage' => $record->type->value === 'internal' ? 0 : $taxRate,
+                        'tax_basis' => 'total',
+                        'tax_base_amount' => round($totalItemsAmount, 0),
+                        'tax_amount' => round($totalItemsAmount * ($taxRate / 100), 0),
                         'tax_wording' => $record->type->value === 'internal'
                             ? ['id' => '-', 'en' => '-']
                             : [
-                                'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$taxRate}%",
-                                'en' => "The above work completion does not include {$taxRate}% VAT",
+                                'id' => "Penyelesaian pekerjaan di atas belum termasuk {$vatLabelId} {$taxRate}%",
+                                'en' => "The above work completion does not include {$taxRate}% {$vatLabelEn}",
                             ],
                         'document_date' => now(),
                         'service_period_start' => now()->startOfMonth(),
@@ -127,7 +147,7 @@ class ViewSalesOrder extends ViewRecord
                         ],
                         'content_config' => [
                             'management_fee_percentage' => $mfRate,
-                            'management_fee_amount' => $feeAmount ?? 0,
+                            'management_fee_amount' => $feeAmount,
                             'total_cost' => $totalCost,
                         ],
                     ]);
@@ -157,8 +177,12 @@ class ViewSalesOrder extends ViewRecord
                 Action::make('sendEmail')
                     ->label('Send Email')
                     ->icon(Heroicon::OutlinedPaperAirplane)
-                    ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]) &&
-                        ($record->hasMedia('draft_so') || $record->proposal?->hasMedia('signed_proposal')) &&
+                    ->visible(fn (SalesOrder $record) => 
+                        in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]) &&
+                        (
+                            $record->hasMedia('draft_so') || 
+                            ($record->type === SalesOrderType::External && ($record->proposal?->hasMedia('signed_proposal') ?? false))
+                        ) &&
                         ($record->profitabilityAnalysis?->is_margin_approved ?? false)
                     )
                     ->url(fn (SalesOrder $record) => SalesOrderResource::getUrl('send', ['record' => $record])),

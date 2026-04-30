@@ -13,16 +13,27 @@ class ProjectTasksTable
     {
         return $table
             ->columns([
+                TextColumn::make('number')
+                    ->label('ID')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('primary')
+                    ->copyable(),
+
                 TextColumn::make('name')
                     ->label('Task Name')
                     ->searchable()
                     ->sortable()
+                    ->icon(Heroicon::OutlinedClipboardDocumentList)
                     ->description(fn ($record) => $record->parent ? "Parent: {$record->parent->name}" : null),
+
                 TextColumn::make('assignedMember.id')
-                    ->label('Assigned To')
+                    ->label('Assignee')
                     ->getStateUsing(fn ($record) => $record->assignedMember?->memberable?->name ?? 'Unassigned')
+                    ->icon(Heroicon::OutlinedUser)
                     ->badge()
-                    ->color('gray'),
+                    ->color(fn ($state) => $state === 'Unassigned' ? 'gray' : 'info'),
                 TextColumn::make('status')
                     ->badge(),
                 TextColumn::make('priority')

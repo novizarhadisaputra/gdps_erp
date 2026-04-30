@@ -11,6 +11,33 @@ use Modules\Project\Models\ProjectTask;
 class ProjectTaskObserver
 {
     /**
+     * Handle the ProjectTask "creating" event.
+     */
+    public function creating(ProjectTask $projectTask): void
+    {
+        if (! $projectTask->number) {
+            $year = now()->format('y'); // e.g., 26
+            $prefix = 'GDPS/UB/TSK-';
+            $suffix = "/{$year}";
+
+            $lastNumber = ProjectTask::where('number', 'like', "{$prefix}%{$suffix}")
+                ->orderBy('number', 'desc')
+                ->first()?->number;
+
+            $sequence = 1;
+            if ($lastNumber) {
+                // Extract sequence from GDPS/UB/TSK-001/26
+                preg_match('/TSK-(\d+)\//', $lastNumber, $matches);
+                if (isset($matches[1])) {
+                    $sequence = (int) $matches[1] + 1;
+                }
+            }
+
+            $projectTask->number = $prefix.str_pad((string) $sequence, 3, '0', STR_PAD_LEFT).$suffix;
+        }
+    }
+
+    /**
      * Handle the ProjectTask "updated" event.
      */
     public function updated(ProjectTask $projectTask): void

@@ -26,6 +26,7 @@ class ProjectTask extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'number',
         'project_id',
         'parent_id',
         'assigned_member_id',

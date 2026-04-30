@@ -9,6 +9,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -22,6 +23,7 @@ use Modules\CRM\Models\PurchaseOrder;
 use Modules\CRM\Models\SalesOrder;
 use Modules\CRM\Models\WorkOrder;
 use Modules\MasterData\Enums\Gender;
+use Modules\MasterData\Models\Tax;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\Project;
 use Modules\Project\Models\WorkCompletionReport;
@@ -165,6 +167,8 @@ class WorkCompletionReportForm
 
                                 if ($source instanceof SalesOrder) {
                                     $set('so_type', $source->type->value);
+                                    $set('tax_id', $source->tax_id);
+                                    $set('tax_percentage', (string) ($source->tax_percentage ?? 12));
 
                                     $manpower = $source->content_config['manpower_details'] ?? [];
                                     $operational = $source->content_config['items'] ?? [];
@@ -174,65 +178,63 @@ class WorkCompletionReportForm
                                     $totalCost = 0;
 
                                     foreach ($manpower as $mp) {
+                                        $sellingPrice = (float) ($mp['unit_price'] ?? 0);
                                         $cost = (float) ($mp['unit_cost'] ?? 0);
                                         $qty = (float) ($mp['quantity'] ?? 0);
-                                        $total = $cost * $qty;
-                                        $totalCost += $total;
+                                        $totalCost += ($cost * $qty);
 
-                                        $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
-                                        $sellingPrice = $cost + $feeForThisItem;
+                                        if ($sellingPrice <= 0) {
+                                            $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
+                                            $sellingPrice = $cost + $feeForThisItem;
+                                        } else {
+                                            $feeForThisItem = ($sellingPrice - $cost);
+                                        }
 
                                         $items[] = [
                                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
                                             'ukuran_pekerjaan' => $mp['job_position_name'] ?? '-',
                                             'quantity' => $qty,
                                             'uom' => $mp['uom'] ?? 'Person',
-                                            'unit_price' => $sellingPrice,
-                                            'total_price' => $sellingPrice * $qty,
-                                            'management_fee' => $feeForThisItem * $qty,
+                                            'unit_price' => round($sellingPrice, 0),
+                                            'total_price' => round($sellingPrice * $qty, 0),
+                                            'management_fee' => round($feeForThisItem * $qty, 0),
                                             'so_reference' => $source->type->value === SalesOrderType::Internal->value ? '-' : $source->number,
                                             'keterangan' => null,
                                         ];
                                     }
 
                                     foreach ($operational as $op) {
+                                        $sellingPrice = (float) ($op['unit_price'] ?? 0);
                                         $cost = (float) ($op['unit_cost'] ?? 0);
                                         $qty = (float) ($op['quantity'] ?? 0);
-                                        $total = $cost * $qty;
-                                        $totalCost += $total;
+                                        $totalCost += ($cost * $qty);
 
-                                        $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
+                                        if ($sellingPrice <= 0) {
+                                            $feeForThisItem = ($mfRate > 0) ? round(($cost / (1 - ($mfRate / 100))) - $cost, 0) : 0;
+                                            $sellingPrice = $cost + $feeForThisItem;
+                                        } else {
+                                            $feeForThisItem = ($sellingPrice - $cost);
+                                        }
+
                                         $items[] = [
                                             'item_name' => $op['item_name'] ?? 'Item',
                                             'ukuran_pekerjaan' => $op['description'] ?? $op['item_name'] ?? '-',
                                             'quantity' => $qty,
                                             'uom' => $op['uom'] ?? 'Unit',
-                                            'unit_price' => $cost,
-                                            'total_price' => $total,
-                                            'management_fee' => $feeForThisItem ?? 0,
+                                            'unit_price' => round($sellingPrice, 0),
+                                            'total_price' => round($sellingPrice * $qty, 0),
+                                            'management_fee' => round($feeForThisItem * $qty, 0),
                                             'so_reference' => $source->type->value === SalesOrderType::Internal->value ? '-' : $source->number,
                                             'keterangan' => null,
                                         ];
                                     }
 
-                                    // 3. Add Management Fee if applicable
-                                    if ($mfRate > 0) {
-                                        // Formula: Revenue = Cost / (1 - Margin)
-                                        // Fee = Revenue - Cost
-                                        $revenue = ($mfRate < 100) ? ($totalCost / (1 - ($mfRate / 100))) : ($totalCost * 1.15);
-                                        $feeAmount = round($revenue - $totalCost, 0);
+                                    // 3. Management Fee summary
+                                    $totalFeeAmount = collect($items)->sum('management_fee');
 
-                                        $items[] = [
-                                            'item_name' => 'Management Fee',
-                                            'ukuran_pekerjaan' => 'Management Fee ('.$mfRate.'%)',
-                                            'quantity' => 1,
-                                            'uom' => 'Lot',
-                                            'unit_price' => $feeAmount,
-                                            'total_price' => $feeAmount,
-                                            'so_reference' => $source->type->value === SalesOrderType::Internal->value ? '-' : $source->number,
-                                            'keterangan' => null,
-                                        ];
-                                    }
+                                    // We don't add a separate Management Fee line item if it's already spread in prices
+                                    // But we still track the total for content_config
+                                    $feeAmount = $totalFeeAmount;
 
                                     $set('items', [
                                         'id' => $items,
@@ -437,6 +439,39 @@ class WorkCompletionReportForm
                     ->schema([
                         Repeater::make('items')
                             ->label('Line Items')
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, Get $get) {
+                                $basis = $get('tax_basis') ?? 'total';
+                                if ($basis === 'custom') {
+                                    return;
+                                }
+
+                                $items = $get('items') ?? [];
+                                $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+
+                                if ($basis === 'management_fee') {
+                                    $mfSum = collect($activeItems)->sum(function ($item) {
+                                        return is_numeric($item['management_fee'] ?? 0) ? (float) $item['management_fee'] : 0;
+                                    });
+
+                                    if ($mfSum <= 0) {
+                                        $mfSum = collect($activeItems)->filter(function ($item) {
+                                            $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+
+                                            return str_contains($name, 'management fee') || str_contains($name, 'fee management');
+                                        })->sum(function ($item) {
+                                            return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                        });
+                                    }
+                                    $baseAmount = $mfSum;
+                                } else {
+                                    $baseAmount = collect($activeItems)->sum(function ($item) {
+                                        return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                    });
+                                }
+
+                                $set('tax_base_amount', $baseAmount);
+                            })
                             ->schema([
                                 Grid::make(3)
                                     ->schema([
@@ -492,25 +527,43 @@ class WorkCompletionReportForm
                 Section::make('Tax Configuration')
                     ->description('Set the VAT percentage and official tax wording for the report.')
                     ->schema([
-                        Grid::make(3)->schema([
-                            Select::make('tax_percentage')
-                                ->label('VAT Percentage')
-                                ->options([
-                                    '11' => 'PPN 11%',
-                                    '12' => 'PPN 12%',
-                                ])
-                                ->default(fn (Get $get) => $get('project_id') && \Modules\Project\Models\Project::find($get('project_id'))?->lead?->industrialSector?->name === 'FMCG' ? '11' : '12')
+                        Grid::make(2)->schema([
+                            Select::make('tax_id')
+                                ->label('Tax Scheme (VAT/PPh)')
+                                ->relationship('tax', 'name', fn ($query) => $query->where('category', 'sales')->where('is_active', true))
+                                ->required()
                                 ->live()
-                                ->afterStateUpdated(function ($state, $set, $get) {
-                                    $baseAmount = (float) ($get('tax_base_amount') ?? 0);
-                                    $taxPercent = (float) ($state ?? 12);
-                                    $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                    $rate = Tax::find($state)?->rate ?? 0;
+                                    $set('tax_percentage', $rate);
 
                                     $set('tax_wording', [
-                                        'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$state}%",
-                                        'en' => "The above work completion does not include {$state}% VAT",
+                                        'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$rate}%",
+                                        'en' => "The above work completion does not include {$rate}% VAT",
                                     ]);
-                                }),
+                                })
+                                ->afterStateHydrated(function ($state, Set $set, Get $get) {
+                                    if ($state) {
+                                        $rate = Tax::find($state)?->rate ?? 0;
+                                        $set('tax_percentage', $rate);
+
+                                        // Only set wording if it's empty to avoid overwriting custom wording
+                                        if (! $get('tax_wording')) {
+                                            $set('tax_wording', [
+                                                'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$rate}%",
+                                                'en' => "The above work completion does not include {$rate}% VAT",
+                                            ]);
+                                        }
+                                    }
+                                })
+                                ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id),
+
+                            TextInput::make('tax_percentage')
+                                ->label('Tax Rate (%)')
+                                ->numeric()
+                                ->readOnly()
+                                ->live()
+                                ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12.00),
 
                             Select::make('tax_basis')
                                 ->label('Tax Basis (DPP)')
@@ -523,20 +576,25 @@ class WorkCompletionReportForm
                                 ->live()
                                 ->required()
                                 ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                    $totalAmount = collect($get('items'))->sum('total_price');
+                                    $items = $get('items') ?? [];
+                                    $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+                                    $totalAmount = collect($activeItems)->sum('total_price');
                                     $baseAmount = $totalAmount;
 
                                     if ($state === 'management_fee') {
-                                        $items = $get('items') ?? [];
-                                        $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
-
-                                        $mfSum = collect($activeItems)->filter(function ($item) {
-                                            $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
-
-                                            return str_contains($name, 'management fee');
-                                        })->sum(function ($item) {
-                                            return is_numeric($item['total_price']) ? (float) $item['total_price'] : 0;
+                                        $mfSum = collect($activeItems)->sum(function ($item) {
+                                            return is_numeric($item['management_fee'] ?? 0) ? (float) $item['management_fee'] : 0;
                                         });
+
+                                        if ($mfSum <= 0) {
+                                            $mfSum = collect($activeItems)->filter(function ($item) {
+                                                $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+
+                                                return str_contains($name, 'management fee') || str_contains($name, 'fee management');
+                                            })->sum(function ($item) {
+                                                return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                            });
+                                        }
 
                                         $baseAmount = $mfSum;
                                     } elseif ($state === 'custom') {
@@ -555,12 +613,42 @@ class WorkCompletionReportForm
                                 ->prefix('IDR')
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->required()
-                                ->live(onBlur: true)
+                                ->live()
                                 ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
+                                ->afterStateHydrated(function (Set $set, Get $get) {
+                                    $basis = $get('tax_basis') ?? 'total';
+                                    if ($basis === 'custom') {
+                                        return;
+                                    }
+
+                                    $items = $get('items') ?? [];
+                                    $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+
+                                    if ($basis === 'management_fee') {
+                                        $mfSum = collect($activeItems)->sum(function ($item) {
+                                            return is_numeric($item['management_fee'] ?? 0) ? (float) $item['management_fee'] : 0;
+                                        });
+
+                                        if ($mfSum <= 0) {
+                                            $mfSum = collect($activeItems)->filter(function ($item) {
+                                                $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+
+                                                return str_contains($name, 'management fee') || str_contains($name, 'fee management');
+                                            })->sum(function ($item) {
+                                                return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                            });
+                                        }
+                                        $baseAmount = $mfSum;
+                                    } else {
+                                        $baseAmount = collect($activeItems)->sum(function ($item) {
+                                            return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                        });
+                                    }
+
+                                    $set('tax_base_amount', $baseAmount);
+                                })
                                 ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                    $baseAmount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
-                                    $taxPercent = (float) ($get('tax_percentage') ?? 12);
-                                    $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                    // Nothing to manually set here as summary fields are computed via state()
                                 }),
                         ]),
 
@@ -580,40 +668,126 @@ class WorkCompletionReportForm
                     ->description('Review the calculated grand total of all report line items.')
                     ->schema([
                         Grid::make(3)->schema([
-                            TextInput::make('total_amount')
+                            TextEntry::make('total_amount')
                                 ->label('Base Amount (Gross)')
-                                ->numeric()
-                                ->prefix('IDR')
-                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                ->readonly()
-                                ->live()
-                                ->afterStateHydrated(function ($set, $get) {
-                                    $sum = collect($get('items'))->sum('total_price');
-                                    $set('total_amount', $sum);
+                                ->state(function (Get $get): string {
+                                    $items = $get('items') ?? [];
+                                    $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+                                    $sum = collect($activeItems)->sum(function ($item) {
+                                        return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                    });
 
-                                    // If tax_base_amount is not set, default to total
-                                    if (! $get('tax_base_amount')) {
-                                        $set('tax_base_amount', $sum);
-                                        $taxPercent = (float) ($get('tax_percentage') ?? 12);
-                                        $set('tax_amount', round($sum * ($taxPercent / 100)));
-                                    }
+                                    return 'IDR '.number_format($sum, 0, ',', '.');
                                 }),
 
-                            TextInput::make('tax_amount')
+                            TextEntry::make('tax_amount')
                                 ->label('Tax Amount (VAT)')
-                                ->numeric()
-                                ->prefix('IDR')
-                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                ->readonly(),
+                                ->state(function (Get $get): string {
+                                    $taxId = $get('tax_id');
+                                    if (! $taxId) {
+                                        return 'IDR 0';
+                                    }
 
-                            TextInput::make('grand_total')
+                                    $tax = Tax::find($taxId);
+                                    if (! $tax) {
+                                        return 'IDR 0';
+                                    }
+
+                                    $basis = $get('tax_basis');
+                                    $items = $get('items') ?? [];
+                                    $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+
+                                    if ($basis === 'custom') {
+                                        $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                    } elseif ($basis === 'management_fee') {
+                                        $mfSum = collect($activeItems)->sum(function ($item) {
+                                            return is_numeric($item['management_fee'] ?? 0) ? (float) $item['management_fee'] : 0;
+                                        });
+
+                                        if ($mfSum <= 0) {
+                                            $mfSum = collect($activeItems)->filter(function ($item) {
+                                                $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+
+                                                return str_contains($name, 'management fee') || str_contains($name, 'fee management');
+                                            })->sum(function ($item) {
+                                                return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                            });
+                                        }
+                                        $baseAmount = $mfSum;
+                                    } else {
+                                        $baseAmount = collect($activeItems)->sum(function ($item) {
+                                            return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                        });
+                                    }
+
+                                    $rate = (float) $tax->rate;
+                                    $taxAmount = 0;
+
+                                    if ($tax->calculation_type === 'formula') {
+                                        $num = (float) ($tax->base_rate_numerator ?? 1);
+                                        $den = (float) ($tax->base_rate_denominator ?? 1);
+                                        $taxAmount = round($baseAmount * ($num / $den) * ($rate / 100));
+                                    } elseif ($tax->calculation_type === 'inclusive') {
+                                        $taxAmount = round($baseAmount * ($rate / (100 + $rate)));
+                                    } else {
+                                        $taxAmount = round($baseAmount * ($rate / 100));
+                                    }
+
+                                    return 'IDR '.number_format($taxAmount, 0, ',', '.');
+                                }),
+
+                            TextEntry::make('grand_total')
                                 ->label('Grand Total')
-                                ->numeric()
-                                ->prefix('IDR')
-                                ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                ->readonly()
-                                ->placeholder('0')
-                                ->state(fn (Get $get) => (float) ($get('total_amount') ?? 0) + (float) ($get('tax_amount') ?? 0)),
+                                ->state(function (Get $get): string {
+                                    $items = $get('items') ?? [];
+                                    $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+                                    $gross = collect($activeItems)->sum(function ($item) {
+                                        return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                    });
+
+                                    $taxId = $get('tax_id');
+                                    if (! $taxId) {
+                                        return 'IDR '.number_format($gross, 0, ',', '.');
+                                    }
+
+                                    $taxModel = Tax::find($taxId);
+                                    if (! $taxModel) {
+                                        return 'IDR '.number_format($gross, 0, ',', '.');
+                                    }
+
+                                    $basis = $get('tax_basis');
+                                    if ($basis === 'custom') {
+                                        $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                    } elseif ($basis === 'management_fee') {
+                                        $baseAmount = collect($activeItems)->filter(function ($item) {
+                                            $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+
+                                            return str_contains($name, 'management fee');
+                                        })->sum(function ($item) {
+                                            return is_numeric($item['total_price'] ?? 0) ? (float) $item['total_price'] : 0;
+                                        });
+                                    } else {
+                                        $baseAmount = $gross;
+                                    }
+
+                                    $rate = (float) $taxModel->rate;
+                                    $taxValue = 0;
+
+                                    if ($taxModel->calculation_type === 'formula') {
+                                        $num = (float) ($taxModel->base_rate_numerator ?? 1);
+                                        $den = (float) ($taxModel->base_rate_denominator ?? 1);
+                                        $taxValue = round($baseAmount * ($num / $den) * ($rate / 100));
+                                    } elseif ($taxModel->calculation_type === 'inclusive') {
+                                        $taxValue = round($baseAmount * ($rate / (100 + $rate)));
+                                        // For inclusive, the gross already contains the tax, so we don't add it?
+                                        // Usually, Grand Total = Gross.
+                                        return 'IDR '.number_format($gross, 0, ',', '.');
+                                    } else {
+                                        $taxValue = round($baseAmount * ($rate / 100));
+                                    }
+
+                                    return 'IDR '.number_format($gross + $taxValue, 0, ',', '.');
+                                }),
                         ]),
                     ]),
 

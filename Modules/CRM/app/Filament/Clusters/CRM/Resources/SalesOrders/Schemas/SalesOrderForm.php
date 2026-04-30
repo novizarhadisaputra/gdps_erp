@@ -489,17 +489,38 @@ class SalesOrderForm
                                         ->helperText('The agreed fee percentage for managing the project.')
                                         ->default(10),
                                     Select::make('tax_id')
-                                        ->label('VAT Scheme')
+                                        ->label('Tax Scheme (VAT/PPh)')
                                         ->relationship('tax', 'name', fn ($query) => $query->where('category', 'sales')->where('is_active', true))
                                         ->required()
                                         ->live()
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('tax_percentage', Tax::find($state)?->rate ?? 0))
                                         ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id),
                                     TextInput::make('tax_percentage')
-                                        ->label('VAT Percentage')
+                                        ->label('Tax Rate (%)')
                                         ->numeric()
                                         ->readOnly()
                                         ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12.00),
+                                ]),
+                            Section::make('PDF Display Settings')
+                                ->description('Customize labels and display options for the generated PDF document.')
+                                ->collapsible()
+                                ->compact()
+                                ->schema([
+                                    Grid::make(3)
+                                        ->schema([
+                                            TextInput::make('content_config.vat_label')
+                                                ->label('VAT Label (PDF)')
+                                                ->placeholder('e.g. PPN')
+                                                ->default('PPN'),
+                                            TextInput::make('content_config.subtotal_label')
+                                                ->label('Subtotal Label (PDF)')
+                                                ->placeholder('e.g. Sub Total')
+                                                ->default('Sub Total'),
+                                            TextInput::make('content_config.total_label')
+                                                ->label('Total Label (PDF)')
+                                                ->placeholder('e.g. Grand Total')
+                                                ->default('Grand Total'),
+                                        ]),
                                 ]),
                             Section::make('Contractual Terms')
                                 ->description('Administrative terms and personnel replacement SLA.')

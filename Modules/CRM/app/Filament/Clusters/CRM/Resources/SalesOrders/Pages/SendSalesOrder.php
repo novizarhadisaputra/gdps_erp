@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -13,6 +14,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 
@@ -127,17 +129,42 @@ class SendSalesOrder extends Page
         $formData = $this->form->getState();
 
         try {
-            // 1. Prepare Message
+            // 1. Prepare Attachment
+            $attachmentUrl = null;
+            $attachmentName = null;
+
+            if ($media = $this->record->getFirstMedia('draft_so')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+                $attachmentName = $media->file_name;
+            } elseif ($this->record->type->value === 'external' && $this->record->proposal && $media = $this->record->proposal->getFirstMedia('signed_proposal')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+                $attachmentName = $media->file_name;
+            } else {
+                // Generate PDF on the fly
+                $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $this->record]);
+                $filename = 'SO-' . str_replace(['/', '\\'], '-', $this->record->number) . '.pdf';
+
+                // Store temporarily on S3 to get a URL
+                $tempPath = "temp/sales-orders/{$filename}";
+                Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
+
+                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                $disk = Storage::disk('s3');
+                $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
+                $attachmentName = $filename;
+            }
+
+            // 2. Prepare Message
             $messageBody = $formData['message'] ?? '';
 
-            // 2. Log sending attempt
+            // 3. Log sending attempt
             Log::info('Sales Order Email Sending Attempt', [
                 'so_id' => $this->record->id,
                 'number' => $this->record->number,
                 'recipient' => $formData['recipient_email'],
             ]);
 
-            // 3. Send via External API
+            // 4. Send via External API
             $response = Http::timeout(60)
                 ->withHeaders([
                     'content-type' => 'application/json',
@@ -148,6 +175,12 @@ class SendSalesOrder extends Page
                     ],
                     'subject' => $formData['subject'],
                     'body' => $messageBody,
+                    'attachments' => [
+                        [
+                            'name' => $attachmentName,
+                            'url' => $attachmentUrl,
+                        ],
+                    ],
                 ]);
 
             if (! $response->successful()) {

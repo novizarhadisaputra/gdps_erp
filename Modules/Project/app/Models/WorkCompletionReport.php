@@ -48,6 +48,7 @@ class WorkCompletionReport extends Model implements HasMedia
         'status',
         'sourceable_id',
         'sourceable_type',
+        'tax_id',
         'tax_percentage',
         'tax_basis',
         'tax_base_amount',
@@ -55,6 +56,11 @@ class WorkCompletionReport extends Model implements HasMedia
         'tax_wording',
         'content_config',
     ];
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\Tax::class);
+    }
 
     protected function casts(): array
     {

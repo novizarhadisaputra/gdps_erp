@@ -362,7 +362,7 @@
     <div class="total-box">
         <table>
             <tr>
-                <td class="bg-gray" style="width: 50%;">Subtotal (Net Cost)</td>
+                <td class="bg-gray" style="width: 50%;">{{ $record->content_config['subtotal_label'] ?? 'Subtotal (Net Cost)' }}</td>
                 <td class="text-right font-bold" style="width: 50%;">
                     {{ number_format($totalCost, 0, ',', '.') }}
                 </td>
@@ -374,13 +374,13 @@
                 </td>
             </tr>
             <tr>
-                <td class="bg-gray">VAT ({{ $record->tax_percentage }}%)</td>
+                <td class="bg-gray">{{ $record->content_config['vat_label'] ?? 'VAT' }} ({{ $record->tax_percentage }}%)</td>
                 <td class="text-right">
                     {{ number_format($vat, 0, ',', '.') }}
                 </td>
             </tr>
             <tr>
-                <td class="bg-gray" style="background-color: #000; color: #fff;">Grand Total / Month</td>
+                <td class="bg-gray" style="background-color: #000; color: #fff;">{{ $record->content_config['total_label'] ?? 'Grand Total / Month' }}</td>
                 <td class="text-right font-bold" style="background-color: #f3f4f6;">IDR {{ number_format($grandTotal, 0, ',', '.') }}</td>
             </tr>
         </table>

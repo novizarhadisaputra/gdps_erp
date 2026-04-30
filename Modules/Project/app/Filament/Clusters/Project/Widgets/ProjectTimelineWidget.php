@@ -24,23 +24,25 @@ class ProjectTimelineWidget extends ApexChartWidget
         $cache = app(AnalyticsCacheService::class);
 
         $data = $cache->rememberHourly('project.timeline', function () {
-            $projects = Project::whereNotNull('start_date')
-                ->whereNotNull('end_date')
-                ->where('status', '!=', 'cancelled')
-                ->orderBy('start_date')
+            $projects = Project::where('status', '!=', 'cancelled')
+                ->orderBy('start_date', 'asc')
+                ->orderBy('created_at', 'asc')
                 ->take(20)
                 ->get();
 
             $series = [];
             foreach ($projects as $project) {
-                $startDate = Carbon::parse($project->start_date)->timestamp * 1000;
-                $endDate = Carbon::parse($project->end_date)->timestamp * 1000;
+                $start = $project->start_date ?? $project->created_at;
+                $end = $project->end_date ?? $start->copy()->addMonth();
+
+                $startDate = Carbon::parse($start)->timestamp * 1000;
+                $endDate = Carbon::parse($end)->timestamp * 1000;
 
                 $series[] = [
-                    'name' => $project->code ?? $project->name,
+                    'name' => $project->number ?? $project->name,
                     'data' => [
                         [
-                            'x' => $project->status ?? 'Unknown',
+                            'x' => $project->status?->getLabel() ?? 'Unknown',
                             'y' => [$startDate, $endDate],
                         ],
                     ],
@@ -48,12 +50,12 @@ class ProjectTimelineWidget extends ApexChartWidget
             }
 
             if (empty($series)) {
-                $series = [
+                return [
                     [
-                        'name' => 'No Data',
+                        'name' => 'No Projects',
                         'data' => [
                             [
-                                'x' => 'No Project',
+                                'x' => 'No Data',
                                 'y' => [0, 0],
                             ],
                         ],

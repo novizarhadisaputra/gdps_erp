@@ -16,7 +16,9 @@ use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Observers\SalesOrderObserver;
 use Modules\Finance\Models\Invoice;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
@@ -134,6 +136,11 @@ class SalesOrder extends Model implements HasMedia
 
     public function tax(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Tax::class);
+        return $this->belongsTo(Tax::class);
+    }
+
+    public function getProfitabilityAnalysisAttribute(): ?ProfitabilityAnalysis
+    {
+        return $this->project?->profitabilityAnalysis ?? $this->proposal?->profitabilityAnalysis;
     }
 }

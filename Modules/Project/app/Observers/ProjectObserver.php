@@ -27,9 +27,32 @@ class ProjectObserver
     {
         $this->cache->flushProject();
 
+        // Create initial project information with AMS and Oprep from project
         $project->information()->create([
             'status' => ProjectInformationStatus::Planning,
+            'ams_id' => $project->ams_id,
+            'oprep_id' => $project->oprep_id,
         ]);
+
+        // Add AMS as default project member
+        if ($project->ams_id) {
+            $project->members()->create([
+                'memberable_id' => $project->ams_id,
+                'memberable_type' => \Modules\MasterData\Models\Employee::class,
+                'role' => \Modules\Project\Enums\ProjectMemberRole::AMS,
+                'joined_at' => now(),
+            ]);
+        }
+
+        // Add Oprep as default project member
+        if ($project->oprep_id) {
+            $project->members()->create([
+                'memberable_id' => $project->oprep_id,
+                'memberable_type' => \Modules\MasterData\Models\Employee::class,
+                'role' => \Modules\Project\Enums\ProjectMemberRole::Oprep,
+                'joined_at' => now(),
+            ]);
+        }
 
         if ($project->lead) {
             $project->lead->update([
