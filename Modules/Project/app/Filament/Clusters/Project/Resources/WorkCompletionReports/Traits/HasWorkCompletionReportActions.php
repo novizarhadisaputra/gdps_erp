@@ -10,8 +10,14 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
+use Modules\Finance\Enums\AccrueRevenueStatus;
 use Modules\Finance\Enums\InvoiceStatus;
+use Modules\Finance\Enums\RevenueType;
+use Modules\Finance\Filament\Clusters\Finance\Resources\AccrueRevenues\AccrueRevenueResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
+use Modules\Finance\Models\AccrueRevenue;
+use Modules\Finance\Models\AccrueRevenueItem;
 use Modules\Finance\Models\Invoice;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Enums\WorkCompletionStatus;
@@ -27,6 +33,7 @@ trait HasWorkCompletionReportActions
 
             ActionGroup::make([
                 $this->getExportPdfAction(),
+                $this->getGenerateAccrualAction(),
                 $this->getGenerateInvoiceAction(),
                 $this->getDiscussionsAction(),
             ])
@@ -75,7 +82,7 @@ trait HasWorkCompletionReportActions
                 ]);
 
                 $name = str_replace(['/', '\\'], '-', $record->number);
-                $customerName = \Illuminate\Support\Str::slug($record->customer?->company_name ?? $record->customer?->name ?? 'Unknown-Customer', '-');
+                $customerName = Str::slug($record->customer?->company_name ?? $record->customer?->name ?? 'Unknown-Customer', '-');
                 $langSuffix = strtoupper($data['language']);
                 $fileName = "BAPP_{$name}_{$customerName}_{$langSuffix}.pdf";
 
@@ -93,6 +100,48 @@ trait HasWorkCompletionReportActions
             ->icon('heroicon-o-chat-bubble-left-right')
             ->color('info')
             ->url(fn (WorkCompletionReport $record) => "/admin/projects/{$record->project_id}/work-completion-reports/{$record->id}/discussions");
+    }
+
+    protected function getGenerateAccrualAction(): Action
+    {
+        return Action::make('generateAccrual')
+            ->label('Generate Accrual')
+            ->icon('heroicon-o-presentation-chart-line')
+            ->color('info')
+            ->requiresConfirmation()
+            ->modalHeading('Generate Revenue Accrual')
+            ->modalDescription('This will generate a draft Revenue Accrual record for this BAPP.')
+            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Approved && ! AccrueRevenueItem::where('bapp_id', $record->id)->exists())
+            ->action(function (WorkCompletionReport $record) {
+                $accrual = AccrueRevenue::create([
+                    'project_id' => $record->project_id,
+                    'customer_id' => $record->customer_id,
+                    'month' => (int) $record->document_date->format('n'),
+                    'year' => (int) $record->document_date->format('Y'),
+                    'work_period' => $record->service_period_start,
+                    'accrual_period' => $record->document_date,
+                    'status' => AccrueRevenueStatus::Open,
+                    'description' => "Accrual for BAPP: {$record->number}",
+                ]);
+
+                foreach ($record->items as $item) {
+                    AccrueRevenueItem::create([
+                        'accrue_revenue_id' => $accrual->id,
+                        'revenue_type' => RevenueType::MainWork,
+                        'amount_estimated' => $item['total_price'] ?? 0,
+                        'amount_actual' => $item['total_price'] ?? 0,
+                        'bapp_id' => $record->id,
+                        'description' => $item['description'] ?? '',
+                    ]);
+                }
+
+                Notification::make()
+                    ->title('Accrual Generated Successfully')
+                    ->success()
+                    ->send();
+
+                return redirect()->to(AccrueRevenueResource::getUrl('edit', ['record' => $accrual]));
+            });
     }
 
     protected function getGenerateInvoiceAction(): Action
@@ -125,6 +174,11 @@ trait HasWorkCompletionReportActions
                     'status' => InvoiceStatus::Draft,
                     'items' => $record->items,
                 ]);
+
+                // Link related AccrueRevenueItems to this Invoice
+                AccrueRevenueItem::where('bapp_id', $record->id)
+                    ->whereNull('invoice_id')
+                    ->update(['invoice_id' => $invoice->id]);
 
                 Notification::make()
                     ->title('Invoice Generated Successfully')

@@ -39,11 +39,6 @@ class ViewSalesOrder extends ViewRecord
                 ->modalHeading('Generate Monthly BAPP')
                 ->modalDescription('This will create a new Work Completion Report draft based on this Sales Order.')
                 ->action(function (SalesOrder $record) {
-                    $sequence = WorkCompletionReport::where('sourceable_id', $record->id)
-                        ->where('sourceable_type', $record->getMorphClass())
-                        ->count() + 1;
-                    $reportNumber = sprintf('GDPS/UB/BAPP-%03d/%02d/%s', $record->sequence_number, $sequence, now()->format('y'));
-
                     // Map content_config to BAPP items structure
                     $config = $record->content_config ?? [];
                     $bappItems = [];
@@ -119,7 +114,7 @@ class ViewSalesOrder extends ViewRecord
                         'sourceable_id' => $record->id,
                         'sourceable_type' => $record->getMorphClass(),
                         'customer_id' => $record->customer_id,
-                        'number' => $reportNumber,
+                        'number' => 'Auto-generated',
                         'tax_id' => $record->tax_id,
                         'items' => [
                             'id' => $bappItems,
@@ -142,8 +137,8 @@ class ViewSalesOrder extends ViewRecord
                         'work_progress_percentage' => 100,
                         'status' => WorkCompletionStatus::Draft,
                         'description' => [
-                            'id' => "Laporan Penyelesaian Pekerjaan Bulanan #{$sequence} untuk SO {$record->number}",
-                            'en' => "Monthly Work Completion Report #{$sequence} for SO {$record->number}",
+                            'id' => "Laporan Penyelesaian Pekerjaan Bulanan untuk SO {$record->number}",
+                            'en' => "Monthly Work Completion Report for SO {$record->number}",
                         ],
                         'content_config' => [
                             'management_fee_percentage' => $mfRate,
@@ -154,7 +149,7 @@ class ViewSalesOrder extends ViewRecord
 
                     Notification::make()
                         ->title('BAPP Draft Created')
-                        ->body("New BAPP {$reportNumber} has been successfully generated.")
+                        ->body("New BAPP {$bapp->number} has been successfully generated.")
                         ->success()
                         ->actions([
                             Action::make('view')
@@ -177,11 +172,11 @@ class ViewSalesOrder extends ViewRecord
                 Action::make('sendEmail')
                     ->label('Send Email')
                     ->icon(Heroicon::OutlinedPaperAirplane)
-                    ->visible(fn (SalesOrder $record) => 
+                    ->visible(fn (SalesOrder $record) => $record->type === SalesOrderType::External &&
                         in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]) &&
                         (
-                            $record->hasMedia('draft_so') || 
-                            ($record->type === SalesOrderType::External && ($record->proposal?->hasMedia('signed_proposal') ?? false))
+                            $record->hasMedia('draft_so') ||
+                            ($record->proposal?->hasMedia('signed_proposal') ?? false)
                         ) &&
                         ($record->profitabilityAnalysis?->is_margin_approved ?? false)
                     )

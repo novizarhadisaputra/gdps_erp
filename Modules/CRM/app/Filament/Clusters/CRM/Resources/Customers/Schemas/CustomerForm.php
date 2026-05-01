@@ -5,7 +5,6 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -205,28 +204,33 @@ class CustomerForm
                         ->addActionLabel('Add New Contact Person'),
                 ]),
 
-            Section::make('Legal & Company Documents')
-                ->description('Official corporate and legal registration files.')
+            Section::make('GL Account Mapping')
+                ->description('Map specific SAP General Ledger accounts for this customer.')
                 ->schema([
-                    SpatieMediaLibraryFileUpload::make('npwp')
-                        ->collection('npwp')
-                        ->label('NPWP Document')
-                        ->disk('s3')
-                        ->visibility('private'),
-                    SpatieMediaLibraryFileUpload::make('legal_documents')
-                        ->collection('legal_documents')
-                        ->label('Legal Documents')
-                        ->disk('s3')
-                        ->visibility('private')
-                        ->multiple(),
-                    SpatieMediaLibraryFileUpload::make('company_profile')
-                        ->collection('company_profile')
-                        ->label('Company Profile')
-                        ->disk('s3')
-                        ->visibility('private'),
-                ])
-                ->columns(3)
-                ->columnSpanFull(),
+                    Repeater::make('accountMappings')
+                        ->relationship('accountMappings')
+                        ->schema([
+                            Select::make('type')
+                                ->options([
+                                    'accrual' => 'Accrual Revenue',
+                                    'revenue' => 'Realized Revenue',
+                                    'receivable' => 'Account Receivable',
+                                    'expense' => 'Accrued Expense',
+                                ])
+                                ->required()
+                                ->native(false),
+                            Select::make('chart_of_account_id')
+                                ->label('GL Account')
+                                ->relationship('chartOfAccount', 'name')
+                                ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->code}] {$record->name}")
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                        ])
+                        ->columns(2)
+                        ->grid(2)
+                        ->addActionLabel('Add New GL Mapping'),
+                ])->columnSpanFull(),
         ];
     }
 }

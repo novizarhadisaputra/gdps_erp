@@ -2,9 +2,15 @@
 
 namespace Modules\Finance\Observers;
 
+use Modules\CRM\Enums\SalesOrderType;
+use Modules\CRM\Models\SalesOrder;
 use Modules\Finance\Enums\InvoiceStatus;
+use Modules\Finance\Models\AccrueRevenueItem;
 use Modules\Finance\Models\Invoice;
+use Modules\Finance\Services\AccrualReversalService;
+use Modules\MasterData\Models\BankAccount;
 use Modules\MasterData\Services\SignatureService;
+use Modules\Project\Models\WorkCompletionReport;
 
 class InvoiceObserver
 {
@@ -37,20 +43,20 @@ class InvoiceObserver
             // Check if it's an internal SO
             $isInternal = false;
             $source = $invoice->sourceable;
-            if ($source instanceof \Modules\CRM\Models\SalesOrder) {
-                $isInternal = $source->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value;
-            } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport && $source->sourceable instanceof \Modules\CRM\Models\SalesOrder) {
-                $isInternal = $source->sourceable->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value;
+            if ($source instanceof SalesOrder) {
+                $isInternal = $source->type->value === SalesOrderType::Internal->value;
+            } elseif ($source instanceof WorkCompletionReport && $source->sourceable instanceof SalesOrder) {
+                $isInternal = $source->sourceable->type->value === SalesOrderType::Internal->value;
             }
 
             if ($isInternal) {
-                $bank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                $bank = BankAccount::where('account_name', 'like', '%Internal%')
                     ->where('is_active', true)
                     ->first();
             }
 
             if (! $bank) {
-                $bank = \Modules\MasterData\Models\BankAccount::where('is_active', true)->first();
+                $bank = BankAccount::where('is_active', true)->first();
             }
 
             if ($bank) {
@@ -70,12 +76,27 @@ class InvoiceObserver
     }
 
     /**
+     * Handle the Invoice "created" event.
+     */
+    public function created(Invoice $invoice): void
+    {
+        if ($invoice->work_completion_report_id) {
+            AccrueRevenueItem::where('bapp_id', $invoice->work_completion_report_id)
+                ->whereNull('invoice_id')
+                ->update(['invoice_id' => $invoice->id]);
+        }
+    }
+
+    /**
      * Handle the Invoice "updated" event.
      */
     public function updated(Invoice $invoice): void
     {
         if ($invoice->wasChanged('status') && $invoice->status === InvoiceStatus::Submitted) {
             app(SignatureService::class)->notifyNextApprovers($invoice);
+
+            // Trigger Accrual Reversal logic
+            app(AccrualReversalService::class)->reverseAccrualsForInvoice($invoice);
         }
     }
 }

@@ -5,8 +5,6 @@ namespace Modules\CRM\Observers;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Models\SalesOrder;
-use Modules\Project\Enums\WorkCompletionStatus;
-use Modules\Project\Models\WorkCompletionReport;
 
 class SalesOrderObserver
 {
@@ -47,7 +45,7 @@ class SalesOrderObserver
      */
     public function updated(SalesOrder $salesOrder): void
     {
-        // Automation removed: BAPP generation is now handled manually 
+        // Automation removed: BAPP generation is now handled manually
         // via the "Generate BAPP" button in the Sales Order details page.
     }
 
@@ -58,6 +56,13 @@ class SalesOrderObserver
     {
         // Automation: If Signed SO document is uploaded, flip status to Approved
         if ($salesOrder->hasMedia('signed_so') && in_array($salesOrder->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted])) {
+            $salesOrder->updateQuietly([
+                'status' => SalesOrderStatus::Approved,
+            ]);
+        }
+
+        // Automation: For Internal SO, if Draft SO (Internal Memo) is uploaded, flip status to Approved immediately
+        if ($salesOrder->type === SalesOrderType::Internal && $salesOrder->hasMedia('draft_so') && $salesOrder->status === SalesOrderStatus::Draft) {
             $salesOrder->updateQuietly([
                 'status' => SalesOrderStatus::Approved,
             ]);

@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->nullableUuidMorphs('parentable');
             $table->string('code')->unique()->nullable();
             $table->string('name');
+            $table->boolean('has_branches')->default(false);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->timestamps();

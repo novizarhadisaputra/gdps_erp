@@ -551,10 +551,16 @@ class SalesOrderForm
                                         ->schema([
                                             SpatieMediaLibraryFileUpload::make('draft_so')
                                                 ->collection('draft_so')
-                                                ->label('Draft SO / Proposal Document')
+                                                ->label(fn (Get $get) => $get('type') === SalesOrderType::Internal
+                                                    ? 'Internal Memo / ST / SPK (Internal)'
+                                                    : 'Draft SO / Proposal Document'
+                                                )
                                                 ->placeholder('Click or drag file here...')
                                                 ->required(false)
-                                                ->helperText('Internal review version or initial proposal (Optional).'),
+                                                ->helperText(fn (Get $get) => $get('type') === SalesOrderType::Internal
+                                                    ? 'Upload the approved internal document. This will automatically approve the Sales Order.'
+                                                    : 'Internal review version or initial proposal (Optional).'
+                                                ),
 
                                             SpatieMediaLibraryFileUpload::make('signed_so')
                                                 ->collection('signed_so')

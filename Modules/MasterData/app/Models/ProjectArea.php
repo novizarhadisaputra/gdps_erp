@@ -34,12 +34,23 @@ class ProjectArea extends Model
         return [
             'is_active' => 'boolean',
             'is_default' => 'boolean',
+            'has_branches' => 'boolean',
         ];
     }
 
     protected static function newFactory(): ProjectAreaFactory
     {
         return ProjectAreaFactory::new();
+    }
+
+    public function parentable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    {
+        return $this->morphTo();
+    }
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(self::class, 'parentable');
     }
 
     public function province(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -50,5 +61,10 @@ class ProjectArea extends Model
     public function regency(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Regency::class);
+    }
+
+    public function accountMappings(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\Modules\Finance\Models\AccountMapping::class, 'mappable');
     }
 }

@@ -97,4 +97,14 @@ class Customer extends Model implements HasMedia
     {
         return $this->belongsTo(Village::class);
     }
+
+    public function accountMappings(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\Modules\Finance\Models\AccountMapping::class, 'mappable');
+    }
+
+    public function projectAreas(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\Modules\MasterData\Models\ProjectArea::class, 'parentable');
+    }
 }

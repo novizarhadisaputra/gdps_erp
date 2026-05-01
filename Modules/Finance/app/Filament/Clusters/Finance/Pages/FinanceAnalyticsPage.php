@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Pages;
 
 use App\Filament\Pages\AnalyticsBasePage;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
+use Modules\Finance\Filament\Widgets\AccrualStatusStats;
 use Modules\Finance\Filament\Widgets\BappStatusStats;
 use Modules\Finance\Filament\Widgets\FinanceRevenueChart;
 use Modules\Finance\Filament\Widgets\ManpowerCompositionDonut;
@@ -28,6 +29,7 @@ class FinanceAnalyticsPage extends AnalyticsBasePage
     public function getWidgets(): array
     {
         return [
+            AccrualStatusStats::class,
             BappStatusStats::class,
             FinanceRevenueChart::class,
             ManpowerCompositionDonut::class,

@@ -7,6 +7,9 @@ enum RevenueType: string
     case MainWork = 'main_work';
     case Overtime = 'overtime';
     case Travel = 'travel';
+    case Material = 'material';
+    case Buffer = 'buffer';
+    case Other = 'other';
 
     public function getLabel(): string
     {
@@ -14,6 +17,9 @@ enum RevenueType: string
             self::MainWork => 'Pekerjaan Utama',
             self::Overtime => 'Lemburan',
             self::Travel => 'SPPD / Perjalanan Dinas',
+            self::Material => 'Material',
+            self::Buffer => 'Buffer (Tenaga Pengganti)',
+            self::Other => 'Lain-lain',
         };
     }
 }

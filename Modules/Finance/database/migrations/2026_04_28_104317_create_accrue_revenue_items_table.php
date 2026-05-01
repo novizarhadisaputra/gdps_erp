@@ -17,7 +17,12 @@ return new class extends Migration
             $table->string('revenue_type');
             $table->decimal('amount_estimated', 15, 2)->default(0);
             $table->decimal('amount_actual', 15, 2)->default(0);
+            $table->decimal('amount_expense_estimated', 15, 2)->default(0);
+            $table->decimal('amount_expense_actual', 15, 2)->default(0);
+            $table->boolean('has_management_fee')->default(false);
             $table->foreignUuid('invoice_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices')->nullOnDelete();
+            $table->foreignUuid('bapp_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports')->nullOnDelete();
+            $table->boolean('is_reversed')->default(false);
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();

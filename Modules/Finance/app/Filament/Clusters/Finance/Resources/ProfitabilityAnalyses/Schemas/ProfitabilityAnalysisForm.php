@@ -1379,9 +1379,11 @@ class ProfitabilityAnalysisForm
             $items = $template->items->map(function ($item) {
                 return [
                     'job_position_id' => $item->job_position_id,
-                    'count' => $item->count,
-                    'salary' => $item->salary,
-                    'total_salary' => $item->total_salary,
+                    'quantity' => $item->count,
+                    'unit_cost_price' => $item->salary,
+                    'total_monthly_cost' => $item->total_salary,
+                    'is_manpower' => true,
+                    'is_bpjs_active' => true,
                 ];
             })->toArray();
 
@@ -1433,13 +1435,13 @@ class ProfitabilityAnalysisForm
                 ])->toArray();
 
                 if ($existingIndex >= 0) {
-                    $updatedManualCosts[$existingIndex]['total_amount'] = 0;
+                    $updatedManualCosts[$existingIndex]['amount'] = 0;
                     $updatedManualCosts[$existingIndex]['description'] = 'Auto-filled from template: '.$template->name;
                     $updatedManualCosts[$existingIndex]['sub_items'] = $subItems;
                 } else {
                     $updatedManualCosts[] = [
                         'direct_cost_category_id' => $directCostCategoryId,
-                        'total_amount' => 0,
+                        'amount' => 0,
                         'description' => 'Auto-filled from template: '.$template->name,
                         'sub_items' => $subItems,
                     ];

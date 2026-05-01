@@ -96,6 +96,11 @@ class Invoice extends Model implements HasMedia
         return $this->belongsTo(\Modules\MasterData\Models\BankAccount::class);
     }
 
+    public function accrueRevenueItems(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AccrueRevenueItem::class);
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('payment_proof')

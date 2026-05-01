@@ -57,28 +57,44 @@ class SalesOrderService
         $mfRate = (float) ($analysis->management_fee_rate ?? 0);
 
         $calculateRevenue = function ($cost) use ($mfRate) {
-            if ($mfRate >= 100) {
-                return $cost * 1.15;
-            }
-
-            return $cost / (1 - ($mfRate / 100));
+            return $cost * (1 + ($mfRate / 100));
         };
 
+        $totalSoAmount = 0;
+
         // Map PA items to SO Table items
-        $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
-            'description' => $item['item_name'],
-            'uom' => $item['uom'] ?? 'Unit',
-            'quantity' => $item['quantity'],
-            'unit_cost' => $item['unit_cost'] ?? 0,
-            'unit_price' => $calculateRevenue($item['unit_cost'] ?? 0),
-            'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
-        ])->toArray();
+        $items = collect($financials['operational_costs'] ?? [])->map(function ($item) use ($calculateRevenue, &$totalSoAmount) {
+            $qty = (float) ($item['quantity'] ?? 0);
+            $unitCost = (float) ($item['unit_cost'] ?? 0);
+            $unitPrice = round($calculateRevenue($unitCost), 0);
+            $totalPrice = $unitPrice * $qty;
+
+            $totalSoAmount += $totalPrice;
+
+            return [
+                'description' => $item['item_name'] ?? 'Operational Item',
+                'uom' => $item['uom'] ?? 'Unit',
+                'quantity' => $qty,
+                'unit_cost' => $unitCost,
+                'unit_price' => $unitPrice,
+                'total_price' => $totalPrice,
+            ];
+        })->toArray();
 
         // Apply revenue calculation to manpower as well for SO display
-        $manpowerDetails = collect($manpower)->map(fn ($mp) => array_merge($mp, [
-            'unit_price' => $calculateRevenue($mp['unit_cost'] ?? 0),
-            'total_price' => $calculateRevenue($mp['unit_cost'] ?? 0) * ($mp['quantity'] ?? 0),
-        ]))->toArray();
+        $manpowerDetails = collect($manpower)->map(function ($mp) use ($calculateRevenue, &$totalSoAmount) {
+            $qty = (float) ($mp['quantity'] ?? 0);
+            $unitCost = (float) ($mp['unit_cost'] ?? 0);
+            $unitPrice = round($calculateRevenue($unitCost), 0);
+            $totalPrice = $unitPrice * $qty;
+
+            $totalSoAmount += $totalPrice;
+
+            return array_merge($mp, [
+                'unit_price' => $unitPrice,
+                'total_price' => $totalPrice,
+            ]);
+        })->toArray();
 
         // 5. Generate SO Number
         $year = date('Y');
@@ -106,7 +122,7 @@ class SalesOrderService
             'customer_id' => $analysis->customer_id,
             'type' => SalesOrderType::Internal,
             'status' => SalesOrderStatus::Draft,
-            'amount' => $analysis->revenue_per_month,
+            'amount' => $totalSoAmount,
             'management_fee_percentage' => $analysis->management_fee_rate,
             'tax_percentage' => $analysis->tax?->rate ?? 11,
             'sales_pic_id' => $project->ams_id ?? $analysis->lead?->ams_id,

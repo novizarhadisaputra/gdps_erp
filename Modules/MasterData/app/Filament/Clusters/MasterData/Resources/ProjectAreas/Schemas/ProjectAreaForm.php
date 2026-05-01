@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas;
 
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -107,6 +108,20 @@ class ProjectAreaForm
             Section::make('Internal Identification')
                 ->description('Provide internal coding and status for this project area.')
                 ->schema([
+                    MorphToSelect::make('parentable')
+                        ->label('Parent Entity')
+                        ->types([
+                            MorphToSelect\Type::make(\Modules\CRM\Models\Customer::class)
+                                ->titleAttribute('name')
+                                ->label('Customer'),
+                            MorphToSelect\Type::make(ProjectArea::class)
+                                ->titleAttribute('name')
+                                ->label('Project Area'),
+                        ])
+                        ->searchable()
+                        ->preload()
+                        ->placeholder('Select parent (Customer or Area)')
+                        ->helperText('Assign this area to a Customer or a Parent Area.'),
                     TextInput::make('code')
                         ->label('Internal Area Code')
                         ->unique(ProjectArea::class, 'code', ignoreRecord: true)
@@ -117,11 +132,43 @@ class ProjectAreaForm
                         ->label('Active Status')
                         ->default(true)
                         ->helperText('Determines if this area is currently available for project assignment.'),
+                    Toggle::make('has_branches')
+                        ->label('Has Branches')
+                        ->default(false)
+                        ->helperText('Enable if this area contains sub-areas (nested structure).'),
                     Toggle::make('is_default')
                         ->label('Default Area')
                         ->default(false)
                         ->helperText('Sets this as the primary default area for new projects.'),
                 ])->columns(3),
+
+            Section::make('GL Account Mapping')
+                ->description('Map specific SAP General Ledger accounts for this project area.')
+                ->schema([
+                    \Filament\Forms\Components\Repeater::make('accountMappings')
+                        ->relationship('accountMappings')
+                        ->schema([
+                            \Filament\Forms\Components\Select::make('type')
+                                ->options([
+                                    'accrual' => 'Accrual Revenue',
+                                    'revenue' => 'Realized Revenue',
+                                    'receivable' => 'Account Receivable',
+                                    'expense' => 'Accrued Expense',
+                                ])
+                                ->required()
+                                ->native(false),
+                            \Filament\Forms\Components\Select::make('chart_of_account_id')
+                                ->label('GL Account')
+                                ->relationship('chartOfAccount', 'name')
+                                ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->code}] {$record->name}")
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                        ])
+                        ->columns(2)
+                        ->grid(2)
+                        ->addActionLabel('Add New GL Mapping'),
+                ])->columnSpanFull(),
         ];
     }
 }

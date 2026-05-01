@@ -15,15 +15,10 @@ class FinanceRevenueChart extends ApexChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    public static function canView(): bool
-    {
-        return false;
-    }
-
     /**
      * Widget Title
      */
-    protected static ?string $heading = 'Monthly Accrue Revenue Trend';
+    protected static ?string $heading = 'Revenue vs Expense Trend (Accruals)';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -32,25 +27,34 @@ class FinanceRevenueChart extends ApexChartWidget
     protected function getOptions(): array
     {
         $data = AccrueRevenue::query()
-            ->select('month', 'year', DB::raw('SUM(total_amount_actual) as total'))
+            ->select('month', 'year',
+                DB::raw('SUM(total_amount_actual) as total_revenue'),
+                DB::raw('SUM(total_amount_expense_actual) as total_expense')
+            )
             ->groupBy('year', 'month')
             ->orderBy('year', 'asc')
             ->orderBy('month', 'asc')
-            ->limit(6)
+            ->limit(12)
             ->get();
 
         $labels = $data->map(fn ($item) => sprintf('%04d-%02d', $item->year, $item->month))->toArray();
-        $values = $data->pluck('total')->toArray();
+        $revenue = $data->pluck('total_revenue')->toArray();
+        $expense = $data->pluck('total_expense')->toArray();
 
         return [
             'chart' => [
                 'type' => 'area',
-                'height' => 300,
+                'height' => 350,
+                'toolbar' => ['show' => false],
             ],
             'series' => [
                 [
                     'name' => 'Actual Revenue',
-                    'data' => $values,
+                    'data' => $revenue,
+                ],
+                [
+                    'name' => 'Actual Expense',
+                    'data' => $expense,
                 ],
             ],
             'xaxis' => [
@@ -63,10 +67,14 @@ class FinanceRevenueChart extends ApexChartWidget
             ],
             'yaxis' => [
                 'labels' => [
-                    'formatter' => 'function (value) { return "Rp " + value.toLocaleString("id-ID"); }',
+                    'formatter' => 'function (value) { 
+                        if (value >= 1000000000) return "Rp " + (value / 1000000000).toFixed(1) + "B";
+                        if (value >= 1000000) return "Rp " + (value / 1000000).toFixed(1) + "M";
+                        return "Rp " + value.toLocaleString("id-ID"); 
+                    }',
                 ],
             ],
-            'colors' => ['#f59e0b'],
+            'colors' => ['#10b981', '#ef4444'], // Green for revenue, Red for expense
             'fill' => [
                 'type' => 'gradient',
                 'gradient' => [

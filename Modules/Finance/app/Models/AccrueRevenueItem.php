@@ -22,9 +22,19 @@ class AccrueRevenueItem extends Model
         'revenue_type',
         'amount_estimated',
         'amount_actual',
+        'amount_expense_estimated',
+        'amount_expense_actual',
+        'has_management_fee',
         'invoice_id',
+        'bapp_id',
         'description',
+        'is_reversed',
     ];
+
+    public function bapp(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Project\Models\WorkCompletionReport::class, 'bapp_id');
+    }
 
     protected function casts(): array
     {
@@ -32,6 +42,10 @@ class AccrueRevenueItem extends Model
             'revenue_type' => RevenueType::class,
             'amount_estimated' => 'decimal:2',
             'amount_actual' => 'decimal:2',
+            'amount_expense_estimated' => 'decimal:2',
+            'amount_expense_actual' => 'decimal:2',
+            'has_management_fee' => 'boolean',
+            'is_reversed' => 'boolean',
         ];
     }
 

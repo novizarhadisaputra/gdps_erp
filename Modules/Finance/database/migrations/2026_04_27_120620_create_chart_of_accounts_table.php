@@ -20,9 +20,6 @@ return new class extends Migration
             $table->string('account_type'); // Asset, Liability, Equity, Revenue, Expense, etc.
             $table->uuid('parent_id')->nullable();
 
-            // Polymorphic support for sub-ledger linking
-            $table->nullableUuidMorphs('accountable');
-
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->softDeletes();

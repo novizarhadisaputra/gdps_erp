@@ -2,10 +2,8 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages;
 
-use Filament\Forms\Components\Placeholder;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Schemas\Schema;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\WorkCompletionReportResource;
 
 class CreateWorkCompletionReport extends CreateRecord
@@ -13,15 +11,6 @@ class CreateWorkCompletionReport extends CreateRecord
     use InteractsWithParentRecord;
 
     protected static string $resource = WorkCompletionReportResource::class;
-
-    public function form(Schema $schema): Schema
-    {
-        return $schema->components([
-            Placeholder::make('info')
-                ->content('Click create to generate a BAPP number and proceed to full details.')
-                ->label('Booking BAPP'),
-        ]);
-    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

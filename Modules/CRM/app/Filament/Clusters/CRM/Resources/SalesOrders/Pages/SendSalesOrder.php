@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\CRM\Enums\SalesOrderStatus;
+use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 
 class SendSalesOrder extends Page
@@ -31,6 +32,18 @@ class SendSalesOrder extends Page
     public function mount($record): void
     {
         $this->record = $this->resolveRecord($record);
+
+        if ($this->record->type === SalesOrderType::Internal) {
+            Notification::make()
+                ->title('Email Action Not Required')
+                ->body('Internal Sales Orders do not require email dispatch to customers.')
+                ->warning()
+                ->send();
+
+            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
+
+            return;
+        }
 
         $this->form->fill([
             'subject' => 'Sales Order - '.$this->record->number,
@@ -142,7 +155,7 @@ class SendSalesOrder extends Page
             } else {
                 // Generate PDF on the fly
                 $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $this->record]);
-                $filename = 'SO-' . str_replace(['/', '\\'], '-', $this->record->number) . '.pdf';
+                $filename = 'SO-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
 
                 // Store temporarily on S3 to get a URL
                 $tempPath = "temp/sales-orders/{$filename}";
