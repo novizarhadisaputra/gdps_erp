@@ -3,7 +3,9 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages;
 
 use Filament\Actions\Action;
-use Filament\Forms\Components\{RichEditor, Select, TextInput};
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
@@ -12,7 +14,6 @@ use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\AmendmentResource;
-use Modules\CRM\Models\SalesOrderAmendment;
 
 class SendAmendment extends Page
 {
@@ -126,7 +127,10 @@ class SendAmendment extends Page
 
         try {
             // 1. Prepare Message
-            $messageBody = $formData['message'] ?? '';
+            $messageBody = view('emails.unified', [
+                'body' => $formData['message'] ?? '',
+                'subject' => $formData['subject'],
+            ])->render();
 
             // 2. Log sending attempt to System Log
             Log::info('Amendment Email Sending Attempt', [
@@ -161,8 +165,18 @@ class SendAmendment extends Page
                         'to' => $formData['recipient_email'],
                         'subject' => $formData['subject'],
                     ])
-                    ->log('Amendment email sent to ' . $formData['recipient_email']);
+                    ->log('Amendment email sent to '.$formData['recipient_email']);
             }
+
+            // 5. Create Communication Log
+            $this->record->communicationLogs()->create([
+                'recipient_email' => $formData['recipient_email'],
+                'sender_id' => auth()->id(),
+                'sender_email' => auth()->user()?->email,
+                'subject' => $formData['subject'],
+                'message' => $messageBody,
+                'sent_at' => now(),
+            ]);
 
             Notification::make()
                 ->title('Email Sent Successfully')
@@ -171,7 +185,7 @@ class SendAmendment extends Page
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record, 'sales_order' => $this->record->sales_order_id]));
         } catch (\Exception $e) {
-             Log::error('Amendment Email Sending Failed', [
+            Log::error('Amendment Email Sending Failed', [
                 'amendment_id' => $this->record->id,
                 'error' => $e->getMessage(),
             ]);

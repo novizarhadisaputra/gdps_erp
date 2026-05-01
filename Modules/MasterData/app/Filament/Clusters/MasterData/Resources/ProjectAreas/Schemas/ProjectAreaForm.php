@@ -4,11 +4,14 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas
 
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MorphToSelect;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Province;
 use Modules\MasterData\Models\Regency;
@@ -111,7 +114,7 @@ class ProjectAreaForm
                     MorphToSelect::make('parentable')
                         ->label('Parent Entity')
                         ->types([
-                            MorphToSelect\Type::make(\Modules\CRM\Models\Customer::class)
+                            MorphToSelect\Type::make(Customer::class)
                                 ->titleAttribute('name')
                                 ->label('Customer'),
                             MorphToSelect\Type::make(ProjectArea::class)
@@ -120,7 +123,6 @@ class ProjectAreaForm
                         ])
                         ->searchable()
                         ->preload()
-                        ->placeholder('Select parent (Customer or Area)')
                         ->helperText('Assign this area to a Customer or a Parent Area.'),
                     TextInput::make('code')
                         ->label('Internal Area Code')
@@ -145,10 +147,10 @@ class ProjectAreaForm
             Section::make('GL Account Mapping')
                 ->description('Map specific SAP General Ledger accounts for this project area.')
                 ->schema([
-                    \Filament\Forms\Components\Repeater::make('accountMappings')
+                    Repeater::make('accountMappings')
                         ->relationship('accountMappings')
                         ->schema([
-                            \Filament\Forms\Components\Select::make('type')
+                            Select::make('type')
                                 ->options([
                                     'accrual' => 'Accrual Revenue',
                                     'revenue' => 'Realized Revenue',
@@ -157,7 +159,7 @@ class ProjectAreaForm
                                 ])
                                 ->required()
                                 ->native(false),
-                            \Filament\Forms\Components\Select::make('chart_of_account_id')
+                            Select::make('chart_of_account_id')
                                 ->label('GL Account')
                                 ->relationship('chartOfAccount', 'name')
                                 ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->code}] {$record->name}")

@@ -2,6 +2,8 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -11,12 +13,11 @@ use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
-use Modules\Finance\Enums\InvoiceStatus;
-use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Modules\Finance\Enums\InvoiceStatus;
+use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
 
 class SendInvoice extends Page
 {
@@ -130,15 +131,12 @@ class SendInvoice extends Page
         try {
             // 1. Generate PDF on the fly
             $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $this->record]);
-            $filename = 'invoice-' . str_replace(['/', '\\'], '-', $this->record->number) . '.pdf';
+            $filename = 'invoice-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
 
             // 2. Store temporarily on S3 to get a URL
             $tempPath = "temp/invoices/{$filename}";
             Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
-
-            /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-            $disk = Storage::disk('s3');
-            $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
+            $attachmentUrl = Storage::disk('s3')->temporaryUrl($tempPath, now()->addMinutes(60));
             $attachmentName = $filename;
 
             // 3. Prepare Attachments
@@ -152,17 +150,23 @@ class SendInvoice extends Page
             // Attach BAPP (signed_report) if available
             $bappMedia = $this->record->workCompletionReport?->getFirstMedia('signed_report');
             if ($bappMedia) {
-                $bappAttachmentUrl = $bappMedia->disk === 's3' 
-                    ? Storage::disk('s3')->temporaryUrl($bappMedia->getPath(), now()->addMinutes(60)) 
+                $bappAttachmentUrl = $bappMedia->disk === 's3'
+                    ? Storage::disk('s3')->temporaryUrl($bappMedia->getPath(), now()->addMinutes(60))
                     : url($bappMedia->getUrl());
-                
+
                 $attachments[] = [
                     'name' => $bappMedia->file_name,
                     'url' => $bappAttachmentUrl,
                 ];
             }
 
-            // 4. Send via External API
+            // 4. Prepare Message Body
+            $messageBody = view('emails.unified', [
+                'body' => $formData['message'] ?? '',
+                'subject' => $formData['subject'],
+            ])->render();
+
+            // 5. Send via External API
             Log::info('Invoice Email Sending Attempt', [
                 'invoice_id' => $this->record->id,
                 'number' => $this->record->number,
@@ -179,11 +183,11 @@ class SendInvoice extends Page
                         $formData['recipient_email'],
                     ],
                     'subject' => $formData['subject'],
-                    'body' => $formData['message'] ?? '',
+                    'body' => $messageBody,
                     'attachments' => $attachments,
                 ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 $errorMsg = $response->json('message') ?? $response->status();
 
                 Log::error('Invoice Email Sending Failed', [
@@ -192,7 +196,7 @@ class SendInvoice extends Page
                     'body' => $response->body(),
                 ]);
 
-                throw new \Exception('Email system error: ' . $errorMsg);
+                throw new Exception('Email system error: '.$errorMsg);
             }
 
             // 4. Update Invoice status to Sent
@@ -206,7 +210,7 @@ class SendInvoice extends Page
                 'sender_id' => auth()->id(),
                 'sender_email' => auth()->user()?->email,
                 'subject' => $formData['subject'],
-                'message' => $formData['message'] ?? '',
+                'message' => $messageBody,
                 'sent_at' => now(),
             ]);
 
@@ -217,8 +221,8 @@ class SendInvoice extends Page
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
-        } catch (\Exception $e) {
-            Log::error('Invoice Email Failure: ' . $e->getMessage(), [
+        } catch (Exception $e) {
+            Log::error('Invoice Email Failure: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString(),

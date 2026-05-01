@@ -13,6 +13,7 @@ use Filament\Resources\Pages\Page;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Modules\CRM\Enums\ProposalStatus;
@@ -180,10 +181,13 @@ class SendProposal extends Page
             }
 
             // 3. Prepare Message
-            $messageBody = $formData['message'] ?? '';
+            $messageBody = view('emails.unified', [
+                'body' => $formData['message'] ?? '',
+                'subject' => $formData['subject'],
+            ])->render();
 
             // 4. Send via External API
-            \Illuminate\Support\Facades\Log::info('Proposal Email Sending Attempt', [
+            Log::info('Proposal Email Sending Attempt', [
                 'proposal_id' => $this->record->id,
                 'proposal_number' => $this->record->proposal_number,
                 'recipient' => $formData['recipient_email'],
@@ -210,13 +214,13 @@ class SendProposal extends Page
             if (! $response->successful()) {
                 $errorMsg = $response->json('message') ?? $response->status();
 
-                \Illuminate\Support\Facades\Log::error('Proposal Email Sending Failed', [
+                Log::error('Proposal Email Sending Failed', [
                     'proposal_id' => $this->record->id,
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
 
-                throw new \Exception('Email system error: ' . $errorMsg);
+                throw new \Exception('Email system error: '.$errorMsg);
             }
 
             // Record Activity Log
@@ -228,21 +232,22 @@ class SendProposal extends Page
                         'to' => $formData['recipient_email'],
                         'subject' => $formData['subject'],
                     ])
-                    ->log('Proposal email sent to ' . $formData['recipient_email']);
+                    ->log('Proposal email sent to '.$formData['recipient_email']);
             }
 
-            // 5. Update Proposal status to Sent
-            $this->record->update([
-                'status' => ProposalStatus::Sent,
-            ]);
-
-            // 6. Log the email
+            // 5. Create Communication Log
             $this->record->communicationLogs()->create([
                 'recipient_email' => $formData['recipient_email'],
+                'sender_id' => auth()->id(),
+                'sender_email' => auth()->user()?->email,
                 'subject' => $formData['subject'],
                 'message' => $messageBody,
-                'sender_id' => auth()->id(),
                 'sent_at' => now(),
+            ]);
+
+            // 6. Update Proposal status to Sent
+            $this->record->update([
+                'status' => ProposalStatus::Sent,
             ]);
 
             Notification::make()

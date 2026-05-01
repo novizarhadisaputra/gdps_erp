@@ -3,6 +3,7 @@
 namespace Modules\CRM\Models;
 
 use App\Models\Comment;
+use App\Models\User;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -70,11 +71,16 @@ class SalesOrderAmendment extends Model implements HasMedia
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function communicationLogs(): MorphMany
+    {
+        return $this->morphMany(CommunicationLog::class, 'emailable');
     }
 }

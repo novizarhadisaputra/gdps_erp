@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages;
 
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -161,14 +162,15 @@ class SendSalesOrder extends Page
                 $tempPath = "temp/sales-orders/{$filename}";
                 Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
 
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-                $disk = Storage::disk('s3');
-                $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
+                $attachmentUrl = Storage::disk('s3')->temporaryUrl($tempPath, now()->addMinutes(60));
                 $attachmentName = $filename;
             }
 
             // 2. Prepare Message
-            $messageBody = $formData['message'] ?? '';
+            $messageBody = view('emails.unified', [
+                'body' => $formData['message'] ?? '',
+                'subject' => $formData['subject'],
+            ])->render();
 
             // 3. Log sending attempt
             Log::info('Sales Order Email Sending Attempt', [
@@ -203,7 +205,7 @@ class SendSalesOrder extends Page
                     'body' => $response->body(),
                 ]);
 
-                throw new \Exception('External API Error: '.$response->status());
+                throw new Exception('External API Error: '.$response->status());
             }
 
             // 4. Record Communication Log

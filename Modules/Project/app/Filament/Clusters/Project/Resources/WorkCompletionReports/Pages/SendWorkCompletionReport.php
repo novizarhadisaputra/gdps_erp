@@ -3,6 +3,7 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages;
 
 use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource;
+use Throwable;
 
 class SendWorkCompletionReport extends Page
 {
@@ -159,10 +161,8 @@ class SendWorkCompletionReport extends Page
             $attachmentUrl = null;
             $attachmentName = null;
 
-            if ($this->record->hasMedia('draft_report')) {
-                $media = $this->record->getFirstMedia('draft_report');
-                /** @var \Spatie\MediaLibrary\MediaCollections\Models\Media $media */
-                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+            if ($this->record->is_manual && $media = $this->record->getFirstMedia('signed_bapp')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(30));
                 $attachmentName = $media->file_name;
             } else {
                 // Generate PDF on the fly if no media uploaded
@@ -172,15 +172,15 @@ class SendWorkCompletionReport extends Page
                 // Store temporarily on S3 to get a URL
                 $tempPath = "temp/bapps/{$filename}";
                 Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
-
-                /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-                $disk = Storage::disk('s3');
-                $attachmentUrl = $disk->temporaryUrl($tempPath, now()->addMinutes(60));
+                $attachmentUrl = Storage::disk('s3')->temporaryUrl($tempPath, now()->addMinutes(60));
                 $attachmentName = $filename;
             }
 
             // 2. Prepare Message
-            $messageBody = $formData['message'] ?? '';
+            $messageBody = view('emails.unified', [
+                'body' => $formData['message'] ?? '',
+                'subject' => $formData['subject'],
+            ])->render();
 
             // 3. Send via External API
             Log::info('BAPP Email Sending Attempt', [
@@ -216,7 +216,7 @@ class SendWorkCompletionReport extends Page
                     'body' => $response->body(),
                 ]);
 
-                throw new \Exception('Email system error: '.$errorMsg);
+                throw new Exception('Email system error: '.$errorMsg);
             }
 
             // 4. Update BAPP status to Sent
@@ -241,7 +241,7 @@ class SendWorkCompletionReport extends Page
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::error('BAPP Email Failure: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
