@@ -42,7 +42,7 @@ class AccrueRevenueTable
                 TextColumn::make('company_code')
                     ->label('BU')
                     ->toggleable(),
-                TextColumn::make('items.bapp.number')
+                TextColumn::make('items.workCompletionReport.number')
                     ->label('BAPP')
                     ->listWithLineBreaks()
                     ->bulleted()

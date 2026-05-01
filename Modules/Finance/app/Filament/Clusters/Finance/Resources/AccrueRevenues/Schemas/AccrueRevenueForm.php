@@ -143,9 +143,9 @@ class AccrueRevenueForm
                                                     }
                                                 }
                                             }),
-                                        Select::make('bapp_id')
+                                        Select::make('work_completion_report_id')
                                             ->label('BAPP')
-                                            ->relationship('bapp', 'number')
+                                            ->relationship('workCompletionReport', 'number')
                                             ->searchable()
                                             ->preload()
                                             ->placeholder('Select BAPP')

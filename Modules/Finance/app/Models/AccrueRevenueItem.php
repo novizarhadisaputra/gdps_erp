@@ -26,14 +26,14 @@ class AccrueRevenueItem extends Model
         'amount_expense_actual',
         'has_management_fee',
         'invoice_id',
-        'bapp_id',
+        'work_completion_report_id',
         'description',
         'is_reversed',
     ];
 
-    public function bapp(): BelongsTo
+    public function workCompletionReport(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Project\Models\WorkCompletionReport::class, 'bapp_id');
+        return $this->belongsTo(\Modules\Project\Models\WorkCompletionReport::class, 'work_completion_report_id');
     }
 
     protected function casts(): array

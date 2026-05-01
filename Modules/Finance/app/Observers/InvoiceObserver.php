@@ -81,7 +81,7 @@ class InvoiceObserver
     public function created(Invoice $invoice): void
     {
         if ($invoice->work_completion_report_id) {
-            AccrueRevenueItem::where('bapp_id', $invoice->work_completion_report_id)
+            AccrueRevenueItem::where('work_completion_report_id', $invoice->work_completion_report_id)
                 ->whereNull('invoice_id')
                 ->update(['invoice_id' => $invoice->id]);
         }
