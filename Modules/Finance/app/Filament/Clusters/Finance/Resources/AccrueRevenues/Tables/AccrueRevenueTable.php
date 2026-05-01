@@ -48,6 +48,12 @@ class AccrueRevenueTable
                     ->bulleted()
                     ->searchable()
                     ->placeholder('-'),
+                TextColumn::make('items.revenueType.name')
+                    ->label('Revenue Segment')
+                    ->listWithLineBreaks()
+                    ->bulleted()
+                    ->searchable()
+                    ->placeholder('-'),
                 TextColumn::make('work_period')
                     ->label('Work Period')
                     ->date('F Y')
@@ -101,20 +107,32 @@ class AccrueRevenueTable
                                     $period = $record->accrual_period->format('m/Y');
 
                                     // 1. Resolve Accounts
-                                    $accrualAccount = $mappingService->resolveAccount('accrual', $record->projectArea, $record->customer);
-                                    $revenueAccount = $mappingService->resolveAccount('revenue', $record->projectArea, $record->customer);
+                                    $accrualAccount = $mappingService->resolveAccount(
+                                        'accrual',
+                                        $record->projectArea,
+                                        $record->customer,
+                                        $item->revenue_type_id,
+                                        $record->project?->revenue_segment_id
+                                    );
+                                    $revenueAccount = $mappingService->resolveAccount(
+                                        'revenue',
+                                        $record->projectArea,
+                                        $record->customer,
+                                        $item->revenue_type_id,
+                                        $record->project?->revenue_segment_id
+                                    );
 
                                     // Row 1: Debit Accrual (PK 40)
                                     fputcsv($file, [
                                         $record->company_code,
                                         $period,
                                         'IDR',
-                                        $record->sap_reference ?? $record->id,
+                                        $record->sap_reference ?? $record->number,
                                         'SA',
                                         '40',
                                         $accrualAccount ?? 'MISSING_GL',
                                         $amount,
-                                        'Accrual '.$item->revenue_type->getLabel(),
+                                        'Accrual '.($item->revenueType?->name ?? 'Accrual'),
                                     ]);
 
                                     // Row 2: Credit Revenue (PK 50)
@@ -122,12 +140,12 @@ class AccrueRevenueTable
                                         $record->company_code,
                                         $period,
                                         'IDR',
-                                        $record->sap_reference ?? $record->id,
+                                        $record->sap_reference ?? $record->number,
                                         'SA',
                                         '50',
                                         $revenueAccount ?? 'MISSING_GL',
                                         $amount,
-                                        'Revenue '.$item->revenue_type->getLabel(),
+                                        'Revenue '.($item->revenueType?->name ?? 'Revenue'),
                                     ]);
                                 }
                                 fclose($file);
@@ -164,20 +182,32 @@ class AccrueRevenueTable
                                     $amount = $item->amount_estimated;
                                     $period = $record->accrual_period->format('m/Y');
 
-                                    $accrualAccount = $mappingService->resolveAccount('accrual', $record->projectArea, $record->customer);
-                                    $revenueAccount = $mappingService->resolveAccount('revenue', $record->projectArea, $record->customer);
+                                    $accrualAccount = $mappingService->resolveAccount(
+                                        'accrual',
+                                        $record->projectArea,
+                                        $record->customer,
+                                        $item->revenue_type_id,
+                                        $record->project?->revenue_segment_id
+                                    );
+                                    $revenueAccount = $mappingService->resolveAccount(
+                                        'revenue',
+                                        $record->projectArea,
+                                        $record->customer,
+                                        $item->revenue_type_id,
+                                        $record->project?->revenue_segment_id
+                                    );
 
                                     // Row 1: Debit Accrual (40)
                                     fputcsv($file, [
                                         $record->company_code,
                                         $period,
                                         'IDR',
-                                        $record->sap_reference ?? $record->id,
+                                        $record->sap_reference ?? $record->number,
                                         'SA',
                                         '40',
                                         $accrualAccount ?? 'MISSING_GL',
                                         $amount,
-                                        'Accrual '.$item->revenue_type->getLabel(),
+                                        'Accrual '.($item->revenueType?->name ?? 'Accrual'),
                                     ]);
 
                                     // Row 2: Credit Revenue (50)
@@ -185,12 +215,12 @@ class AccrueRevenueTable
                                         $record->company_code,
                                         $period,
                                         'IDR',
-                                        $record->sap_reference ?? $record->id,
+                                        $record->sap_reference ?? $record->number,
                                         'SA',
                                         '50',
                                         $revenueAccount ?? 'MISSING_GL',
                                         $amount,
-                                        'Revenue '.$item->revenue_type->getLabel(),
+                                        'Revenue '.($item->revenueType?->name ?? 'Revenue'),
                                     ]);
                                 }
                             }

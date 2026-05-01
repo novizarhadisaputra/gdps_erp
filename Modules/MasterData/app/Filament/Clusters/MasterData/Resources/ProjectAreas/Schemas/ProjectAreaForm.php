@@ -2,19 +2,23 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueTypes\Schemas\RevenueTypeForm;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Province;
 use Modules\MasterData\Models\Regency;
+use Modules\MasterData\Models\RevenueType;
 
 class ProjectAreaForm
 {
@@ -122,8 +126,7 @@ class ProjectAreaForm
                                 ->label('Project Area'),
                         ])
                         ->searchable()
-                        ->preload()
-                        ->helperText('Assign this area to a Customer or a Parent Area.'),
+                        ->preload(),
                     TextInput::make('code')
                         ->label('Internal Area Code')
                         ->unique(ProjectArea::class, 'code', ignoreRecord: true)
@@ -150,25 +153,44 @@ class ProjectAreaForm
                     Repeater::make('accountMappings')
                         ->relationship('accountMappings')
                         ->schema([
-                            Select::make('type')
-                                ->options([
-                                    'accrual' => 'Accrual Revenue',
-                                    'revenue' => 'Realized Revenue',
-                                    'receivable' => 'Account Receivable',
-                                    'expense' => 'Accrued Expense',
-                                ])
-                                ->required()
-                                ->native(false),
+                            Grid::make(3)
+                                ->schema([
+                                    Select::make('type')
+                                        ->label('Mapping Type')
+                                        ->options([
+                                            'accrual' => 'Accrual Revenue',
+                                            'revenue' => 'Realized Revenue',
+                                            'receivable' => 'Account Receivable',
+                                            'expense' => 'Accrued Expense',
+                                        ])
+                                        ->required()
+                                        ->native(false),
+                                    Select::make('revenue_type_id')
+                                        ->label('Revenue Type')
+                                        ->relationship('revenueType', 'name')
+                                        ->searchable()
+                                        ->preload()
+                                        ->placeholder('All Types')
+                                        ->createOptionForm(RevenueTypeForm::schema())
+                                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                        ->createOptionUsing(fn (array $data) => RevenueType::create($data)->id),
+                                    Select::make('revenue_segment_id')
+                                        ->label('Revenue Segment')
+                                        ->relationship('revenueSegment', 'name')
+                                        ->searchable()
+                                        ->preload()
+                                        ->placeholder('All Segments'),
+                                ]),
                             Select::make('chart_of_account_id')
                                 ->label('GL Account')
                                 ->relationship('chartOfAccount', 'name')
                                 ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->code}] {$record->name}")
                                 ->searchable()
                                 ->preload()
-                                ->required(),
+                                ->required()
+                                ->columnSpanFull(),
                         ])
-                        ->columns(2)
-                        ->grid(2)
+                        ->columns(1)
                         ->addActionLabel('Add New GL Mapping'),
                 ])->columnSpanFull(),
         ];

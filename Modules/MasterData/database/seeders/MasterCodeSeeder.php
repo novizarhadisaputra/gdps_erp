@@ -16,6 +16,7 @@ use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\Province;
 use Modules\MasterData\Models\Regency;
 use Modules\MasterData\Models\RevenueSegment;
+use Modules\MasterData\Models\RevenueType;
 use Modules\MasterData\Models\SkillCategory;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\UnitOfMeasure;
@@ -54,6 +55,16 @@ class MasterCodeSeeder extends Seeder
         ];
         foreach ($industrialSectors as $data) {
             IndustrialSector::updateOrCreate(['code' => $data['code']], $data);
+        }
+
+        // Revenue Types
+        $revenueTypes = [
+            ['name' => 'Main Work', 'code' => 'main_work'],
+            ['name' => 'Management Fee', 'code' => 'mgmt_fee'],
+            ['name' => 'Other Revenue', 'code' => 'other_revenue'],
+        ];
+        foreach ($revenueTypes as $data) {
+            RevenueType::updateOrCreate(['code' => $data['code']], $data);
         }
 
         // Skill Categories

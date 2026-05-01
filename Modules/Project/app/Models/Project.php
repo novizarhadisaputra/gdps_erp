@@ -22,6 +22,7 @@ use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
+use Modules\MasterData\Models\RevenueSegment;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Database\Factories\ProjectFactory;
@@ -63,6 +64,7 @@ class Project extends Model implements HasMedia
         'proposal_id',
         'profitability_analysis_id',
         'lead_id',
+        'revenue_segment_id',
         'progress_percentage',
     ];
 
@@ -228,6 +230,11 @@ class Project extends Model implements HasMedia
     public function ams(): BelongsTo
     {
         return $this->belongsTo(Employee::class, 'ams_id');
+    }
+
+    public function revenueSegment(): BelongsTo
+    {
+        return $this->belongsTo(RevenueSegment::class);
     }
 
     public function getAmountAttribute(): float

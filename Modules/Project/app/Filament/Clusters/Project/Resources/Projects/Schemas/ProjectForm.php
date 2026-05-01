@@ -228,6 +228,14 @@ class ProjectForm
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->editOptionForm(EmployeeForm::schema())
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                    Select::make('revenue_segment_id')
+                        ->label('Revenue Segment')
+                        ->relationship('revenueSegment', 'name')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->placeholder('Select revenue segment')
+                        ->helperText('Determines the customer group (e.g., GA Group, Third Parties).'),
                     DatePicker::make('start_date')
                         ->label('Start Date')
                         ->placeholder('Select start date')

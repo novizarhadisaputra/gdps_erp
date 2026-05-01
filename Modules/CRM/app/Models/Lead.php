@@ -261,6 +261,7 @@ class Lead extends Model implements HasMedia
                 'start_date' => $this->salesPlan?->start_date ?? $this->start_date,
                 'end_date' => $this->salesPlan?->end_date ?? $this->end_date,
                 'management_fee_rate' => $this->salesPlan?->management_fee_percentage ?? 0,
+                'revenue_segment_id' => $this->revenue_segment_id,
                 'status' => ProfitabilityAnalysisStatus::Draft,
             ], array_filter($additionalData, fn ($v) => ! is_null($v))));
 

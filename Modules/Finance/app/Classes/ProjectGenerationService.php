@@ -53,6 +53,7 @@ class ProjectGenerationService
                 'billing_option_id' => $pa->lead?->billing_option_id,
                 'start_date' => $pa->lead?->start_date,
                 'end_date' => $pa->lead?->end_date,
+                'revenue_segment_id' => $pa->revenue_segment_id,
             ];
 
             // PIVOT SHIFT: Lookup by contract_id primary, fallback to lead_id or PA

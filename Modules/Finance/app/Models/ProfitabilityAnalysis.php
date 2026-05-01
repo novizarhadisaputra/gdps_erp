@@ -85,6 +85,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         'previous_code',
         'start_date',
         'end_date',
+        'revenue_segment_id',
     ];
 
     protected function casts(): array
@@ -202,6 +203,11 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     public function workScheme(): BelongsTo
     {
         return $this->belongsTo(\Modules\MasterData\Models\WorkScheme::class);
+    }
+
+    public function revenueSegment(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\RevenueSegment::class);
     }
 
     public function project(): HasOne

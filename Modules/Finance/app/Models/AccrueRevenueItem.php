@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Finance\Enums\RevenueType;
 use Modules\Finance\Observers\AccrueRevenueItemObserver;
 
 #[ObservedBy(AccrueRevenueItemObserver::class)]
@@ -19,6 +18,7 @@ class AccrueRevenueItem extends Model
 
     protected $fillable = [
         'accrue_revenue_id',
+        'revenue_type_id',
         'revenue_type',
         'amount_estimated',
         'amount_actual',
@@ -36,10 +36,15 @@ class AccrueRevenueItem extends Model
         return $this->belongsTo(\Modules\Project\Models\WorkCompletionReport::class, 'work_completion_report_id');
     }
 
+    public function revenueType(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\RevenueType::class);
+    }
+
     protected function casts(): array
     {
         return [
-            'revenue_type' => RevenueType::class,
+
             'amount_estimated' => 'decimal:2',
             'amount_actual' => 'decimal:2',
             'amount_expense_estimated' => 'decimal:2',

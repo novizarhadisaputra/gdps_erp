@@ -16,6 +16,8 @@ class AccountMapping extends Model
         'mappable_id',
         'mappable_type',
         'type',
+        'revenue_type_id',
+        'revenue_segment_id',
         'chart_of_account_id',
     ];
 
@@ -27,5 +29,15 @@ class AccountMapping extends Model
     public function chartOfAccount(): BelongsTo
     {
         return $this->belongsTo(ChartOfAccount::class);
+    }
+
+    public function revenueType(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\RevenueType::class);
+    }
+
+    public function revenueSegment(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\RevenueSegment::class);
     }
 }

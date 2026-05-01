@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'accrue_revenue_items' : 'finance.accrue_revenue_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('accrue_revenue_id')->constrained(config('database.default') === 'sqlite' ? 'accrue_revenues' : 'finance.accrue_revenues')->cascadeOnDelete();
-            $table->string('revenue_type');
+            $table->foreignUuid('revenue_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_types' : 'master_data.revenue_types')->nullOnDelete();
+            $table->string('revenue_type')->nullable(); // Kept for transition or backup
             $table->decimal('amount_estimated', 15, 2)->default(0);
             $table->decimal('amount_actual', 15, 2)->default(0);
             $table->decimal('amount_expense_estimated', 15, 2)->default(0);

@@ -14,7 +14,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\Finance\Enums\RevenueType;
 use Modules\Finance\Models\Invoice;
 use Modules\Project\Models\Project;
 
@@ -106,21 +105,16 @@ class AccrueRevenueForm
                             ->schema([
                                 Grid::make(3)
                                     ->schema([
-                                        Select::make('revenue_type')
-                                            ->label('Work Category')
-                                            ->options(RevenueType::class)
+                                        Select::make('revenue_type_id')
+                                            ->label('Revenue Segment')
+                                            ->relationship('revenueType', 'name')
                                             ->required()
-                                            ->native(false)
-                                            ->live()
-                                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                                if ($state === RevenueType::MainWork->value) {
-                                                    $set('has_management_fee', true);
-                                                }
-                                            }),
+                                            ->searchable()
+                                            ->preload()
+                                            ->live(),
                                         Toggle::make('has_management_fee')
                                             ->label('Apply Mgmt Fee (10%)')
                                             ->inline(false)
-                                            ->disabled(fn (Get $get) => $get('revenue_type') === RevenueType::MainWork->value)
                                             ->dehydrated()
                                             ->live()
                                             ->afterStateUpdated(function (Get $get, Set $set, ?bool $state) {
@@ -225,7 +219,7 @@ class AccrueRevenueForm
                                     ->placeholder('Detailed description of work...')
                                     ->columnSpanFull(),
                             ])
-                            ->itemLabel(fn (array $state): ?string => RevenueType::tryFrom($state['revenue_type'] ?? '')?->getLabel())
+                            ->itemLabel(fn (array $state): ?string => \Modules\MasterData\Models\RevenueType::find($state['revenue_type_id'] ?? '')?->name ?? 'Work Item')
                             ->addActionLabel('Add Work Item')
                             ->collapsible()
                             ->defaultItems(1)
