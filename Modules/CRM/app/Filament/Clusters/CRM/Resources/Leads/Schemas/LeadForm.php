@@ -15,15 +15,15 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
-use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Customer;
-use Modules\MasterData\Models\JobPosition;
+use Modules\CRM\Models\Lead;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas\RevenueSegmentForm;
 use Modules\MasterData\Models\IndustrialSector;
+use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
@@ -37,12 +37,6 @@ class LeadForm
             Section::make('Lead Details')
                 ->description('Basic information about the sales lead.')
                 ->schema([
-                    TextInput::make('title')
-                        ->required()
-                        ->maxLength(255)
-                        ->placeholder('Example: IT Support Outsourcing or Laptop Procurement')
-                        ->live(onBlur: true)
-                        ->columnSpanFull(),
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
                         ->label('Customer')
@@ -64,6 +58,11 @@ class LeadForm
                         ->createOptionUsing(fn (array $data) => Customer::create($data)->id)
                         ->editOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
+                    TextInput::make('title')
+                        ->required()
+                        ->maxLength(255)
+                        ->placeholder('Example: IT Support Outsourcing or Laptop Procurement')
+                        ->live(onBlur: true),
                     Textarea::make('description')
                         ->rows(3)
                         ->placeholder('Provide a brief description of the scope of work or the purpose of this project')

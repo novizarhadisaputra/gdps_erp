@@ -4,6 +4,7 @@ namespace Modules\Finance\Services;
 
 use Modules\CRM\Models\Customer;
 use Modules\Finance\Models\AccountMapping;
+use Modules\Finance\Models\AccrueRevenue;
 use Modules\MasterData\Models\ProjectArea;
 
 class AccrualMappingService
@@ -36,6 +37,50 @@ class AccrualMappingService
         }
 
         return null;
+    }
+
+    /**
+     * Identify missing mappings for a whole AccrueRevenue record.
+     */
+    public function getMissingMappings(AccrueRevenue $record): array
+    {
+        $missing = [];
+        $projectArea = $record->projectArea;
+        $customer = $record->customer;
+        $revenueSegmentId = $record->project?->revenue_segment_id;
+
+        foreach ($record->items as $item) {
+            $accrualAccount = $this->resolveAccount(
+                'accrual',
+                $projectArea,
+                $customer,
+                $item->revenue_type_id,
+                $revenueSegmentId
+            );
+
+            $revenueAccount = $this->resolveAccount(
+                'revenue',
+                $projectArea,
+                $customer,
+                $item->revenue_type_id,
+                $revenueSegmentId
+            );
+
+            if (! $accrualAccount || ! $revenueAccount) {
+                $missing[] = [
+                    'item_id' => $item->id,
+                    'revenue_type_id' => $item->revenue_type_id,
+                    'revenue_type_name' => $item->revenueType?->name ?? 'Unknown',
+                    'revenue_segment_id' => $revenueSegmentId,
+                    'missing_accrual' => ! $accrualAccount,
+                    'missing_revenue' => ! $revenueAccount,
+                    'mappable_type' => $projectArea ? ProjectArea::class : Customer::class,
+                    'mappable_id' => $projectArea ? $projectArea->id : $customer->id,
+                ];
+            }
+        }
+
+        return $missing;
     }
 
     protected function lookupAreaMapping(string $type, ProjectArea $area, ?string $revenueTypeId, ?string $revenueSegmentId): ?string
