@@ -124,11 +124,6 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'PPN00', 'name' => 'Non PPN (0%)', 'category' => 'sales', 'rate' => 0, 'is_default' => false],
             ['code' => 'PPN11', 'name' => 'PPN 11%', 'category' => 'sales', 'rate' => 11, 'is_default' => false],
             ['code' => 'PPN12', 'name' => 'PPN 12%', 'category' => 'sales', 'rate' => 12, 'is_default' => true],
-
-            // New Standardized PPh Records
-            ['code' => 'P21-CMP', 'name' => 'PPh 21 ditanggung perusahaan/customer (Std)', 'category' => 'purchase', 'rate' => 0],
-            ['code' => 'P21-EMP', 'name' => 'PPh 21 ditanggung karyawan (Std)', 'category' => 'purchase', 'rate' => 0],
-            ['code' => 'P21-FIN', 'name' => 'PPh 21 Final - perusahaan/customer (Std)', 'category' => 'purchase', 'rate' => 0],
         ];
         foreach ($taxes as $data) {
             Tax::updateOrCreate(['code' => $data['code']], $data);

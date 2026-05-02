@@ -308,7 +308,7 @@
                                     <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Proposal
                                         ID</span>
                                     <span
-                                        class="text-xs font-black text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->proposal->proposal_number }}</span>
+                                        class="text-xs font-black text-gray-700 dark:text-gray-300 tabular-nums uppercase">{{ $record->proposal->number }}</span>
                                 </div>
                                 <div class="flex flex-col border-b border-gray-50 dark:border-gray-800 pb-2">
                                     <span class="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Project

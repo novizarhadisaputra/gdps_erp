@@ -59,7 +59,7 @@
                 <div class="mt-8 pt-4 border-t border-dashed">
                     <div class="flex items-center gap-2 text-sm text-gray-400 italic">
                         <x-filament::icon icon="heroicon-m-paper-clip" class="h-4 w-4" />
-                        <span>Invoice-{{ $record->invoice_number }}.pdf</span>
+                        <span>Invoice-{{ $record->number }}.pdf</span>
                     </div>
                 </div>
             </div>

@@ -1,3 +1,12 @@
+@use(Carbon\Carbon)
+@use(Illuminate\Support\Str)
+@use(Illuminate\Support\Facades\Storage)
+@use(Modules\CRM\Models\CostingTemplate)
+@use(Modules\CRM\Models\ManpowerTemplate)
+@use(Modules\MasterData\Enums\Gender)
+@use(Spatie\MediaLibrary\MediaCollections\Models\Media)
+@use(UnitEnum)
+
 @php
     $pa = $record->profitabilityAnalysis ?? $record->lead?->latestProfitabilityAnalysis;
     $gi = $record->lead?->latestGeneralInformation;
@@ -16,10 +25,10 @@
                 $content = null;
                 $extension = 'png';
 
-                if ($media && $media instanceof \Spatie\MediaLibrary\MediaCollections\Models\Media) {
+                if ($media && $media instanceof Media) {
                     $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
                     if ($media->disk === 's3') {
-                        $content = \Storage::disk('s3')->get($media->getPath());
+                        $content = Storage::disk('s3')->get($media->getPath());
                     } else {
                         $path = $media->getPath();
                         if (file_exists($path)) {
@@ -62,8 +71,8 @@
 
     if ($recipientGender) {
         // Handle both Enum object and raw string
-        $genderValue = $recipientGender instanceof \UnitEnum ? $recipientGender->value : $recipientGender;
-        $genderEnum = \Modules\MasterData\Enums\Gender::tryFrom($genderValue);
+        $genderValue = $recipientGender instanceof UnitEnum ? $recipientGender->value : $recipientGender;
+        $genderEnum = Gender::tryFrom($genderValue);
 
         if ($genderEnum) {
             $recipientSalutation = $genderEnum->getSalutation() . ' ';
@@ -107,8 +116,8 @@
     $manpowerTemplateId = $pa->analysis_details['manpower_template_id'] ?? null;
     $costingTemplateId = $pa->analysis_details['costing_template_id'] ?? null;
 
-    $manpowerTemplate = $manpowerTemplateId ? \Modules\CRM\Models\ManpowerTemplate::find($manpowerTemplateId) : null;
-    $costingTemplate = $costingTemplateId ? \Modules\CRM\Models\CostingTemplate::find($costingTemplateId) : null;
+    $manpowerTemplate = $manpowerTemplateId ? ManpowerTemplate::find($manpowerTemplateId) : null;
+    $costingTemplate = $costingTemplateId ? CostingTemplate::find($costingTemplateId) : null;
 
     $manmanMedia = $manpowerTemplate?->getFirstMedia('source_file');
     $costMedia = $costingTemplate?->getFirstMedia('source_file');
@@ -117,10 +126,10 @@
     $costingSourceUrl = $costMedia ? $costMedia->getTemporaryUrl(now()->addDays(7)) : null;
 
     // Professional Case Formatting (Pascal/Title Case)
-    $amsNameFormatted = \Illuminate\Support\Str::title($amsName);
-    $recipientNameFormatted = \Illuminate\Support\Str::title($recipientName ?? '');
-    $customerNameFormatted = \Illuminate\Support\Str::title($customerName);
-    $productClusterNameFormatted = \Illuminate\Support\Str::title($productClusterName);
+    $amsNameFormatted = Str::title($amsName);
+    $recipientNameFormatted = Str::title($recipientName ?? '');
+    $customerNameFormatted = Str::title($customerName);
+    $productClusterNameFormatted = Str::title($productClusterName);
 
     // Meeting Date Handling
     $meetingDateText = $record->meeting_date ? $record->meeting_date->translatedFormat('d F Y') : '...................';
@@ -130,7 +139,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Proposal - {{ $record->proposal_number }}</title>
+    <title>Proposal - {{ $record->number }}</title>
     <style>
         @page {
             margin: 1.5in 0.7in 1.5in 0.7in;
@@ -332,7 +341,7 @@
             <table style="width: auto; border: none; margin-bottom: 0;">
                 <tr>
                     <td style="width: 70px; padding-bottom: 5px; border: none;"><strong>Nomor</strong></td>
-                    <td style="padding-bottom: 5px; border: none;">: {{ $record->proposal_number }}</td>
+                    <td style="padding-bottom: 5px; border: none;">: {{ $record->number }}</td>
                 </tr>
                 <tr>
                     <td style="padding-bottom: 5px; border: none;"><strong>Lampiran</strong></td>

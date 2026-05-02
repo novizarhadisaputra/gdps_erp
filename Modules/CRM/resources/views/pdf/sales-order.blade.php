@@ -1,7 +1,14 @@
+@use(App\Models\Role)
+@use(Carbon\Carbon)
+@use(Modules\CRM\Enums\SalesOrderType)
+@use(Modules\MasterData\Services\SignatureService)
+@use(Spatie\MediaLibrary\MediaCollections\Models\Media)
+@use(Illuminate\Support\Facades\Storage)
+
 @php
     $items = $record->content_config['items'] ?? [];
     $manpower = $record->content_config['manpower_details'] ?? [];
-    $signatureService = app(\Modules\MasterData\Services\SignatureService::class);
+    $signatureService = app(SignatureService::class);
     $requiredApprovers = $signatureService->getRequiredApprovers($record);
 
     // Helper to get image as base64 - Robust Version
@@ -12,10 +19,10 @@
                 $content = null;
                 $extension = 'png';
 
-                if ($media && $media instanceof \Spatie\MediaLibrary\MediaCollections\Models\Media) {
+                if ($media && $media instanceof Media) {
                     $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
                     if ($media->disk === 's3') {
-                        $content = \Storage::disk('s3')->get($media->getPath());
+                        $content = Storage::disk('s3')->get($media->getPath());
                     } else {
                         $path = $media->getPath();
                         if (file_exists($path)) {
@@ -42,7 +49,6 @@
     $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
     $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
 @endphp
-@use(App\Models\Role)
 <!DOCTYPE html>
 <html>
 
@@ -441,7 +447,7 @@
             @endforeach
 
             {{-- Client Signature Placeholder (Manual) - Only for External --}}
-            @if($record->type === \Modules\CRM\Enums\SalesOrderType::External)
+            @if($record->type === SalesOrderType::External)
                 <td>
                     <div class="font-bold">Approved By (Customer)</div>
                     <div class="sig-space" style="height: 40px;"></div>

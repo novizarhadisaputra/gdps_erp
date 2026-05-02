@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Modules\MasterData\Models\Unit;
 
 class AdministrativeUserSeeder extends Seeder
 {
@@ -82,7 +83,7 @@ class AdministrativeUserSeeder extends Seeder
             };
 
             if ($unitSearch) {
-                $unit = \Modules\MasterData\Models\Unit::where('name', 'like', "%{$unitSearch}%")->first();
+                $unit = Unit::where('name', 'like', "%{$unitSearch}%")->first();
                 if ($unit) {
                     $user->update([
                         'unit_id' => $unit->external_id,

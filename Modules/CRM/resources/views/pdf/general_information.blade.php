@@ -1,3 +1,7 @@
+@use(App\Models\User)
+@use(Modules\MasterData\Services\SignatureService)
+@use(Modules\MasterData\Enums\ApprovalSignatureType)
+@use(Carbon\Carbon)
 <!DOCTYPE html>
 <html>
 
@@ -279,7 +283,7 @@
                         @foreach ($record->signatures as $signature)
                             @php
                                 $signature = (object) $signature;
-                                $user = \App\Models\User::find($signature->user_id ?? null);
+                                $user = User::find($signature->user_id ?? null);
                                 $signatureImage = $user ? $user->getFirstMediaUrl('signature') : null;
                             @endphp
                             <td class="signature-box" style="border: none;">
@@ -287,11 +291,11 @@
 
                                 @if ($user)
                                     @php
-                                        $service = app(\Modules\MasterData\Services\SignatureService::class);
+                                        $service = app(SignatureService::class);
                                         $qrUrl = $service->createSignatureData(
                                             $user,
                                             $record,
-                                            $signature->signature_type ?? \Modules\MasterData\Enums\ApprovalSignatureType::Approver->value,
+                                            $signature->signature_type ?? ApprovalSignatureType::Approver->value,
                                         );
                                         $qrCodeDataUri = $service->generateQRCode($qrUrl);
                                     @endphp
@@ -306,7 +310,7 @@
                                     {{ $user->name ?? ($signature->user_name ?? 'Unknown') }}
                                 </div>
                                 <div class="signed-date">
-                                    {{ isset($signature->signed_at) ? \Carbon\Carbon::parse($signature->signed_at)->format('d M Y H:i') : '-' }}
+                                    {{ isset($signature->signed_at) ? Carbon::parse($signature->signed_at)->format('d M Y H:i') : '-' }}
                                 </div>
                             </td>
                         @endforeach

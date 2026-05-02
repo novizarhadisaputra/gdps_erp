@@ -1,6 +1,18 @@
+@use(Carbon\Carbon)
+@use(Modules\MasterData\Services\SignatureService)
+@use(Spatie\MediaLibrary\MediaCollections\Models\Media)
+@use(Illuminate\Support\Facades\Storage)
+@use(Modules\CRM\Models\SalesOrder)
+@use(Modules\CRM\Models\CooperationAgreement)
+@use(Modules\CRM\Models\PurchaseOrder)
+@use(Modules\CRM\Models\WorkOrder)
+@use(Modules\CRM\Models\MinutesOfAgreement)
+@use(Modules\CRM\Enums\SalesOrderAmendmentStatus)
+@use(Modules\CRM\Enums\SalesOrderType)
+
 @php
     $items = $record->items ?? [];
-    $signatureService = app(\Modules\MasterData\Services\SignatureService::class);
+    $signatureService = app(SignatureService::class);
     $requiredApprovers = $signatureService->getRequiredApprovers($record);
 
     // Helper to get image as base64
@@ -11,10 +23,10 @@
                 $content = null;
                 $extension = 'png';
 
-                if ($media && $media instanceof \Spatie\MediaLibrary\MediaCollections\Models\Media) {
+                if ($media && $media instanceof Media) {
                     $extension = pathinfo($media->file_name, PATHINFO_EXTENSION);
                     if ($media->disk === 's3') {
-                        $content = \Storage::disk('s3')->get($media->getPath());
+                        $content = Storage::disk('s3')->get($media->getPath());
                     } else {
                         $path = $media->getPath();
                         if (file_exists($path)) {
@@ -128,31 +140,31 @@
 
     // Hierarchy Implementation: PKS > PO/SPK > SO
     $displaySource = $source;
-    if ($source instanceof \Modules\CRM\Models\SalesOrder && $source->sourceable) {
+    if ($source instanceof SalesOrder && $source->sourceable) {
         // If it's an SO, check if it's based on a higher-tier document
         $parentSource = $source->sourceable;
-        if ($parentSource instanceof \Modules\CRM\Models\CooperationAgreement || 
-            $parentSource instanceof \Modules\CRM\Models\PurchaseOrder || 
-            $parentSource instanceof \Modules\CRM\Models\WorkOrder) {
+        if ($parentSource instanceof CooperationAgreement || 
+            $parentSource instanceof PurchaseOrder || 
+            $parentSource instanceof WorkOrder) {
             $displaySource = $parentSource;
         }
     }
 
     if ($displaySource) {
-        if ($displaySource instanceof \Modules\CRM\Models\CooperationAgreement) {
+        if ($displaySource instanceof CooperationAgreement) {
             $sourceNumber = $displaySource->number;
             $displaySourceType = $lang === 'id' ? 'Perjanjian Kerja Sama (PKS)' : 'Cooperation Agreement (PKS)';
-        } elseif ($displaySource instanceof \Modules\CRM\Models\PurchaseOrder) {
+        } elseif ($displaySource instanceof PurchaseOrder) {
             $sourceNumber = $displaySource->number;
             $displaySourceType = 'Purchase Order (PO)';
-        } elseif ($displaySource instanceof \Modules\CRM\Models\WorkOrder) {
+        } elseif ($displaySource instanceof WorkOrder) {
             $sourceNumber = $displaySource->number;
             $displaySourceType = $lang === 'id' ? 'Surat Perintah Kerja (SPK)' : 'Work Order (SPK)';
-        } elseif ($displaySource instanceof \Modules\CRM\Models\SalesOrder) {
-            $isInternal = $displaySource->type === \Modules\CRM\Enums\SalesOrderType::Internal;
+        } elseif ($displaySource instanceof SalesOrder) {
+            $isInternal = $displaySource->type === SalesOrderType::Internal;
             $sourceNumber = $isInternal ? '-' : $displaySource->number;
             $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
-        } elseif ($displaySource instanceof \Modules\CRM\Models\MinutesOfAgreement) {
+        } elseif ($displaySource instanceof MinutesOfAgreement) {
             $sourceNumber = $displaySource->number;
             $displaySourceType = 'Memorandum of Agreement (MoA)';
         } elseif ($displaySource instanceof \Modules\Project\Models\WorkCompletionReport) {
@@ -161,17 +173,17 @@
         }
     }
 
-    $latestAmendment = ($source instanceof \Modules\CRM\Models\SalesOrder) 
-        ? $source->amendments()->where('status', \Modules\CRM\Enums\SalesOrderAmendmentStatus::Approved)->latest('sequence_number')->first()
+    $latestAmendment = ($source instanceof SalesOrder) 
+        ? $source->amendments()->where('status', SalesOrderAmendmentStatus::Approved)->latest('sequence_number')->first()
         : null;
 
     // Signature Data
-    $pm = ($source instanceof \Modules\CRM\Models\SalesOrder) ? $source->projectManager : null;
+    $pm = ($source instanceof SalesOrder) ? $source->projectManager : null;
     $pmName = $pm->name ?? '.....................';
     $pmTitle = $pm->position ?? 'Project Manager';
 
     // Priority: Record specific fields -> Source config -> Customer first contact -> Fallback
-    $sourceConfig = ($source instanceof \Modules\CRM\Models\SalesOrder) ? $source->content_config : [];
+    $sourceConfig = ($source instanceof SalesOrder) ? $source->content_config : [];
     
     $customerContactName = $record->content_config['recipient_name'] 
         ?? $sourceConfig['recipient_name'] 

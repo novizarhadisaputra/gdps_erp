@@ -336,7 +336,7 @@
             <table>
                 <tr>
                     <th>Proposal Number</th>
-                    <td class="info-value">{{ $record->proposal->proposal_number }}</td>
+                    <td class="info-value">{{ $record->proposal->number }}</td>
                 </tr>
                 <tr>
                     <th>Project Title</th>

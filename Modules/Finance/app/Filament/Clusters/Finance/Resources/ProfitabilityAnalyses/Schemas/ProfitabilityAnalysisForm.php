@@ -34,6 +34,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\Item
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
@@ -309,12 +310,18 @@ class ProfitabilityAnalysisForm
 
                                 Select::make('tax_id')
                                     ->label('Tax')
-                                    ->relationship('tax', 'name')
+                                    ->relationship(
+                                        'tax',
+                                        'name',
+                                        fn ($query) => $query->where('category', 'purchase')->where('is_active', true)
+                                    )
                                     ->required()
                                     ->searchable()
                                     ->preload()
                                     ->placeholder('Select tax configuration')
-                                    ->helperText('Tax configuration for the project code (e.g. PPN 11%).')
+                                    ->helperText('Tax configuration for the project (e.g. PPN 11%).')
+                                    ->createOptionForm(TaxForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->dehydrated(),
 
                                 Select::make('asset_ownership')

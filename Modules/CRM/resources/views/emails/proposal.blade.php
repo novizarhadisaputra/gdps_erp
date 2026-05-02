@@ -1,7 +1,7 @@
-@extends('layouts.mail', ['subject' => "Proposal - {$proposal->proposal_number}"])
+@extends('layouts.mail', ['subject' => "Proposal - {$proposal->number}"])
 
 @section('content')
-    <h2 style="color: #2563eb; margin-top: 0;">Proposal - {{ $proposal->proposal_number }}</h2>
+    <h2 style="color: #2563eb; margin-top: 0;">Proposal - {{ $proposal->number }}</h2>
     
     <p>Dear {{ $proposal->customer?->name }},</p>
     

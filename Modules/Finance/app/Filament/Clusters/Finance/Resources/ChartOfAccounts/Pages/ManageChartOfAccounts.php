@@ -2,7 +2,9 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\Pages;
 
+use Illuminate\Database\Eloquent\Model;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\ChartOfAccountResource;
+use SolutionForest\FilamentTree\Components\Tree;
 use SolutionForest\FilamentTree\Resources\Pages\TreePage;
 
 class ManageChartOfAccounts extends TreePage
@@ -11,7 +13,7 @@ class ManageChartOfAccounts extends TreePage
 
     protected static ?string $title = 'Chart of Accounts';
 
-    public static function tree(\SolutionForest\FilamentTree\Components\Tree $tree): \SolutionForest\FilamentTree\Components\Tree
+    public static function tree(Tree $tree): Tree
     {
         return $tree
             ->enableTreeAction()
@@ -20,7 +22,7 @@ class ManageChartOfAccounts extends TreePage
             ->emptyStateIcon('heroicon-o-list-bullet');
     }
 
-    public function getTreeRecordTitle(?\Illuminate\Database\Eloquent\Model $record = null): string
+    public function getTreeRecordTitle(?Model $record = null): string
     {
         return "{$record->code} - {$record->name}";
     }

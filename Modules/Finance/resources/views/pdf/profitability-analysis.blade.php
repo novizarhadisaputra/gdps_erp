@@ -1,3 +1,4 @@
+@use(Modules\MasterData\Services\SignatureService)
 <!DOCTYPE html>
 <html lang="en">
 @php
@@ -365,7 +366,7 @@
 
             {{-- Signatures --}}
             @php
-                $signatureService = app(\Modules\MasterData\Services\SignatureService::class);
+                $signatureService = app(SignatureService::class);
                 $rules = $signatureService->getRequiredApprovers($record);
                 $signatures = $record->signatures;
                 $marginSignature = $signatures->firstWhere('signature_type', 'MarginApproval');

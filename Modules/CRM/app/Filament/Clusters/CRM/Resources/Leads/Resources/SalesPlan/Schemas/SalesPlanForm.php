@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\ProrationMethod;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;

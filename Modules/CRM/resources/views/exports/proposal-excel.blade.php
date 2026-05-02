@@ -7,7 +7,7 @@
     <tbody>
         <tr>
             <td style="font-weight: bold;">Proposal Number</td>
-            <td>{{ $record->proposal_number }}</td>
+            <td>{{ $record->number }}</td>
         </tr>
         <tr>
             <td style="font-weight: bold;">Customer</td>
