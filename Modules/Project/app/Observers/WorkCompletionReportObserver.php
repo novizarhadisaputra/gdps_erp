@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Observers;
 
+use Illuminate\Support\Carbon;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\WorkCompletionReport;
@@ -13,7 +14,7 @@ class WorkCompletionReportObserver
      */
     public function creating(WorkCompletionReport $report): void
     {
-        $date = $report->document_date ? \Carbon\Carbon::parse($report->document_date) : now();
+        $date = $report->document_date ? Carbon::parse($report->document_date) : now();
         $year = $date->format('Y');
         $month = (int) $date->format('n'); // Month without leading zeros
         // Roman numeral mapping
@@ -65,6 +66,19 @@ class WorkCompletionReportObserver
                     'user_id' => auth()->id(),
                 ]);
             }
+        }
+    }
+
+    /**
+     * Handle the WorkCompletionReport "saved" event.
+     */
+    public function saved(WorkCompletionReport $report): void
+    {
+        // Sync BA Number to SalesPlan for tracking
+        if ($report->project && $report->project->lead && $report->project->lead->salesPlan) {
+            $report->project->lead->salesPlan->updateQuietly([
+                'ba_number' => $report->number,
+            ]);
         }
     }
 }

@@ -9,6 +9,9 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Modules\Project\Models\DailyReport;
+use Modules\Project\Models\Project;
+use Modules\Project\Models\ProjectTask;
 
 class CommentsTimeline extends Component
 {
@@ -87,9 +90,9 @@ class CommentsTimeline extends Component
     {
         // Dynamic URL generation based on model type
         $resource = match (get_class($this->record)) {
-            \Modules\Project\Models\Project::class => 'projects',
-            \Modules\Project\Models\ProjectTask::class => 'project-tasks',
-            \Modules\Project\Models\DailyReport::class => 'daily-reports',
+            Project::class => 'projects',
+            ProjectTask::class => 'project-tasks',
+            DailyReport::class => 'daily-reports',
             default => 'projects',
         };
 

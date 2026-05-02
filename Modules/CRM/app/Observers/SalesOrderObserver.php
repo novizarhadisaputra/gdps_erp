@@ -67,5 +67,12 @@ class SalesOrderObserver
                 'status' => SalesOrderStatus::Approved,
             ]);
         }
+
+        // Sync SO Number to SalesPlan for tracking
+        if ($salesOrder->proposal && $salesOrder->proposal->lead && $salesOrder->proposal->lead->salesPlan) {
+            $salesOrder->proposal->lead->salesPlan->updateQuietly([
+                'so_number' => $salesOrder->number,
+            ]);
+        }
     }
 }

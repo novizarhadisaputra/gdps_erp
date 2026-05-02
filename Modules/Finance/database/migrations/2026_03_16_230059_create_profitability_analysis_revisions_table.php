@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('profitability_analysis_id')->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')->onDelete('cascade');
             $table->integer('revision_number');
-            $table->json('snapshot');
+            $table->json('snapshot')->comment('Full data snapshot of the profitability analysis at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');
             $table->integer('sequence_number')->default(0);

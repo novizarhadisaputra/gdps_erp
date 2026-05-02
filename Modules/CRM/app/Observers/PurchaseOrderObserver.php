@@ -26,4 +26,16 @@ class PurchaseOrderObserver
         $purchaseOrder->sequence_number = $sequence;
         $purchaseOrder->number = sprintf('GDPS/UB/PO-%03d/%s', $sequence, $shortYear);
     }
+
+    /**
+     * Handle the PurchaseOrder "saved" event.
+     */
+    public function saved(PurchaseOrder $purchaseOrder): void
+    {
+        if ($purchaseOrder->lead && $purchaseOrder->lead->salesPlan) {
+            $purchaseOrder->lead->salesPlan->updateQuietly([
+                'po_number' => $purchaseOrder->number,
+            ]);
+        }
+    }
 }

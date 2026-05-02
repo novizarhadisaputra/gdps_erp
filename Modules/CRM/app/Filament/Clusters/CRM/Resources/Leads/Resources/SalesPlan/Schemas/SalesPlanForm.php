@@ -17,8 +17,6 @@ use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\ProrationMethod;
-use Modules\CRM\Models\Lead;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\Employees\Schemas\EmployeeForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
@@ -376,6 +374,38 @@ class SalesPlanForm
                                     ->options(ConfidenceLevel::class)
                                     ->required()
                                     ->helperText('The degree of confidence or probability of success for this project.'),
+                                Section::make('Document Tracking')
+                                    ->description('Reference numbers for generated documents. Automatically synced from respective modules.')
+                                    ->icon(Heroicon::OutlinedTicket)
+                                    ->schema([
+                                        Grid::make(3)
+                                            ->schema([
+                                                TextInput::make('proposal_number')
+                                                    ->label('Proposal #')
+                                                    ->readOnly()
+                                                    ->placeholder('Pending...'),
+                                                TextInput::make('contract_number')
+                                                    ->label('Contract / PKS #')
+                                                    ->readOnly()
+                                                    ->placeholder('Pending...'),
+                                                TextInput::make('po_number')
+                                                    ->label('Purchase Order #')
+                                                    ->readOnly()
+                                                    ->placeholder('Pending...'),
+                                                TextInput::make('so_number')
+                                                    ->label('Sales Order #')
+                                                    ->readOnly()
+                                                    ->placeholder('Pending...'),
+                                                TextInput::make('wo_number')
+                                                    ->label('Work Order / SPK #')
+                                                    ->readOnly()
+                                                    ->placeholder('Pending...'),
+                                                TextInput::make('ba_number')
+                                                    ->label('BAPP / BA #')
+                                                    ->readOnly()
+                                                    ->placeholder('Pending...'),
+                                            ]),
+                                    ]),
                             ]),
                     ]),
             ])->columnSpanFull()->persistStepInQueryString(),

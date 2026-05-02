@@ -26,4 +26,16 @@ class WorkOrderObserver
         $workOrder->sequence_number = $sequence;
         $workOrder->number = sprintf('GDPS/UB/SPK-%03d/%s', $sequence, $shortYear);
     }
+
+    /**
+     * Handle the WorkOrder "saved" event.
+     */
+    public function saved(WorkOrder $workOrder): void
+    {
+        if ($workOrder->lead && $workOrder->lead->salesPlan) {
+            $workOrder->lead->salesPlan->updateQuietly([
+                'wo_number' => $workOrder->number,
+            ]);
+        }
+    }
 }

@@ -2,7 +2,10 @@
 
 namespace Modules\CRM\Observers;
 
+use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\ProjectReview;
+use Modules\CRM\Models\Proposal;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 
 class ProjectReviewObserver
 {
@@ -43,14 +46,14 @@ class ProjectReviewObserver
             $leadId = $projectReview->lead_id;
 
             if (! $projectReview->general_information_id) {
-                $projectReview->general_information_id = \Modules\CRM\Models\GeneralInformation::query()
+                $projectReview->general_information_id = GeneralInformation::query()
                     ->where('lead_id', $leadId)
                     ->latest('created_at')
                     ->first()?->id;
             }
 
             if (! $projectReview->profitability_analysis_id) {
-                $projectReview->profitability_analysis_id = \Modules\Finance\Models\ProfitabilityAnalysis::query()
+                $projectReview->profitability_analysis_id = ProfitabilityAnalysis::query()
                     ->where('lead_id', $leadId)
                     ->latest('created_at')
                     ->first()?->id;
@@ -58,7 +61,7 @@ class ProjectReviewObserver
 
             if (! $projectReview->proposal_id) {
                 $projectReview->proposal_id = $projectReview->profitabilityAnalysis?->proposal_id
-                    ?? \Modules\CRM\Models\Proposal::query()
+                    ?? Proposal::query()
                         ->where('lead_id', $leadId)
                         ->latest('created_at')
                         ->first()?->id;

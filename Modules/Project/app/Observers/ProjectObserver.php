@@ -3,7 +3,10 @@
 namespace Modules\Project\Observers;
 
 use App\Services\AnalyticsCacheService;
+use Modules\CRM\Enums\LeadStatus;
+use Modules\MasterData\Models\Employee;
 use Modules\Project\Enums\ProjectInformationStatus;
+use Modules\Project\Enums\ProjectMemberRole;
 use Modules\Project\Models\Project;
 
 class ProjectObserver
@@ -38,8 +41,8 @@ class ProjectObserver
         if ($project->ams_id) {
             $project->members()->create([
                 'memberable_id' => $project->ams_id,
-                'memberable_type' => \Modules\MasterData\Models\Employee::class,
-                'role' => \Modules\Project\Enums\ProjectMemberRole::AMS,
+                'memberable_type' => Employee::class,
+                'role' => ProjectMemberRole::AMS,
                 'joined_at' => now(),
             ]);
         }
@@ -48,15 +51,15 @@ class ProjectObserver
         if ($project->oprep_id) {
             $project->members()->create([
                 'memberable_id' => $project->oprep_id,
-                'memberable_type' => \Modules\MasterData\Models\Employee::class,
-                'role' => \Modules\Project\Enums\ProjectMemberRole::Oprep,
+                'memberable_type' => Employee::class,
+                'role' => ProjectMemberRole::Oprep,
                 'joined_at' => now(),
             ]);
         }
 
         if ($project->lead) {
             $project->lead->update([
-                'status' => \Modules\CRM\Enums\LeadStatus::Won,
+                'status' => LeadStatus::Won,
             ]);
         }
     }

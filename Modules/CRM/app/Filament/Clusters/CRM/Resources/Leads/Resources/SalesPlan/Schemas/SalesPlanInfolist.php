@@ -6,6 +6,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Contracts\HasLabel;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
@@ -46,7 +47,7 @@ class SalesPlanInfolist
                                     ->label('PA Hub Status')
                                     ->badge()
                                     ->state(fn (Model $record) => $record->lead?->profitabilityAnalyses()->latest()->first()?->status)
-                                    ->formatStateUsing(fn ($state) => $state instanceof \Filament\Support\Contracts\HasLabel ? $state->getLabel() : ($state ?? 'No Analysis Linked'))
+                                    ->formatStateUsing(fn ($state) => $state instanceof HasLabel ? $state->getLabel() : ($state ?? 'No Analysis Linked'))
                                     ->color(fn ($state) => $state instanceof ProfitabilityAnalysisStatus ? $state->getColor() : 'gray')
                                     ->icon(fn ($state) => $state instanceof ProfitabilityAnalysisStatus ? $state->getIcon() : Heroicon::OutlinedQuestionMarkCircle),
 
@@ -183,6 +184,39 @@ class SalesPlanInfolist
                                 TextEntry::make('created_at')
                                     ->dateTime()
                                     ->label('Created At'),
+                            ]),
+                    ]),
+
+                Section::make('Document Tracking')
+                    ->description('Reference numbers for documents associated with this lead.')
+                    ->icon(Heroicon::OutlinedTicket)
+                    ->schema([
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('proposal_number')
+                                    ->label('Proposal #')
+                                    ->copyable()
+                                    ->placeholder('N/A'),
+                                TextEntry::make('contract_number')
+                                    ->label('Contract / PKS #')
+                                    ->copyable()
+                                    ->placeholder('N/A'),
+                                TextEntry::make('po_number')
+                                    ->label('Purchase Order #')
+                                    ->copyable()
+                                    ->placeholder('N/A'),
+                                TextEntry::make('so_number')
+                                    ->label('Sales Order #')
+                                    ->copyable()
+                                    ->placeholder('N/A'),
+                                TextEntry::make('wo_number')
+                                    ->label('Work Order / SPK #')
+                                    ->copyable()
+                                    ->placeholder('N/A'),
+                                TextEntry::make('ba_number')
+                                    ->label('BAPP / BA #')
+                                    ->copyable()
+                                    ->placeholder('N/A'),
                             ]),
                     ]),
             ]);

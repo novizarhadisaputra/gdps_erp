@@ -45,6 +45,8 @@ return new class extends Migration
             $table->string('po_number')->nullable();
             $table->string('ba_number')->nullable();
             $table->string('so_number')->nullable();
+            $table->string('wo_number')->nullable();
+            $table->string('contract_number')->nullable();
 
             $table->json('job_positions')->nullable();
             $table->json('revenue_distribution_planning')->nullable();

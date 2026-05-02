@@ -50,6 +50,8 @@ class SalesPlan extends Model
         'po_number',
         'ba_number',
         'so_number',
+        'wo_number',
+        'contract_number',
         'revenue_distribution_planning',
         'product_cluster_id',
         'project_area_id',

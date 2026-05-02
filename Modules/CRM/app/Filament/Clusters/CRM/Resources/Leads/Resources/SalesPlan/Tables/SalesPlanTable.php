@@ -3,13 +3,14 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Tables;
 
 use Filament\Actions\Action;
-use Filament\Support\Icons\Heroicon;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ConfidenceLevel;
@@ -56,9 +57,19 @@ class SalesPlanTable
                 TextColumn::make('start_date')
                     ->date()
                     ->sortable(),
+                TextColumn::make('so_number')
+                    ->label('SO #')
+                    ->searchable()
+                    ->placeholder('N/A')
+                    ->toggleable(),
+                TextColumn::make('ba_number')
+                    ->label('BAPP #')
+                    ->searchable()
+                    ->placeholder('N/A')
+                    ->toggleable(),
             ])
             ->recordActions([
-                \Filament\Actions\ActionGroup::make([
+                ActionGroup::make([
                     ViewAction::make(),
                     Action::make('convertToGI')
                         ->label('Convert to GI')
@@ -92,9 +103,9 @@ class SalesPlanTable
                     EditAction::make(),
                     DeleteAction::make(),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

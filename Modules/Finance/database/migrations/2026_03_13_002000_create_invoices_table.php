@@ -39,6 +39,16 @@ return new class extends Migration
             $blueprint->timestamps();
             $blueprint->softDeletes();
         });
+
+        Schema::create(config('database.default') === 'sqlite' ? 'invoice_revisions' : 'finance.invoice_revisions', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('invoice_id')->constrained(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices')->onDelete('cascade');
+            $table->string('revision_number')->nullable();
+            $table->json('snapshot')->comment('Full data snapshot of the invoice at the time of revision for auditing and restoration.');
+            $table->text('reason')->nullable();
+            $table->foreignUuid('user_id')->nullable()->constrained('users');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -46,6 +56,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'invoice_revisions' : 'finance.invoice_revisions');
         Schema::dropIfExists(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices');
     }
 };

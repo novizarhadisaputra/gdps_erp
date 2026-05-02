@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\SalesPlanResource;
 
@@ -30,7 +31,7 @@ class ViewSalesPlan extends ViewRecord
                     ->action(function () {
                         $pdf = Pdf::loadView('crm::pdf.sales_plan', ['record' => $this->record]);
                         $name = str_replace(['/', '\\'], '-', $this->record->project_code ?? 'Draft');
-                        $leadName = \Illuminate\Support\Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
+                        $leadName = Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
                         $fileName = "SalesPlan_{$name}_{$leadName}.pdf";
 
                         return response()->streamDownload(fn () => print ($pdf->output()), $fileName);

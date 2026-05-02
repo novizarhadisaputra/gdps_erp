@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('account_type'); // Asset, Liability, Equity, Revenue, Expense, etc.
             $table->uuid('parent_id')->nullable();
+            $table->integer('order')->default(0);
 
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);

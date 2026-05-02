@@ -9,6 +9,7 @@ use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
+use Modules\CRM\Models\SalesPlan;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Project\Models\ProjectInformation;
 
@@ -48,7 +49,7 @@ class LeadObserver
             $this->cache->flushCRM();
 
             // Bi-directional categorization sync to SalesPlan
-            /** @var \Modules\CRM\Models\SalesPlan|null $salesPlan */
+            /** @var SalesPlan|null $salesPlan */
             $salesPlan = $lead->salesPlan()->first();
 
             if ($salesPlan) {

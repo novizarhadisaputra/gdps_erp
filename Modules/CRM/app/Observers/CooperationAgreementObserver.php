@@ -26,4 +26,17 @@ class CooperationAgreementObserver
         $agreement->sequence_number = $sequence;
         $agreement->number = sprintf('GDPS/UB/PKS-%03d/%s', $sequence, $shortYear);
     }
+
+    /**
+     * Handle the CooperationAgreement "saved" event.
+     */
+    public function saved(CooperationAgreement $agreement): void
+    {
+        // Sync Agreement Number to SalesPlan for tracking
+        if ($agreement->lead && $agreement->lead->salesPlan) {
+            $agreement->lead->salesPlan->updateQuietly([
+                'contract_number' => $agreement->number,
+            ]);
+        }
+    }
 }
