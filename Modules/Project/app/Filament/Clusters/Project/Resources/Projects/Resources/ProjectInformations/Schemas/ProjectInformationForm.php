@@ -77,13 +77,39 @@ class ProjectInformationForm
                             ->searchable(),
                     ])->columns(2),
 
+                Section::make('Operational Deadlines')
+                    ->schema([
+                        DatePicker::make('bapp_cut_off_date')
+                            ->label('BAPP Cut-off Date'),
+                        DatePicker::make('max_invoice_send_date')
+                            ->label('Max Invoice Send Date'),
+                        DatePicker::make('payroll_date')
+                            ->label('Payroll Date'),
+                        DatePicker::make('overtime_cut_off_date')
+                            ->label('Overtime Cut-off Date'),
+                    ])->columns(2),
+
                 Section::make('Additional Information')
                     ->schema([
-                        Textarea::make('remarks')
-                            ->columnSpanFull(),
+                        TextInput::make('operational_visit_schedule')
+                            ->label('Operational Visit Schedule'),
+                        Select::make('ipk_status')
+                            ->label('IPK Status')
+                            ->options([
+                                'eligible' => 'Eligible',
+                                'not_eligible' => 'Not Eligible',
+                            ]),
+                        Select::make('thr_status')
+                            ->label('THR Status')
+                            ->options([
+                                'eligible' => 'Eligible',
+                                'not_eligible' => 'Not Eligible',
+                            ]),
                         TextInput::make('previous_code')
                             ->label('Previous Project Code'),
-                    ]),
+                        Textarea::make('remarks')
+                            ->columnSpanFull(),
+                    ])->columns(2),
 
                 Section::make('Remuneration Details')
                     ->schema([

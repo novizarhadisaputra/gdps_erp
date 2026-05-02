@@ -7,6 +7,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Pages\EditProjectInformation;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Pages\ListProjectInformations;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Pages\ViewProjectInformation;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\Schemas\ProjectInformationForm;
@@ -42,6 +43,7 @@ class ProjectInformationResource extends Resource
     {
         return [
             'index' => ListProjectInformations::route('/'),
+            'edit' => EditProjectInformation::route('/{record}/edit'),
             'view' => ViewProjectInformation::route('/{record}'),
         ];
     }

@@ -126,20 +126,32 @@ class SendAmendment extends Page
         $formData = $this->form->getState();
 
         try {
-            // 1. Prepare Message
+            // 1. Prepare Attachment
+            $attachmentUrl = null;
+            $attachmentName = null;
+
+            if ($media = $this->record->getFirstMedia('signed_soa')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+                $attachmentName = $media->file_name;
+            } elseif ($media = $this->record->getFirstMedia('draft_soa')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+                $attachmentName = $media->file_name;
+            }
+
+            // 2. Prepare Message
             $messageBody = view('emails.unified', [
                 'body' => $formData['message'] ?? '',
                 'subject' => $formData['subject'],
             ])->render();
 
-            // 2. Log sending attempt to System Log
+            // 3. Log sending attempt to System Log
             Log::info('Amendment Email Sending Attempt', [
                 'amendment_id' => $this->record->id,
                 'amendment_number' => $this->record->amendment_number,
                 'recipient' => $formData['recipient_email'],
             ]);
 
-            // 3. Send via External API
+            // 4. Send via External API
             $response = Http::timeout(60)
                 ->withHeaders([
                     'content-type' => 'application/json',
@@ -150,6 +162,12 @@ class SendAmendment extends Page
                     ],
                     'subject' => $formData['subject'],
                     'body' => $messageBody,
+                    'attachments' => $attachmentUrl ? [
+                        [
+                            'name' => $attachmentName,
+                            'url' => $attachmentUrl,
+                        ],
+                    ] : [],
                 ]);
 
             if (! $response->successful()) {

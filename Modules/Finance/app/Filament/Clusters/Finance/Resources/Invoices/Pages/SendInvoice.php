@@ -129,15 +129,21 @@ class SendInvoice extends Page
         $formData = $this->form->getState();
 
         try {
-            // 1. Generate PDF on the fly
-            $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $this->record]);
-            $filename = 'invoice-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
+            // 1. Prepare Main Attachment (Invoice)
+            if ($media = $this->record->getFirstMedia('signed_invoice')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+                $attachmentName = $media->file_name;
+            } else {
+                // Generate PDF on the fly as a fallback
+                $pdf = Pdf::loadView('finance::pdf.invoice', ['record' => $this->record]);
+                $filename = 'invoice-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
 
-            // 2. Store temporarily on S3 to get a URL
-            $tempPath = "temp/invoices/{$filename}";
-            Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
-            $attachmentUrl = Storage::disk('s3')->temporaryUrl($tempPath, now()->addMinutes(60));
-            $attachmentName = $filename;
+                // Store temporarily on S3 to get a URL
+                $tempPath = "temp/invoices/{$filename}";
+                Storage::disk('s3')->put($tempPath, $pdf->output(), 'private');
+                $attachmentUrl = Storage::disk('s3')->temporaryUrl($tempPath, now()->addMinutes(60));
+                $attachmentName = $filename;
+            }
 
             // 3. Prepare Attachments
             $attachments = [

@@ -147,14 +147,17 @@ class SendSalesOrder extends Page
             $attachmentUrl = null;
             $attachmentName = null;
 
-            if ($media = $this->record->getFirstMedia('draft_so')) {
+            if ($media = $this->record->getFirstMedia('signed_so')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
+                $attachmentName = $media->file_name;
+            } elseif ($media = $this->record->getFirstMedia('draft_so')) {
                 $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
                 $attachmentName = $media->file_name;
             } elseif ($this->record->type->value === 'external' && $this->record->proposal && $media = $this->record->proposal->getFirstMedia('signed_proposal')) {
                 $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(60));
                 $attachmentName = $media->file_name;
             } else {
-                // Generate PDF on the fly
+                // Generate PDF on the fly as a fallback
                 $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $this->record]);
                 $filename = 'SO-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
 

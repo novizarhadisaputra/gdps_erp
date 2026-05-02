@@ -41,6 +41,49 @@ class ProjectChangeRequestObserver
         if ($request->wasChanged('status') && $request->status === ProjectChangeRequestStatus::Submitted) {
             $this->notifyApprovers($request);
         }
+
+        if ($request->wasChanged('status') && $request->status === ProjectChangeRequestStatus::Approved) {
+            $this->applyApprovedChanges($request);
+        }
+    }
+
+    protected function applyApprovedChanges(ProjectChangeRequest $request): void
+    {
+        $project = $request->project;
+        if (! $project) {
+            return;
+        }
+
+        $snapshot = $request->snapshot ?? [];
+
+        if (empty($snapshot)) {
+            return;
+        }
+
+        // 1. Update master Project model
+        $projectData = [];
+        if (isset($snapshot['end_date'])) {
+            $projectData['end_date'] = $snapshot['end_date'];
+        }
+
+        if (! empty($projectData)) {
+            $project->update($projectData);
+        }
+
+        // 2. Update ProjectInformation model
+        $information = $project->information;
+        if ($information) {
+            $infoData = [];
+            foreach (['end_date', 'revenue_per_month', 'management_fee_per_month'] as $field) {
+                if (isset($snapshot[$field])) {
+                    $infoData[$field] = $snapshot[$field];
+                }
+            }
+
+            if (! empty($infoData)) {
+                $information->update($infoData);
+            }
+        }
     }
 
     protected function notifyApprovers(ProjectChangeRequest $request): void

@@ -111,4 +111,9 @@ class Invoice extends Model implements HasMedia
             ->useDisk('s3')
             ->singleFile();
     }
+
+    public function revisions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(InvoiceRevision::class);
+    }
 }

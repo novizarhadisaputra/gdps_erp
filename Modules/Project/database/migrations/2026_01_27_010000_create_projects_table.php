@@ -52,6 +52,7 @@ return new class extends Migration
             $table->integer('year')->nullable();
             $table->string('type');
             $table->text('notes')->nullable();
+            $table->json('snapshot')->nullable()->comment('Stores structured changes (e.g., end_date, revenue) for automatic propagation to master records upon approval');
             $table->string('status')->default('draft');
             $table->softDeletes();
             $table->timestamps();

@@ -2,10 +2,12 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectChangeRequests\Schemas;
 
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Modules\Project\Enums\ProjectChangeRequestStatus;
 use Modules\Project\Enums\ProjectChangeRequestType;
@@ -46,6 +48,7 @@ class ProjectChangeRequestForm
                         ->label('Request Type')
                         ->options(ProjectChangeRequestType::class)
                         ->required()
+                        ->live()
                         ->searchable()
                         ->preload()
                         ->placeholder('Select the type of change')
@@ -62,6 +65,27 @@ class ProjectChangeRequestForm
                 ])
                 ->columns(1)
                 ->columnSpanFull(),
+
+            Section::make('Proposed Updates')
+                ->description('Specify the specific values that will be updated in the Project/Project Information upon approval.')
+                ->visible(fn (Get $get) => in_array($get('type'), [ProjectChangeRequestType::ScopeOfWork->value, ProjectChangeRequestType::Financial->value]))
+                ->schema([
+                    DatePicker::make('snapshot.end_date')
+                        ->label('New End Date')
+                        ->visible(fn (Get $get) => $get('type') === ProjectChangeRequestType::ScopeOfWork->value),
+
+                    TextInput::make('snapshot.revenue_per_month')
+                        ->label('New Revenue per Month')
+                        ->numeric()
+                        ->prefix('IDR')
+                        ->visible(fn (Get $get) => $get('type') === ProjectChangeRequestType::Financial->value),
+
+                    TextInput::make('snapshot.management_fee_per_month')
+                        ->label('New Management Fee per Month')
+                        ->numeric()
+                        ->prefix('IDR')
+                        ->visible(fn (Get $get) => $get('type') === ProjectChangeRequestType::Financial->value),
+                ])->columns(2),
         ];
     }
 

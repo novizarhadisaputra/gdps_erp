@@ -19,7 +19,6 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Models\Customer;
-use Modules\CRM\Models\Proposal;
 
 class ProposalsTable
 {
@@ -63,29 +62,24 @@ class ProposalsTable
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make()
-                        ->url(fn (Proposal $record) => route('filament.admin.crm.resources.leads.proposals.view', [
+                        ->url(fn ($record) => route('filament.admin.crm.resources.leads.proposals.view', [
                             'record' => $record,
                             'lead' => $record->lead_id,
                         ])),
                     EditAction::make()
-                        ->url(fn (Proposal $record) => route('filament.admin.crm.resources.leads.proposals.edit', [
+                        ->url(fn ($record) => route('filament.admin.crm.resources.leads.proposals.edit', [
                             'record' => $record,
                             'lead' => $record->lead_id,
-                        ])),
-                    \Filament\Actions\Action::make('Revise')
-                        ->label('Revise')
-                        ->icon(Heroicon::OutlinedArrowPath)
-                        ->color('warning')
-                        ->requiresConfirmation()
-                        ->modalDescription('Are you sure you want to revise this proposal? This will reset the status to Draft and allow you to modify the Profitability Analysis costing.')
-                        ->action(fn (Proposal $record) => $record->update(['status' => ProposalStatus::Draft]))
-                        ->visible(fn (Proposal $record) => $record->status === ProposalStatus::Submitted),
+                        ]))
+                        ->visible(fn ($record) => $record->status === ProposalStatus::Draft),
                     RestoreAction::make(),
-                    DeleteAction::make(),
+                    DeleteAction::make()
+                        ->visible(fn ($record) => $record->status === ProposalStatus::Draft),
                     ForceDeleteAction::make(),
                 ])
                 ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray'),
+                ->color('gray')
+                ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

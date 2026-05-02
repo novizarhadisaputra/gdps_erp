@@ -162,11 +162,14 @@ class SendProposal extends Page
             $attachmentUrl = null;
             $attachmentName = null;
 
-            if ($this->record->is_manual && $media = $this->record->getFirstMedia('final_proposal')) {
+            if ($media = $this->record->getFirstMedia('signed_proposal')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(30));
+                $attachmentName = $media->file_name;
+            } elseif ($media = $this->record->getFirstMedia('final_proposal')) {
                 $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(30));
                 $attachmentName = $media->file_name;
             } else {
-                // Generate PDF on the fly
+                // Generate PDF on the fly as fallback
                 $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
                 $filename = 'proposal-'.str_replace(['/', '\\'], '-', $this->record->proposal_number).'.pdf';
 

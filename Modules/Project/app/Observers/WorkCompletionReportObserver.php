@@ -50,8 +50,21 @@ class WorkCompletionReportObserver
      */
     public function updated(WorkCompletionReport $report): void
     {
-        if ($report->wasChanged('status') && $report->status === WorkCompletionStatus::Submitted) {
-            app(SignatureService::class)->notifyNextApprovers($report);
+        if ($report->wasChanged('status')) {
+            if ($report->status === WorkCompletionStatus::Submitted) {
+                app(SignatureService::class)->notifyNextApprovers($report);
+            }
+
+            // Revision Logic: Capture snapshot if status changed back to Draft from a non-Draft status
+            $originalStatus = $report->getOriginal('status');
+            if ($report->status === WorkCompletionStatus::Draft && $originalStatus !== WorkCompletionStatus::Draft) {
+                $report->revisions()->create([
+                    'revision_number' => $report->number.'-REV-'.($report->revisions()->count() + 1),
+                    'snapshot' => $report->toArray(),
+                    'reason' => request()->input('reason') ?? 'Manual revision triggered.',
+                    'user_id' => auth()->id(),
+                ]);
+            }
         }
     }
 }

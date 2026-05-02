@@ -122,4 +122,9 @@ class WorkCompletionReport extends Model implements HasMedia
     {
         return $this->morphMany(Comment::class, 'commentable')->oldest();
     }
+
+    public function revisions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(WorkCompletionReportRevision::class);
+    }
 }

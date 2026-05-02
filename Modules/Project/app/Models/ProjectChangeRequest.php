@@ -28,6 +28,7 @@ class ProjectChangeRequest extends Model
         'year',
         'type',
         'notes',
+        'snapshot',
         'status',
     ];
 
@@ -36,6 +37,7 @@ class ProjectChangeRequest extends Model
         return [
             'type' => ProjectChangeRequestType::class,
             'status' => ProjectChangeRequestStatus::class,
+            'snapshot' => 'array',
         ];
     }
 

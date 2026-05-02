@@ -92,11 +92,24 @@ class InvoiceObserver
      */
     public function updated(Invoice $invoice): void
     {
-        if ($invoice->wasChanged('status') && $invoice->status === InvoiceStatus::Submitted) {
-            app(SignatureService::class)->notifyNextApprovers($invoice);
+        if ($invoice->wasChanged('status')) {
+            if ($invoice->status === InvoiceStatus::Submitted) {
+                app(SignatureService::class)->notifyNextApprovers($invoice);
 
-            // Trigger Accrual Reversal logic
-            app(AccrualReversalService::class)->reverseAccrualsForInvoice($invoice);
+                // Trigger Accrual Reversal logic
+                app(AccrualReversalService::class)->reverseAccrualsForInvoice($invoice);
+            }
+
+            // Revision Logic: Capture snapshot if status changed back to Draft from a non-Draft status
+            $originalStatus = $invoice->getOriginal('status');
+            if ($invoice->status === InvoiceStatus::Draft && $originalStatus !== InvoiceStatus::Draft) {
+                $invoice->revisions()->create([
+                    'revision_number' => $invoice->number.'-REV-'.($invoice->revisions()->count() + 1),
+                    'snapshot' => $invoice->toArray(),
+                    'reason' => request()->input('reason') ?? 'Manual revision triggered.',
+                    'user_id' => auth()->id(),
+                ]);
+            }
         }
     }
 }

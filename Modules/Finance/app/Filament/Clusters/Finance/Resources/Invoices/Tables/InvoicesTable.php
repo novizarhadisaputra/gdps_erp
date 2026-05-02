@@ -12,6 +12,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\Finance\Enums\InvoiceStatus;
 
 class InvoicesTable
 {
@@ -33,8 +34,9 @@ class InvoicesTable
                 TextColumn::make('total_amount')
                     ->money('IDR')
                     ->sortable()
-                    ->summarize(Sum::make()
-                        ->money('IDR')
+                    ->summarize(
+                        Sum::make()
+                            ->money('IDR')
                     ),
                 TextColumn::make('status')
                     ->badge(),
@@ -45,11 +47,14 @@ class InvoicesTable
             ->recordActions([
                 ActionGroup::make([
                     ViewAction::make(),
-                    EditAction::make(),
-                    DeleteAction::make(),
+                    EditAction::make()
+                        ->visible(fn ($record) => $record->status === InvoiceStatus::Draft),
+                    DeleteAction::make()
+                        ->visible(fn ($record) => $record->status === InvoiceStatus::Draft),
                 ])
-                    ->icon(Heroicon::OutlinedEllipsisVertical)
-                    ->tooltip('Actions'),
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

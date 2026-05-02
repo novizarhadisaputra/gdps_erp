@@ -34,18 +34,7 @@ class SendWorkCompletionReport extends Page
     {
         $this->record = $this->resolveRecord($record);
 
-        if (! $this->record->hasMedia('draft_report')) {
-            Notification::make()
-                ->title('Draft BAPP Not Found')
-                ->body('Please upload the Draft BAPP (Unsigned) document before sending.')
-                ->warning()
-                ->send();
-
-            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
-
-            return;
-        }
-
+        // No restriction, allow fallback PDF generation
         $this->form->fill([
             'subject' => 'Work Completion Report (BAPP) - '.$this->record->number,
             'recipient_email' => $this->record->customer?->email,
@@ -161,11 +150,14 @@ class SendWorkCompletionReport extends Page
             $attachmentUrl = null;
             $attachmentName = null;
 
-            if ($this->record->is_manual && $media = $this->record->getFirstMedia('signed_bapp')) {
+            if ($media = $this->record->getFirstMedia('signed_report')) {
+                $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(30));
+                $attachmentName = $media->file_name;
+            } elseif ($media = $this->record->getFirstMedia('draft_report')) {
                 $attachmentUrl = $media->getTemporaryUrl(now()->addMinutes(30));
                 $attachmentName = $media->file_name;
             } else {
-                // Generate PDF on the fly if no media uploaded
+                // Generate PDF on the fly as a fallback
                 $pdf = Pdf::loadView('project::pdf.work_completion_report', ['record' => $this->record]);
                 $filename = 'bapp-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
 

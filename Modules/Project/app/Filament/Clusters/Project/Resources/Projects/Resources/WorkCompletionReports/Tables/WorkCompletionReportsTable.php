@@ -9,6 +9,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -43,8 +44,9 @@ class WorkCompletionReportsTable
                     ->label('Total Amount')
                     ->money('IDR')
                     ->sortable()
-                    ->summarize(\Filament\Tables\Columns\Summarizers\Sum::make()
-                        ->money('IDR')
+                    ->summarize(
+                        Sum::make()
+                            ->money('IDR')
                     ),
                 TextColumn::make('status')
                     ->badge(),
@@ -63,8 +65,9 @@ class WorkCompletionReportsTable
                     DeleteAction::make()
                         ->visible(fn ($record) => $record->status === WorkCompletionStatus::Draft),
                 ])
-                    ->icon(Heroicon::OutlinedEllipsisVertical)
-                    ->tooltip('General Actions'),
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -150,9 +150,15 @@ class ProposalObserver
         // Option B: Auto-approve if signed proposal is uploaded (client signed scan)
         if ($proposal->status !== ProposalStatus::Approved && $proposal->hasMedia('signed_proposal')) {
             $proposal->updateQuietly(['status' => ProposalStatus::Approved]);
+
             // Manually trigger the Lead status update that would happen in updated() if we didn't use updateQuietly
             if ($proposal->lead && $proposal->lead->status->weight() < LeadStatus::Negotiation->weight()) {
                 $proposal->lead->update(['status' => LeadStatus::Negotiation]);
+            }
+
+            // Sync: Approve Profitability Analysis as well since proposal is finalized
+            if ($proposal->profitabilityAnalysis) {
+                $proposal->profitabilityAnalysis->update(['status' => ProfitabilityAnalysisStatus::Approved]);
             }
         }
     }
