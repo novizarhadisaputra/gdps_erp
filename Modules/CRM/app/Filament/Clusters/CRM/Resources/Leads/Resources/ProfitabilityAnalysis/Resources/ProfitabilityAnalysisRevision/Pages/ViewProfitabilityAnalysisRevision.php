@@ -4,7 +4,6 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Profitabil
 
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\ProfitabilityAnalysisRevisionResource;
 
 class ViewProfitabilityAnalysisRevision extends ViewRecord
 {

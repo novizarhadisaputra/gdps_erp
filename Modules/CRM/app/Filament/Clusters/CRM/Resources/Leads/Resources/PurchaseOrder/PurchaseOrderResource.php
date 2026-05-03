@@ -20,7 +20,7 @@ class PurchaseOrderResource extends Resource
     protected static bool $isNested = true;
 
     protected static ?string $parentResource = LeadResource::class;
-    
+
     protected static ?string $parentRouteParameterName = 'lead';
 
     public static function form(Schema $schema): Schema

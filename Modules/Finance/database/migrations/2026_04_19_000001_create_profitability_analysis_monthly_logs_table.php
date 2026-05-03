@@ -12,15 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         $schema = config('database.default') === 'sqlite' ? 'profitability_analysis_monthly_logs' : 'finance.profitability_analysis_monthly_logs';
-        
+
         Schema::create($schema, function (Blueprint $table) {
             $table->uuid('id')->primary();
-            
+
             $table->foreignUuid('profitability_analysis_monthly_id')
                 ->constrained(config('database.default') === 'sqlite' ? 'profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies')
                 ->onDelete('cascade')
                 ->index('pa_monthly_log_monthly_id_foreign');
-                
+
             $table->foreignUuid('user_id')
                 ->nullable()
                 ->constrained('users')
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->decimal('new_value', 20, 2)->default(0);
             $table->decimal('delta', 20, 2)->default(0);
             $table->text('notes')->nullable();
-            
+
             $table->timestamps();
         });
     }

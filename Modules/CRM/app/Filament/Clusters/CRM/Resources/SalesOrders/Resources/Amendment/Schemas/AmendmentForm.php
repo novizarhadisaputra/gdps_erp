@@ -118,6 +118,7 @@ class AmendmentForm
                                                         if ($type === 'personnel') {
                                                             return JobPosition::query()->where('is_active', true)->pluck('name', 'name');
                                                         }
+
                                                         return Item::query()->where('is_active', true)->pluck('name', 'name');
                                                     })
                                                     ->required()
@@ -143,7 +144,7 @@ class AmendmentForm
                                                                     $set('uom', $uomName);
                                                                 }
                                                                 $set('unit_price', $item->price);
-                                                                
+
                                                                 $qty = floatval($get('quantity') ?? 0);
                                                                 $set('total_price', $qty * floatval($item->price));
                                                             }

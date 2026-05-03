@@ -69,7 +69,7 @@ class WorkCompletionReportObserver
 
                 // Update main document to reflect revision status
                 $newRevisionNumber = $report->revision_number + 1;
-                
+
                 $date = $report->document_date ? \Illuminate\Support\Carbon::parse($report->document_date) : now();
                 $year = $date->format('Y');
                 $month = (int) $date->format('n');
@@ -78,7 +78,7 @@ class WorkCompletionReportObserver
                     7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
                 ];
                 $romanMonth = $romans[$month] ?? $month;
-                
+
                 $baseNumber = sprintf('GDPS/UB/BAPP-%03d', $report->sequence_number);
                 $newNumber = sprintf('%s/REV/%02d/%s/%s', $baseNumber, $newRevisionNumber, $romanMonth, $year);
 

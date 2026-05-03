@@ -18,16 +18,16 @@ return new class extends Migration
             $table->foreignUuid('profitability_analysis_id')
                 ->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')
                 ->onDelete('cascade');
-            
+
             // Period Identification
             $table->string('month');
             $table->integer('year');
             $table->string('status')->default('draft'); // draft, finalized
-            
+
             // Financial Baseline & Forecasts
             $table->decimal('target_revenue', 20, 2)->nullable()->comment('Original target revenue from Sales Plan (Baseline)');
             $table->decimal('forecast_revenue', 20, 2)->nullable()->comment('Latest Rolling Forecast (RoFo)');
-            
+
             // Actual Performance Metrics
             $table->decimal('actual_revenue', 20, 2)->default(0)->comment('Realized revenue');
             $table->decimal('actual_cost', 20, 2)->default(0)->comment('Realized costs');
@@ -35,13 +35,13 @@ return new class extends Migration
             $table->decimal('ebit', 20, 2)->default(0)->comment('Earnings Before Interest and Taxes');
             $table->decimal('actual_net_profit', 20, 2)->default(0)->comment('Final realized net profit');
             $table->decimal('actual_margin_percentage', 10, 2)->default(0)->comment('Realized profit margin percentage');
-            
+
             // Variance Analysis
             $table->decimal('variance_revenue', 20, 2)->default(0)->comment('Actual Revenue vs Target Revenue');
             $table->decimal('variance_profit', 20, 2)->default(0)->comment('Actual Net Profit vs Initial Plan');
-            
+
             $table->json('actual_details')->nullable()->comment('Detailed breakdown of realized costs');
-            
+
             $table->timestamps();
         });
     }

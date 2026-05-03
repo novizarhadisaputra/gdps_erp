@@ -67,9 +67,9 @@ class BpjsJhtConfigsTable
                     EditAction::make(),
                     DeleteAction::make(),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 ActionGroup::make([

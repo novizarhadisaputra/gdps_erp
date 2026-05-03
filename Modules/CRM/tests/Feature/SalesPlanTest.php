@@ -3,11 +3,11 @@
 namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Modules\CRM\Models\WorkOrder;
+use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesPlan;
-use Modules\CRM\Models\Customer;
+use Modules\CRM\Models\WorkOrder;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;

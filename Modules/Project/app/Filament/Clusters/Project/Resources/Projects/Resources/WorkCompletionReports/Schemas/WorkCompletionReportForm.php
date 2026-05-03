@@ -779,6 +779,7 @@ class WorkCompletionReportForm
                                         $taxValue = round($baseAmount * ($num / $den) * ($rate / 100));
                                     } elseif ($taxModel->calculation_type === 'inclusive') {
                                         $taxValue = round($baseAmount * ($rate / (100 + $rate)));
+
                                         // For inclusive, the gross already contains the tax, so we don't add it?
                                         // Usually, Grand Total = Gross.
                                         return 'IDR '.number_format($gross, 0, ',', '.');

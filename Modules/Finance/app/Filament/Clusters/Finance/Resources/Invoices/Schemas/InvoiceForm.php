@@ -439,11 +439,11 @@ class InvoiceForm
                                     ->helperText('The total billable amount before tax.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
                                         $amount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
-                                        
+
                                         // Update Tax Base Amount if basis is total
                                         if ($get('tax_basis') === 'total' || ! $get('tax_basis')) {
                                             $set('tax_base_amount', $amount);
-                                            
+
                                             $taxPercent = (float) ($get('tax_percentage') ?? 12);
                                             $tax = round($amount * ($taxPercent / 100));
                                             $set('tax_amount', $tax);
@@ -468,14 +468,15 @@ class InvoiceForm
                                         if ($state === 'management_fee') {
                                             $items = $get('items') ?? [];
                                             $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
-                                            
+
                                             $mfSum = collect($activeItems)->filter(function ($item) {
                                                 $name = strtolower($item['item_name'] ?? '');
+
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee');
                                             })->sum(function ($item) {
-                                                return is_numeric($item['total_price']) ? (float)$item['total_price'] : 0;
+                                                return is_numeric($item['total_price']) ? (float) $item['total_price'] : 0;
                                             });
-                                            
+
                                             $baseAmount = $mfSum;
                                         } elseif ($state === 'custom') {
                                             // Keep current or set to 0
@@ -483,7 +484,7 @@ class InvoiceForm
                                         }
 
                                         $set('tax_base_amount', $baseAmount);
-                                        
+
                                         $taxPercent = (float) ($get('tax_percentage') ?? 12);
                                         $tax = round($baseAmount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);
@@ -502,7 +503,7 @@ class InvoiceForm
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                         $baseAmount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
                                         $amount = (float) ($get('amount') ?? 0);
-                                        
+
                                         $taxPercent = (float) ($get('tax_percentage') ?? 12);
                                         $tax = round($baseAmount * ($taxPercent / 100));
                                         $set('tax_amount', $tax);

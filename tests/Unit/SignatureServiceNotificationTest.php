@@ -18,7 +18,7 @@ class SignatureServiceNotificationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new SignatureService();
+        $this->service = new SignatureService;
     }
 
     public function test_get_eligible_users_returns_empty_on_empty_role_identifiers(): void
@@ -42,7 +42,7 @@ class SignatureServiceNotificationTest extends TestCase
         ]);
 
         // 2. Create a rule (Using an object that matches ApprovalRule properties)
-        $rule = new ApprovalRule();
+        $rule = new ApprovalRule;
         $rule->approver_type = 'Role';
         $rule->approver_role = []; // EMPTY
 
@@ -63,7 +63,7 @@ class SignatureServiceNotificationTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        
+
         $user = User::factory()->create();
         \Illuminate\Support\Facades\DB::table('model_has_roles')->insert([
             'role_id' => $roleId,
@@ -80,7 +80,7 @@ class SignatureServiceNotificationTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        
+
         $otherUser = User::factory()->create();
         \Illuminate\Support\Facades\DB::table('model_has_roles')->insert([
             'role_id' => $otherRoleId,
@@ -89,7 +89,7 @@ class SignatureServiceNotificationTest extends TestCase
         ]);
 
         // 3. Create a rule that targets 'approver' role by ID
-        $rule = new ApprovalRule();
+        $rule = new ApprovalRule;
         $rule->approver_type = 'Role';
         $rule->approver_role = [$roleId];
 

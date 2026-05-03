@@ -26,10 +26,10 @@ class ViewLead extends ViewRecord
                 ConvertToProjectAction::make(),
                 Actions\DeleteAction::make(),
             ])
-            ->label('Actions')
-            ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
-            ->color('primary')
-            ->button(),
+                ->label('Actions')
+                ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
+                ->color('primary')
+                ->button(),
         ];
     }
 }

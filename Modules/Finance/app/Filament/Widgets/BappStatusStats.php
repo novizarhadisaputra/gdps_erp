@@ -14,6 +14,7 @@ class BappStatusStats extends BaseWidget
     {
         return false;
     }
+
     protected function getStats(): array
     {
         $totalRevenue = (float) AccrueRevenue::sum('total_amount_actual');
@@ -21,7 +22,7 @@ class BappStatusStats extends BaseWidget
         $completedBappCount = (int) AccrueRevenue::whereNotNull('total_amount_actual')->count();
 
         return [
-            Stat::make('Total Revenue (Actual)', 'Rp ' . number_format($totalRevenue, 0, ',', '.'))
+            Stat::make('Total Revenue (Actual)', 'Rp '.number_format($totalRevenue, 0, ',', '.'))
                 ->description('Accumulated actual revenue from all projects')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),

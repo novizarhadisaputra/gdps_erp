@@ -186,7 +186,7 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
         $items = [];
         $service = app(SignatureService::class);
         $rules = $service->getRequiredApprovers($this->record);
-        $specificRules = $rules->filter(fn($r) => $r->signature_type === $type);
+        $specificRules = $rules->filter(fn ($r) => $r->signature_type === $type);
 
         // Map existing signatures
         foreach ($signatures as $signature) {

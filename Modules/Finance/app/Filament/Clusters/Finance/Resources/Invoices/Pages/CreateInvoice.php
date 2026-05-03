@@ -3,10 +3,10 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages;
 
 use Filament\Forms\Components\Select;
-use Filament\Schemas\Schema;
 use Filament\Resources\Pages\CreateRecord;
-use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
+use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
+use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
 
 class CreateInvoice extends CreateRecord
 {

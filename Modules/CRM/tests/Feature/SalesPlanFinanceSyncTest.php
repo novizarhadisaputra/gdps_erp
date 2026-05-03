@@ -5,13 +5,11 @@ namespace Modules\CRM\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CRM\Enums\LeadStatus;
 use Modules\CRM\Models\Lead;
-use Modules\CRM\Models\SalesPlan;
 use Modules\CRM\Models\SalesPlanMonthly;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
-use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Tests\TestCase;
-use Carbon\Carbon;
 
 class SalesPlanFinanceSyncTest extends TestCase
 {

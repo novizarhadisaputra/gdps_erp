@@ -2,16 +2,19 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment;
 
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\{AuditAmendment, EditAmendment, SendAmendment, ViewAmendment};
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\AuditAmendment;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\EditAmendment;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\SendAmendment;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\ViewAmendment;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Schemas\AmendmentForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Tables\AmendmentsTable;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
 use Modules\CRM\Models\SalesOrderAmendment;
-use Filament\Resources\Pages\Page;
 
 class AmendmentResource extends Resource
 {

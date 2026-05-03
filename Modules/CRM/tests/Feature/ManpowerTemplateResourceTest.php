@@ -6,13 +6,12 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\Pages;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\PtkpConfig;
 use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\PtkpConfig;
 use Modules\MasterData\Models\WorkScheme;
 use Tests\TestCase;
 

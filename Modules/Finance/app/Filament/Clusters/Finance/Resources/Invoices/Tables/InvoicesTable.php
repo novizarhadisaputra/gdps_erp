@@ -52,9 +52,9 @@ class InvoicesTable
                     DeleteAction::make()
                         ->visible(fn ($record) => $record->status === InvoiceStatus::Draft),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

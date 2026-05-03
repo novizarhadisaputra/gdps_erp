@@ -77,9 +77,9 @@ class ProposalsTable
                         ->visible(fn ($record) => $record->status === ProposalStatus::Draft),
                     ForceDeleteAction::make(),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

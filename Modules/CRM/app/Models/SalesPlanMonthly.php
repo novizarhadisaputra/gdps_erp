@@ -3,11 +3,11 @@
 namespace Modules\CRM\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Modules\CRM\Observers\SalesPlanMonthlyObserver;
 
 #[ObservedBy(SalesPlanMonthlyObserver::class)]

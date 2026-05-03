@@ -7,7 +7,6 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -64,8 +63,8 @@ class ManageCostingTemplates extends ManageRelatedRecords
 
                             $record = CostingTemplate::create([
                                 'lead_id' => $lead->id,
-                                'name' => ($lead->customer?->name ?? 'Lead') . ' Costing',
-                                'description' => $latestGi?->scope_of_work ?? ($lead->customer?->name ?? 'Lead') . ' Lead',
+                                'name' => ($lead->customer?->name ?? 'Lead').' Costing',
+                                'description' => $latestGi?->scope_of_work ?? ($lead->customer?->name ?? 'Lead').' Lead',
                                 'pic_id' => $lead->pic_costing_id ?? auth()->id(),
                                 'total_monthly_cost' => 0,
                                 'total_amount' => 0,
@@ -100,14 +99,14 @@ class ManageCostingTemplates extends ManageRelatedRecords
                         })
                         ->successNotificationTitle('Manual Tools & Equipment Costing created'),
                     CreateAction::make()
-                        ->schema(fn(Schema $schema) => CostingTemplateResource::form($schema))
-                        ->fillForm(fn() => CostingTemplateForm::getAutoFillData($this->getOwnerRecord()))
-                        ->after(fn(CostingTemplate $record) => $this->redirect(CostingTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
+                        ->schema(fn (Schema $schema) => CostingTemplateResource::form($schema))
+                        ->fillForm(fn () => CostingTemplateForm::getAutoFillData($this->getOwnerRecord()))
+                        ->after(fn (CostingTemplate $record) => $this->redirect(CostingTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
                 ])
-                ->label('Options')
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('primary')
-                ->button(),
+                    ->label('Options')
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('primary')
+                    ->button(),
             ]);
     }
 }

@@ -4,7 +4,6 @@ namespace Modules\CRM\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\CRM\Models\ManpowerTemplate;
-use Modules\MasterData\Models\ContractType;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\WorkScheme;
 

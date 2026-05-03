@@ -2,10 +2,10 @@
 
 namespace Modules\CRM\Observers;
 
-use Modules\CRM\Models\CostingTemplate;
-use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Filament\Notifications\Notification;
+use Modules\CRM\Models\CostingTemplate;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 
 class CostingTemplateObserver
 {

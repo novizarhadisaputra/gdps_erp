@@ -2,10 +2,10 @@
 
 namespace Modules\Finance\Observers;
 
-use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use Illuminate\Support\Carbon;
 use Modules\CRM\Models\SalesPlanMonthly;
 use Modules\Finance\Enums\ProfitabilityAnalysisMonthlyStatus;
-use Illuminate\Support\Carbon;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 
 class ProfitabilityAnalysisMonthlyObserver
 {
@@ -13,7 +13,7 @@ class ProfitabilityAnalysisMonthlyObserver
     {
         $monthly->loadMissing('profitabilityAnalysis.lead.salesPlan.monthlyBreakdowns');
         $lead = $monthly->profitabilityAnalysis?->lead;
-        
+
         if ($lead && $lead->salesPlan) {
             // Convert month name (e.g. "January") to integer (1-12)
             try {
@@ -26,7 +26,7 @@ class ProfitabilityAnalysisMonthlyObserver
                 ->where('year', $monthly->year)
                 ->where('month', $monthInt)
                 ->first();
-                
+
             if ($budget) {
                 $monthly->target_revenue = $budget->budget_amount;
             }
@@ -59,7 +59,7 @@ class ProfitabilityAnalysisMonthlyObserver
 
         // 1. Calculate Profit & Margin
         $monthly->actual_net_profit = $monthly->actual_revenue - $monthly->actual_cost;
-        
+
         if ($monthly->actual_revenue > 0) {
             $monthly->actual_margin_percentage = ($monthly->actual_net_profit / $monthly->actual_revenue) * 100;
         } else {

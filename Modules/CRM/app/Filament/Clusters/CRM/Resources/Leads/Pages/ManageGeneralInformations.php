@@ -3,7 +3,6 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
-use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
@@ -39,7 +38,7 @@ class ManageGeneralInformations extends ManageRelatedRecords
         return GeneralInformationResource::table($table)
             ->headerActions([
                 CreateAction::make()
-                    ->schema(fn(Schema $schema) => GeneralInformationResource::form($schema)),
+                    ->schema(fn (Schema $schema) => GeneralInformationResource::form($schema)),
             ]);
     }
 }

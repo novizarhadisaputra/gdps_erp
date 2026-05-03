@@ -124,9 +124,9 @@ class ProfitabilityAnalysesTable
                     DeleteAction::make(),
                     ForceDeleteAction::make(),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

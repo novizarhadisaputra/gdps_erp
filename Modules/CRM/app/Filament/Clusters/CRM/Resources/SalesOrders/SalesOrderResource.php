@@ -8,9 +8,15 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\{CreateSalesOrder, EditSalesOrder, ListSalesOrders, ManageAmendments, SendSalesOrder, ViewSalesOrder};
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\CreateSalesOrder;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\EditSalesOrder;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ListSalesOrders;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ManageAmendments;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\SendSalesOrder;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Pages\ViewSalesOrder;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\Pages\ViewAmendment;
-use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas\{SalesOrderForm, SalesOrderInfolist};
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas\SalesOrderForm;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Schemas\SalesOrderInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Tables\SalesOrdersTable;
 use Modules\CRM\Models\SalesOrder;
 

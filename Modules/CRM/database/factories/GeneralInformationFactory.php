@@ -3,9 +3,9 @@
 namespace Modules\CRM\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
-use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\ProjectArea;
 
 class GeneralInformationFactory extends Factory

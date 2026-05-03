@@ -2,15 +2,14 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly;
 
+use App\Filament\RelationManagers\MeetingRelationManager;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use Filament\Tables\Table;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Schemas\ProfitabilityAnalysisMonthlyForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Tables\ProfitabilityAnalysisMonthliesTable;
-use Filament\Schemas\Schema;
-use Filament\Tables\Table;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisMonthly\Pages;
-use App\Filament\RelationManagers\MeetingRelationManager;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 
 class ProfitabilityAnalysisMonthlyResource extends Resource
 {

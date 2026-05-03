@@ -2,9 +2,9 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\CooperationAgreements\Pages;
 
+use Filament\Forms\Components\Select;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Schemas\Schema;
-use Filament\Forms\Components\Select;
 use Modules\CRM\Filament\Clusters\CRM\Resources\CooperationAgreements\CooperationAgreementResource;
 use Modules\CRM\Models\Customer;
 

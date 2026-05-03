@@ -2,10 +2,10 @@
 
 namespace Modules\CRM\Observers;
 
-use Modules\CRM\Models\SalesPlanMonthly;
-use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
-use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Illuminate\Support\Carbon;
+use Modules\CRM\Models\SalesPlanMonthly;
+use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
+use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
 
 class SalesPlanMonthlyObserver
 {

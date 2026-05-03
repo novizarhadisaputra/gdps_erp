@@ -4,7 +4,6 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Pages;
 
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Schema;
@@ -75,7 +74,7 @@ class ManageProposals extends ManageRelatedRecords
 
                         $lead->update([
                             'status' => LeadStatus::Proposal,
-                            'title' => ($lead->customer?->name ?? 'Lead') . ' Proposal',
+                            'title' => ($lead->customer?->name ?? 'Lead').' Proposal',
                         ]);
 
                         Notification::make()

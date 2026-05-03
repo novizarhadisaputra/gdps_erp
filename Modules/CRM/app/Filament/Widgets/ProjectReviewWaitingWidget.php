@@ -101,9 +101,9 @@ class ProjectReviewWaitingWidget extends TableWidget
                             'record' => $record,
                         ])),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ]);
     }
 

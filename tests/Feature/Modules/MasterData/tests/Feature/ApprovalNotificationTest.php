@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Modules\MasterData\tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ApprovalNotificationTest extends TestCase

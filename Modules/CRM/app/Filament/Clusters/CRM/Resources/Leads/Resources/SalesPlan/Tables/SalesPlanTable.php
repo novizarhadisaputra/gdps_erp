@@ -2,20 +2,16 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Tables;
 
-use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Enums\ConfidenceLevel;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
-use Modules\CRM\Models\SalesPlan;
 
 class SalesPlanTable
 {

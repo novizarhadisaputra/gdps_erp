@@ -65,9 +65,9 @@ class WorkCompletionReportsTable
                     DeleteAction::make()
                         ->visible(fn ($record) => $record->status === WorkCompletionStatus::Draft),
                 ])
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

@@ -114,7 +114,7 @@ class InvoiceObserver
                 // Update main document to reflect revision status
                 $newRevisionNumber = $invoice->revision_number + 1;
                 $shortYear = date('y', strtotime($invoice->invoice_date ?? $invoice->created_at));
-                
+
                 $baseNumber = sprintf('GDPS/UB/INV-%03d', $invoice->sequence_number);
                 $newNumber = sprintf('%s/REV/%02d/%s', $baseNumber, $newRevisionNumber, $shortYear);
 

@@ -2,20 +2,19 @@
 
 namespace App\Filament\RelationManagers;
 
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 
 class MeetingRelationManager extends RelationManager
 {
@@ -30,15 +29,15 @@ class MeetingRelationManager extends RelationManager
                 ->required()
                 ->maxLength(255)
                 ->columnSpanFull(),
-            
+
             DateTimePicker::make('date')
                 ->required()
                 ->default(now()),
-            
+
             TextInput::make('location')
                 ->label('Location / Link')
                 ->maxLength(255),
-            
+
             Repeater::make('notes')
                 ->label('Meeting Minutes (MoM)')
                 ->schema([
@@ -81,6 +80,7 @@ class MeetingRelationManager extends RelationManager
                 CreateAction::make()
                     ->mutateDataUsing(function (array $data): array {
                         $data['created_by'] = auth()->id();
+
                         return $data;
                     }),
             ])

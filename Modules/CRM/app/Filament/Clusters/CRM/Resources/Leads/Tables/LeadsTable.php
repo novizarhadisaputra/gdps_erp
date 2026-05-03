@@ -12,8 +12,8 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Actions\MoveToApproachAction;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas\LeadInfolist;
 
@@ -43,15 +43,15 @@ class LeadsTable
                 \Filament\Actions\ActionGroup::make([
                     MoveToApproachAction::make(),
                     ViewAction::make()
-                        ->schema(fn($schema) => LeadInfolist::configure($schema)),
+                        ->schema(fn ($schema) => LeadInfolist::configure($schema)),
                     EditAction::make(),
                     RestoreAction::make(),
                     DeleteAction::make(),
                     ForceDeleteAction::make(),
                 ])
-                ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
-                ->color('gray')
-                ->button(),
+                    ->icon(\Filament\Support\Icons\Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

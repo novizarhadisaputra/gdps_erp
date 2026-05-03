@@ -62,7 +62,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
 
                             $record = ManpowerTemplate::create([
                                 'lead_id' => $lead->id,
-                                'name' => ($lead->customer?->name ?? 'Lead') . ' Manpower',
+                                'name' => ($lead->customer?->name ?? 'Lead').' Manpower',
                                 'description' => $latestGi?->scope_of_work,
                                 'project_area_id' => $latestGi?->project_area_id ?? $lead->project_area_id,
                                 'work_scheme_id' => $latestGi?->work_scheme_id ?? $lead->work_scheme_id,
@@ -98,12 +98,12 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                         })
                         ->successNotificationTitle('Manual Manpower Costing created'),
                     CreateAction::make()
-                        ->after(fn(ManpowerTemplate $record) => $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
+                        ->after(fn (ManpowerTemplate $record) => $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
                 ])
-                ->label('Options')
-                ->icon(Heroicon::OutlinedEllipsisVertical)
-                ->color('primary')
-                ->button(),
+                    ->label('Options')
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('primary')
+                    ->button(),
             ]);
     }
 }

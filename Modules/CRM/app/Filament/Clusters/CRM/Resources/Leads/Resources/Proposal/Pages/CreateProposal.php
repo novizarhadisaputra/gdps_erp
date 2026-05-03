@@ -3,9 +3,9 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages;
 
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Schema;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Schemas\Schema;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 
 class CreateProposal extends CreateRecord
@@ -24,7 +24,8 @@ class CreateProposal extends CreateRecord
                 ->default(function () {
                     $lead = $this->parentRecord;
                     $customerName = $lead?->customer?->name ?? 'New';
-                    return $customerName . ' Proposal';
+
+                    return $customerName.' Proposal';
                 }),
         ]);
     }

@@ -31,7 +31,7 @@ class GeneralInformationResource extends Resource
     }
 
     protected static ?string $parentResource = LeadResource::class;
-    
+
     protected static ?string $parentRouteParameterName = 'lead';
 
     protected static ?string $recordTitleAttribute = 'scope_of_work';

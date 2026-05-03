@@ -21,8 +21,8 @@ use Illuminate\Support\HtmlString;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\RegencyMinimumWage;
+use Modules\MasterData\Models\TaxPtkpConfig;
 
 class ManpowerTemplateForm
 {

@@ -3,13 +3,12 @@
 namespace Modules\CRM\Tests\Feature;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Models\ApprovalRule;
-use Modules\MasterData\Services\SignatureService;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class GISignatureSatisfactionTest extends TestCase
@@ -24,14 +23,17 @@ class GISignatureSatisfactionTest extends TestCase
 
     protected function createRole(string $name): Role
     {
-        $role = new class extends Role {
+        $role = new class extends Role
+        {
             public $incrementing = false;
+
             protected $keyType = 'string';
         };
         $role->id = (string) \Illuminate\Support\Str::uuid();
         $role->name = $name;
         $role->guard_name = 'web';
         $role->save();
+
         return $role;
     }
 
@@ -47,7 +49,7 @@ class GISignatureSatisfactionTest extends TestCase
         $gi = GeneralInformation::factory()->create([
             'lead_id' => $lead->id,
             'status' => GeneralInformationStatus::Submitted,
-            'rr_status' => 'pending'
+            'rr_status' => 'pending',
         ]);
 
         $rule = ApprovalRule::create([
@@ -56,7 +58,7 @@ class GISignatureSatisfactionTest extends TestCase
             'approver_role' => [$role->id],
             'signature_type' => 'Approver',
             'is_active' => true,
-            'order' => 1
+            'order' => 1,
         ]);
 
         // 3. Add signature recording the role NAME (standard behavior in GDPS)
@@ -77,7 +79,7 @@ class GISignatureSatisfactionTest extends TestCase
         $gi = GeneralInformation::factory()->create([
             'lead_id' => $lead->id,
             'status' => GeneralInformationStatus::Submitted,
-            'rr_status' => 'pending'
+            'rr_status' => 'pending',
         ]);
 
         ApprovalRule::create([

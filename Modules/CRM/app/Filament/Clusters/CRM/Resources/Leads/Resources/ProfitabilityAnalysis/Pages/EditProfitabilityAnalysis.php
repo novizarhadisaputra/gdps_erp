@@ -5,13 +5,12 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Profitabil
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\ProfitabilityAnalysisResource;
-
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
 
 class EditProfitabilityAnalysis extends EditRecord
 {
-    use InteractsWithParentRecord;
     use HasProfitabilityAnalysisActions;
+    use InteractsWithParentRecord;
 
     protected static string $resource = ProfitabilityAnalysisResource::class;
 

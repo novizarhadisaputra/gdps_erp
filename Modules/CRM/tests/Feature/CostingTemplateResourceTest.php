@@ -4,7 +4,6 @@ namespace Modules\CRM\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\CostingTemplateResource;
 use Modules\CRM\Models\CostingTemplate;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Models\Item;
