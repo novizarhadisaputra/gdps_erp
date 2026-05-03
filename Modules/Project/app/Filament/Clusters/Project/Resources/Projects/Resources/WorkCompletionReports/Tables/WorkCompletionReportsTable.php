@@ -25,7 +25,7 @@ class WorkCompletionReportsTable
                     ->label('Report Number')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('project.code')
+                TextColumn::make('project.number')
                     ->label('Project Code')
                     ->searchable()
                     ->sortable(),

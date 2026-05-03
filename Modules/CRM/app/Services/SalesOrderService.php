@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Services;
 
+use Exception;
 use Illuminate\Support\Facades\Log;
 use Modules\CRM\Enums\SalesOrderAmendmentStatus;
 use Modules\CRM\Enums\SalesOrderStatus;
@@ -51,50 +52,10 @@ class SalesOrderService
         }
 
         // 4. Prepare Snapshot Data (content_config)
-        $manpower = $analysis->manpower_requirements;
-        $financials = $analysis->financial_assumptions;
-
-        $mfRate = (float) ($analysis->management_fee_rate ?? 0);
-
-        $calculateRevenue = function ($cost) use ($mfRate) {
-            return $cost * (1 + ($mfRate / 100));
-        };
-
-        $totalSoAmount = 0;
-
-        // Map PA items to SO Table items
-        $items = collect($financials['operational_costs'] ?? [])->map(function ($item) use ($calculateRevenue, &$totalSoAmount) {
-            $qty = (float) ($item['quantity'] ?? 0);
-            $unitCost = (float) ($item['unit_cost'] ?? 0);
-            $unitPrice = round($calculateRevenue($unitCost), 0);
-            $totalPrice = $unitPrice * $qty;
-
-            $totalSoAmount += $totalPrice;
-
-            return [
-                'description' => $item['item_name'] ?? 'Operational Item',
-                'uom' => $item['uom'] ?? 'Unit',
-                'quantity' => $qty,
-                'unit_cost' => $unitCost,
-                'unit_price' => $unitPrice,
-                'total_price' => $totalPrice,
-            ];
-        })->toArray();
-
-        // Apply revenue calculation to manpower as well for SO display
-        $manpowerDetails = collect($manpower)->map(function ($mp) use ($calculateRevenue, &$totalSoAmount) {
-            $qty = (float) ($mp['quantity'] ?? 0);
-            $unitCost = (float) ($mp['unit_cost'] ?? 0);
-            $unitPrice = round($calculateRevenue($unitCost), 0);
-            $totalPrice = $unitPrice * $qty;
-
-            $totalSoAmount += $totalPrice;
-
-            return array_merge($mp, [
-                'unit_price' => $unitPrice,
-                'total_price' => $totalPrice,
-            ]);
-        })->toArray();
+        $extracted = $this->extractDataFromAnalysis($analysis);
+        $items = $extracted['items'];
+        $manpowerDetails = $extracted['manpower_details'];
+        $totalSoAmount = $extracted['total_amount'];
 
         // 5. Generate SO Number
         $year = date('Y');
@@ -129,8 +90,8 @@ class SalesOrderService
             'project_manager_id' => $project->oprep_id ?? $analysis->lead?->oprep_id,
             'service_type' => $analysis->productCluster?->name,
             'job_location' => $analysis->projectArea?->name,
-            'manpower_initial_qty' => collect($manpower)->sum('quantity'),
-            'manpower_composition' => $manpower,
+            'manpower_initial_qty' => collect($manpowerDetails)->sum('quantity'),
+            'manpower_composition' => $manpowerDetails,
             'sequence_number' => $sequence,
             'year' => $year,
             'content_config' => [
@@ -171,35 +132,10 @@ class SalesOrderService
     {
         $beforeSnapshot = $so->content_config;
 
-        $manpower = $analysis->manpower_requirements;
-        $financials = $analysis->financial_assumptions;
-        $mfRate = (float) ($analysis->management_fee_rate ?? 0);
-
-        $calculateRevenue = function ($cost) use ($mfRate) {
-            if ($mfRate >= 100) {
-                return $cost * 1.15;
-            }
-
-            return $cost / (1 - ($mfRate / 100));
-        };
-
-        $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
-            'description' => $item['item_name'],
-            'uom' => $item['uom'] ?? 'Unit',
-            'quantity' => $item['quantity'],
-            'unit_price' => $calculateRevenue($item['unit_cost'] ?? 0),
-            'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
-        ])->toArray();
-
-        // Apply revenue calculation to manpower as well for SO display
-        $manpowerDetails = collect($manpower)->map(fn ($mp) => array_merge($mp, [
-            'unit_price' => $calculateRevenue($mp['unit_cost'] ?? 0),
-            'total_price' => $calculateRevenue($mp['unit_cost'] ?? 0) * ($mp['quantity'] ?? 0),
-        ]))->toArray();
-
+        $extracted = $this->extractDataFromAnalysis($analysis);
         $afterSnapshot = [
-            'items' => $items,
-            'manpower_details' => $manpowerDetails,
+            'items' => $extracted['items'],
+            'manpower_details' => $extracted['manpower_details'],
             'payment_terms' => $analysis->paymentTerm?->name,
             'pa_revision_number' => $analysis->revision_number ?? 0,
         ];
@@ -217,6 +153,59 @@ class SalesOrderService
             'after_snapshot' => $afterSnapshot,
             'content_config' => $afterSnapshot,
         ]);
+    }
+
+    /**
+     * Extract structured data from PA, handling both manual and standard costing modes.
+     */
+    protected function extractDataFromAnalysis(ProfitabilityAnalysis $analysis): array
+    {
+        $mfRate = (float) ($analysis->management_fee_rate ?? 0);
+        $calculateRevenue = function ($cost) use ($mfRate) {
+            // Apply standard markup formula: Revenue = Cost * (1 + Rate%)
+            return (float) round($cost * (1 + ($mfRate / 100)), 0);
+        };
+
+        // Leverage model accessors which now handle both manual and template-based costing
+        $manpowerRaw = $analysis->manpower_requirements ?? [];
+        $financialsRaw = $analysis->financial_assumptions['operational_costs'] ?? [];
+
+        $manpower = collect($manpowerRaw)->map(function ($mp) use ($calculateRevenue) {
+            $qty = (float) ($mp['quantity'] ?? 1);
+            $unitCost = (float) ($mp['unit_cost'] ?? 0);
+            $unitPrice = $calculateRevenue($unitCost);
+
+            return [
+                'job_position_id' => $mp['job_position_id'] ?? null,
+                'job_position_name' => $mp['job_position_name'] ?? 'Personnel',
+                'quantity' => $qty,
+                'unit_cost' => $unitCost,
+                'unit_price' => $unitPrice,
+                'total_price' => $unitPrice * $qty,
+                'uom' => $mp['uom'] ?? 'Person',
+            ];
+        })->toArray();
+
+        $items = collect($financialsRaw)->map(function ($item) use ($calculateRevenue) {
+            $qty = (float) ($item['quantity'] ?? 1);
+            $unitCost = (float) ($item['unit_cost'] ?? 0);
+            $unitPrice = $calculateRevenue($unitCost);
+
+            return [
+                'description' => $item['item_name'] ?? 'Operational Item',
+                'uom' => $item['uom'] ?? 'Unit',
+                'quantity' => $qty,
+                'unit_cost' => $unitCost,
+                'unit_price' => $unitPrice,
+                'total_price' => $unitPrice * $qty,
+            ];
+        })->toArray();
+
+        return [
+            'items' => $items,
+            'manpower_details' => $manpower,
+            'total_amount' => (float) (collect($items)->sum('total_price') + collect($manpower)->sum('total_price')),
+        ];
     }
 
     /**
@@ -243,6 +232,6 @@ class SalesOrderService
             }
         }
 
-        throw new \Exception("Cannot create Sales Order: No Proposal found for PA {$analysis->number}. A Proposal must be created before a Sales Order can be generated.");
+        throw new Exception("Cannot create Sales Order: No Proposal found for PA {$analysis->number}. A Proposal must be created before a Sales Order can be generated.");
     }
 }

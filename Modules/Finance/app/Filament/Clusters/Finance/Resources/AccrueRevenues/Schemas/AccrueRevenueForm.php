@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Models\RevenueType;
 use Modules\Project\Models\Project;
 
 class AccrueRevenueForm
@@ -219,7 +220,7 @@ class AccrueRevenueForm
                                     ->placeholder('Detailed description of work...')
                                     ->columnSpanFull(),
                             ])
-                            ->itemLabel(fn (array $state): ?string => \Modules\MasterData\Models\RevenueType::find($state['revenue_type_id'] ?? '')?->name ?? 'Work Item')
+                            ->itemLabel(fn (array $state): ?string => (! empty($state['revenue_type_id'])) ? RevenueType::find($state['revenue_type_id'])?->name : 'Work Item')
                             ->addActionLabel('Add Work Item')
                             ->collapsible()
                             ->defaultItems(1)

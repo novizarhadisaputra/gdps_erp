@@ -15,11 +15,24 @@ class ManageChartOfAccounts extends TreePage
 
     public static function tree(Tree $tree): Tree
     {
-        return $tree;
+        return $tree
+            ->actions([
+                \Filament\Actions\EditAction::make()
+                    ->url(fn (Model $record) => static::getResource()::getUrl('edit', ['record' => $record])),
+                \Filament\Actions\DeleteAction::make(),
+            ]);
     }
 
     public function getTreeRecordTitle(?Model $record = null): string
     {
         return "{$record->code} - {$record->name}";
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\CreateAction::make()
+                ->url(static::getResource()::getUrl('create')),
+        ];
     }
 }

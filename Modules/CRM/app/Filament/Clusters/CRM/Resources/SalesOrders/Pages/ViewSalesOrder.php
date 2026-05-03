@@ -113,6 +113,7 @@ class ViewSalesOrder extends ViewRecord
                         'sourceable_id' => $record->id,
                         'sourceable_type' => $record->getMorphClass(),
                         'customer_id' => $record->customer_id,
+                        'project_area_id' => $record->project?->project_area_id ?? $record->proposal?->project_area_id,
                         'number' => 'Auto-generated',
                         'tax_id' => $record->tax_id,
                         'items' => [

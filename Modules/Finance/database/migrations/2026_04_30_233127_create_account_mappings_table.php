@@ -18,8 +18,8 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->uuidMorphs('mappable');
             $table->string('type'); // accrual, revenue, receivable, expense, etc.
-            $table->foreignUuid('revenue_type_id')->nullable()->constrained('master_data.revenue_types')->nullOnDelete();
-            $table->foreignUuid('revenue_segment_id')->nullable()->constrained('master_data.revenue_segments')->nullOnDelete();
+            $table->foreignUuid('revenue_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_types' : 'master_data.revenue_types')->nullOnDelete();
+            $table->foreignUuid('revenue_segment_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_segments' : 'master_data.revenue_segments')->nullOnDelete();
             $table->foreignUuid('chart_of_account_id')->constrained($coaTable)->cascadeOnDelete();
             $table->timestamps();
 

@@ -30,7 +30,8 @@ class SalesOrdersTable
                     ->label('Customer')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('total_amount')
+                TextColumn::make('amount')
+                    ->label('Total Amount')
                     ->money('IDR')
                     ->sortable()
                     ->summarize(

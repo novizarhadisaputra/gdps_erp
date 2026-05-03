@@ -4,6 +4,7 @@ namespace Modules\Finance\Enums;
 
 enum AccrueRevenueStatus: string
 {
+    case Draft = 'draft';
     case Open = 'open';
     case Closed = 'closed';
     case Reversed = 'reversed';
@@ -11,6 +12,7 @@ enum AccrueRevenueStatus: string
     public function getLabel(): string
     {
         return match ($this) {
+            self::Draft => 'Draft',
             self::Open => 'Open',
             self::Closed => 'Closed',
             self::Reversed => 'Reversed',
@@ -20,7 +22,8 @@ enum AccrueRevenueStatus: string
     public function getColor(): string
     {
         return match ($this) {
-            self::Open => 'gray',
+            self::Draft => 'gray',
+            self::Open => 'info',
             self::Closed => 'success',
             self::Reversed => 'danger',
         };

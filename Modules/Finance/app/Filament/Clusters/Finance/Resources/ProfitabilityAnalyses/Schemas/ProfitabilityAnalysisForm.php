@@ -149,10 +149,10 @@ class ProfitabilityAnalysisForm
 
                                         $set('lead_id', $gi->lead_id);
                                         $set('customer_id', $gi->customer_id ?? $lead?->customer_id);
-                                        $set('project_area_id', $gi->project_area_id ?? $salesPlan?->project_area_id);
-                                        $set('product_cluster_id', $salesPlan?->product_cluster_id ?? $lead?->product_cluster_id);
-                                        $set('tax_id', $gi->tax_id ?? $lead?->tax_id);
-                                        $set('work_scheme_id', $gi->work_scheme_id);
+                                        $set('project_area_id', $gi->project_area_id ?? $salesPlan?->project_area_id ?? $lead?->project_area_id);
+                                        $set('product_cluster_id', $gi->product_cluster_id ?? $salesPlan?->product_cluster_id ?? $lead?->product_cluster_id);
+                                        $set('tax_id', $gi->tax_id ?? $salesPlan?->tax_id ?? $lead?->tax_id);
+                                        $set('work_scheme_id', $gi->work_scheme_id ?? $salesPlan?->work_scheme_id ?? $lead?->work_scheme_id);
                                         $set('project_type_id', $gi->project_type_id ?? $salesPlan?->project_type_id ?? $lead?->project_type_id);
 
                                         if ($gi->estimated_start_date) {

@@ -23,6 +23,7 @@ use Modules\CRM\Models\PurchaseOrder;
 use Modules\CRM\Models\SalesOrder;
 use Modules\CRM\Models\WorkOrder;
 use Modules\MasterData\Enums\Gender;
+use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\Project;
@@ -30,6 +31,19 @@ use Modules\Project\Models\WorkCompletionReport;
 
 class WorkCompletionReportForm
 {
+    private static function parseNumber($value): float
+    {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        if (! is_string($value)) {
+            return 0;
+        }
+
+        return (float) str_replace(',', '.', str_replace('.', '', $value));
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -80,7 +94,7 @@ class WorkCompletionReportForm
                         Select::make('project_id')
                             ->label('Project')
                             ->placeholder('Select project')
-                            ->options(Project::all()->pluck('name', 'id'))
+                            ->options(Project::all()->mapWithKeys(fn($p) => [$p->id => "{$p->number} - {$p->name}"]))
                             ->searchable()
                             ->required()
                             ->live()
@@ -94,7 +108,7 @@ class WorkCompletionReportForm
                                     $set('tax_percentage', '11');
 
                                     // Update related fields
-                                    $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                    $baseAmount = self::parseNumber($get('tax_base_amount'));
                                     $set('tax_amount', round($baseAmount * 0.11));
                                     $set('tax_wording', [
                                         'id' => 'Penyelesaian pekerjaan di atas belum termasuk PPN 11%',
@@ -108,7 +122,13 @@ class WorkCompletionReportForm
                             ->options(Customer::all()->pluck('name', 'id'))
                             ->searchable()
                             ->required(),
-                    ])->columns(2)
+                        Select::make('project_area_id')
+                            ->label('Project Area')
+                            ->options(ProjectArea::all()->pluck('name', 'id'))
+                            ->searchable()
+                            ->placeholder('Select area')
+                            ->helperText('The geographical area or segment this BAPP belongs to.'),
+                    ])->columns(3)
                     ->columnSpanFull()
                     ->collapsible(),
 
@@ -163,6 +183,12 @@ class WorkCompletionReportForm
 
                                 if (isset($source->customer_id)) {
                                     $set('customer_id', $source->customer_id);
+                                }
+
+                                if (isset($source->project_area_id)) {
+                                    $set('project_area_id', $source->project_area_id);
+                                } elseif (isset($source->project?->project_area_id)) {
+                                    $set('project_area_id', $source->project->project_area_id);
                                 }
 
                                 if ($source instanceof SalesOrder) {
@@ -598,7 +624,7 @@ class WorkCompletionReportForm
 
                                         $baseAmount = $mfSum;
                                     } elseif ($state === 'custom') {
-                                        $baseAmount = $get('tax_base_amount') ?? 0;
+                                        $baseAmount = self::parseNumber($get('tax_base_amount'));
                                     }
 
                                     $set('tax_base_amount', $baseAmount);
@@ -698,7 +724,7 @@ class WorkCompletionReportForm
                                     $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
 
                                     if ($basis === 'custom') {
-                                        $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                        $baseAmount = self::parseNumber($get('tax_base_amount'));
                                     } elseif ($basis === 'management_fee') {
                                         $mfSum = collect($activeItems)->sum(function ($item) {
                                             return is_numeric($item['management_fee'] ?? 0) ? (float) $item['management_fee'] : 0;
@@ -757,7 +783,7 @@ class WorkCompletionReportForm
 
                                     $basis = $get('tax_basis');
                                     if ($basis === 'custom') {
-                                        $baseAmount = (float) ($get('tax_base_amount') ?? 0);
+                                        $baseAmount = self::parseNumber($get('tax_base_amount'));
                                     } elseif ($basis === 'management_fee') {
                                         $baseAmount = collect($activeItems)->filter(function ($item) {
                                             $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');

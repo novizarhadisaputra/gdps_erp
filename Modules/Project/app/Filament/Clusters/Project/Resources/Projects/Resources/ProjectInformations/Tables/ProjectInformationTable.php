@@ -137,7 +137,7 @@ class ProjectInformationTable
                                         ]
                                     )->setPaper('a4', 'portrait');
 
-                                    $name = str_replace(['/', '\\'], '-', $record->project?->project_code ?? $record->project?->code ?? 'Draft');
+                                    $name = str_replace(['/', '\\'], '-', $record->project?->number ?? 'Draft');
                                     $customerName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
                                     $fileName = str_replace(['/', '\\'], '-', $record->document_number).'.pdf';
 

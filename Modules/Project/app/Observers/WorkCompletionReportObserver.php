@@ -16,13 +16,7 @@ class WorkCompletionReportObserver
     {
         $date = $report->document_date ? Carbon::parse($report->document_date) : now();
         $year = $date->format('Y');
-        $month = (int) $date->format('n'); // Month without leading zeros
-        // Roman numeral mapping
-        $romans = [
-            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
-        ];
-        $romanMonth = $romans[$month] ?? $month;
+        $shortYear = $date->format('y');
 
         $latest = WorkCompletionReport::withTrashed()
             ->where('year', $year)
@@ -33,7 +27,15 @@ class WorkCompletionReportObserver
 
         $report->year = (int) $year;
         $report->sequence_number = $sequence;
-        $report->number = sprintf('GDPS/UB/BAPP-%03d/%s/%s', $sequence, $romanMonth, $year);
+        $report->number = sprintf('GDPS/UB/BAPP-%03d/%s', $sequence, $shortYear);
+
+        if (empty($report->project_area_id)) {
+            if ($report->project?->project_area_id) {
+                $report->project_area_id = $report->project->project_area_id;
+            } elseif ($report->sourceable?->project?->project_area_id) {
+                $report->project_area_id = $report->sourceable->project->project_area_id;
+            }
+        }
     }
 
     /**
@@ -68,19 +70,12 @@ class WorkCompletionReportObserver
                 ]);
 
                 // Update main document to reflect revision status
-                $newRevisionNumber = $report->revision_number + 1;
-
-                $date = $report->document_date ? \Illuminate\Support\Carbon::parse($report->document_date) : now();
-                $year = $date->format('Y');
-                $month = (int) $date->format('n');
-                $romans = [
-                    1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
-                    7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
-                ];
-                $romanMonth = $romans[$month] ?? $month;
+                $date = $report->document_date ? Carbon::parse($report->document_date) : now();
+                $shortYear = $date->format('y');
+                $newRevisionNumber = ($report->getOriginal('revision_number') ?? 0) + 1;
 
                 $baseNumber = sprintf('GDPS/UB/BAPP-%03d', $report->sequence_number);
-                $newNumber = sprintf('%s/REV/%02d/%s/%s', $baseNumber, $newRevisionNumber, $romanMonth, $year);
+                $newNumber = sprintf('%s/REV/%02d/%s', $baseNumber, $newRevisionNumber, $shortYear);
 
                 $report->updateQuietly([
                     'revision_number' => $newRevisionNumber,

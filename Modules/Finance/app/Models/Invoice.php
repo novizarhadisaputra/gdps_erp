@@ -14,6 +14,8 @@ use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Observers\InvoiceObserver;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -37,6 +39,8 @@ class Invoice extends Model implements HasMedia
 
     protected $fillable = [
         'customer_id',
+        'tax_id',
+        'project_area_id',
         'number',
         'sequence_number',
         'revision_number',
@@ -122,5 +126,15 @@ class Invoice extends Model implements HasMedia
     public function workCompletionReport(): BelongsTo
     {
         return $this->belongsTo(\Modules\Project\Models\WorkCompletionReport::class, 'work_completion_report_id');
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(Tax::class);
+    }
+
+    public function projectArea(): BelongsTo
+    {
+        return $this->belongsTo(ProjectArea::class);
     }
 }

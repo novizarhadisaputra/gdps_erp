@@ -74,20 +74,19 @@ class SalesOrderAmendmentObserver
             if ($so) {
                 $after = $amendment->after_snapshot;
 
-                $items = collect($after['items'] ?? []);
+                $itemsData = collect($after['items'] ?? []);
+                $manpowerData = collect($after['manpower_details'] ?? []);
 
-                // Flatten and group manpower for Sales Order level tracking
-                $allManpower = $items->flatMap(fn ($item) => $item['manpower'] ?? [])
-                    ->groupBy('job_position_name')
-                    ->map(fn ($group) => [
-                        'job_position_name' => $group->first()['job_position_name'],
-                        'quantity' => $group->sum('quantity'),
-                    ])
-                    ->values()
-                    ->toArray();
+                // Map manpower for Sales Order level tracking
+                $allManpower = $manpowerData->map(fn ($mp) => [
+                    'job_position_name' => $mp['job_position_name'] ?? $mp['description'] ?? 'Unknown Position',
+                    'quantity' => $mp['quantity'] ?? 0,
+                    'unit_price' => $mp['unit_price'] ?? 0,
+                    'total_price' => $mp['total_price'] ?? 0,
+                ])->toArray();
 
-                // 1. Calculate new service total amount (monthly)
-                $totalServiceMonth = $items->sum('total_price');
+                // 1. Calculate new service total amount (monthly) - Sum of both items and personnel
+                $totalServiceMonth = $itemsData->sum('total_price') + $manpowerData->sum('total_price');
 
                 // 2. Add Management Fee and Tax (following original SO percentages)
                 $mgtFeeVal = $totalServiceMonth * ($so->management_fee_percentage / 100);

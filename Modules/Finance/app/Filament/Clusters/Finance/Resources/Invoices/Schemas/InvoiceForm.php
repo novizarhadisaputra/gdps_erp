@@ -16,12 +16,36 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
+use Modules\CRM\Enums\SalesOrderType;
+use Modules\CRM\Models\CooperationAgreement;
 use Modules\CRM\Models\Customer;
+use Modules\CRM\Models\MinutesOfAgreement;
+use Modules\CRM\Models\PurchaseOrder;
+use Modules\CRM\Models\SalesOrder;
+use Modules\CRM\Models\WorkOrder;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\MasterData\Enums\Gender;
+use Modules\MasterData\Models\BankAccount;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\Tax;
+use Modules\Project\Models\WorkCompletionReport;
 
 class InvoiceForm
 {
+    private static function parseNumber($value): float
+    {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        if (! is_string($value)) {
+            return 0;
+        }
+
+        return (float) str_replace(',', '.', str_replace('.', '', $value));
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -72,25 +96,31 @@ class InvoiceForm
                                     ->live()
                                     ->placeholder('Search and select a customer...')
                                     ->helperText('The client account that will be billed for this invoice.'),
+                                Select::make('project_area_id')
+                                    ->label('Project Area')
+                                    ->options(ProjectArea::all()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->placeholder('Select area')
+                                    ->helperText('The geographical area or segment this invoice belongs to.'),
                                 MorphToSelect::make('sourceable')
                                     ->label('Reference Document')
                                     ->types([
-                                        MorphToSelect\Type::make(\Modules\CRM\Models\SalesOrder::class)
+                                        MorphToSelect\Type::make(SalesOrder::class)
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                        MorphToSelect\Type::make(\Modules\Project\Models\WorkCompletionReport::class)
+                                        MorphToSelect\Type::make(WorkCompletionReport::class)
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                        MorphToSelect\Type::make(\Modules\CRM\Models\PurchaseOrder::class)
+                                        MorphToSelect\Type::make(PurchaseOrder::class)
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                        MorphToSelect\Type::make(\Modules\CRM\Models\WorkOrder::class)
+                                        MorphToSelect\Type::make(WorkOrder::class)
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                        MorphToSelect\Type::make(\Modules\CRM\Models\CooperationAgreement::class)
+                                        MorphToSelect\Type::make(CooperationAgreement::class)
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
-                                        MorphToSelect\Type::make(\Modules\CRM\Models\MinutesOfAgreement::class)
+                                        MorphToSelect\Type::make(MinutesOfAgreement::class)
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
                                     ])
@@ -126,8 +156,10 @@ class InvoiceForm
                                         }
 
                                         // Sync items and financial details
-                                        if ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
+                                        if ($source instanceof WorkCompletionReport) {
+                                            $set('tax_id', $source->tax_id);
                                             $set('tax_percentage', $source->tax_percentage ?? 12);
+                                            $set('project_area_id', $source->project_area_id);
                                             $set('tax_wording', $source->tax_wording);
                                             $set('content_config.recipient_name', $source->content_config['recipient_name'] ?? null);
                                             $set('content_config.recipient_title', $source->content_config['recipient_title'] ?? null);
@@ -145,8 +177,8 @@ class InvoiceForm
                                             }
 
                                             // Handle Internal Bank Account via BAPP
-                                            if ($source->sourceable instanceof \Modules\CRM\Models\SalesOrder && $source->sourceable->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
-                                                $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                                            if ($source->sourceable instanceof SalesOrder && $source->sourceable->type->value === SalesOrderType::Internal->value) {
+                                                $internalBank = BankAccount::where('account_name', 'like', '%Internal%')
                                                     ->where('is_active', true)
                                                     ->first();
 
@@ -155,7 +187,7 @@ class InvoiceForm
                                                     $set('payment_info', [
                                                         'account_name' => $internalBank->account_name,
                                                         'banks' => [
-                                                            [
+                                                            Str::uuid()->toString() => [
                                                                 'bank_name' => $internalBank->bank_name,
                                                                 'account_number' => $internalBank->account_number,
                                                                 'currency' => $internalBank->currency,
@@ -164,15 +196,20 @@ class InvoiceForm
                                                     ]);
                                                 }
                                             }
-                                        } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
+                                        } elseif ($source instanceof SalesOrder) {
+                                            $set('project_area_id', $source->project_area_id);
+                                            $set('tax_id', $source->tax_id);
+
                                             $soItems = $source->content_config['items'] ?? [];
                                             if (! empty($soItems)) {
-                                                $invoiceItems = collect($soItems)->map(fn ($item) => [
-                                                    'item_name' => $item['description'] ?? $item['item_name'] ?? 'Item',
-                                                    'quantity' => $item['quantity'] ?? 0,
-                                                    'uom' => $item['uom'] ?? 'Unit',
-                                                    'unit_price' => $item['unit_price'] ?? 0,
-                                                    'total_price' => $item['total_price'] ?? 0,
+                                                $invoiceItems = collect($soItems)->mapWithKeys(fn ($item) => [
+                                                    Str::uuid()->toString() => [
+                                                        'item_name' => $item['description'] ?? $item['item_name'] ?? 'Item',
+                                                        'quantity' => $item['quantity'] ?? 0,
+                                                        'uom' => $item['uom'] ?? 'Unit',
+                                                        'unit_price' => $item['unit_price'] ?? 0,
+                                                        'total_price' => $item['total_price'] ?? 0,
+                                                    ]
                                                 ])->toArray();
 
                                                 // Set translations for both id and en
@@ -191,8 +228,11 @@ class InvoiceForm
                                         } else {
                                             // Default for other types (PO, SPK, PKS)
                                             if (isset($source->items)) {
-                                                $set('items', $source->items);
-                                                $sum = collect($source->items)->sum('total_price');
+                                                $newItems = collect($source->items)->mapWithKeys(fn ($item) => [
+                                                    Str::uuid()->toString() => is_array($item) ? $item : (array) $item
+                                                ])->toArray();
+                                                $set('items', $newItems);
+                                                $sum = collect($newItems)->sum('total_price');
                                                 $set('amount', $sum);
                                                 $set('tax_amount', $sum * 0.12);
                                                 $set('total_amount', $sum * 1.12);
@@ -208,7 +248,7 @@ class InvoiceForm
                                                         $set('payment_info', [
                                                             'account_name' => $internalBank->account_name,
                                                             'banks' => [
-                                                                [
+                                                                \Illuminate\Support\Str::uuid()->toString() => [
                                                                     'bank_name' => $internalBank->bank_name,
                                                                     'account_number' => $internalBank->account_number,
                                                                     'currency' => $internalBank->currency,
@@ -372,8 +412,7 @@ class InvoiceForm
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function (Get $get, Set $set) {
                                                 $qty = (float) ($get('quantity') ?? 0);
-                                                $priceRaw = $get('unit_price') ?? 0;
-                                                $price = ! is_string($priceRaw) ? (float) $priceRaw : (float) str_replace(',', '.', str_replace('.', '', $priceRaw));
+                                                $price = self::parseNumber($get('unit_price'));
                                                 $set('total_price', round($qty * $price));
                                             }),
                                         TextInput::make('uom')
@@ -388,8 +427,7 @@ class InvoiceForm
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function (Get $get, Set $set) {
                                                 $qty = (float) ($get('quantity') ?? 0);
-                                                $priceRaw = $get('unit_price') ?? 0;
-                                                $price = ! is_string($priceRaw) ? (float) $priceRaw : (float) str_replace(',', '.', str_replace('.', '', $priceRaw));
+                                                $price = self::parseNumber($get('unit_price'));
                                                 $set('total_price', round($qty * $price));
                                             }),
                                         TextInput::make('total_price')
@@ -409,9 +447,7 @@ class InvoiceForm
 
                                 $sum = 0;
                                 foreach ((array) $items as $item) {
-                                    $priceRaw = $item['total_price'] ?? 0;
-                                    $price = is_numeric($priceRaw) ? (float) $priceRaw : (float) str_replace(',', '.', str_replace('.', '', (string) $priceRaw));
-                                    $sum += $price;
+                                    $sum += self::parseNumber($item['total_price'] ?? 0);
                                 }
                                 $set('amount', $sum);
                                 $taxPercentRaw = $get('tax_percentage') ?? 12;
@@ -438,7 +474,7 @@ class InvoiceForm
                                     ->placeholder('0')
                                     ->helperText('The total billable amount before tax.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                        $amount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
+                                        $amount = self::parseNumber($state);
 
                                         // Update Tax Base Amount if basis is total
                                         if ($get('tax_basis') === 'total' || ! $get('tax_basis')) {
@@ -462,7 +498,7 @@ class InvoiceForm
                                     ->live()
                                     ->required()
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                        $amount = (float) ($get('amount') ?? 0);
+                                        $amount = self::parseNumber($get('amount'));
                                         $baseAmount = $amount;
 
                                         if ($state === 'management_fee') {
@@ -474,13 +510,12 @@ class InvoiceForm
 
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee');
                                             })->sum(function ($item) {
-                                                return is_numeric($item['total_price']) ? (float) $item['total_price'] : 0;
+                                                return self::parseNumber($item['total_price'] ?? 0);
                                             });
 
                                             $baseAmount = $mfSum;
                                         } elseif ($state === 'custom') {
-                                            // Keep current or set to 0
-                                            $baseAmount = $get('tax_base_amount') ?? 0;
+                                            $baseAmount = self::parseNumber($get('tax_base_amount'));
                                         }
 
                                         $set('tax_base_amount', $baseAmount);
@@ -501,8 +536,8 @@ class InvoiceForm
                                     ->helperText('The amount used to calculate VAT (PPN).')
                                     ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                        $baseAmount = ! is_string($state) ? (float) ($state ?? 0) : (float) str_replace(',', '.', str_replace('.', '', $state));
-                                        $amount = (float) ($get('amount') ?? 0);
+                                        $baseAmount = self::parseNumber($state);
+                                        $amount = self::parseNumber($get('amount'));
 
                                         $taxPercent = (float) ($get('tax_percentage') ?? 12);
                                         $tax = round($baseAmount * ($taxPercent / 100));
@@ -510,28 +545,42 @@ class InvoiceForm
                                         $set('total_amount', $amount + $tax);
                                     }),
 
-                                Select::make('tax_percentage')
-                                    ->label('VAT Percentage')
-                                    ->options([
-                                        '12' => 'PPN 12%',
-                                        '11' => 'PPN 11%',
-                                    ])
-                                    ->default('12')
+                                Select::make('tax_id')
+                                    ->label('VAT Category')
+                                    ->options(Tax::where('category', 'sales')->pluck('name', 'id'))
+                                    ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id)
+                                    ->required()
                                     ->live()
-                                    ->afterStateUpdated(function ($state, $set, $get) {
-                                        $baseAmount = (float) ($get('tax_base_amount') ?? 0);
-                                        $amount = (float) ($get('amount') ?? 0);
+                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                        if (! $state) {
+                                            return;
+                                        }
 
-                                        $taxPercent = (float) ($state ?? 12);
-                                        $tax = round($baseAmount * ($taxPercent / 100));
-                                        $set('tax_amount', $tax);
-                                        $set('total_amount', $amount + $tax);
+                                        $taxRecord = Tax::find($state);
+                                        $taxPercent = $taxRecord?->rate ?? 0;
+                                        $set('tax_percentage', $taxPercent);
+
+                                        $baseAmount = self::parseNumber($get('tax_base_amount'));
+                                        $amount = self::parseNumber($get('amount'));
+
+                                        $taxAmount = round($baseAmount * ($taxPercent / 100));
+                                        $set('tax_amount', $taxAmount);
+                                        $set('total_amount', $amount + $taxAmount);
 
                                         $set('tax_wording', [
                                             'id' => "PPN {$taxPercent}%",
                                             'en' => "{$taxPercent}% VAT",
                                         ]);
+                                    })
+                                    ->afterStateHydrated(function ($state, Set $set, Get $get) {
+                                        if ($state) {
+                                            $taxPercent = Tax::find($state)?->rate ?? 0;
+                                            $set('tax_percentage', $taxPercent);
+                                        }
                                     }),
+
+                                Hidden::make('tax_percentage')
+                                    ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12),
 
                                 TextInput::make('tax_amount')
                                     ->label('Tax Amount (VAT)')
@@ -542,8 +591,8 @@ class InvoiceForm
                                     ->live(onBlur: true)
                                     ->helperText('Value Added Tax (PPN).')
                                     ->afterStateUpdated(function (Get $get, $set) {
-                                        $amount = (float) ($get('amount') ?? 0);
-                                        $tax = (float) ($get('tax_amount') ?? 0);
+                                        $amount = self::parseNumber($get('amount'));
+                                        $tax = self::parseNumber($get('tax_amount'));
                                         $set('total_amount', $amount + $tax);
                                     }),
 
@@ -570,7 +619,7 @@ class InvoiceForm
                     ->schema([
                         Select::make('bank_account_id')
                             ->label('Bank Account')
-                            ->options(\Modules\MasterData\Models\BankAccount::query()->where('is_active', true)->pluck('bank_name', 'id'))
+                            ->options(BankAccount::query()->where('is_active', true)->pluck('bank_name', 'id'))
                             ->createOptionForm([
                                 Grid::make(2)
                                     ->schema([
@@ -595,6 +644,7 @@ class InvoiceForm
                                             ->default(true),
                                     ]),
                             ])
+                            ->createOptionUsing(fn (array $data) => \Modules\MasterData\Models\BankAccount::create($data)->id)
                             ->searchable()
                             ->live()
                             ->required()
@@ -602,12 +652,12 @@ class InvoiceForm
                                 if (! $state) {
                                     return;
                                 }
-                                $bank = \Modules\MasterData\Models\BankAccount::find($state);
+                                $bank = BankAccount::find($state);
                                 if ($bank) {
                                     $set('payment_info', [
                                         'account_name' => $bank->account_name,
                                         'banks' => [
-                                            [
+                                            \Illuminate\Support\Str::uuid()->toString() => [
                                                 'bank_name' => $bank->bank_name,
                                                 'account_number' => $bank->account_number,
                                                 'currency' => $bank->currency,

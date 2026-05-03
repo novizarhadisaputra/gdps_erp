@@ -15,6 +15,9 @@ return new class extends Migration
             $blueprint->uuid('id')->primary();
             $blueprint->foreignUuid('work_completion_report_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports')->onDelete('set null');
             $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
+            $blueprint->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->onDelete('set null');
+            $blueprint->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->onDelete('set null');
+            $blueprint->foreignUuid('bank_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'bank_accounts' : 'master_data.bank_accounts')->onDelete('set null');
             $blueprint->nullableUuidMorphs('sourceable');
 
             $blueprint->string('number')->unique();
@@ -33,6 +36,7 @@ return new class extends Migration
             $blueprint->decimal('total_amount', 15, 2);
 
             $blueprint->string('status')->default('draft');
+            $blueprint->string('invoice_type')->nullable();
             $blueprint->json('payment_info')->nullable();
             $blueprint->jsonb('items')->nullable();
             $blueprint->jsonb('tax_wording')->nullable();

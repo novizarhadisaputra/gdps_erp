@@ -28,7 +28,8 @@ class AccrueRevenueObserver
 
         $sequence = $latest ? $latest->sequence_number + 1 : 1;
 
-        $accrueRevenue->year = (int) $year;
+        $accrueRevenue->year = $accrueRevenue->year ?? (int) $year;
+        $accrueRevenue->month = $accrueRevenue->month ?? (int) date('n');
         $accrueRevenue->sequence_number = $sequence;
         $accrueRevenue->number = sprintf('GDPS/UB/ACR-%03d/%s', $sequence, $shortYear);
     }
@@ -58,12 +59,14 @@ class AccrueRevenueObserver
         $reversedItems = $accrueRevenue->items()->where('is_reversed', true)->count();
         $hasInvoices = $accrueRevenue->items()->whereNotNull('invoice_id')->count();
 
-        $status = AccrueRevenueStatus::Open;
-        if ($totalItems > 0) {
+        $status = $accrueRevenue->status;
+        if ($status !== AccrueRevenueStatus::Draft && $totalItems > 0) {
             if ($reversedItems === $totalItems) {
                 $status = AccrueRevenueStatus::Reversed;
             } elseif ($hasInvoices === $totalItems) {
                 $status = AccrueRevenueStatus::Closed;
+            } else {
+                $status = AccrueRevenueStatus::Open;
             }
         }
 

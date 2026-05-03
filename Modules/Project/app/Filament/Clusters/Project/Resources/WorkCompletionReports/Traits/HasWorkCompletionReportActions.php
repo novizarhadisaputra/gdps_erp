@@ -7,21 +7,29 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\EditRecord;
+use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Modules\Finance\Enums\AccrueRevenueStatus;
 use Modules\Finance\Enums\InvoiceStatus;
-use Modules\Finance\Enums\RevenueType;
 use Modules\Finance\Filament\Clusters\Finance\Resources\AccrueRevenues\AccrueRevenueResource;
-use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
+use Modules\Finance\Models\AccountMapping;
 use Modules\Finance\Models\AccrueRevenue;
 use Modules\Finance\Models\AccrueRevenueItem;
+use Modules\Finance\Models\ChartOfAccount;
 use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\RevenueType as RevenueTypeModel;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Enums\WorkCompletionStatus;
-use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource as ClusterResource;
 use Modules\Project\Models\WorkCompletionReport;
 
 trait HasWorkCompletionReportActions
@@ -29,13 +37,14 @@ trait HasWorkCompletionReportActions
     protected function getWorkCompletionReportHeaderActions(): array
     {
         return [
-            ViewAction::make(),
-            EditAction::make(),
+            ViewAction::make()
+                ->hidden(fn () => $this instanceof ViewRecord),
+            EditAction::make()
+                ->hidden(fn () => $this instanceof EditRecord),
 
             ActionGroup::make([
                 $this->getExportPdfAction(),
-                $this->getGenerateAccrualAction(),
-                $this->getGenerateInvoiceAction(),
+                $this->getGenerateAccrueRevenueAction(),
                 $this->getDiscussionsAction(),
             ])
                 ->label('Options')
@@ -101,90 +110,408 @@ trait HasWorkCompletionReportActions
             ->url(fn (WorkCompletionReport $record) => "/admin/projects/{$record->project_id}/work-completion-reports/{$record->id}/discussions");
     }
 
-    protected function getGenerateAccrualAction(): Action
+    protected function getGenerateAccrueRevenueAction(): Action
     {
-        return Action::make('generateAccrual')
-            ->label('Generate Accrual')
-            ->icon('heroicon-o-presentation-chart-line')
-            ->color('info')
+        return Action::make('generateAccrueRevenue')
+            ->label('Generate Financial Documents')
+            ->icon('heroicon-o-presentation-chart-bar')
+            ->color('success')
             ->requiresConfirmation()
-            ->modalHeading('Generate Revenue Accrual')
-            ->modalDescription('This will generate a draft Revenue Accrual record for this BAPP.')
-            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Approved && ! AccrueRevenueItem::where('bapp_id', $record->id)->exists())
-            ->action(function (WorkCompletionReport $record) {
+            ->modalHeading('Financial Document Splitter')
+            ->modalDescription('Specify the revenue split for this BAPP. This will generate one Accrual and multiple Invoices.')
+            ->slideOver()
+            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Approved && ! $record->accrueRevenueItems()->exists())
+            ->fillForm(function (WorkCompletionReport $record) {
+                // 1. Get the common revenue types IDs
+                $manpowerType = RevenueTypeModel::where('code', 'manpower')->first();
+                $mgmtFeeType = RevenueTypeModel::where('code', 'mgmt_fee')->first();
+                $defaultTypes = array_filter([$manpowerType?->id, $mgmtFeeType?->id]);
+
+                // 2. Calculate Amounts from BAPP items
+                $items = is_array($record->items) && isset($record->items['id']) ? $record->items['id'] : ($record->items ?? []);
+                $totalBapp = collect($items)->sum('total_price');
+                $totalFee = collect($items)->sum('management_fee');
+                $mainWorkAmount = $totalBapp - $totalFee;
+
+                // 3. Prepare Splits with COA Resolution
+                $newSplits = [];
+                foreach ($defaultTypes as $typeId) {
+                    $type = RevenueTypeModel::find($typeId);
+                    $amount = ($type->code === 'manpower' || $type->code === 'main_work') ? $mainWorkAmount : $totalFee;
+
+                    // Resolve COA from mapping
+                    $area = ProjectArea::find($record->project_area_id);
+                    $coaId = null;
+
+                    // Hierarchical lookup for COA
+                    while ($area) {
+                        $coaId = \Modules\Finance\Models\AccountMapping::where('mappable_type', ProjectArea::class)
+                            ->where('mappable_id', $area->id)
+                            ->where('revenue_type_id', $typeId)
+                            ->first()?->chart_of_account_id;
+
+                        if ($coaId) {
+                            break;
+                        }
+
+                        $area = ($area->parentable_type === ProjectArea::class)
+                            ? ProjectArea::find($area->parentable_id)
+                            : null;
+                    }
+
+                    $newSplits[] = [
+                        'revenue_type_id' => $typeId,
+                        'revenue_type_name' => $type->name,
+                        'amount_estimated' => $amount,
+                        'amount_actual' => $amount,
+                        'amount_expense_estimated' => 0,
+                        'amount_expense_actual' => 0,
+                        'chart_of_account_id' => $coaId,
+                    ];
+                }
+
+                return [
+                    'project_area_id' => $record->project_area_id,
+                    'revenue_type_ids' => $defaultTypes,
+                    'financial_splits' => $newSplits,
+                    'tax_wording' => $record->getTranslation('tax_wording', 'id'),
+                ];
+            })
+            ->schema([
+                Select::make('project_area_id')
+                    ->label('Project Area')
+                    ->options(ProjectArea::all()->mapWithKeys(function ($area) {
+                        $name = $area->name;
+                        if ($area->parentable_type === ProjectArea::class && $area->parentable) {
+                            $name = "{$area->parentable->name} - {$name}";
+                        }
+
+                        return [$area->id => $name];
+                    }))
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->live()
+                    ->afterStateUpdated(function (Get $get, Set $set) {
+                        $splits = $get('financial_splits') ?? [];
+                        foreach ($splits as $key => $split) {
+                            $typeId = $split['revenue_type_id'] ?? null;
+                            if (! $typeId) {
+                                continue;
+                            }
+
+                            $area = ProjectArea::find($get('project_area_id'));
+                            $coaId = null;
+
+                            // Hierarchical lookup for COA
+                            while ($area) {
+                                $coaId = AccountMapping::where('mappable_type', ProjectArea::class)
+                                    ->where('mappable_id', $area->id)
+                                    ->where('revenue_type_id', $typeId)
+                                    ->first()?->chart_of_account_id;
+
+                                if ($coaId) {
+                                    break;
+                                }
+
+                                $area = ($area->parentable_type === ProjectArea::class)
+                                    ? ProjectArea::find($area->parentable_id)
+                                    : null;
+                            }
+
+                            $set("financial_splits.{$key}.chart_of_account_id", $coaId);
+                        }
+                    }),
+                Select::make('revenue_type_ids')
+                    ->label('Select Revenue Types')
+                    ->multiple()
+                    ->options(RevenueTypeModel::pluck('name', 'id'))
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->live()
+                    ->createOptionForm([
+                        TextInput::make('name')
+                            ->required(),
+                        TextInput::make('code')
+                            ->helperText('Leave empty to generate automatically from name.'),
+                        Toggle::make('is_active')
+                            ->default(true),
+                    ])
+                    ->editOptionForm([
+                        TextInput::make('name')
+                            ->required(),
+                        TextInput::make('code')
+                            ->disabled(),
+                        Toggle::make('is_active'),
+                    ])
+                    ->afterStateUpdated(function ($state, Set $set, Get $get, WorkCompletionReport $record) {
+                        if (empty($state)) {
+                            $set('financial_splits', []);
+
+                            return;
+                        }
+
+                        $items = is_array($record->items) && isset($record->items['id']) ? $record->items['id'] : $record->items;
+                        $totalBapp = collect($items)->sum('total_price');
+                        $totalFee = collect($items)->sum('management_fee');
+                        $mainWorkAmount = $totalBapp - $totalFee;
+
+                        $currentSplits = $get('financial_splits') ?? [];
+                        $newSplits = [];
+
+                        foreach ($state as $typeId) {
+                            $type = RevenueTypeModel::find($typeId);
+
+                            // Check if we already have data for this type
+                            $existing = collect($currentSplits)->firstWhere('revenue_type_id', $typeId);
+
+                            if ($existing) {
+                                $newSplits[] = $existing;
+
+                                continue;
+                            }
+
+                            // Default Amount Logic
+                            $amount = 0;
+                            if ($type->code === 'manpower' || $type->code === 'main_work') {
+                                $amount = $mainWorkAmount;
+                            }
+                            if ($type->code === 'mgmt_fee') {
+                                $amount = $totalFee;
+                            }
+
+                            // Resolve COA from mapping
+                            $area = ProjectArea::find($get('project_area_id'));
+                            $coaId = null;
+
+                            // Hierarchical lookup for COA
+                            while ($area) {
+                                $coaId = AccountMapping::where('mappable_type', ProjectArea::class)
+                                    ->where('mappable_id', $area->id)
+                                    ->where('revenue_type_id', $typeId)
+                                    ->first()?->chart_of_account_id;
+
+                                if ($coaId) {
+                                    break;
+                                }
+
+                                $area = ($area->parentable_type === ProjectArea::class)
+                                    ? ProjectArea::find($area->parentable_id)
+                                    : null;
+                            }
+
+                            $newSplits[] = [
+                                'revenue_type_id' => $typeId,
+                                'revenue_type_name' => $type->name,
+                                'amount_estimated' => $amount,
+                                'amount_actual' => $amount,
+                                'amount_expense_estimated' => 0,
+                                'amount_expense_actual' => 0,
+                                'chart_of_account_id' => $coaId,
+                            ];
+                        }
+                        $set('financial_splits', $newSplits);
+                    }),
+
+                Repeater::make('financial_splits')
+                    ->label('Revenue Segmentation & COA Mapping')
+                    ->schema([
+                        TextInput::make('revenue_type_name')
+                            ->label('Revenue Type')
+                            ->disabled()
+                            ->dehydrated(),
+                        TextInput::make('amount_estimated')
+                            ->label('Estimated Revenue')
+                            ->numeric()
+                            ->prefix('IDR')
+                            ->required()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        TextInput::make('amount_actual')
+                            ->label('Actual Revenue')
+                            ->numeric()
+                            ->prefix('IDR')
+                            ->required()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        TextInput::make('amount_expense_estimated')
+                            ->label('Estimated Expense')
+                            ->numeric()
+                            ->prefix('IDR')
+                            ->required()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        TextInput::make('amount_expense_actual')
+                            ->label('Actual Expense')
+                            ->numeric()
+                            ->prefix('IDR')
+                            ->required()
+                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
+                        Select::make('chart_of_account_id')
+                            ->label('GL Account (COA)')
+                            ->options(ChartOfAccount::all()->mapWithKeys(fn ($coa) => [$coa->id => "{$coa->code} - {$coa->name}"]))
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                TextInput::make('code')
+                                    ->required()
+                                    ->unique(ChartOfAccount::class, 'code', ignoreRecord: true),
+                                TextInput::make('name')
+                                    ->required(),
+                                Select::make('account_type')
+                                    ->required()
+                                    ->options([
+                                        'Asset' => 'Asset',
+                                        'Liability' => 'Liability',
+                                        'Equity' => 'Equity',
+                                        'Revenue' => 'Revenue',
+                                        'Expense' => 'Expense',
+                                        'Other' => 'Other',
+                                    ]),
+                                Toggle::make('is_active')
+                                    ->default(true),
+                            ])
+                            ->editOptionForm([
+                                TextInput::make('code')
+                                    ->required()
+                                    ->unique(ChartOfAccount::class, 'code', ignoreRecord: true),
+                                TextInput::make('name')
+                                    ->required(),
+                                Select::make('account_type')
+                                    ->required()
+                                    ->options([
+                                        'Asset' => 'Asset',
+                                        'Liability' => 'Liability',
+                                        'Equity' => 'Equity',
+                                        'Revenue' => 'Revenue',
+                                        'Expense' => 'Expense',
+                                        'Other' => 'Other',
+                                    ]),
+                                Toggle::make('is_active'),
+                            ]),
+
+                    ])
+                    ->addable(false)
+                    ->deletable(false)
+                    ->reorderable(false)
+                    ->columnSpanFull(),
+                Textarea::make('tax_wording')
+                    ->label('Tax Wording (Invoice)')
+                    ->rows(3)
+                    ->required(),
+            ])
+            ->action(function (WorkCompletionReport $record, array $data) {
+                $items = is_array($record->items) && isset($record->items['id']) ? $record->items['id'] : $record->items;
+                $totalBapp = collect($items)->sum('total_price');
+                $totalSplit = collect($data['financial_splits'])->sum('amount_actual');
+
+                if (abs($totalBapp - $totalSplit) > 1) {
+                    Notification::make()
+                        ->title('Amount Mismatch')
+                        ->body('Total split (IDR '.number_format($totalSplit).') must match BAPP total (IDR '.number_format($totalBapp).').')
+                        ->danger()
+                        ->send();
+
+                    return;
+                }
+
+                // 1. Create Accrue Revenue
                 $accrual = AccrueRevenue::create([
+                    'number' => null,
                     'project_id' => $record->project_id,
                     'customer_id' => $record->customer_id,
-                    'month' => (int) $record->document_date->format('n'),
-                    'year' => (int) $record->document_date->format('Y'),
-                    'work_period' => $record->service_period_start,
-                    'accrual_period' => $record->document_date,
-                    'status' => AccrueRevenueStatus::Open,
-                    'description' => "Accrual for BAPP: {$record->number}",
+                    'project_area_id' => $data['project_area_id'],
+                    'company_code' => $record->project?->information?->company_code ?? 'GDPS',
+                    'accrue_date' => now(),
+                    'month' => now()->month,
+                    'year' => now()->year,
+                    'work_period' => $record->report_date ?? now(),
+                    'accrual_period' => now()->startOfMonth(),
+                    'sourceable_id' => $record->id,
+                    'sourceable_type' => WorkCompletionReport::class,
+                    'status' => AccrueRevenueStatus::Draft,
                 ]);
 
-                foreach ($record->items as $item) {
-                    AccrueRevenueItem::create([
+                $taxRate = (float) ($record->tax_percentage ?? 12);
+
+                foreach ($data['financial_splits'] as $split) {
+                    $revenueType = RevenueTypeModel::find($split['revenue_type_id']);
+                    $splitAmount = (float) $split['amount_actual'];
+                    $taxAmount = round($splitAmount * ($taxRate / 100), 0);
+
+                    // 2. Create Accrue Revenue Item
+                    $accrualItem = AccrueRevenueItem::create([
                         'accrue_revenue_id' => $accrual->id,
-                        'revenue_type' => RevenueType::MainWork,
-                        'amount_estimated' => $item['total_price'] ?? 0,
-                        'amount_actual' => $item['total_price'] ?? 0,
-                        'bapp_id' => $record->id,
-                        'description' => $item['description'] ?? '',
+                        'revenue_type_id' => $revenueType->id,
+                        'revenue_type' => $revenueType->name,
+                        'amount_estimated' => (float) $split['amount_estimated'],
+                        'amount_actual' => (float) $split['amount_actual'],
+                        'amount_expense_estimated' => (float) $split['amount_expense_estimated'],
+                        'amount_expense_actual' => (float) $split['amount_expense_actual'],
+                        'work_completion_report_id' => $record->id,
+                        'description' => $revenueType->name.' - '.($record->project->name ?? $record->number),
+                        'chart_of_account_id' => $split['chart_of_account_id'],
                     ]);
+
+                    $manpowerType = RevenueTypeModel::where('code', 'manpower')->first()
+                        ?? RevenueTypeModel::where('code', 'main_work')->first();
+
+                    $itemName = ($revenueType->code === 'manpower' || $revenueType->code === 'main_work') ? 'Manpower' : $revenueType->name;
+                    $invoiceItems = [
+                        [
+                            'item_name' => $itemName,
+                            'report_item_name' => $itemName,
+                            'quantity' => 1,
+                            'uom' => 'Ls',
+                            'unit_price' => $splitAmount,
+                            'total_price' => $splitAmount,
+                            'remarks' => $record->number,
+                            'revenue_type_code' => $revenueType->code,
+                        ],
+                    ];
+
+                    // 3. Create Invoice for this Split
+                    $invoice = Invoice::create([
+                        'sourceable_id' => $record->sourceable_id,
+                        'sourceable_type' => $record->sourceable_type,
+                        'customer_id' => $record->customer_id,
+                        'tax_id' => $record->tax_id,
+                        'project_area_id' => $data['project_area_id'],
+                        'work_completion_report_id' => $record->id,
+                        'number' => null,
+                        'invoice_date' => now(),
+                        'due_date' => now()->addDays(30),
+                        'amount' => $splitAmount,
+                        'tax_base_amount' => $splitAmount,
+                        'tax_percentage' => $taxRate,
+                        'tax_amount' => $taxAmount,
+                        'total_amount' => $splitAmount + $taxAmount,
+                        'tax_wording' => [
+                            'id' => $data['tax_wording'],
+                            'en' => $data['tax_wording'],
+                        ],
+                        'status' => InvoiceStatus::Draft,
+                        'revenue_type_id' => $revenueType->id,
+                        'items' => [
+                            'id' => $invoiceItems,
+                            'en' => $invoiceItems,
+                        ],
+                        'content_config' => [
+                            'revenue_type_code' => $revenueType->code,
+                            'is_manpower' => ($revenueType->code === 'manpower' || $revenueType->code === 'main_work'),
+                        ],
+                    ]);
+
+                    // Link the Accrual Item to the Invoice
+                    $accrualItem->update(['invoice_id' => $invoice->id]);
                 }
 
                 Notification::make()
-                    ->title('Accrual Generated Successfully')
+                    ->title('Financial Documents Generated')
+                    ->body(count($data['financial_splits']).' Invoices and 1 Accrual have been created.')
                     ->success()
                     ->send();
 
                 return redirect()->to(AccrueRevenueResource::getUrl('edit', ['record' => $accrual]));
-            });
-    }
-
-    protected function getGenerateInvoiceAction(): Action
-    {
-        return Action::make('generateInvoice')
-            ->label('Generate Invoice')
-            ->icon('heroicon-o-document-plus')
-            ->color('success')
-            ->requiresConfirmation()
-            ->modalHeading('Confirm Invoice Generation')
-            ->modalDescription('This will generate a draft invoice based on this Work Completion Report.')
-            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Approved && ! $record->invoices()->exists())
-            ->action(function (WorkCompletionReport $record) {
-                $totalAmount = collect($record->items)->sum('total_price');
-                $taxRate = (float) ($record->tax_percentage ?? 12);
-                $taxAmount = round($totalAmount * ($taxRate / 100), 0);
-                $totalWithTax = $totalAmount + $taxAmount;
-
-                $invoice = Invoice::create([
-                    'sourceable_id' => $record->sourceable_id,
-                    'sourceable_type' => $record->sourceable_type,
-                    'customer_id' => $record->customer_id,
-                    'work_completion_report_id' => $record->id,
-                    'number' => 'Auto-generated',
-                    'invoice_date' => now(),
-                    'due_date' => now()->addDays(30),
-                    'amount' => $totalAmount,
-                    'tax_amount' => $taxAmount,
-                    'total_amount' => $totalWithTax,
-                    'status' => InvoiceStatus::Draft,
-                    'items' => $record->items,
-                ]);
-
-                // Link related AccrueRevenueItems to this Invoice
-                AccrueRevenueItem::where('bapp_id', $record->id)
-                    ->whereNull('invoice_id')
-                    ->update(['invoice_id' => $invoice->id]);
-
-                Notification::make()
-                    ->title('Invoice Generated Successfully')
-                    ->success()
-                    ->send();
-
-                return redirect()->to(InvoiceResource::getUrl('edit', ['record' => $invoice]));
             });
     }
 

@@ -6,6 +6,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Modules\Finance\Filament\Clusters\Finance\FinanceCluster;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\Pages\CreateChartOfAccount;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\Pages\EditChartOfAccount;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\Pages\ManageChartOfAccounts;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\Schemas\ChartOfAccountForm;
 use Modules\Finance\Models\ChartOfAccount;
@@ -37,6 +39,8 @@ class ChartOfAccountResource extends Resource
     {
         return [
             'index' => ManageChartOfAccounts::route('/'),
+            'create' => CreateChartOfAccount::route('/create'),
+            'edit' => EditChartOfAccount::route('/{record}/edit'),
         ];
     }
 }

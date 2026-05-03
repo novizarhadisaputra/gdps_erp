@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
 use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Enums\WorkCompletionStatus;
@@ -38,6 +39,7 @@ class WorkCompletionReport extends Model implements HasMedia
     protected $fillable = [
         'project_id',
         'customer_id',
+        'project_area_id',
         'number',
         'sequence_number',
         'revision_number',
@@ -131,5 +133,15 @@ class WorkCompletionReport extends Model implements HasMedia
     public function revisions(): HasMany
     {
         return $this->hasMany(WorkCompletionReportRevision::class);
+    }
+
+    public function projectArea(): BelongsTo
+    {
+        return $this->belongsTo(ProjectArea::class);
+    }
+
+    public function accrueRevenueItems(): HasMany
+    {
+        return $this->hasMany(\Modules\Finance\Models\AccrueRevenueItem::class);
     }
 }

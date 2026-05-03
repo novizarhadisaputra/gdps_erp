@@ -76,28 +76,27 @@ class SalesOrderForm
 
                                                 $analysis = $project->profitabilityAnalysis;
                                                 if ($analysis) {
-                                                    $set('manpower_initial_qty', $analysis->total_manpower);
+                                                    $manpower = $analysis->manpower_requirements ?? [];
+                                                    $financials = $analysis->financial_assumptions ?? [];
+                                                    $totalHC = collect($manpower)->sum('quantity');
+
+                                                    $set('manpower_initial_qty', $totalHC);
                                                     $set('management_fee_percentage', $analysis->management_fee_rate);
                                                     $set('tax_percentage', (string) (float) ($analysis->tax?->rate ?? 12));
 
                                                     $mfRate = (float) ($analysis->management_fee_rate ?? 0);
                                                     $calculateRevenue = function ($cost) use ($mfRate) {
-                                                        if ($mfRate >= 100) {
-                                                            return $cost * 1.15;
-                                                        }
-
-                                                        return $cost / (1 - ($mfRate / 100));
+                                                        // Standard Markup Formula: Cost * (1 + Rate%)
+                                                        return round($cost * (1 + ($mfRate / 100)), 0);
                                                     };
 
                                                     // Auto-fill states from PA
-                                                    $manpowerData = collect($analysis->manpower_requirements ?? [])->map(fn ($mp) => array_merge($mp, [
+                                                    $manpowerData = collect($manpower)->map(fn ($mp) => array_merge($mp, [
                                                         'unit_price' => $calculateRevenue($mp['unit_cost'] ?? 0),
                                                         'total_price' => $calculateRevenue($mp['unit_cost'] ?? 0) * ($mp['quantity'] ?? 0),
                                                     ]))->toArray();
 
-                                                    $financialData = $analysis->financial_assumptions ?? [];
-
-                                                    $items = collect($financialData['operational_costs'] ?? [])->map(fn ($item) => [
+                                                    $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
                                                         'description' => $item['item_name'] ?? ($item['description'] ?? 'Unnamed Item'),
                                                         'uom' => $item['uom'] ?? 'Unit',
                                                         'quantity' => (float) ($item['quantity'] ?? 0),
@@ -110,6 +109,7 @@ class SalesOrderForm
                                                     $set('content_config', [
                                                         'items' => $items,
                                                         'manpower_details' => $manpowerData,
+                                                        'pa_revision_number' => $analysis->revision_number ?? 0,
                                                     ]);
                                                 }
 

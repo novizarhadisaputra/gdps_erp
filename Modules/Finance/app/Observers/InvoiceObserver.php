@@ -19,7 +19,7 @@ class InvoiceObserver
      */
     public function creating(Invoice $invoice): void
     {
-        if (filled($invoice->number) && $invoice->number !== 'Auto-generated') {
+        if (filled($invoice->number)) {
             return;
         }
 
@@ -36,6 +36,15 @@ class InvoiceObserver
         $invoice->year = (int) $year;
         $invoice->sequence_number = $sequence;
         $invoice->number = sprintf('GDPS/UB/INV-%03d/%s', $sequence, $shortYear);
+
+        if (empty($invoice->project_area_id)) {
+            $source = $invoice->sourceable;
+            if ($source instanceof WorkCompletionReport) {
+                $invoice->project_area_id = $source->project_area_id;
+            } elseif ($source instanceof SalesOrder) {
+                $invoice->project_area_id = $source->project?->project_area_id ?? $source->proposal?->project_area_id;
+            }
+        }
 
         if (empty($invoice->payment_info)) {
             $bank = null;

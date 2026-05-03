@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
+use Modules\CRM\Models\CostingTemplate;
 use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\Lead;
@@ -27,7 +29,10 @@ use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\ProjectType;
+use Modules\MasterData\Models\RevenueSegment;
 use Modules\MasterData\Models\Tax;
+use Modules\MasterData\Models\WorkScheme;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
 use Spatie\MediaLibrary\HasMedia;
@@ -194,7 +199,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
 
     public function projectType(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ProjectType::class);
+        return $this->belongsTo(ProjectType::class);
     }
 
     public function comments(): MorphMany
@@ -204,12 +209,12 @@ class ProfitabilityAnalysis extends Model implements HasMedia
 
     public function workScheme(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\WorkScheme::class);
+        return $this->belongsTo(WorkScheme::class);
     }
 
     public function revenueSegment(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\RevenueSegment::class);
+        return $this->belongsTo(RevenueSegment::class);
     }
 
     public function project(): HasOne
@@ -222,7 +227,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         return $this->hasMany(ProfitabilityAnalysisMonthly::class);
     }
 
-    public function getDirectItems(): \Illuminate\Support\Collection
+    public function getDirectItems(): Collection
     {
         $topLevelItems = collect($this->analysis_details['manual_costs'] ?? []);
 
@@ -261,7 +266,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         });
     }
 
-    public function getIndirectItems(): \Illuminate\Support\Collection
+    public function getIndirectItems(): Collection
     {
         $jsonIndirect = collect($this->analysis_details['indirect_costs'] ?? []);
 
@@ -367,16 +372,25 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         $manpowerCategoryId = DirectCostCategory::where('code', 'manpower')->first()?->id;
 
-        $items = collect($this->analysis_details['manual_costs'] ?? [])
-            ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $manpowerCategoryId)
-            ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+        if ($this->is_manual_cost) {
+            $items = collect($this->analysis_details['manual_costs'] ?? [])
+                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $manpowerCategoryId)
+                ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+        } else {
+            $manpowerId = $this->analysis_details['manpower_template_id'] ?? null;
+            if (! $manpowerId) {
+                return [];
+            }
+            $template = ManpowerTemplate::find($manpowerId);
+            $items = collect($template?->getCostSimulation()['rows'] ?? []);
+        }
 
         return $items->map(fn ($item) => [
             'job_position_id' => $item['job_position_id'] ?? $item['costable_id'] ?? null,
-            'job_position_name' => $item['name'] ?? $item['job_position_name'] ?? null,
-            'quantity' => $item['quantity'] ?? 1,
-            'unit_cost' => $item['unit_amount'] ?? $item['unit_cost_price'] ?? 0,
-            'total_monthly_cost' => $item['amount'] ?? $item['total_monthly_cost'] ?? 0,
+            'job_position_name' => $item['name'] ?? $item['job_position_name'] ?? 'Personnel',
+            'quantity' => (float) ($item['quantity'] ?? $item['qty'] ?? 1),
+            'unit_cost' => (float) ($item['unit_amount'] ?? $item['unit_cost'] ?? $item['unit_cost_price'] ?? 0),
+            'total_monthly_cost' => (float) ($item['amount'] ?? $item['line_total'] ?? $item['total_monthly_cost'] ?? 0),
             'risk_level' => $item['risk_level'] ?? 'very_low',
             'employee_type' => $item['employee_type'] ?? 'ppu',
             'is_labor_intensive' => $item['is_labor_intensive'] ?? false,
@@ -394,9 +408,19 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         $operationalCategoryId = DirectCostCategory::where('code', 'tools_equipment')->first()?->id;
 
-        $opItems = collect($this->analysis_details['manual_costs'] ?? [])
-            ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $operationalCategoryId)
-            ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+        if ($this->is_manual_cost) {
+            $opItems = collect($this->analysis_details['manual_costs'] ?? [])
+                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) != DirectCostCategory::where('code', 'manpower')->first()?->id) // Filter out manpower, keep everything else as operational
+                ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+        } else {
+            $costingId = $this->analysis_details['costing_template_id'] ?? null;
+            if ($costingId) {
+                $template = CostingTemplate::find($costingId);
+                $opItems = $template?->costingTemplateItems ?? collect();
+            } else {
+                $opItems = collect();
+            }
+        }
 
         return [
             'interest_rate' => $this->interest_rate,
@@ -405,14 +429,14 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'asset_ownership' => $this->asset_ownership,
             'is_manual_cost' => $this->is_manual_cost,
             'operational_costs' => $opItems->map(fn ($item) => [
-                'item_id' => $item['item_id'] ?? $item['costable_id'] ?? null,
-                'item_name' => $item['name'] ?? $item['item_name'] ?? null,
-                'quantity' => $item['quantity'] ?? 1,
-                'unit_cost' => $item['unit_amount'] ?? $item['unit_cost_price'] ?? 0,
-                'total_monthly_cost' => $item['amount'] ?? $item['total_monthly_cost'] ?? 0,
-                'uom' => $item['uom'] ?? $item['unit_of_measure'] ?? 'Pieces',
-                'calculation_type' => $item['calculation_type'] ?? 'nominal',
-                'percentage_basis' => $item['percentage_basis'] ?? null,
+                'item_id' => is_array($item) ? ($item['item_id'] ?? $item['costable_id'] ?? null) : $item->item_id,
+                'item_name' => is_array($item) ? ($item['name'] ?? $item['item_name'] ?? null) : ($item->item?->name ?? $item->description),
+                'quantity' => (float) (is_array($item) ? ($item['quantity'] ?? 1) : $item->quantity),
+                'unit_cost' => (float) (is_array($item) ? ($item['unit_amount'] ?? $item['unit_cost_price'] ?? 0) : $item->unit_price),
+                'total_monthly_cost' => (float) (is_array($item) ? ($item['amount'] ?? $item['total_monthly_cost'] ?? 0) : $item->monthly_cost),
+                'uom' => is_array($item) ? ($item['uom'] ?? $item['unit_of_measure'] ?? 'Unit') : ($item->item?->unitOfMeasure?->name ?? 'Unit'),
+                'calculation_type' => is_array($item) ? ($item['calculation_type'] ?? 'nominal') : 'nominal',
+                'percentage_basis' => is_array($item) ? ($item['percentage_basis'] ?? null) : null,
             ])->toArray(),
         ];
     }
