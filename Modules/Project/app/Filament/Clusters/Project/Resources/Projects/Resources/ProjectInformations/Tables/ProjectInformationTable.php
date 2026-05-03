@@ -19,8 +19,16 @@ class ProjectInformationTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->label('Project')
+                TextColumn::make('document_number')
+                    ->label('PI Number')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('project.number')
+                    ->label('Project Number')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('project.name')
+                    ->label('Project Name')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('status')
@@ -131,7 +139,7 @@ class ProjectInformationTable
 
                                     $name = str_replace(['/', '\\'], '-', $record->project?->project_code ?? $record->project?->code ?? 'Draft');
                                     $customerName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
-                                    $fileName = "ProjectInfo_{$name}_{$customerName}.pdf";
+                                    $fileName = str_replace(['/', '\\'], '-', $record->document_number).'.pdf';
 
                                     return response()->streamDownload(function () use ($pdf) {
                                         echo $pdf->output();
@@ -154,9 +162,7 @@ class ProjectInformationTable
                                 ]
                             )->setPaper('a4', 'portrait');
 
-                            $name = str_replace(['/', '\\'], '-', $record->project?->project_code ?? $record->project?->code ?? 'Draft');
-                            $customerName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
-                            $fileName = "ProjectInfo_{$name}_{$customerName}.pdf";
+                            $fileName = str_replace(['/', '\\'], '-', $record->document_number).'.pdf';
 
                             return response()->streamDownload(function () use ($pdf) {
                                 echo $pdf->output();
@@ -167,7 +173,7 @@ class ProjectInformationTable
                     Actions\EditAction::make(),
                     Actions\DeleteAction::make(),
                 ])
-                    ->icon(Heroicon::EllipsisVertical)
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->tooltip('Actions'),
             ])
             ->toolbarActions([

@@ -39,6 +39,8 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
     use HasModuleSchema;
 
+    public ?string $revision_reason = null;
+
     protected static function newFactory()
     {
         return ProfitabilityAnalysisFactory::new();

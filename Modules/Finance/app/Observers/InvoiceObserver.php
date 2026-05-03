@@ -104,10 +104,24 @@ class InvoiceObserver
             $originalStatus = $invoice->getOriginal('status');
             if ($invoice->status === InvoiceStatus::Draft && $originalStatus !== InvoiceStatus::Draft) {
                 $invoice->revisions()->create([
-                    'revision_number' => $invoice->number.'-REV-'.($invoice->revisions()->count() + 1),
-                    'snapshot' => $invoice->toArray(),
+                    'number' => $originalStatus !== null ? $invoice->getOriginal('number') : $invoice->number,
+                    'sequence_number' => $invoice->getOriginal('revision_number') ?? 0,
+                    'snapshot' => $invoice->getRawOriginal(),
                     'reason' => request()->input('reason') ?? 'Manual revision triggered.',
                     'user_id' => auth()->id(),
+                ]);
+
+                // Update main document to reflect revision status
+                $newRevisionNumber = $invoice->revision_number + 1;
+                $shortYear = date('y', strtotime($invoice->invoice_date ?? $invoice->created_at));
+                
+                $baseNumber = sprintf('GDPS/UB/INV-%03d', $invoice->sequence_number);
+                $newNumber = sprintf('%s/REV/%02d/%s', $baseNumber, $newRevisionNumber, $shortYear);
+
+                $invoice->updateQuietly([
+                    'revision_number' => $newRevisionNumber,
+                    'previous_code' => $invoice->number,
+                    'number' => $newNumber,
                 ]);
             }
         }

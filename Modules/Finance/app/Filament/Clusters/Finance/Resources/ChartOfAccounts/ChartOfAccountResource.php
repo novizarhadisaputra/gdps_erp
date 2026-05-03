@@ -24,7 +24,9 @@ class ChartOfAccountResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Chart of Accounts';
 
-    protected static ?int $navigationSort = 30;
+    protected static \UnitEnum|string|null $navigationGroup = 'Setup';
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

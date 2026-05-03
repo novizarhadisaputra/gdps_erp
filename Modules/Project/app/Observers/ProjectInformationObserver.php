@@ -33,6 +33,7 @@ class ProjectInformationObserver
             // Sync structural fields if not set
             $info->payment_term_id = $info->payment_term_id ?? $analysis->payment_term_id;
             $info->project_type_id = $info->project_type_id ?? $analysis->project_type_id;
+            $info->billing_option_id = $info->billing_option_id ?? $analysis->billing_option_id;
 
             // Inherit cost details
             $info->direct_cost = $analysis->direct_cost ?? 0;
@@ -44,6 +45,11 @@ class ProjectInformationObserver
         if ($project->lead_id) {
             $lead = $project->lead;
             $info->lead_id = $lead->id;
+
+            // Sync structural fields if still not set
+            $info->billing_option_id = $info->billing_option_id ?? $lead->billing_option_id;
+            $info->payment_term_id = $info->payment_term_id ?? $lead->payment_term_id;
+            $info->description = $info->description ?? $lead->description;
 
             // Sync employees (AMS/Oprep) if they were assigned in Lead
             $info->ams_id = $info->ams_id ?? $lead->ams_id;

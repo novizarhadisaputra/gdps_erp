@@ -135,12 +135,39 @@ class ViewProposal extends ViewRecord
                     ]))
                     ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Sent]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? false)),
 
+                Action::make('revise')
+                    ->label('Revise Proposal')
+                    ->color('warning')
+                    ->icon(Heroicon::OutlinedArrowPath)
+                    ->requiresConfirmation()
+                    ->modalHeading('Revise Proposal')
+                    ->modalDescription('This will move the proposal back to Draft stage, allowing you to make changes. A revision snapshot will be created, and the Lead status will be set back to Approach.')
+                    ->schema([
+                        TextInput::make('reason')
+                            ->label('Reason for Revision')
+                            ->placeholder('Briefly explain why this proposal is being revised...')
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $this->record->revision_reason = $data['reason'];
+                        $this->record->update(['status' => ProposalStatus::Draft]);
+
+                        Notification::make()
+                            ->title('Proposal Revision Started')
+                            ->body('The proposal has been moved back to Draft. You can now edit the details.')
+                            ->success()
+                            ->send();
+
+                        $this->refreshFormData(['status']);
+                    })
+                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Sent, ProposalStatus::Submitted, ProposalStatus::Approved])),
+
                 EditAction::make()
                     ->url(fn () => route('filament.admin.crm.resources.leads.proposals.edit', [
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
                     ]))
-                    ->visible(fn () => ! in_array($this->getRecord()->status, [ProposalStatus::Cancelled, ProposalStatus::Rejected, ProposalStatus::Converted])),
+                    ->visible(fn () => $this->record->status === ProposalStatus::Draft),
 
                 Action::make('Reject')
                     ->color('danger')

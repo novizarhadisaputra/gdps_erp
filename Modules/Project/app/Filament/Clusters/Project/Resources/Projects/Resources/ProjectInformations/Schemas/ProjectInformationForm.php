@@ -23,9 +23,19 @@ class ProjectInformationForm
             ->components([
                 Section::make('General Information')
                     ->schema([
-                        TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
+                        TextInput::make('document_number')
+                            ->label('PI Number')
+                            ->disabled()
+                            ->dehydrated(),
+                        TextInput::make('project.number')
+                            ->label('Project Number')
+                            ->disabled()
+                            ->dehydrated(),
+                        TextInput::make('project.name')
+                            ->label('Project Name')
+                            ->disabled()
+                            ->dehydrated()
+                            ->columnSpanFull(),
                         Select::make('project_type_id')
                             ->label('Project Type')
                             ->options(ProjectType::all()->pluck('name', 'id'))

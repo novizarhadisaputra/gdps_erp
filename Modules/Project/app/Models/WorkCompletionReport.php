@@ -40,6 +40,8 @@ class WorkCompletionReport extends Model implements HasMedia
         'customer_id',
         'number',
         'sequence_number',
+        'revision_number',
+        'previous_code',
         'year',
         'document_date',
         'service_period_start',

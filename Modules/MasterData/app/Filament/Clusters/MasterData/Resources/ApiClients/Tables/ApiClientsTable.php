@@ -4,10 +4,12 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ApiClients\T
 
 use App\Models\ApiClient;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -46,29 +48,35 @@ class ApiClientsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
-                Action::make('regenerate_secret')
-                    ->label('Regenerate Secret')
-                    ->icon(Heroicon::ArrowPath)
-                    ->color('warning')
-                    ->requiresConfirmation()
-                    ->modalHeading('Regenerate Client Secret')
-                    ->modalDescription('Are you sure you want to regenerate the secret? The old secret will stop working immediately.')
-                    ->modalSubmitActionLabel('Regenerate')
-                    ->action(function (ApiClient $record) {
-                        $newSecret = Str::random(32);
-                        $record->update([
-                            'client_secret' => $newSecret,
-                        ]);
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                    Action::make('regenerate_secret')
+                        ->label('Regenerate Secret')
+                        ->icon(Heroicon::ArrowPath)
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Regenerate Client Secret')
+                        ->modalDescription('Are you sure you want to regenerate the secret? The old secret will stop working immediately.')
+                        ->modalSubmitActionLabel('Regenerate')
+                        ->action(function (ApiClient $record) {
+                            $newSecret = Str::random(32);
+                            $record->update([
+                                'client_secret' => $newSecret,
+                            ]);
 
-                        Notification::make()
-                            ->title('Secret Regenerated')
-                            ->body("New Secret: **$newSecret**\n\nPlease copy this now.")
-                            ->warning()
-                            ->persistent()
-                            ->send();
-                    }),
+                            Notification::make()
+                                ->title('Secret Regenerated')
+                                ->body("New Secret: **$newSecret**\n\nPlease copy this now.")
+                                ->warning()
+                                ->persistent()
+                                ->send();
+                        }),
+                ])
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

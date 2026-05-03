@@ -2,21 +2,23 @@
 
 namespace Modules\CRM\Models;
 
+use App\Models\Comment;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\Comment;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class ProposalRevision extends Model
+class ProposalRevision extends Model implements HasMedia
 {
-    use HasFactory, HasUuids, HasModuleSchema;
+    use HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia;
 
     protected $fillable = [
         'proposal_id',
-        'revision_number',
+        'number',
         'snapshot',
         'reason',
         'user_id',
@@ -36,6 +38,15 @@ class ProposalRevision extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(\App\Models\User::class);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('final_proposal')
+            ->useDisk('s3');
+
+        $this->addMediaCollection('signed_proposal')
+            ->useDisk('s3');
     }
 
     public function comments(): MorphMany

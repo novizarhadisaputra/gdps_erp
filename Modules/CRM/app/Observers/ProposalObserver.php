@@ -87,15 +87,22 @@ class ProposalObserver
         // 2. If Proposal is moved to Draft (Revised), reset linked PA status and track revision
         if ($proposal->wasChanged('status') && $proposal->status === ProposalStatus::Draft) {
             // Create Snapshot Revision
-            ProposalRevision::create([
+            $revision = ProposalRevision::create([
                 'proposal_id' => $proposal->id,
-                'revision_number' => $proposal->getOriginal('revision_number') ?? 0,
+                'number' => $proposal->getOriginal('number'),
                 'snapshot' => $proposal->getRawOriginal(), // Get data before we changed it further
-                'reason' => request()->input('reason'), // Capture reason if provided via modal
+                'reason' => $proposal->revision_reason ?? request()->input('reason'), // Capture reason if provided via modal
                 'user_id' => auth()->id(),
                 'year' => date('Y'),
-                'sequence_number' => (ProposalRevision::where('proposal_id', $proposal->id)->max('sequence_number') ?? 0) + 1,
+                'sequence_number' => $proposal->getOriginal('revision_number') ?? 0,
             ]);
+
+            // Copy Media Snapshots
+            foreach (['final_proposal', 'signed_proposal'] as $collection) {
+                $proposal->getMedia($collection)->each(function ($media) use ($revision, $collection) {
+                    $media->copy($revision, $collection);
+                });
+            }
 
             // Track revision info on Proposal
             $newRevisionNumber = $proposal->revision_number + 1;

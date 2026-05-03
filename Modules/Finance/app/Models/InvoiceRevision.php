@@ -14,7 +14,8 @@ class InvoiceRevision extends Model
 
     protected $fillable = [
         'invoice_id',
-        'revision_number',
+        'number',
+        'sequence_number',
         'snapshot',
         'reason',
         'user_id',

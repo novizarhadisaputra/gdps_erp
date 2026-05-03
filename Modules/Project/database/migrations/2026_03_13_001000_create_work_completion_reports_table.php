@@ -20,6 +20,8 @@ return new class extends Migration
 
             $blueprint->string('number')->unique();
             $blueprint->integer('sequence_number')->nullable();
+            $blueprint->integer('revision_number')->default(0);
+            $blueprint->string('previous_code')->nullable();
             $blueprint->integer('year')->nullable();
             $blueprint->date('document_date');
 
@@ -46,7 +48,8 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'work_completion_report_revisions' : 'project.work_completion_report_revisions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('work_completion_report_id')->constrained(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports')->onDelete('cascade');
-            $table->string('revision_number')->nullable();
+            $table->string('number')->nullable();
+            $table->integer('sequence_number')->default(0);
             $table->json('snapshot')->comment('Full data snapshot of the report at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users');

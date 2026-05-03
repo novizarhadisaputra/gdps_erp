@@ -14,7 +14,6 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\L
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ManageProposalRevisions;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\SendProposal;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages\ViewProposal;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Pages\ViewProposalRevision;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas\ProposalInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Tables\ProposalsTable;
@@ -29,7 +28,7 @@ class ProposalResource extends Resource
     protected static ?string $slug = 'proposals';
 
     protected static ?string $parentResource = LeadResource::class;
-    
+
     protected static ?string $parentRouteParameterName = 'lead';
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentText;
@@ -79,7 +78,6 @@ class ProposalResource extends Resource
             'edit' => EditProposal::route('/{record}/edit'),
             'send' => SendProposal::route('/{record}/send'),
             'revisions' => ManageProposalRevisions::route('/{record}/revisions'),
-            'view-revision' => ViewProposalRevision::route('/{record}/revisions/{relatedRecord}'),
         ];
     }
 }

@@ -12,7 +12,6 @@ use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pa
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisMonthlies;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ManageProfitabilityAnalysisRevisions;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\SummaryProfitabilityAnalysis;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Resources\ProfitabilityAnalysisRevision\Pages\ViewProfitabilityAnalysisRevision;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisInfolist;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Tables\ProfitabilityAnalysesTable;
@@ -66,7 +65,6 @@ class ProfitabilityAnalysisResource extends Resource
             'view' => SummaryProfitabilityAnalysis::route('/{record}'),
             'monthlies' => ManageProfitabilityAnalysisMonthlies::route('/{record}/monthly-performance'),
             'revisions' => ManageProfitabilityAnalysisRevisions::route('/{record}/revisions'),
-            'view-revision' => ViewProfitabilityAnalysisRevision::route('/{record}/revisions/{relatedRecord}'),
         ];
     }
 }

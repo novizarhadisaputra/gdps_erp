@@ -19,6 +19,8 @@ return new class extends Migration
 
             $blueprint->string('number')->unique();
             $blueprint->integer('sequence_number')->nullable();
+            $blueprint->integer('revision_number')->default(0);
+            $blueprint->string('previous_code')->nullable();
             $blueprint->integer('year')->nullable();
             $blueprint->date('invoice_date');
             $blueprint->date('due_date')->nullable();
@@ -43,7 +45,8 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'invoice_revisions' : 'finance.invoice_revisions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('invoice_id')->constrained(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices')->onDelete('cascade');
-            $table->string('revision_number')->nullable();
+            $table->string('number')->nullable();
+            $table->integer('sequence_number')->default(0);
             $table->json('snapshot')->comment('Full data snapshot of the invoice at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users');

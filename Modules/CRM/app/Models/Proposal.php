@@ -27,6 +27,8 @@ class Proposal extends Model implements HasMedia
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
     use HasModuleSchema;
 
+    public ?string $revision_reason = null;
+
     protected $fillable = [
         'lead_id',
         'customer_id',

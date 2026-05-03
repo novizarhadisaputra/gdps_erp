@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'proposal_revisions' : 'crm.proposal_revisions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('proposal_id')->constrained(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals')->onDelete('cascade');
-            $table->integer('revision_number');
+            $table->string('number');
             $table->json('snapshot')->comment('Full data snapshot of the proposal at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');

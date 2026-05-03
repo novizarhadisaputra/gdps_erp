@@ -204,6 +204,50 @@ trait HasProfitabilityAnalysisActions
             });
     }
 
+    protected function getReviseAction(): Action
+    {
+        return Action::make('revise')
+            ->label('Revise Analysis')
+            ->color('warning')
+            ->icon(Heroicon::OutlinedArrowPath)
+            ->requiresConfirmation()
+            ->modalHeading('Revise Profitability Analysis')
+            ->modalDescription('This will move the analysis back to Draft stage, allowing you to make changes. A revision snapshot will be created, and the Lead status will be set back to Approach.')
+            ->schema([
+                TextInput::make('reason')
+                    ->label('Reason for Revision')
+                    ->placeholder('Briefly explain why this analysis is being revised...')
+                    ->required(),
+            ])
+            ->action(function ($record, array $data) {
+                $record->revision_reason = $data['reason'];
+                $record->update(['status' => ProfitabilityAnalysisStatus::Draft]);
+
+                Notification::make()
+                    ->title('Analysis Revision Started')
+                    ->body('The analysis has been moved back to Draft. You can now edit the details.')
+                    ->success()
+                    ->send();
+
+                if (method_exists($this, 'refreshFormData')) {
+                    $this->refreshFormData(['status']);
+                }
+            })
+            ->visible(function ($record) {
+                $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
+                if ($status instanceof \BackedEnum) {
+                    $status = $status->value;
+                }
+
+                return in_array($status, [
+                    ProfitabilityAnalysisStatus::Submitted->value,
+                    ProfitabilityAnalysisStatus::Approved->value,
+                    'submitted',
+                    'approved',
+                ]);
+            });
+    }
+
     protected function getApprovePAAction(): Action
     {
         return Action::make('Approve PA')
@@ -636,6 +680,7 @@ trait HasProfitabilityAnalysisActions
             ActionGroup::make([
                 $this->getDuplicateAction(),
                 $this->getRejectAction(),
+                $this->getReviseAction(),
                 $this->getCreateProposalAction(),
                 $this->getRegenerateSalesOrderAction(),
             ])

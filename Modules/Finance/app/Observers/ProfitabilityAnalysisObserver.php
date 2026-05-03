@@ -154,15 +154,22 @@ class ProfitabilityAnalysisObserver
         // 2. When PA is reset to Draft (due to revision), track revision info and clear signatures
         if ($analysis->wasChanged('status') && $analysis->status === ProfitabilityAnalysisStatus::Draft) {
             // Create Snapshot Revision
-            ProfitabilityAnalysisRevision::create([
+            $revision = ProfitabilityAnalysisRevision::create([
                 'profitability_analysis_id' => $analysis->id,
-                'revision_number' => $analysis->getOriginal('revision_number') ?? 0,
+                'number' => $analysis->getOriginal('number'),
                 'snapshot' => $analysis->getRawOriginal(),
-                'reason' => request()->input('reason'),
+                'reason' => $analysis->revision_reason ?? request()->input('reason'),
                 'user_id' => auth()->id(),
                 'year' => date('Y'),
-                'sequence_number' => (ProfitabilityAnalysisRevision::where('profitability_analysis_id', $analysis->id)->max('sequence_number') ?? 0) + 1,
+                'sequence_number' => $analysis->getOriginal('revision_number') ?? 0,
             ]);
+
+            // Copy Media Snapshots
+            foreach (['tor', 'rfp', 'rfq', 'cogs_source', 'manpower_costing_backup', 'operational_costing_backup'] as $collection) {
+                $analysis->getMedia($collection)->each(function ($media) use ($revision, $collection) {
+                    $media->copy($revision, $collection);
+                });
+            }
 
             $analysis->updateQuietly([
                 'revision_number' => $analysis->revision_number + 1,

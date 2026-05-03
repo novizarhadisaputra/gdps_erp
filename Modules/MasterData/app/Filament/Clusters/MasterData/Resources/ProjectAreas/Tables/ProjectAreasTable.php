@@ -3,11 +3,15 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Tables;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -63,31 +67,39 @@ class ProjectAreasTable
                 //
             ])
             ->recordActions([
-                EditAction::make()
-                    ->schema(fn (Schema $schema) => ProjectAreaForm::configure($schema)),
-                Action::make('syncSubRegions')
-                    ->label('Sync Regencies')
-                    ->icon('heroicon-o-arrow-path')
-                    ->color('info')
-                    ->visible(fn (ProjectArea $record) => $record->province_id && ! $record->regency_id)
-                    ->action(function (ProjectArea $record, WilayahSyncService $service) {
-                        try {
-                            if ($record->province) {
-                                $service->syncRegencies($record->province);
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->schema(fn (Schema $schema) => ProjectAreaForm::configure($schema)),
+                    EditAction::make()
+                        ->schema(fn (Schema $schema) => ProjectAreaForm::configure($schema)),
+                    DeleteAction::make(),
+                    Action::make('syncSubRegions')
+                        ->label('Sync Regencies')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('info')
+                        ->visible(fn (ProjectArea $record) => $record->province_id && ! $record->regency_id)
+                        ->action(function (ProjectArea $record, WilayahSyncService $service) {
+                            try {
+                                if ($record->province) {
+                                    $service->syncRegencies($record->province);
+                                    Notification::make()
+                                        ->title('Success')
+                                        ->body("Regencies in {$record->province->name} have been updated.")
+                                        ->success()
+                                        ->send();
+                                }
+                            } catch (\Exception $e) {
                                 Notification::make()
-                                    ->title('Success')
-                                    ->body("Regencies in {$record->province->name} have been updated.")
-                                    ->success()
+                                    ->title('Failed')
+                                    ->body($e->getMessage())
+                                    ->danger()
                                     ->send();
                             }
-                        } catch (\Exception $e) {
-                            Notification::make()
-                                ->title('Failed')
-                                ->body($e->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
+                        }),
+                ])
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

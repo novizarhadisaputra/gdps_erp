@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'profitability_analysis_revisions' : 'finance.profitability_analysis_revisions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('profitability_analysis_id')->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')->onDelete('cascade');
-            $table->integer('revision_number');
+            $table->string('number');
             $table->json('snapshot')->comment('Full data snapshot of the profitability analysis at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->onDelete('set null');

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Pages;
 
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
@@ -10,6 +11,8 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resourc
 
 class ManageProposalRevisions extends ManageRelatedRecords
 {
+    use InteractsWithParentRecord;
+
     protected static string $resource = ProposalResource::class;
 
     protected static string $relationship = 'revisions';

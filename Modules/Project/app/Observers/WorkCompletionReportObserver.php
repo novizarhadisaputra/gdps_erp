@@ -60,10 +60,32 @@ class WorkCompletionReportObserver
             $originalStatus = $report->getOriginal('status');
             if ($report->status === WorkCompletionStatus::Draft && $originalStatus !== WorkCompletionStatus::Draft) {
                 $report->revisions()->create([
-                    'revision_number' => $report->number.'-REV-'.($report->revisions()->count() + 1),
-                    'snapshot' => $report->toArray(),
+                    'number' => $originalStatus !== null ? $report->getOriginal('number') : $report->number,
+                    'sequence_number' => $report->getOriginal('revision_number') ?? 0,
+                    'snapshot' => $report->getRawOriginal(),
                     'reason' => request()->input('reason') ?? 'Manual revision triggered.',
                     'user_id' => auth()->id(),
+                ]);
+
+                // Update main document to reflect revision status
+                $newRevisionNumber = $report->revision_number + 1;
+                
+                $date = $report->document_date ? \Illuminate\Support\Carbon::parse($report->document_date) : now();
+                $year = $date->format('Y');
+                $month = (int) $date->format('n');
+                $romans = [
+                    1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+                    7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII',
+                ];
+                $romanMonth = $romans[$month] ?? $month;
+                
+                $baseNumber = sprintf('GDPS/UB/BAPP-%03d', $report->sequence_number);
+                $newNumber = sprintf('%s/REV/%02d/%s/%s', $baseNumber, $newRevisionNumber, $romanMonth, $year);
+
+                $report->updateQuietly([
+                    'revision_number' => $newRevisionNumber,
+                    'previous_code' => $report->number,
+                    'number' => $newNumber,
                 ]);
             }
         }

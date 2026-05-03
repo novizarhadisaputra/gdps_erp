@@ -21,8 +21,6 @@ class ProjectServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Modules\Project\Models\Project::observe(\Modules\Project\Observers\ProjectObserver::class);
-        \Modules\Project\Models\ProjectInformation::observe(\Modules\Project\Observers\ProjectInformationObserver::class);
         $this->registerCommands();
         $this->registerCommandSchedules();
         $this->registerTranslations();

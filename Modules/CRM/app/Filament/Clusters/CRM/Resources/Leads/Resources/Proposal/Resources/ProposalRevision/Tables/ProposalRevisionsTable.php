@@ -13,25 +13,36 @@ class ProposalRevisionsTable
     {
         return $table
             ->columns([
-                TextColumn::make('revision_number')
-                    ->label('Revision #')
+                TextColumn::make('number')
+                    ->label('Proposal Number')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('sequence_number')
-                    ->label('Sequence #')
+                    ->label('Rev #')
+                    ->formatStateUsing(fn ($state) => sprintf('REV/%02d', $state))
+                    ->badge()
+                    ->color('info')
                     ->sortable(),
-                TextColumn::make('year')
+                TextColumn::make('amount_snapshot')
+                    ->label('Amount (Snapshot)')
+                    ->state(fn ($record) => $record->snapshot['amount'] ?? 0)
+                    ->money('IDR')
                     ->sortable(),
                 TextColumn::make('reason')
-                    ->limit(50),
+                    ->label('Revision Reason')
+                    ->wrap()
+                    ->limit(100),
                 TextColumn::make('user.name')
-                    ->label('Revised By'),
+                    ->label('Revised By')
+                    ->description(fn ($record) => $record->created_at->diffForHumans()),
                 TextColumn::make('created_at')
-                    ->label('Revision Date')
+                    ->label('Timestamp')
                     ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
-            ->recordActions([
+            ->actions([
                 ActionGroup::make([
                     ViewAction::make(),
                 ]),

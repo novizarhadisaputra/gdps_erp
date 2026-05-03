@@ -13,21 +13,27 @@ class ProfitabilityAnalysisRevisionsTable
     {
         return $table
             ->columns([
-                TextColumn::make('revision_number')
-                    ->label('Revision #')
+                TextColumn::make('number')
+                    ->label('PA Number')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('sequence_number')
-                    ->label('Sequence #')
-                    ->sortable(),
-                TextColumn::make('year')
+                    ->label('Rev #')
+                    ->formatStateUsing(fn ($state) => sprintf('REV/%02d', $state))
+                    ->badge()
+                    ->color('info')
                     ->sortable(),
                 TextColumn::make('reason')
-                    ->limit(50),
+                    ->label('Revision Reason')
+                    ->wrap()
+                    ->limit(100),
                 TextColumn::make('user.name')
-                    ->label('Revised By'),
+                    ->label('Revised By')
+                    ->description(fn ($record) => $record->created_at->diffForHumans()),
                 TextColumn::make('created_at')
-                    ->label('Revision Date')
+                    ->label('Timestamp')
                     ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')

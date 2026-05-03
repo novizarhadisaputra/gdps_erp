@@ -3,6 +3,8 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\Resources\Regencies\Pages;
 
 use Exception;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Provinces\ProvinceResource;
@@ -13,6 +15,14 @@ class EditRegency extends EditRecord
     use InteractsWithParentRecord;
 
     protected static string $resource = RegencyResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            ViewAction::make(),
+            DeleteAction::make(),
+        ];
+    }
 
     public function getBreadcrumbs(): array
     {

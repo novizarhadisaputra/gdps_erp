@@ -2,10 +2,14 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\SkillCategories\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -38,8 +42,16 @@ class SkillCategoriesTable
                 //
             ])
             ->recordActions([
-                EditAction::make()
-                    ->schema(fn (Schema $schema) => SkillCategoryForm::configure($schema)),
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->schema(fn (Schema $schema) => SkillCategoryForm::configure($schema)),
+                    EditAction::make()
+                        ->schema(fn (Schema $schema) => SkillCategoryForm::configure($schema)),
+                    DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

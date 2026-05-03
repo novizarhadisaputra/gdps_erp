@@ -14,7 +14,8 @@ class WorkCompletionReportRevision extends Model
 
     protected $fillable = [
         'work_completion_report_id',
-        'revision_number',
+        'number',
+        'sequence_number',
         'snapshot',
         'reason',
         'user_id',

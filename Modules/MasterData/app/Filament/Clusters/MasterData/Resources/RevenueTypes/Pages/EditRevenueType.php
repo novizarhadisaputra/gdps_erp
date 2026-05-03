@@ -2,7 +2,8 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueTypes\Pages;
 
-use Filament\Actions;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueTypes\RevenueTypeResource;
 
@@ -13,8 +14,8 @@ class EditRevenueType extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
-            Actions\DeleteAction::make(),
+            ViewAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

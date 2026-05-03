@@ -2,14 +2,10 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision;
 
-use Filament\Actions\ViewAction;
-use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Pages\AuditProposalRevision;
@@ -17,7 +13,6 @@ use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resourc
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Schemas\ProposalRevisionForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Resources\ProposalRevision\Tables\ProposalRevisionsTable;
 use Modules\CRM\Models\ProposalRevision;
-use Filament\Resources\Pages\Page;
 
 class ProposalRevisionResource extends Resource
 {

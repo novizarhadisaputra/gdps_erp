@@ -3,6 +3,7 @@
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsJkmConfigs\Pages;
 
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsJkmConfigs\BpjsJkmConfigResource;
 
@@ -13,6 +14,7 @@ class EditBpjsJkmConfig extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ViewAction::make(),
             DeleteAction::make(),
         ];
     }

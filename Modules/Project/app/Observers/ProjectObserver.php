@@ -31,30 +31,37 @@ class ProjectObserver
         $this->cache->flushProject();
 
         // Create initial project information with AMS and Oprep from project
-        $project->information()->create([
-            'status' => ProjectInformationStatus::Planning,
-            'ams_id' => $project->ams_id,
-            'oprep_id' => $project->oprep_id,
-        ]);
+        $project->information()->updateOrCreate(
+            ['project_id' => $project->id],
+            [
+                'status' => ProjectInformationStatus::Planning,
+                'ams_id' => $project->ams_id,
+                'oprep_id' => $project->oprep_id,
+            ]
+        );
 
         // Add AMS as default project member
         if ($project->ams_id) {
-            $project->members()->create([
-                'memberable_id' => $project->ams_id,
-                'memberable_type' => Employee::class,
-                'role' => ProjectMemberRole::AMS,
-                'joined_at' => now(),
-            ]);
+            $project->members()->updateOrCreate(
+                [
+                    'memberable_id' => $project->ams_id,
+                    'memberable_type' => Employee::class,
+                    'role' => ProjectMemberRole::AMS,
+                ],
+                ['joined_at' => now()]
+            );
         }
 
         // Add Oprep as default project member
         if ($project->oprep_id) {
-            $project->members()->create([
-                'memberable_id' => $project->oprep_id,
-                'memberable_type' => Employee::class,
-                'role' => ProjectMemberRole::Oprep,
-                'joined_at' => now(),
-            ]);
+            $project->members()->updateOrCreate(
+                [
+                    'memberable_id' => $project->oprep_id,
+                    'memberable_type' => Employee::class,
+                    'role' => ProjectMemberRole::Oprep,
+                ],
+                ['joined_at' => now()]
+            );
         }
 
         if ($project->lead) {
