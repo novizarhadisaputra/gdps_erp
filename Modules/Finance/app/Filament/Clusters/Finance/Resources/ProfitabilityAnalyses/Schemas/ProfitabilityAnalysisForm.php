@@ -294,17 +294,15 @@ class ProfitabilityAnalysisForm
                                     ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->project_type_id : null),
 
                                 DatePicker::make('start_date')
-                                    ->label('Start Date')
-                                    ->required()
-                                    ->native(false)
                                     ->live()
+                                    ->placeholder('Select project start date')
+                                    ->helperText('Estimated date when project operations begin.')
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
                                     ->dehydrated(),
                                 DatePicker::make('end_date')
-                                    ->label('End Date')
-                                    ->required()
-                                    ->native(false)
                                     ->live()
+                                    ->placeholder('Select project end date')
+                                    ->helperText('Estimated date when project operations conclude.')
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
                                     ->dehydrated(),
 
@@ -412,6 +410,7 @@ class ProfitabilityAnalysisForm
                                     ->default(fn (Get $get, $livewire) => $get('/payment_term_id') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->payment_term_id : null))
                                     ->live(onBlur: true)
                                     ->placeholder('Select payment term')
+                                    ->helperText('Expected payment cycle (e.g. Net 30, COD).')
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->dehydrated(),
@@ -523,6 +522,7 @@ class ProfitabilityAnalysisForm
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->readOnly()
+                                    ->placeholder('0')
                                     ->helperText('Otomatis menghitung jumlah dari breakdown biaya di bawah.')
                                     ->columnSpan(2)
                                     ->dehydrated(),
@@ -532,6 +532,7 @@ class ProfitabilityAnalysisForm
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->default(0)
+                                    ->placeholder('0')
                                     ->helperText('Enter monthly depreciation amount manually.')
                                     ->live(onBlur: true)
                                     ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
@@ -625,6 +626,8 @@ class ProfitabilityAnalysisForm
                                                     ->editOptionForm(DirectCostCategoryForm::schema(type: 'direct'))
                                                     ->fillEditOptionActionFormUsing(fn (Select $component): ?array => DirectCostCategory::find($component->getState())?->toArray())
                                                     ->updateOptionUsing(fn (Select $component, array $data) => DirectCostCategory::find($component->getState())?->update($data))
+                                                    ->placeholder('Select cost category')
+                                                    ->helperText('Primary classification for this direct cost.')
                                                     ->columnSpan(2),
                                                 TextInput::make('amount')
                                                     ->label('Category Total')
@@ -661,6 +664,8 @@ class ProfitabilityAnalysisForm
                                                                     $set('unit_of_measure', 'Person');
                                                                 }
                                                             })
+                                                            ->placeholder('Select job position')
+                                                            ->helperText('Select from master data to auto-fill details.')
                                                             ->columnSpan(2),
 
                                                         Select::make('item_id')
@@ -681,18 +686,23 @@ class ProfitabilityAnalysisForm
                                                                     $set('unit_amount', $item?->price);
                                                                 }
                                                             })
+                                                            ->placeholder('Select equipment/material')
+                                                            ->helperText('Select from master data to auto-fill price and UoM.')
                                                             ->columnSpan(2),
 
                                                         TextInput::make('name')
                                                             ->label('Sub-item Name')
                                                             ->required()
                                                             ->placeholder('e.g. Salary')
+                                                            ->helperText('The descriptive name of this specific cost component.')
                                                             ->columnSpan(2),
                                                         TextInput::make('quantity')
                                                             ->label('Qty')
                                                             ->numeric()
                                                             ->default(1)
                                                             ->required()
+                                                            ->placeholder('1')
+                                                            ->helperText('Number of units or personnel.')
                                                             ->live(onBlur: true)
                                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateSubItemAmount($get, $set))
                                                             ->columnSpan(1),
@@ -702,6 +712,7 @@ class ProfitabilityAnalysisForm
                                                             ->searchable()
                                                             ->preload()
                                                             ->placeholder('Org, Pcs')
+                                                            ->helperText('The unit of measure.')
                                                             ->columnSpan(1),
                                                         TextInput::make('unit_amount')
                                                             ->label('Monthly Unit Cost')
@@ -709,6 +720,8 @@ class ProfitabilityAnalysisForm
                                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
                                                             ->prefix('IDR ')
                                                             ->required()
+                                                            ->placeholder('0')
+                                                            ->helperText('The cost per unit per month.')
                                                             ->live(onBlur: true)
                                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateSubItemAmount($get, $set))
                                                             ->columnSpan(1),
@@ -748,6 +761,7 @@ class ProfitabilityAnalysisForm
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR ')
                             ->readOnly()
+                            ->placeholder('0')
                             ->helperText('Otomatis menghitung jumlah dari rincian biaya tidak langsung di bawah.')
                             ->columnSpanFull()
                             ->dehydrated(),
@@ -769,7 +783,9 @@ class ProfitabilityAnalysisForm
                                             ->createOptionUsing(fn (array $data) => DirectCostCategory::create($data)->id)
                                             ->editOptionForm(DirectCostCategoryForm::schema(type: 'indirect'))
                                             ->fillEditOptionActionFormUsing(fn (Select $component): ?array => DirectCostCategory::find($component->getState())?->toArray())
-                                            ->updateOptionUsing(fn (Select $component, array $data) => DirectCostCategory::find($component->getState())?->update($data)),
+                                            ->updateOptionUsing(fn (Select $component, array $data) => DirectCostCategory::find($component->getState())?->update($data))
+                                            ->placeholder('Select category')
+                                            ->helperText('Primary classification for this indirect cost.'),
                                         Select::make('calculation_type')
                                             ->label('Calculation Type')
                                             ->options([
@@ -779,6 +795,8 @@ class ProfitabilityAnalysisForm
                                             ->required()
                                             ->default('nominal')
                                             ->live()
+                                            ->placeholder('Select calculation method')
+                                            ->helperText('Choose whether the cost is a fixed amount or a percentage of basis.')
                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set, '../../')),
                                         Select::make('percentage_basis')
                                             ->label('Basis')
@@ -790,6 +808,8 @@ class ProfitabilityAnalysisForm
                                             ->visible(fn (Get $get) => $get('calculation_type') === 'percentage')
                                             ->default('revenue')
                                             ->live()
+                                            ->placeholder('Select percentage basis')
+                                            ->helperText('The reference total used for percentage calculation.')
                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateIndirectCost($get, $set, '../../')),
                                         TextInput::make('unit_cost_price')
                                             ->label(fn (Get $get) => $get('calculation_type') === 'percentage' ? 'Percentage (%)' : 'Category Total')
@@ -799,6 +819,9 @@ class ProfitabilityAnalysisForm
                                                 decimalSeparator: ',',
                                                 precision: 2
                                             )
+                                            ->required()
+                                            ->placeholder('0')
+                                            ->helperText('The value or rate for this indirect cost item.')
                                             ->prefix(fn (Get $get) => $get('calculation_type') === 'percentage' ? null : 'IDR ')
                                             ->suffix(fn (Get $get) => $get('calculation_type') === 'percentage' ? '%' : null)
                                             ->required()

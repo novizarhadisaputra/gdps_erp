@@ -58,6 +58,7 @@ trait HasWorkCompletionReportActions
                 $this->getSendToCustomerAction(),
                 $this->getResendEmailAction(),
                 $this->getConfirmCustomerSignatureAction(),
+                $this->getReviseAction(),
                 $this->getRejectAction(),
             ])
                 ->label('Workflow')
@@ -676,6 +677,39 @@ trait HasWorkCompletionReportActions
 
                 $record->update(['status' => WorkCompletionStatus::Approved]);
                 Notification::make()->title('BAPP Approved Successfully')->success()->send();
+            });
+    }
+
+    protected function getReviseAction(): Action
+    {
+        return Action::make('revise')
+            ->label('Revise / Return to Draft')
+            ->color('warning')
+            ->icon(Heroicon::OutlinedArrowPath)
+            ->visible(fn (WorkCompletionReport $record) => in_array($record->status, [
+                WorkCompletionStatus::Submitted,
+                WorkCompletionStatus::Sent,
+                WorkCompletionStatus::Approved,
+            ]))
+            ->requiresConfirmation()
+            ->modalHeading('Revise BAPP')
+            ->modalDescription('This will move the BAPP back to Draft stage, allowing you to make changes. A revision snapshot will be created, and all existing signatures will be cleared.')
+            ->schema([
+                TextInput::make('reason')
+                    ->label('Reason for Revision')
+                    ->required(),
+            ])
+            ->action(function (WorkCompletionReport $record, array $data) {
+                $record->signatures()->delete();
+                $record->update(['status' => WorkCompletionStatus::Draft]);
+
+                app(SignatureService::class)->notifyOwnerOnRejection($record, $data['reason']);
+
+                Notification::make()
+                    ->title('BAPP Returned to Draft')
+                    ->body('A new revision has been created.')
+                    ->success()
+                    ->send();
             });
     }
 

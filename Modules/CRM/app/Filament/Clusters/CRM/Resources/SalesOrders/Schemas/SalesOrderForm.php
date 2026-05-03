@@ -34,6 +34,7 @@ class SalesOrderForm
     {
         return $schema
             ->components([
+                Hidden::make('snapshot'),
                 Wizard::make([
                     Step::make('General Information')
                         ->description('Basic project details, reference documents, and document numbering.')
@@ -76,41 +77,68 @@ class SalesOrderForm
 
                                                 $analysis = $project->profitabilityAnalysis;
                                                 if ($analysis) {
+                                                    $mfRate = (float) ($analysis->management_fee_rate ?? 0);
+                                                    $calculateRevenue = function ($cost) use ($mfRate) {
+                                                        return round($cost * (1 + ($mfRate / 100)), 0);
+                                                    };
+
                                                     $manpower = $analysis->manpower_requirements ?? [];
                                                     $financials = $analysis->financial_assumptions ?? [];
                                                     $totalHC = collect($manpower)->sum('quantity');
 
+                                                    // 1. Standardize Manpower
+                                                    $standardizedManpower = collect($manpower)->map(function ($mp) use ($calculateRevenue) {
+                                                        $unitPrice = $calculateRevenue($mp['unit_cost'] ?? 0);
+
+                                                        return array_merge($mp, [
+                                                            'name' => $mp['job_position_name'] ?? 'Personnel',
+                                                            'unit_price' => $unitPrice,
+                                                            'total_price' => $unitPrice * ($mp['quantity'] ?? 0),
+                                                            'type' => 'manpower',
+                                                        ]);
+                                                    })->toArray();
+
+                                                    // 2. Standardize Operational
+                                                    $standardizedOperational = collect($financials['operational_costs'] ?? [])->map(function ($item) use ($calculateRevenue) {
+                                                        $unitPrice = $calculateRevenue($item['unit_cost'] ?? 0);
+
+                                                        return array_merge($item, [
+                                                            'name' => $item['item_name'] ?? 'Item',
+                                                            'unit_price' => $unitPrice,
+                                                            'total_price' => $unitPrice * ($item['quantity'] ?? 0),
+                                                            'type' => 'operational',
+                                                        ]);
+                                                    })->toArray();
+
+                                                    // 3. Create Unified Snapshot
+                                                    $snapshot = [
+                                                        'groups' => [
+                                                            'manpower' => $standardizedManpower,
+                                                            'operational' => $standardizedOperational,
+                                                        ],
+                                                        'meta' => [
+                                                            'pa_number' => $analysis->number,
+                                                            'pa_revision' => $analysis->revision_number ?? 0,
+                                                            'management_fee_rate' => $mfRate,
+                                                        ],
+                                                        'summary' => [
+                                                            'manpower_total' => collect($standardizedManpower)->sum('total_price'),
+                                                            'operational_total' => collect($standardizedOperational)->sum('total_price'),
+                                                        ],
+                                                    ];
+
+                                                    // Update UI states
                                                     $set('manpower_initial_qty', $totalHC);
-                                                    $set('management_fee_percentage', $analysis->management_fee_rate);
+                                                    $set('management_fee_percentage', $mfRate);
                                                     $set('tax_percentage', (string) (float) ($analysis->tax?->rate ?? 12));
+                                                    $set('manpower_composition', $standardizedManpower);
+                                                    $set('snapshot', $snapshot);
 
-                                                    $mfRate = (float) ($analysis->management_fee_rate ?? 0);
-                                                    $calculateRevenue = function ($cost) use ($mfRate) {
-                                                        // Standard Markup Formula: Cost * (1 + Rate%)
-                                                        return round($cost * (1 + ($mfRate / 100)), 0);
-                                                    };
-
-                                                    // Auto-fill states from PA
-                                                    $manpowerData = collect($manpower)->map(fn ($mp) => array_merge($mp, [
-                                                        'unit_price' => $calculateRevenue($mp['unit_cost'] ?? 0),
-                                                        'total_price' => $calculateRevenue($mp['unit_cost'] ?? 0) * ($mp['quantity'] ?? 0),
-                                                    ]))->toArray();
-
-                                                    $items = collect($financials['operational_costs'] ?? [])->map(fn ($item) => [
-                                                        'description' => $item['item_name'] ?? ($item['description'] ?? 'Unnamed Item'),
-                                                        'uom' => $item['uom'] ?? 'Unit',
-                                                        'quantity' => (float) ($item['quantity'] ?? 0),
-                                                        'unit_cost' => (float) ($item['unit_cost'] ?? 0),
-                                                        'unit_price' => $calculateRevenue($item['unit_cost'] ?? 0),
-                                                        'total_price' => $calculateRevenue($item['unit_cost'] ?? 0) * ($item['quantity'] ?? 0),
-                                                    ])->toArray();
-
-                                                    $set('manpower_composition', $manpowerData);
-                                                    $set('content_config', [
-                                                        'items' => $items,
-                                                        'manpower_details' => $manpowerData,
+                                                    $set('content_config', array_merge($get('content_config') ?? [], [
+                                                        'items' => $standardizedOperational, // Still used by some UI/PDF
+                                                        'manpower_details' => $standardizedManpower,
                                                         'pa_revision_number' => $analysis->revision_number ?? 0,
-                                                    ]);
+                                                    ]));
                                                 }
 
                                                 $lead = $project->lead;

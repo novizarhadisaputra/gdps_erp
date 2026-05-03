@@ -63,14 +63,14 @@ class ViewSalesOrder extends ViewRecord
 
                         $bappItems[] = [
                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
-                            'ukuran_pekerjaan' => $mp['job_position_name'] ?? '-',
+                            'work_measurement' => $mp['job_position_name'] ?? '-',
                             'quantity' => $qty,
                             'uom' => $mp['uom'] ?? 'Person',
                             'unit_price' => $roundedUnitPrice,
                             'total_price' => round($roundedUnitPrice * $qty, 0),
                             'management_fee' => round($feeForThisItem * $qty, 0),
                             'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
-                            'keterangan' => null,
+                            'remarks' => null,
                         ];
                     }
 
@@ -92,14 +92,14 @@ class ViewSalesOrder extends ViewRecord
 
                         $bappItems[] = [
                             'item_name' => $item['description'] ?? 'Item',
-                            'ukuran_pekerjaan' => $item['description'] ?? '-',
+                            'work_measurement' => $item['description'] ?? '-',
                             'quantity' => $qty,
                             'uom' => $item['uom'] ?? 'Unit',
                             'unit_price' => $roundedUnitPrice,
                             'total_price' => round($roundedUnitPrice * $qty, 0),
                             'management_fee' => round($feeForThisItem * $qty, 0),
                             'so_reference' => $record->type->value === 'internal' ? '-' : $record->number,
-                            'keterangan' => null,
+                            'remarks' => null,
                         ];
                     }
 

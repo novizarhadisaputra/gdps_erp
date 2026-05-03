@@ -56,6 +56,7 @@ class SalesOrder extends Model implements HasMedia
         'sequence_number',
         'year',
         'content_config',
+        'snapshot',
     ];
 
     protected function casts(): array
@@ -70,6 +71,7 @@ class SalesOrder extends Model implements HasMedia
             'manpower_initial_qty' => 'integer',
             'manpower_composition' => 'array',
             'content_config' => 'array',
+            'snapshot' => 'array',
         ];
     }
 

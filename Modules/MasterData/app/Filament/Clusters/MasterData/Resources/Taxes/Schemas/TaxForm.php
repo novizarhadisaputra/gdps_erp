@@ -50,7 +50,10 @@ class TaxForm
                             'internal' => 'Internal / PA Estimations',
                         ])
                         ->required()
-                        ->default('sales'),
+                        ->default('sales')
+                        ->placeholder('Select tax category')
+                        ->helperText('Defines if the tax is applied to sales (Output), purchases (Input), or internal estimations.')
+                        ->native(false),
                     Select::make('calculation_type')
                         ->options([
                             'exclusive' => 'Exclusive (DPP x Rate)',
@@ -59,6 +62,9 @@ class TaxForm
                         ])
                         ->required()
                         ->default('exclusive')
+                        ->placeholder('Select calculation method')
+                        ->helperText('Determines how the tax amount is derived from the base price (DPP).')
+                        ->native(false)
                         ->live(),
                     Grid::make(2)
                         ->schema([
@@ -66,12 +72,16 @@ class TaxForm
                                 ->label('DPP Numerator')
                                 ->numeric()
                                 ->default(1)
-                                ->required(),
+                                ->required()
+                                ->placeholder('1')
+                                ->helperText('The multiplier for Custom Formula calculation.'),
                             TextInput::make('base_rate_denominator')
                                 ->label('DPP Denominator')
                                 ->numeric()
                                 ->default(1)
-                                ->required(),
+                                ->required()
+                                ->placeholder('1')
+                                ->helperText('The divisor for Custom Formula calculation.'),
                         ])
                         ->visible(fn ($get) => $get('calculation_type') === 'formula'),
                 ])->columns(3),

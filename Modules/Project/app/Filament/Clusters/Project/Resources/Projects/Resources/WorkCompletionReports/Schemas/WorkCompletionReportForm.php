@@ -3,6 +3,7 @@
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas;
 
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MorphToSelect;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -48,6 +49,7 @@ class WorkCompletionReportForm
     {
         return $schema
             ->components([
+                Hidden::make('snapshot'),
                 Section::make('Documents')
                     ->description('Download the draft report for signing, and upload the final scanned version to complete the workflow.')
                     ->schema([
@@ -93,11 +95,12 @@ class WorkCompletionReportForm
                             ->default(now()),
                         Select::make('project_id')
                             ->label('Project')
-                            ->placeholder('Select project')
-                            ->options(Project::all()->mapWithKeys(fn($p) => [$p->id => "{$p->number} - {$p->name}"]))
+                            ->options(Project::all()->mapWithKeys(fn ($p) => [$p->id => "{$p->number} - {$p->name}"]))
                             ->searchable()
                             ->required()
                             ->live()
+                            ->placeholder('Select project')
+                            ->helperText('The project this report is associated with.')
                             ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                 if (! $state) {
                                     return;
@@ -118,10 +121,11 @@ class WorkCompletionReportForm
                             }),
                         Select::make('customer_id')
                             ->label('Customer')
-                            ->placeholder('Select customer')
                             ->options(Customer::all()->pluck('name', 'id'))
                             ->searchable()
-                            ->required(),
+                            ->required()
+                            ->placeholder('Select customer')
+                            ->helperText('The customer entity involved in this project.'),
                         Select::make('project_area_id')
                             ->label('Project Area')
                             ->options(ProjectArea::all()->pluck('name', 'id'))
@@ -195,9 +199,10 @@ class WorkCompletionReportForm
                                     $set('so_type', $source->type->value);
                                     $set('tax_id', $source->tax_id);
                                     $set('tax_percentage', (string) ($source->tax_percentage ?? 12));
+                                    $set('snapshot', $source->snapshot);
 
-                                    $manpower = $source->content_config['manpower_details'] ?? [];
-                                    $operational = $source->content_config['items'] ?? [];
+                                    $manpower = $source->snapshot['groups']['manpower'] ?? $source->content_config['manpower_details'] ?? [];
+                                    $operational = $source->snapshot['groups']['operational'] ?? $source->content_config['items'] ?? [];
                                     $mfRate = (float) ($source->management_fee_percentage ?? 0);
 
                                     $items = [];
@@ -218,14 +223,14 @@ class WorkCompletionReportForm
 
                                         $items[] = [
                                             'item_name' => $mp['job_position_name'] ?? 'Personnel',
-                                            'ukuran_pekerjaan' => $mp['job_position_name'] ?? '-',
+                                            'work_measurement' => $mp['job_position_name'] ?? '-',
                                             'quantity' => $qty,
                                             'uom' => $mp['uom'] ?? 'Person',
                                             'unit_price' => round($sellingPrice, 0),
                                             'total_price' => round($sellingPrice * $qty, 0),
                                             'management_fee' => round($feeForThisItem * $qty, 0),
                                             'so_reference' => $source->type->value === SalesOrderType::Internal->value ? '-' : $source->number,
-                                            'keterangan' => null,
+                                            'remarks' => null,
                                         ];
                                     }
 
@@ -244,14 +249,14 @@ class WorkCompletionReportForm
 
                                         $items[] = [
                                             'item_name' => $op['item_name'] ?? 'Item',
-                                            'ukuran_pekerjaan' => $op['description'] ?? $op['item_name'] ?? '-',
+                                            'work_measurement' => $op['description'] ?? $op['item_name'] ?? '-',
                                             'quantity' => $qty,
                                             'uom' => $op['uom'] ?? 'Unit',
                                             'unit_price' => round($sellingPrice, 0),
                                             'total_price' => round($sellingPrice * $qty, 0),
                                             'management_fee' => round($feeForThisItem * $qty, 0),
                                             'so_reference' => $source->type->value === SalesOrderType::Internal->value ? '-' : $source->number,
-                                            'keterangan' => null,
+                                            'remarks' => null,
                                         ];
                                     }
 
@@ -404,16 +409,19 @@ class WorkCompletionReportForm
                                 ->options(Gender::class)
                                 ->required()
                                 ->native(false)
-                                ->placeholder('Select gender'),
+                                ->placeholder('Select gender')
+                                ->helperText('Gender-based salutation for the recipient (Bapak/Ibu).'),
 
                             TextInput::make('content_config.recipient_name')
                                 ->label('Recipient Name')
                                 ->placeholder('Full name of the signatory')
+                                ->helperText('The name of the individual who will sign on behalf of the customer.')
                                 ->required(),
 
                             TextInput::make('content_config.recipient_title')
                                 ->label('Recipient Title/Position')
-                                ->placeholder('e.g. Operation Manager'),
+                                ->placeholder('e.g. Operation Manager')
+                                ->helperText('Official job title of the signatory.'),
                         ]),
                     ])
                     ->collapsible(),
@@ -482,7 +490,7 @@ class WorkCompletionReportForm
 
                                     if ($mfSum <= 0) {
                                         $mfSum = collect($activeItems)->filter(function ($item) {
-                                            $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+                                            $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                             return str_contains($name, 'management fee') || str_contains($name, 'fee management');
                                         })->sum(function ($item) {
@@ -504,10 +512,13 @@ class WorkCompletionReportForm
                                         TextInput::make('item_name')
                                             ->label('Item Name (Internal)')
                                             ->required()
+                                            ->placeholder('e.g. Manpower Supply')
+                                            ->helperText('Internal name for the item or service.')
                                             ->columnSpan(2),
-                                        TextInput::make('ukuran_pekerjaan')
-                                            ->label('Ukuran Pekerjaan (Report)')
-                                            ->placeholder('e.g. Pembersihan Area A')
+                                        TextInput::make('work_measurement')
+                                            ->label('Work Measurement (Report)')
+                                            ->placeholder('e.g. Area A Cleaning')
+                                            ->helperText('Description of work as it appears on the printed report.')
                                             ->required()
                                             ->columnSpan(1),
                                         TextInput::make('so_reference')
@@ -517,17 +528,23 @@ class WorkCompletionReportForm
                                             ->label('Quantity')
                                             ->numeric()
                                             ->required()
+                                            ->placeholder('1')
+                                            ->helperText('Number of units delivered.')
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0)))),
                                         TextInput::make('uom')
                                             ->label('Unit')
-                                            ->required(),
+                                            ->required()
+                                            ->placeholder('Org / Bln')
+                                            ->helperText('Unit of measure.'),
                                         TextInput::make('unit_price')
                                             ->label('Price / Unit')
                                             ->numeric()
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->prefix('IDR')
                                             ->required()
+                                            ->placeholder('0')
+                                            ->helperText('Price per single unit.')
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0)))),
                                         TextInput::make('total_price')
@@ -536,9 +553,9 @@ class WorkCompletionReportForm
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->prefix('IDR')
                                             ->readonly(),
-                                        TextInput::make('keterangan')
-                                            ->label('Keterangan')
-                                            ->placeholder('Catatan tambahan...')
+                                        TextInput::make('remarks')
+                                            ->label('Remarks')
+                                            ->placeholder('Additional notes...')
                                             ->columnSpanFull(),
                                         TextInput::make('management_fee')
                                             ->hidden()
@@ -558,7 +575,11 @@ class WorkCompletionReportForm
                                 ->label('Tax Scheme (VAT/PPh)')
                                 ->relationship('tax', 'name', fn ($query) => $query->where('category', 'sales')->where('is_active', true))
                                 ->required()
+                                ->searchable()
+                                ->preload()
                                 ->live()
+                                ->placeholder('Select tax configuration')
+                                ->helperText('The applicable tax rate (e.g., PPN 11%).')
                                 ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                     $rate = Tax::find($state)?->rate ?? 0;
                                     $set('tax_percentage', $rate);
@@ -589,6 +610,8 @@ class WorkCompletionReportForm
                                 ->numeric()
                                 ->readOnly()
                                 ->live()
+                                ->placeholder('0')
+                                ->helperText('The numerical tax rate percentage.')
                                 ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12.00),
 
                             Select::make('tax_basis')
@@ -601,6 +624,8 @@ class WorkCompletionReportForm
                                 ->default('total')
                                 ->live()
                                 ->required()
+                                ->placeholder('Select tax calculation basis')
+                                ->helperText('Choose whether tax is calculated from total amount, management fee, or entered manually.')
                                 ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                     $items = $get('items') ?? [];
                                     $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
@@ -614,7 +639,7 @@ class WorkCompletionReportForm
 
                                         if ($mfSum <= 0) {
                                             $mfSum = collect($activeItems)->filter(function ($item) {
-                                                $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+                                                $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee management');
                                             })->sum(function ($item) {
@@ -640,6 +665,8 @@ class WorkCompletionReportForm
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->required()
                                 ->live()
+                                ->placeholder('0')
+                                ->helperText('The amount used to calculate VAT (PPN).')
                                 ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
                                 ->afterStateHydrated(function (Set $set, Get $get) {
                                     $basis = $get('tax_basis') ?? 'total';
@@ -657,7 +684,7 @@ class WorkCompletionReportForm
 
                                         if ($mfSum <= 0) {
                                             $mfSum = collect($activeItems)->filter(function ($item) {
-                                                $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+                                                $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee management');
                                             })->sum(function ($item) {
@@ -732,7 +759,7 @@ class WorkCompletionReportForm
 
                                         if ($mfSum <= 0) {
                                             $mfSum = collect($activeItems)->filter(function ($item) {
-                                                $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+                                                $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee management');
                                             })->sum(function ($item) {
@@ -786,7 +813,7 @@ class WorkCompletionReportForm
                                         $baseAmount = self::parseNumber($get('tax_base_amount'));
                                     } elseif ($basis === 'management_fee') {
                                         $baseAmount = collect($activeItems)->filter(function ($item) {
-                                            $name = strtolower($item['item_name'] ?? $item['ukuran_pekerjaan'] ?? '');
+                                            $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                             return str_contains($name, 'management fee');
                                         })->sum(function ($item) {

@@ -41,6 +41,7 @@ return new class extends Migration
             $blueprint->jsonb('items')->nullable();
             $blueprint->jsonb('tax_wording')->nullable();
             $blueprint->jsonb('content_config')->nullable();
+            $blueprint->json('snapshot')->nullable();
 
             $blueprint->timestamps();
             $blueprint->softDeletes();
@@ -54,7 +55,10 @@ return new class extends Migration
             $table->json('snapshot')->comment('Full data snapshot of the invoice at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users');
+            $table->integer('year')->nullable();
             $table->timestamps();
+
+            $table->index(['year', 'sequence_number'], 'finance_inv_rev_year_seq_index');
         });
     }
 

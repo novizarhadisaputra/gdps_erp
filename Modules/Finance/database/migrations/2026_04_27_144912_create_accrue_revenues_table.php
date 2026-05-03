@@ -29,6 +29,7 @@ return new class extends Migration
             $table->decimal('total_amount_expense_actual', 20, 2)->default(0);
             $table->string('status')->default('open'); // open, closed, reversed
             $table->string('sap_reference')->nullable();
+            $table->json('snapshot')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();

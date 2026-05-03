@@ -37,7 +37,51 @@ class SalesOrderObserver
      */
     public function saving(SalesOrder $salesOrder): void
     {
-        // Manual type selection in form is preferred
+        if (empty($salesOrder->snapshot) && $salesOrder->profitabilityAnalysis) {
+            $analysis = $salesOrder->profitabilityAnalysis;
+
+            $manpower = $analysis->manpower_requirements ?? [];
+            $financials = $analysis->financial_assumptions ?? [];
+            $mfRate = (float) ($salesOrder->management_fee_percentage ?? 0);
+
+            $standardizedManpower = collect($manpower)->map(fn ($item) => [
+                'type' => 'manpower',
+                'name' => $item['job_position_name'] ?? 'Personnel',
+                'quantity' => (int) ($item['quantity'] ?? 1),
+                'unit_cost' => (float) ($item['unit_cost'] ?? 0),
+                'unit_price' => round((float) ($item['unit_cost'] ?? 0) * (1 + ($mfRate / 100))),
+                'total_price' => round((float) ($item['unit_cost'] ?? 0) * (1 + ($mfRate / 100)) * (int) ($item['quantity'] ?? 1)),
+                'meta' => $item,
+            ])->toArray();
+
+            $opItems = $financials['operational_costs'] ?? [];
+            $standardizedOperational = collect($opItems)->map(fn ($item) => [
+                'type' => 'operational',
+                'name' => $item['item_name'] ?? 'Item',
+                'quantity' => (int) ($item['quantity'] ?? 1),
+                'unit_cost' => (float) ($item['unit_cost'] ?? 0),
+                'unit_price' => round((float) ($item['unit_cost'] ?? 0) * (1 + ($mfRate / 100))),
+                'total_price' => round((float) ($item['unit_cost'] ?? 0) * (1 + ($mfRate / 100)) * (int) ($item['quantity'] ?? 1)),
+                'meta' => $item,
+            ])->toArray();
+
+            $salesOrder->snapshot = [
+                'meta' => [
+                    'pa_number' => $analysis->number,
+                    'revision' => $analysis->revision_number,
+                    'generated_at' => now()->toDateTimeString(),
+                    'management_fee_rate' => $mfRate,
+                ],
+                'groups' => [
+                    'manpower' => $standardizedManpower,
+                    'operational' => $standardizedOperational,
+                ],
+                'summary' => [
+                    'total_cost' => collect($standardizedManpower)->sum(fn ($i) => $i['unit_cost'] * $i['quantity']) + collect($standardizedOperational)->sum(fn ($i) => $i['unit_cost'] * $i['quantity']),
+                    'total_price' => collect($standardizedManpower)->sum('total_price') + collect($standardizedOperational)->sum('total_price'),
+                ],
+            ];
+        }
     }
 
     /**

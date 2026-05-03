@@ -35,6 +35,19 @@ class AccrueRevenueObserver
     }
 
     /**
+     * Handle the AccrueRevenue "saving" event.
+     */
+    public function saving(AccrueRevenue $accrueRevenue): void
+    {
+        if (empty($accrueRevenue->snapshot) && $accrueRevenue->project) {
+            $latestSo = $accrueRevenue->project->salesOrders()->latest()->first();
+            if ($latestSo && $latestSo->snapshot) {
+                $accrueRevenue->snapshot = $latestSo->snapshot;
+            }
+        }
+    }
+
+    /**
      * Handle the AccrueRevenue "saved" event.
      */
     public function saved(AccrueRevenue $accrueRevenue): void

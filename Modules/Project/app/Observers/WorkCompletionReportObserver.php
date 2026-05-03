@@ -46,6 +46,10 @@ class WorkCompletionReportObserver
         if (is_array($report->items)) {
             $report->total_amount = collect($report->items)->sum('total_price');
         }
+
+        if (empty($report->snapshot) && $report->sourceable && isset($report->sourceable->snapshot)) {
+            $report->snapshot = $report->sourceable->snapshot;
+        }
     }
 
     /**
@@ -61,13 +65,21 @@ class WorkCompletionReportObserver
             // Revision Logic: Capture snapshot if status changed back to Draft from a non-Draft status
             $originalStatus = $report->getOriginal('status');
             if ($report->status === WorkCompletionStatus::Draft && $originalStatus !== WorkCompletionStatus::Draft) {
-                $report->revisions()->create([
+                $revision = $report->revisions()->create([
                     'number' => $originalStatus !== null ? $report->getOriginal('number') : $report->number,
                     'sequence_number' => $report->getOriginal('revision_number') ?? 0,
+                    'year' => date('Y'),
                     'snapshot' => $report->getRawOriginal(),
                     'reason' => request()->input('reason') ?? 'Manual revision triggered.',
                     'user_id' => auth()->id(),
                 ]);
+
+                // Copy Media Snapshots
+                foreach (['draft_report', 'signed_report', 'completion_documents'] as $collection) {
+                    $report->getMedia($collection)->each(function ($media) use ($revision, $collection) {
+                        $media->copy($revision, $collection);
+                    });
+                }
 
                 // Update main document to reflect revision status
                 $date = $report->document_date ? Carbon::parse($report->document_date) : now();

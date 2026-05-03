@@ -164,6 +164,8 @@ class ProjectAreaForm
                                             'expense' => 'Accrued Expense',
                                         ])
                                         ->required()
+                                        ->placeholder('Select mapping type')
+                                        ->helperText('The financial category for this GL account mapping.')
                                         ->native(false),
                                     Select::make('revenue_type_id')
                                         ->label('Revenue Type')
@@ -179,7 +181,8 @@ class ProjectAreaForm
                                         ->relationship('revenueSegment', 'name')
                                         ->searchable()
                                         ->preload()
-                                        ->placeholder('All Segments'),
+                                        ->placeholder('All Segments')
+                                        ->helperText('Leave empty to apply to all revenue segments.'),
                                 ]),
                             Select::make('chart_of_account_id')
                                 ->label('GL Account')
@@ -188,6 +191,8 @@ class ProjectAreaForm
                                 ->searchable()
                                 ->preload()
                                 ->required()
+                                ->placeholder('Select GL account')
+                                ->helperText('The specific Chart of Account from SAP for this mapping.')
                                 ->columnSpanFull(),
                         ])
                         ->columns(1)

@@ -190,18 +190,22 @@ class ProposalForm
                                 ->label('Gender (Salutation)')
                                 ->options(Gender::class)
                                 ->required()
-                                ->native(false),
+                                ->native(false)
+                                ->placeholder('Select salutation')
+                                ->helperText('Used for appropriate addressing in the formal letter.'),
 
                             TextInput::make('content_config.recipient_name')
                                 ->label('Recipient Name')
-                                ->placeholder('Enter full name')
+                                ->placeholder('Enter full name of the recipient')
                                 ->dehydrated()
-                                ->required(),
+                                ->required()
+                                ->helperText('The person to whom this proposal is addressed.'),
 
                             TextInput::make('content_config.recipient_title')
                                 ->label('Recipient Title/Position')
                                 ->dehydrated()
-                                ->placeholder('e.g. Director of Finance'),
+                                ->placeholder('e.g. Director of Finance, General Manager')
+                                ->helperText('Official job title of the recipient.'),
                         ]),
                     ]),
 
@@ -279,12 +283,13 @@ class ProposalForm
                                 ->numeric()
                                 ->default(30)
                                 ->suffix('Days')
-                                ->placeholder('e.g. 30'),
+                                ->placeholder('e.g. 30')
+                                ->helperText('Number of days the proposal remains valid for acceptance.'),
 
                             TextInput::make('content_config.contact_phone')
                                 ->label('Contact Phone Number')
-                                ->placeholder('e.g. 021-xxxxxx')
-                                ->helperText('Phone number displayed on the cover/footer.'),
+                                ->placeholder('e.g. 021-xxxxxx or +62 812...')
+                                ->helperText('The primary contact phone number displayed in the document header/footer.'),
 
                             TextInput::make('content_config.payment_term')
                                 ->label('Payment Term Override (Days)')

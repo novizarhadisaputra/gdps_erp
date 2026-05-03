@@ -39,6 +39,7 @@ class AccrueRevenue extends Model
         'work_period',
         'accrual_period',
         'sap_reference',
+        'snapshot',
     ];
 
     protected function casts(): array
@@ -49,6 +50,7 @@ class AccrueRevenue extends Model
             'work_period' => 'date',
             'accrual_period' => 'date',
             'status' => AccrueRevenueStatus::class,
+            'snapshot' => 'array',
         ];
     }
 

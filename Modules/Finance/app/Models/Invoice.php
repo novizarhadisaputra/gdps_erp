@@ -63,6 +63,7 @@ class Invoice extends Model implements HasMedia
         'sourceable_id',
         'sourceable_type',
         'bank_account_id',
+        'snapshot',
     ];
 
     protected function casts(): array
@@ -79,6 +80,7 @@ class Invoice extends Model implements HasMedia
             'payment_info' => 'array',
             'items' => 'array',
             'content_config' => 'array',
+            'snapshot' => 'array',
         ];
     }
 

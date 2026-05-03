@@ -95,7 +95,7 @@ class WorkCompletionReportInfolist
                             ->schema([
                                 Grid::make(4)
                                     ->schema([
-                                        TextEntry::make('ukuran_pekerjaan')
+                                        TextEntry::make('work_measurement')
                                             ->label('Description')
                                             ->columnSpan(2),
                                         TextEntry::make('quantity')

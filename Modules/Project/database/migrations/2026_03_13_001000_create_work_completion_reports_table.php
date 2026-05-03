@@ -40,8 +40,8 @@ return new class extends Migration
             $blueprint->decimal('total_amount', 15, 2)->default(0);
 
             $blueprint->string('status')->default('draft');
-            $blueprint->jsonb('content_config')->nullable();
-
+            $blueprint->json('content_config')->nullable();
+            $blueprint->json('snapshot')->nullable();
             $blueprint->timestamps();
             $blueprint->softDeletes();
         });
@@ -54,7 +54,10 @@ return new class extends Migration
             $table->json('snapshot')->comment('Full data snapshot of the report at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
             $table->foreignUuid('user_id')->nullable()->constrained('users');
+            $table->integer('year')->nullable();
             $table->timestamps();
+
+            $table->index(['year', 'sequence_number'], 'project_wcr_rev_year_seq_index');
         });
     }
 

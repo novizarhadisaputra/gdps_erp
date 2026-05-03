@@ -7,15 +7,18 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class WorkCompletionReportRevision extends Model
+class WorkCompletionReportRevision extends Model implements HasMedia
 {
-    use HasFactory, HasModuleSchema, HasUuids;
+    use HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia;
 
     protected $fillable = [
         'work_completion_report_id',
         'number',
         'sequence_number',
+        'year',
         'snapshot',
         'reason',
         'user_id',
@@ -36,5 +39,20 @@ class WorkCompletionReportRevision extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(\App\Models\User::class);
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('draft_report')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('signed_report')
+            ->useDisk('s3')
+            ->singleFile();
+
+        $this->addMediaCollection('completion_documents')
+            ->useDisk('s3')
+            ->singleFile();
     }
 }

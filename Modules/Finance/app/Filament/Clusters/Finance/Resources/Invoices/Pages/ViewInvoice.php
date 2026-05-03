@@ -5,7 +5,6 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -120,10 +119,6 @@ class ViewInvoice extends ViewRecord
 
                     $record->addSignature(auth()->user(), 'Approver', $recordedRole);
 
-                    if ($record->isFullyApproved()) {
-                        $record->update(['status' => InvoiceStatus::Approved]);
-                    }
-
                     $service->notifyNextApprovers($record);
                     $service->notifyOwnerOnSignature($record, auth()->user(), 'Approver');
 
@@ -134,37 +129,16 @@ class ViewInvoice extends ViewRecord
                         ->send();
                 }),
 
-            Action::make('markAsPaid')
-                ->label('Mark as Paid')
-                ->color('success')
-                ->icon('heroicon-o-check-badge')
-                ->visible(fn (Invoice $record) => in_array($record->status, [InvoiceStatus::Sent, InvoiceStatus::Partial, InvoiceStatus::Overdue]))
-                ->schema([
-                    SpatieMediaLibraryFileUpload::make('payment_proof')
-                        ->collection('payment_proof')
-                        ->label('Bukti Pembayaran (Payment Proof)')
-                        ->required()
-                        ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
-                        ->maxSize(5120),
-                ])
-                ->action(function (Invoice $record) {
-                    $record->update(['status' => InvoiceStatus::Paid]);
-                    Notification::make()
-                        ->title('Invoice Marked as Paid')
-                        ->success()
-                        ->send();
-                }),
-
             ActionGroup::make([
                 EditAction::make(),
-                Action::make('rejectInvoice')
-                    ->label('Reject / Revision')
-                    ->color('danger')
-                    ->icon('heroicon-o-x-circle')
-                    ->visible(fn (Invoice $record) => $record->status === InvoiceStatus::Submitted && ! $record->isFullyApproved())
-                    ->modalHeading('Request Revision')
-                    ->modalDescription('Please provide a reason for rejecting this Invoice. The creator will be notified to revise it.')
-                    ->modalSubmitActionLabel('Submit Revision Request')
+                Action::make('revise')
+                    ->label('Revise / Return to Draft')
+                    ->color('warning')
+                    ->icon('heroicon-o-arrow-path')
+                    ->visible(fn (Invoice $record) => in_array($record->status, [InvoiceStatus::Submitted, InvoiceStatus::Approved]))
+                    ->modalHeading('Revise Invoice')
+                    ->modalDescription('This will move the Invoice back to Draft stage, allowing you to make changes. A revision snapshot will be created, and all existing signatures will be cleared.')
+                    ->modalSubmitActionLabel('Start Revision')
                     ->schema([
                         Textarea::make('reason')
                             ->label('Reason for Revision')

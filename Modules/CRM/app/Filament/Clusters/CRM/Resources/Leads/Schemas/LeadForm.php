@@ -164,7 +164,8 @@ class LeadForm
                                 ->relationship('tax', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select tax configuration'),
+                                ->placeholder('Select tax configuration')
+                                ->helperText('Standard tax scheme applied to this lead (e.g. VAT 12%).'),
                         ]),
                 ])
                 ->columnSpanFull(),
@@ -189,16 +190,19 @@ class LeadForm
                         ->label('Estimated Start Date')
                         ->native(false)
                         ->placeholder('Select start date')
-                        ->nullable(),
+                        ->nullable()
+                        ->helperText('Anticipated project kick-off date.'),
                     DatePicker::make('end_date')
                         ->label('Estimated End Date')
                         ->native(false)
                         ->placeholder('Select end date')
-                        ->nullable(),
+                        ->nullable()
+                        ->helperText('Expected completion or contract expiration date.'),
                     DatePicker::make('expected_closing_date')
                         ->native(false)
                         ->placeholder('Select closing date')
-                        ->nullable(),
+                        ->nullable()
+                        ->helperText('Target date for winning the deal.'),
                 ])
                 ->columnSpanFull()
                 ->columns(2),

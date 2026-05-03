@@ -85,6 +85,16 @@ class InvoiceObserver
     }
 
     /**
+     * Handle the Invoice "saving" event.
+     */
+    public function saving(Invoice $invoice): void
+    {
+        if (empty($invoice->snapshot) && $invoice->sourceable && isset($invoice->sourceable->snapshot)) {
+            $invoice->snapshot = $invoice->sourceable->snapshot;
+        }
+    }
+
+    /**
      * Handle the Invoice "created" event.
      */
     public function created(Invoice $invoice): void
@@ -112,13 +122,21 @@ class InvoiceObserver
             // Revision Logic: Capture snapshot if status changed back to Draft from a non-Draft status
             $originalStatus = $invoice->getOriginal('status');
             if ($invoice->status === InvoiceStatus::Draft && $originalStatus !== InvoiceStatus::Draft) {
-                $invoice->revisions()->create([
+                $revision = $invoice->revisions()->create([
                     'number' => $originalStatus !== null ? $invoice->getOriginal('number') : $invoice->number,
                     'sequence_number' => $invoice->getOriginal('revision_number') ?? 0,
+                    'year' => date('Y'),
                     'snapshot' => $invoice->getRawOriginal(),
                     'reason' => request()->input('reason') ?? 'Manual revision triggered.',
                     'user_id' => auth()->id(),
                 ]);
+
+                // Copy Media Snapshots
+                foreach (['payment_proof', 'signed_invoice'] as $collection) {
+                    $invoice->getMedia($collection)->each(function ($media) use ($revision, $collection) {
+                        $media->copy($revision, $collection);
+                    });
+                }
 
                 // Update main document to reflect revision status
                 $newRevisionNumber = $invoice->revision_number + 1;
@@ -133,6 +151,22 @@ class InvoiceObserver
                     'number' => $newNumber,
                 ]);
             }
+        }
+    }
+
+    /**
+     * Handle the Invoice "saved" event.
+     */
+    public function saved(Invoice $invoice): void
+    {
+        // Automation: If Signed Invoice is uploaded and it's fully approved internally
+        if ($invoice->status === InvoiceStatus::Submitted && $invoice->isFullyApproved() && $invoice->hasMedia('signed_invoice')) {
+            $invoice->updateQuietly(['status' => InvoiceStatus::Approved]);
+        }
+
+        // Automation: If Payment Proof is uploaded
+        if (in_array($invoice->status, [InvoiceStatus::Sent, InvoiceStatus::Partial, InvoiceStatus::Overdue]) && $invoice->hasMedia('payment_proof')) {
+            $invoice->updateQuietly(['status' => InvoiceStatus::Paid]);
         }
     }
 }

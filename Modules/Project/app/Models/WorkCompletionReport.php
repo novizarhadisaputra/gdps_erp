@@ -62,6 +62,7 @@ class WorkCompletionReport extends Model implements HasMedia
         'tax_amount',
         'tax_wording',
         'content_config',
+        'snapshot',
     ];
 
     public function tax(): BelongsTo
@@ -82,6 +83,7 @@ class WorkCompletionReport extends Model implements HasMedia
             'items' => 'array',
             'status' => WorkCompletionStatus::class,
             'content_config' => 'array',
+            'snapshot' => 'array',
         ];
     }
 

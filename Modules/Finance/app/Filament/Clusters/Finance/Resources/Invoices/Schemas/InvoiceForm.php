@@ -50,6 +50,7 @@ class InvoiceForm
     {
         return $schema
             ->components([
+                Hidden::make('snapshot'),
                 Section::make('Invoice Identification')
                     ->description('Define the core identity, reference numbers, and issuance dates for this invoice.')
                     ->columnSpanFull()
@@ -155,6 +156,9 @@ class InvoiceForm
                                             $set('customer_id', $source->customer_id);
                                         }
 
+                                        // Set Snapshot from source
+                                        $set('snapshot', $source->snapshot);
+
                                         // Sync items and financial details
                                         if ($source instanceof WorkCompletionReport) {
                                             $set('tax_id', $source->tax_id);
@@ -209,7 +213,7 @@ class InvoiceForm
                                                         'uom' => $item['uom'] ?? 'Unit',
                                                         'unit_price' => $item['unit_price'] ?? 0,
                                                         'total_price' => $item['total_price'] ?? 0,
-                                                    ]
+                                                    ],
                                                 ])->toArray();
 
                                                 // Set translations for both id and en
@@ -229,7 +233,7 @@ class InvoiceForm
                                             // Default for other types (PO, SPK, PKS)
                                             if (isset($source->items)) {
                                                 $newItems = collect($source->items)->mapWithKeys(fn ($item) => [
-                                                    Str::uuid()->toString() => is_array($item) ? $item : (array) $item
+                                                    Str::uuid()->toString() => is_array($item) ? $item : (array) $item,
                                                 ])->toArray();
                                                 $set('items', $newItems);
                                                 $sum = collect($newItems)->sum('total_price');
@@ -375,17 +379,20 @@ class InvoiceForm
                                         ->label('Salutation')
                                         ->options(Gender::class)
                                         ->required()
-                                        ->placeholder('Select...')
+                                        ->placeholder('Select gender')
+                                        ->helperText('Gender-based salutation for the recipient (Bapak/Ibu).')
                                         ->native(false),
 
                                     TextInput::make('content_config.recipient_name')
                                         ->label('Recipient Name')
                                         ->placeholder('Full name of the recipient')
+                                        ->helperText('The name of the individual who will receive the invoice.')
                                         ->required(),
 
                                     TextInput::make('content_config.recipient_title')
                                         ->label('Recipient Title/Position')
-                                        ->placeholder('e.g. Finance Director'),
+                                        ->placeholder('e.g. Finance Director')
+                                        ->helperText('Official job title of the recipient.'),
                                 ]),
                             ])
                             ->collapsible(),
@@ -497,6 +504,8 @@ class InvoiceForm
                                     ->default('total')
                                     ->live()
                                     ->required()
+                                    ->placeholder('Select tax calculation basis')
+                                    ->helperText('Choose whether tax is calculated from total amount, management fee, or entered manually.')
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                         $amount = self::parseNumber($get('amount'));
                                         $baseAmount = $amount;
@@ -533,6 +542,7 @@ class InvoiceForm
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->required()
                                     ->live(onBlur: true)
+                                    ->placeholder('0')
                                     ->helperText('The amount used to calculate VAT (PPN).')
                                     ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
@@ -550,7 +560,11 @@ class InvoiceForm
                                     ->options(Tax::where('category', 'sales')->pluck('name', 'id'))
                                     ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id)
                                     ->required()
+                                    ->searchable()
+                                    ->preload()
                                     ->live()
+                                    ->placeholder('Select VAT configuration')
+                                    ->helperText('The applicable tax rate (e.g., PPN 11%).')
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                         if (! $state) {
                                             return;
@@ -589,6 +603,7 @@ class InvoiceForm
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->required()
                                     ->live(onBlur: true)
+                                    ->placeholder('0')
                                     ->helperText('Value Added Tax (PPN).')
                                     ->afterStateUpdated(function (Get $get, $set) {
                                         $amount = self::parseNumber($get('amount'));
@@ -602,6 +617,7 @@ class InvoiceForm
                                     ->prefix('IDR')
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->readonly()
+                                    ->placeholder('0')
                                     ->helperText('The grand total (Base Amount + VAT).')
                                     ->required(),
 
@@ -692,13 +708,26 @@ class InvoiceForm
                             ->acceptedFileTypes(['application/pdf'])
                             ->maxSize(10240)
                             ->helperText('Upload the scanned document that has been signed by the customer.')
-                            ->visible(fn ($record) => $record && ! in_array($record->status, [InvoiceStatus::Draft, InvoiceStatus::Submitted])),
+                            ->visible(fn ($record) => $record && $record->isFullyApproved())
+                            ->live()
+                            ->afterStateUpdated(function ($state, $record) {
+                                if ($state && $record && $record->status !== InvoiceStatus::Approved) {
+                                    $record->update(['status' => InvoiceStatus::Approved]);
+                                }
+                            }),
                         SpatieMediaLibraryFileUpload::make('payment_proof')
                             ->collection('payment_proof')
                             ->label('Payment Proof (Bukti Bayar)')
                             ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
                             ->maxSize(5120)
-                            ->helperText('Upload the official transfer receipt from the client (PDF/JPG/PNG, max 5MB).'),
+                            ->helperText('Upload the official transfer receipt from the client (PDF/JPG/PNG, max 5MB).')
+                            ->visible(fn ($record) => $record && in_array($record->status, [InvoiceStatus::Sent, InvoiceStatus::Partial, InvoiceStatus::Overdue]))
+                            ->live()
+                            ->afterStateUpdated(function ($state, $record) {
+                                if ($state && $record && $record->status !== InvoiceStatus::Paid) {
+                                    $record->update(['status' => InvoiceStatus::Paid]);
+                                }
+                            }),
                     ])->columns(2),
 
                 Section::make('Approval History')
