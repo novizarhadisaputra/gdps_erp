@@ -221,27 +221,56 @@
     $so = null;
 
     if ($source) {
-        if ($source instanceof \Modules\CRM\Models\SalesOrder) {
+        // Hierarchy resolution
+        $displaySource = $source;
+        if ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
+            $displaySourceType = $lang === 'en' ? 'WCR' : 'BAPP';
+            $sourceNumber = $source->number;
+            $refNo = $source->number; // Primary reference is the BAPP itself
+
+            // Try to find a higher tier reference from the BAPP's source
+            if ($source->sourceable) {
+                $parentSource = $source->sourceable;
+                if ($parentSource instanceof \Modules\CRM\Models\SalesOrder) {
+                    $so = $parentSource;
+                    if ($parentSource->sourceable) {
+                        $refNo = $parentSource->sourceable->number;
+                    } else {
+                        $refNo = $parentSource->number;
+                    }
+                } elseif ($parentSource instanceof \Modules\CRM\Models\CooperationAgreement ||
+                    $parentSource instanceof \Modules\CRM\Models\PurchaseOrder ||
+                    $parentSource instanceof \Modules\CRM\Models\WorkOrder ||
+                    $parentSource instanceof \Modules\CRM\Models\MinutesOfAgreement) {
+                    $refNo = $parentSource->number;
+                }
+            }
+        } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
             $so = $source;
             $isInternal = $source->type === \Modules\CRM\Enums\SalesOrderType::Internal;
-            $sourceNumber = $isInternal ? '-' : $source->number;
             $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
-        } elseif ($source instanceof \Modules\Project\Models\WorkCompletionReport) {
-            $refNo = $source->number;
-            if ($source->sourceable instanceof \Modules\CRM\Models\SalesOrder) {
-                $so = $source->sourceable;
+            $sourceNumber = $source->number;
+
+            // If SO is based on PKS/PO/SPK, use that as Ref No
+            if ($source->sourceable) {
+                $refNo = $source->sourceable->number;
+            } else {
+                $refNo = $source->number;
             }
+        } else {
+            // Direct source (PKS/PO/SPK/MOA)
             $sourceNumber = $source->number;
-            $displaySourceType = $lang === 'en' ? 'WCR' : 'BAPP';
-        } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
-            $sourceNumber = $source->number;
-            $displaySourceType = $labels['po'][$lang];
-        } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
-            $sourceNumber = $source->number;
-            $displaySourceType = $labels['spk'][$lang];
-        } elseif ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
-            $sourceNumber = $source->number;
-            $displaySourceType = $labels['pks'][$lang];
+            $refNo = $source->number;
+
+            if ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
+                $displaySourceType = $labels['pks'][$lang];
+            } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
+                $displaySourceType = $labels['po'][$lang];
+            } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
+                $displaySourceType = $labels['spk'][$lang];
+            } elseif ($source instanceof \Modules\CRM\Models\MinutesOfAgreement) {
+                $displaySourceType = $labels['moa'][$lang];
+            }
         }
     }
 
@@ -672,7 +701,7 @@
                     <td class="desc-col text-center">1</td>
                     <td class="desc-col">
                         {{ $labels['job_invoice'][$lang] }}
-                        {{ $record->salesOrder->project->name ?? 'Service' }}
+                        {{ $so?->project->name ?? 'Service' }}
                         {{ $labels['period'][$lang] }}
                         {{ $record->workCompletionReport ? $record->workCompletionReport->service_period_start->locale($lang)->translatedFormat('F Y') : $record->invoice_date->locale($lang)->translatedFormat('F Y') }}
                     </td>

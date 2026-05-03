@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTe
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -32,13 +33,12 @@ class ViewManpowerTemplate extends ViewRecord
                         'costSimulation' => $costSimulation,
                     ]);
                     $name = Str::slug($record->name, '-');
-                    $leadName = Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
-                    $fileName = "Manpower_{$name}_{$leadName}.pdf";
+                    $fileName = "{$name}.pdf";
 
                     return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
             EditAction::make(),
-            \Filament\Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }

@@ -12,7 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Str;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\MoAStatus;
 use Modules\CRM\Enums\ProposalStatus;
@@ -60,8 +59,7 @@ class ViewProposal extends ViewRecord
                             'defaultFont' => 'sans-serif',
                         ]);
                     $name = str_replace(['/', '\\'], '-', $this->record->number);
-                    $leadName = Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
-                    $fileName = "Proposal_{$name}_{$leadName}.pdf";
+                    $fileName = "{$name}.pdf";
 
                     return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),

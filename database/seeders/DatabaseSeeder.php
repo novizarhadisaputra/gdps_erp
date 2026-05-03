@@ -6,6 +6,9 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Modules\CRM\Database\Seeders\AdministrativeUserSeeder;
+use Modules\CRM\Database\Seeders\RolePermissionSeeder;
+use Modules\Finance\Database\Seeders\FinanceDatabaseSeeder;
 use Modules\MasterData\Database\Seeders\MasterDataDatabaseSeeder;
 
 class DatabaseSeeder extends Seeder
@@ -31,9 +34,10 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             ShieldSeeder::class,
-            \Modules\CRM\Database\Seeders\AdministrativeUserSeeder::class,
-            \Modules\CRM\Database\Seeders\RolePermissionSeeder::class,
+            AdministrativeUserSeeder::class,
+            RolePermissionSeeder::class,
             MasterDataDatabaseSeeder::class,
+            FinanceDatabaseSeeder::class,
         ]);
 
         $admin = User::query()->where('email', '=', 'rajabannisa.wahyuni@garudapratama.com')->first();

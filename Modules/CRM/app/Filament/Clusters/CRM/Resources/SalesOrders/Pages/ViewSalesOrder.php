@@ -9,7 +9,6 @@ use Filament\Actions\EditAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Str;
 use Modules\CRM\Enums\SalesOrderStatus;
 use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
@@ -271,12 +270,7 @@ class ViewSalesOrder extends ViewRecord
 
                         $pdf = Pdf::loadView('crm::pdf.sales-order', ['record' => $record]);
                         $name = str_replace(['/', '\\'], '-', $record->number);
-                        $clientName = $record->customer?->name
-                            ?? $record->proposal?->lead?->company_name
-                            ?? $record->proposal?->lead?->title
-                            ?? 'Client';
-                        $slugName = Str::slug($clientName, '-');
-                        $fileName = "SO_{$name}_{$slugName}.pdf";
+                        $fileName = "{$name}.pdf";
 
                         return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),

@@ -18,7 +18,7 @@ class ProposalMail extends Mailable
 
     public function build(): self
     {
-        $mail = $this->subject("Proposal - {$this->proposal->proposal_number}")
+        $mail = $this->subject("Proposal - {$this->proposal->number}")
             ->view('crm::emails.proposal');
 
         // Attach PDF if available
@@ -30,7 +30,7 @@ class ProposalMail extends Mailable
         } else {
             // Generate PDF on the fly for dynamic proposals
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('crm::pdf.proposal', ['record' => $this->proposal]);
-            $filename = str_replace(['/', '\\'], '-', $this->proposal->proposal_number);
+            $filename = str_replace(['/', '\\'], '-', $this->proposal->number);
 
             $mail->attachData($pdf->output(), "proposal-{$filename}.pdf", [
                 'mime' => 'application/pdf',

@@ -2,7 +2,8 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProfitabilityAnalysis\Resources\ProfitabilityAnalysisRevision\Tables;
 
-use Filament\Actions\ViewAction;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -31,7 +32,9 @@ class ProfitabilityAnalysisRevisionsTable
             ])
             ->defaultSort('created_at', 'desc')
             ->recordActions([
-                ViewAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                ]),
             ]);
     }
 }

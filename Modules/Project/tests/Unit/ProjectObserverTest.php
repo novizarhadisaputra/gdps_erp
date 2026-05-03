@@ -36,7 +36,7 @@ class ProjectObserverTest extends TestCase
         ]);
 
         // Expected format: 01BCAP1GIACGK0001
-        $this->assertEquals('01BCAP1GIACGK0001', $project->code);
+        $this->assertEquals('01BCAP1GIACGK0001', $project->number);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
@@ -68,6 +68,6 @@ class ProjectObserverTest extends TestCase
             'project_number' => '5',
         ]);
 
-        $this->assertStringEndsWith('0005', $project->code);
+        $this->assertStringEndsWith('0005', $project->number);
     }
 }

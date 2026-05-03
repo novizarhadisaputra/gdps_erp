@@ -155,11 +155,6 @@ class ProposalObserver
             if ($proposal->lead && $proposal->lead->status->weight() < LeadStatus::Negotiation->weight()) {
                 $proposal->lead->update(['status' => LeadStatus::Negotiation]);
             }
-
-            // Sync: Approve Profitability Analysis as well since proposal is finalized
-            if ($proposal->profitabilityAnalysis) {
-                $proposal->profitabilityAnalysis->update(['status' => ProfitabilityAnalysisStatus::Approved]);
-            }
         }
     }
 }

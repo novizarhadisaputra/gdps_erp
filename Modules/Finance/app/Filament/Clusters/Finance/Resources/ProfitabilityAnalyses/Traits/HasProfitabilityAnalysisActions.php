@@ -4,6 +4,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnaly
 
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -380,7 +381,7 @@ trait HasProfitabilityAnalysisActions
 
                 Notification::make()
                     ->title('Project Generated')
-                    ->body("Project Code: {$project->code}")
+                    ->body("Project Code: {$project->number}")
                     ->success()
                     ->send();
             });
@@ -457,7 +458,6 @@ trait HasProfitabilityAnalysisActions
 
                         $newRecord->status = ProfitabilityAnalysisStatus::Draft;
                         $newRecord->save();
-
 
                         // Copy media (TOR, RFP, RFQ)
                         foreach (['tor', 'rfp', 'rfq'] as $collection) {
@@ -618,6 +618,8 @@ trait HasProfitabilityAnalysisActions
     protected function getProfitabilityAnalysisActions(): array
     {
         return [
+            ViewAction::make(),
+
             ActionGroup::make([
                 $this->getApproveMarginAction(),
                 $this->getApprovePAAction(),

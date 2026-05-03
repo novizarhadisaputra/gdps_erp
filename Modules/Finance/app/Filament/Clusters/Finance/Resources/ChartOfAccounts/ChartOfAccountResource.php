@@ -24,6 +24,8 @@ class ChartOfAccountResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Chart of Accounts';
 
+    protected static ?int $navigationSort = 30;
+
     public static function form(Schema $schema): Schema
     {
         return ChartOfAccountForm::configure($schema);

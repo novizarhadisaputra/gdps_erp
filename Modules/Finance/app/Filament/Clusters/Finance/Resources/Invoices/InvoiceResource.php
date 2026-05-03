@@ -2,7 +2,6 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices;
 
-use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -26,7 +25,7 @@ class InvoiceResource extends Resource
 
     protected static ?string $cluster = FinanceCluster::class;
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Schema $schema): Schema
     {

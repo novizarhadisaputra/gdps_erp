@@ -60,7 +60,7 @@ class ConvertToProjectAction extends Action
 
                 Notification::make()
                     ->title('Project Generated Successfully')
-                    ->body("Project Code: {$project->code}")
+                    ->body("Project Code: {$project->number}")
                     ->success()
                     ->send();
 

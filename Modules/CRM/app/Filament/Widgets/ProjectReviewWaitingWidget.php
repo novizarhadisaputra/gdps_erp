@@ -2,7 +2,9 @@
 
 namespace Modules\CRM\Filament\Widgets;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
@@ -92,11 +94,16 @@ class ProjectReviewWaitingWidget extends TableWidget
                     ->label('Overall Status'),
             ])
             ->recordActions([
-                ViewAction::make()
-                    ->url(fn (ProjectReview $record) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProjectReview\ProjectReviewResource::getUrl('view', [
-                        'lead' => $record->lead,
-                        'record' => $record,
-                    ])),
+                ActionGroup::make([
+                    ViewAction::make()
+                        ->url(fn (ProjectReview $record) => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ProjectReview\ProjectReviewResource::getUrl('view', [
+                            'lead' => $record->lead,
+                            'record' => $record,
+                        ])),
+                ])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ]);
     }
 

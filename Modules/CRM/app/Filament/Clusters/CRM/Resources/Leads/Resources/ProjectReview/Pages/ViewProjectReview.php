@@ -44,8 +44,8 @@ class ViewProjectReview extends ViewRecord
                 ->action(function () {
                     $pdf = Pdf::loadView('crm::pdf.project-review', ['record' => $this->record]);
 
-                    $leadName = \Illuminate\Support\Str::slug($this->record->lead?->company_name ?? $this->record->lead?->title ?? 'Unknown-Lead', '-');
-                    $fileName = "ProjectReview_{$leadName}.pdf";
+                    $number = str_replace(['/', '\\'], '-', $this->record->number ?? 'Draft');
+                    $fileName = "{$number}.pdf";
 
                     return response()->streamDownload(
                         fn () => print ($pdf->output()),

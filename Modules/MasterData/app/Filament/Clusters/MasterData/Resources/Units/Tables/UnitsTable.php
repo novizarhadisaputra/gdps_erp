@@ -4,6 +4,10 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Tables
 
 use App\Services\SsoAuthService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -126,11 +130,19 @@ class UnitsTable
                 //
             ])
             ->recordActions([
-                Action::make('permissions')
-                    ->label('Manage Permissions')
-                    ->icon(Heroicon::OutlinedShieldCheck)
-                    ->color('primary')
-                    ->url(fn (Unit $record): string => UnitResource::getUrl('permissions', ['record' => $record])),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    Action::make('permissions')
+                        ->label('Manage Permissions')
+                        ->icon(Heroicon::OutlinedShieldCheck)
+                        ->color('primary')
+                        ->url(fn (Unit $record): string => UnitResource::getUrl('permissions', ['record' => $record])),
+                    DeleteAction::make(),
+                ])
+                    ->icon(Heroicon::OutlinedEllipsisVertical)
+                    ->color('gray')
+                    ->button(),
             ])
             ->defaultPaginationPageOption(50);
     }

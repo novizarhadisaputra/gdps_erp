@@ -21,7 +21,7 @@ class AccrueRevenueResource extends Resource
 
     protected static ?string $cluster = FinanceCluster::class;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Revenue Management';
+    protected static ?int $navigationSort = 20;
 
     public static function form(Schema $schema): Schema
     {

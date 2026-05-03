@@ -18,11 +18,9 @@ class ProfitabilityThresholdResource extends Resource
 
     protected static ?string $model = ProfitabilityThreshold::class;
 
-    protected static ?int $navigationSort = 10;
-
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedAdjustmentsHorizontal;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Settings';
+    protected static ?int $navigationSort = 40;
 
     public static function form(Schema $schema): Schema
     {

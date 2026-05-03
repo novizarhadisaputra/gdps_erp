@@ -4,9 +4,11 @@ namespace Modules\CRM\Livewire\CostingTemplate;
 
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -46,12 +48,17 @@ class ManageCostingItems extends Component implements HasActions, HasForms, HasT
                     ->after(fn () => $this->dispatch('costing-items-updated')),
             ])
             ->recordActions([
-                EditAction::make()
-                    ->schema(CostingTemplateItemForm::schema())
-                    ->slideOver()
-                    ->after(fn () => $this->dispatch('costing-items-updated')),
-                DeleteAction::make()
-                    ->after(fn () => $this->dispatch('costing-items-updated')),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->schema(CostingTemplateItemForm::schema())
+                        ->slideOver()
+                        ->after(fn () => $this->dispatch('costing-items-updated')),
+                    DeleteAction::make()
+                        ->after(fn () => $this->dispatch('costing-items-updated')),
+                ])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->deferLoading();
     }

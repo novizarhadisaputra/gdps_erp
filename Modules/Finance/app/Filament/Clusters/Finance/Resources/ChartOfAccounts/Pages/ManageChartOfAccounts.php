@@ -15,11 +15,7 @@ class ManageChartOfAccounts extends TreePage
 
     public static function tree(Tree $tree): Tree
     {
-        return $tree
-            ->enableTreeAction()
-            ->emptyStateHeading('No accounts found')
-            ->emptyStateDescription('Start by creating your first account.')
-            ->emptyStateIcon('heroicon-o-list-bullet');
+        return $tree;
     }
 
     public function getTreeRecordTitle(?Model $record = null): string

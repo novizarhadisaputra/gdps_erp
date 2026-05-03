@@ -6,11 +6,11 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Str;
 use Modules\Finance\Enums\AccrueRevenueStatus;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Enums\RevenueType;
@@ -29,6 +29,7 @@ trait HasWorkCompletionReportActions
     protected function getWorkCompletionReportHeaderActions(): array
     {
         return [
+            ViewAction::make(),
             EditAction::make(),
 
             ActionGroup::make([
@@ -82,9 +83,7 @@ trait HasWorkCompletionReportActions
                 ]);
 
                 $name = str_replace(['/', '\\'], '-', $record->number);
-                $customerName = Str::slug($record->customer?->company_name ?? $record->customer?->name ?? 'Unknown-Customer', '-');
-                $langSuffix = strtoupper($data['language']);
-                $fileName = "BAPP_{$name}_{$customerName}_{$langSuffix}.pdf";
+                $fileName = "{$name}.pdf";
 
                 return response()->streamDownload(
                     fn () => print ($pdf->output()),

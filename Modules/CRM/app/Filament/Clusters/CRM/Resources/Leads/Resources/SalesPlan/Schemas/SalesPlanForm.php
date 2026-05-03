@@ -8,6 +8,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -18,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\ProrationMethod;
+use Modules\CRM\Models\SalesPlan;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
@@ -377,34 +379,33 @@ class SalesPlanForm
                                     ->helperText('The degree of confidence or probability of success for this project.'),
                                 Section::make('Document Tracking')
                                     ->description('Reference numbers for generated documents. Automatically synced from respective modules.')
-                                    ->icon(Heroicon::OutlinedTicket)
+                                    ->icon(Heroicon::OutlinedDocumentCheck)
                                     ->schema([
                                         Grid::make(3)
                                             ->schema([
-                                                TextInput::make('proposal_number')
-                                                    ->label('Proposal #')
-                                                    ->readOnly()
-                                                    ->placeholder('Pending...'),
-                                                TextInput::make('contract_number')
-                                                    ->label('Contract / PKS #')
-                                                    ->readOnly()
-                                                    ->placeholder('Pending...'),
-                                                TextInput::make('po_number')
-                                                    ->label('Purchase Order #')
-                                                    ->readOnly()
-                                                    ->placeholder('Pending...'),
-                                                TextInput::make('so_number')
-                                                    ->label('Sales Order #')
-                                                    ->readOnly()
-                                                    ->placeholder('Pending...'),
-                                                TextInput::make('wo_number')
-                                                    ->label('Work Order / SPK #')
-                                                    ->readOnly()
-                                                    ->placeholder('Pending...'),
-                                                TextInput::make('ba_number')
-                                                    ->label('BAPP / BA #')
-                                                    ->readOnly()
-                                                    ->placeholder('Pending...'),
+                                                TextEntry::make('proposal_number')
+                                                    ->label('Proposal Number')
+                                                    ->state(fn (SalesPlan $record): ?string => $record->proposal?->number ?? $record->proposal_number ?? 'Pending...'),
+
+                                                TextEntry::make('contract_number')
+                                                    ->label('Contract / PKS Number')
+                                                    ->state(fn (SalesPlan $record): ?string => $record->agreement?->number ?? $record->contract_number ?? 'Pending...'),
+
+                                                TextEntry::make('po_number')
+                                                    ->label('Purchase Order Number')
+                                                    ->state(fn (SalesPlan $record): ?string => $record->purchaseOrder?->number ?? $record->po_number ?? 'Pending...'),
+
+                                                TextEntry::make('so_number')
+                                                    ->label('Sales Order Number')
+                                                    ->state(fn (SalesPlan $record): ?string => $record->salesOrder?->number ?? $record->so_number ?? 'Pending...'),
+
+                                                TextEntry::make('wo_number')
+                                                    ->label('Work Order / SPK Number')
+                                                    ->state(fn (SalesPlan $record): ?string => $record->workOrder?->number ?? $record->wo_number ?? 'Pending...'),
+
+                                                TextEntry::make('ba_number')
+                                                    ->label('BAPP / BA Number')
+                                                    ->state(fn (SalesPlan $record): ?string => $record->ba_number ?? 'Pending...'),
                                             ]),
                                     ]),
                             ]),

@@ -9,11 +9,14 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
 use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Observers\WorkCompletionReportObserver;
@@ -59,7 +62,7 @@ class WorkCompletionReport extends Model implements HasMedia
 
     public function tax(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\Tax::class);
+        return $this->belongsTo(Tax::class);
     }
 
     protected function casts(): array
@@ -78,7 +81,7 @@ class WorkCompletionReport extends Model implements HasMedia
         ];
     }
 
-    public function sourceable(): \Illuminate\Database\Eloquent\Relations\MorphTo
+    public function sourceable(): MorphTo
     {
         return $this->morphTo();
     }
@@ -113,7 +116,7 @@ class WorkCompletionReport extends Model implements HasMedia
             ->singleFile();
     }
 
-    public function invoices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function invoices(): HasMany
     {
         return $this->hasMany(Invoice::class);
     }
@@ -123,7 +126,7 @@ class WorkCompletionReport extends Model implements HasMedia
         return $this->morphMany(Comment::class, 'commentable')->oldest();
     }
 
-    public function revisions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function revisions(): HasMany
     {
         return $this->hasMany(WorkCompletionReportRevision::class);
     }

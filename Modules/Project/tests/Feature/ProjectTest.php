@@ -20,7 +20,7 @@ class ProjectTest extends TestCase
             'name' => $project->name,
         ]);
 
-        $this->assertNotNull($project->code);
+        $this->assertNotNull($project->number);
         $this->assertNotNull($project->customer_id);
     }
 
@@ -30,7 +30,7 @@ class ProjectTest extends TestCase
         $project1 = Project::factory()->create();
         $project2 = Project::factory()->create();
 
-        $this->assertNotEquals($project1->code, $project2->code);
+        $this->assertNotEquals($project1->number, $project2->number);
     }
 
     #[\PHPUnit\Framework\Attributes\Test]

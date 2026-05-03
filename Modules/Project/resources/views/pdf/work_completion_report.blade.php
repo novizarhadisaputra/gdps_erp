@@ -145,7 +145,8 @@
         $parentSource = $source->sourceable;
         if ($parentSource instanceof CooperationAgreement || 
             $parentSource instanceof PurchaseOrder || 
-            $parentSource instanceof WorkOrder) {
+            $parentSource instanceof WorkOrder ||
+            $parentSource instanceof MinutesOfAgreement) {
             $displaySource = $parentSource;
         }
     }
@@ -162,7 +163,7 @@
             $displaySourceType = $lang === 'id' ? 'Surat Perintah Kerja (SPK)' : 'Work Order (SPK)';
         } elseif ($displaySource instanceof SalesOrder) {
             $isInternal = $displaySource->type === SalesOrderType::Internal;
-            $sourceNumber = $isInternal ? '-' : $displaySource->number;
+            $sourceNumber = $displaySource->number ?? '-';
             $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
         } elseif ($displaySource instanceof MinutesOfAgreement) {
             $sourceNumber = $displaySource->number;

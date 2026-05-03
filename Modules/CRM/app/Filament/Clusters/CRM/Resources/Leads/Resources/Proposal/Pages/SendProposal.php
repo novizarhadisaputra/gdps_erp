@@ -37,7 +37,7 @@ class SendProposal extends Page
         $this->record = $this->resolveRecord($record);
 
         $this->form->fill([
-            'subject' => 'Proposal - '.$this->record->proposal_number,
+            'subject' => 'Proposal - '.$this->record->number,
             'recipient_email' => $this->record->customer?->email,
             'recipient_name' => $this->record->customer?->name,
             'message' => '<p>Please find the attached proposal for our services.</p><p>If you have any questions or require further information, please do not hesitate to contact us.</p>',
@@ -171,7 +171,7 @@ class SendProposal extends Page
             } else {
                 // Generate PDF on the fly as fallback
                 $pdf = Pdf::loadView('crm::pdf.proposal', ['record' => $this->record]);
-                $filename = 'proposal-'.str_replace(['/', '\\'], '-', $this->record->proposal_number).'.pdf';
+                $filename = 'proposal-'.str_replace(['/', '\\'], '-', $this->record->number).'.pdf';
 
                 // Store temporarily on S3 to get a URL
                 $tempPath = "temp/proposals/{$filename}";
@@ -192,7 +192,7 @@ class SendProposal extends Page
             // 4. Send via External API
             Log::info('Proposal Email Sending Attempt', [
                 'proposal_id' => $this->record->id,
-                'proposal_number' => $this->record->proposal_number,
+                'proposal_number' => $this->record->number,
                 'recipient' => $formData['recipient_email'],
             ]);
 

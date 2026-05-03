@@ -116,4 +116,9 @@ class Invoice extends Model implements HasMedia
     {
         return $this->hasMany(InvoiceRevision::class);
     }
+
+    public function workCompletionReport(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\Project\Models\WorkCompletionReport::class, 'work_completion_report_id');
+    }
 }

@@ -4,6 +4,8 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Icons\Heroicon;
@@ -19,6 +21,7 @@ class EditCostingTemplate extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ViewAction::make(),
             Action::make('pdf')
                 ->label('Export PDF')
                 ->color('gray')

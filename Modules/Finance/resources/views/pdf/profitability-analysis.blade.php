@@ -199,7 +199,7 @@
                                     Project Ref</td>
                                 <td
                                     style="border: none; border-bottom: 1px solid #f1f5f9; padding: 4px 0; font-size: 10px; text-align: right; font-weight: bold;">
-                                    {{ $record->project_number ?? 'PENDING' }}</td>
+                                    {{ $record->project?->number ?? 'PENDING' }}</td>
                             </tr>
                             <tr>
                                 <td

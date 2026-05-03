@@ -34,9 +34,7 @@ trait HasInvoiceActions
                 ]);
 
                 $name = str_replace(['/', '\\'], '-', $record->number);
-                $customerName = \Illuminate\Support\Str::slug($record->customer?->company_name ?? $record->customer?->name ?? 'Unknown-Customer', '-');
-                $langSuffix = strtoupper($data['language']);
-                $fileName = "Invoice_{$name}_{$customerName}_{$langSuffix}.pdf";
+                $fileName = "{$name}.pdf";
 
                 return response()->streamDownload(
                     fn () => print ($pdf->output()),

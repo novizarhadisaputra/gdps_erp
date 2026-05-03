@@ -12,7 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Str;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\LeadResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource;
@@ -41,9 +40,9 @@ class ViewGeneralInformation extends ViewRecord
                     ->action(function () {
                         $record = $this->getRecord();
                         $pdf = Pdf::loadView('crm::pdf.general_information', ['record' => $record]);
-                        $name = Str::slug($record->number, '-');
-                        $leadName = Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
-                        $fileName = "GI_{$name}_{$leadName}.pdf";
+
+                        $number = str_replace(['/', '\\'], '-', $record->number ?? 'Draft');
+                        $fileName = "{$number}.pdf";
 
                         return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
@@ -193,7 +192,7 @@ class ViewGeneralInformation extends ViewRecord
                 ->color('gray')
                 ->button(),
 
-            \Filament\Actions\ActionGroup::make([
+            ActionGroup::make([
                 Action::make('Submit')
                     ->color('info')
                     ->icon(Heroicon::OutlinedPaperAirplane)

@@ -251,7 +251,7 @@
             <td class="bg-gray">Original SO No.</td>
             <td class="bg-white">{{ $record->salesOrder->number }}</td>
             <td class="bg-gray">Project Code</td>
-            <td class="bg-white">{{ $record->salesOrder->project->code ?? '-' }}</td>
+            <td class="bg-white">{{ $record->salesOrder->project->number ?? '-' }}</td>
         </tr>
         <tr>
             <td class="bg-gray">Customer</td>

@@ -5,7 +5,6 @@
 @use(Modules\CRM\Models\ManpowerTemplate)
 @use(Modules\MasterData\Enums\Gender)
 @use(Spatie\MediaLibrary\MediaCollections\Models\Media)
-@use(UnitEnum)
 
 @php
     $pa = $record->profitabilityAnalysis ?? $record->lead?->latestProfitabilityAnalysis;
@@ -71,7 +70,7 @@
 
     if ($recipientGender) {
         // Handle both Enum object and raw string
-        $genderValue = $recipientGender instanceof UnitEnum ? $recipientGender->value : $recipientGender;
+        $genderValue = $recipientGender instanceof \UnitEnum ? $recipientGender->value : $recipientGender;
         $genderEnum = Gender::tryFrom($genderValue);
 
         if ($genderEnum) {

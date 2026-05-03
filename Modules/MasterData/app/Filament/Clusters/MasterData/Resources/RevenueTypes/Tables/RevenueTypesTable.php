@@ -2,9 +2,13 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueTypes\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -41,8 +45,15 @@ class RevenueTypesTable
                 //
             ])
             ->recordActions([
-                EditAction::make()
-                    ->schema(fn (Schema $schema) => RevenueTypeForm::configure($schema)),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make()
+                        ->schema(fn (Schema $schema) => RevenueTypeForm::configure($schema)),
+                    DeleteAction::make(),
+                ])
+                ->icon(Heroicon::OutlinedEllipsisVertical)
+                ->color('gray')
+                ->button(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

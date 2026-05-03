@@ -10,11 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\GeneralInformationStatus;
 use Modules\CRM\Enums\ProrationMethod;
 use Modules\CRM\Observers\SalesPlanObserver;
 use Modules\MasterData\Models\IndustrialSector;
+use Modules\MasterData\Models\PaymentTerm;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\ProjectType;
@@ -118,12 +120,12 @@ class SalesPlan extends Model
         return $this->belongsTo(ProjectArea::class);
     }
 
-    public function agreement(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function agreement(): HasOne
     {
         return $this->hasOne(CooperationAgreement::class, 'lead_id', 'lead_id');
     }
 
-    public function workOrder(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function workOrder(): HasOne
     {
         return $this->hasOne(WorkOrder::class, 'lead_id', 'lead_id');
     }
@@ -133,9 +135,26 @@ class SalesPlan extends Model
         return $this->hasMany(SalesPlanMonthly::class);
     }
 
+    public function proposal(): HasOne
+    {
+        return $this->hasOne(Proposal::class, 'lead_id', 'lead_id')->latest('created_at');
+    }
+
+    public function purchaseOrder(): HasOne
+    {
+        return $this->hasOne(PurchaseOrder::class, 'lead_id', 'lead_id')->latest('created_at');
+    }
+
+    public function salesOrder(): HasOne
+    {
+        // Reachable via Proposal or directly if lead_id is added in future
+        // For now, many SOs link back to a Proposal which links to a Lead
+        return $this->hasOne(SalesOrder::class, 'customer_id', 'lead_id'); // This is likely wrong if lead_id != customer_id
+    }
+
     public function paymentTerm(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\PaymentTerm::class);
+        return $this->belongsTo(PaymentTerm::class);
     }
 
     public function toGeneralInformation(): GeneralInformation

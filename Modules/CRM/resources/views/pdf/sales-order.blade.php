@@ -266,7 +266,10 @@
             <td class="title-box">
                 <h1>SALES ORDER / SURAT PESANAN</h1>
                 <p>{{ $record->number }}</p>
-                <div style="font-weight: normal; font-size: 9px;">Date: {{ $record->order_date->format('d F Y') }}</div>
+                @if($record->sourceable)
+                    <div style="font-weight: normal; font-size: 10px; margin-top: 4px;">Ref: {{ $record->sourceable->number }}</div>
+                @endif
+                <div style="font-weight: normal; font-size: 9px; margin-top: 2px;">Date: {{ $record->order_date->format('d F Y') }}</div>
             </td>
         </tr>
     </table>

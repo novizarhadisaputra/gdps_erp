@@ -3,6 +3,7 @@
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Pages;
 
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\InvoiceResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Traits\HasInvoiceActions;
@@ -16,6 +17,7 @@ class EditInvoice extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ViewAction::make(),
             $this->getExportPdfAction(),
             DeleteAction::make(),
         ];

@@ -2,13 +2,17 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Maatwebsite\Excel\Facades\Excel;
+use Modules\Finance\Exports\ProfitabilityAnalysisExport;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
+use Modules\Finance\Models\ProfitabilityAnalysis;
 
 class SummaryProfitabilityAnalysis extends ViewRecord
 {
@@ -32,7 +36,7 @@ class SummaryProfitabilityAnalysis extends ViewRecord
     {
         return [
             // 1. Workflow Actions (The most important ones)
-            \Filament\Actions\ActionGroup::make([
+            ActionGroup::make([
                 $this->getSubmitAction(),
                 $this->getApproveMarginAction(),
                 $this->getApprovePAAction(),
@@ -44,25 +48,24 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                 ->button(),
 
             // 2. Document Data Actions
-            \Filament\Actions\ActionGroup::make($this->getStepActions())
+            ActionGroup::make($this->getStepActions())
                 ->label('Edit Details')
                 ->icon(Heroicon::PencilSquare)
                 ->color('info')
                 ->button(),
 
             // 3. Output & Export
-            \Filament\Actions\ActionGroup::make([
+            ActionGroup::make([
                 Action::make('exportExcel')
                     ->label('Excel')
                     ->icon(Heroicon::OutlinedTableCells)
                     ->color('success')
-                    ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
-                        $leadName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
+                    ->action(function (ProfitabilityAnalysis $record) {
                         $number = str_replace(['/', '\\'], '-', $record->number ?? 'Draft');
-                        $filename = "PA_{$number}_{$leadName}.xlsx";
+                        $filename = "{$number}.xlsx";
 
                         return Excel::download(
-                            new \Modules\Finance\Exports\ProfitabilityAnalysisExport($record),
+                            new ProfitabilityAnalysisExport($record),
                             $filename
                         );
                     }),
@@ -70,8 +73,8 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                     ->label('PDF')
                     ->icon(Heroicon::OutlinedDocumentArrowDown)
                     ->color('danger')
-                    ->action(function (\Modules\Finance\Models\ProfitabilityAnalysis $record) {
-                        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+                    ->action(function (ProfitabilityAnalysis $record) {
+                        $pdf = Pdf::loadView(
                             'finance::pdf.profitability-analysis',
                             [
                                 'record' => $record,
@@ -80,9 +83,8 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                             ]
                         )->setPaper('a4', 'portrait');
 
-                        $leadName = \Illuminate\Support\Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
                         $number = str_replace(['/', '\\'], '-', $record->number ?? 'Draft');
-                        $filename = "PA_{$number}_{$leadName}.pdf";
+                        $filename = "{$number}.pdf";
 
                         return response()->streamDownload(function () use ($pdf) {
                             echo $pdf->output();
@@ -98,7 +100,7 @@ class SummaryProfitabilityAnalysis extends ViewRecord
                 ->button(),
 
             // 4. Other Options
-            \Filament\Actions\ActionGroup::make([
+            ActionGroup::make([
                 $this->getRejectAction(),
                 $this->getCreateProposalAction(),
                 $this->getRegenerateSalesOrderAction(),

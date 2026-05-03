@@ -4,6 +4,7 @@ namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTem
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ViewRecord;
@@ -28,13 +29,12 @@ class ViewCostingTemplate extends ViewRecord
                     $record = $this->getRecord();
                     $pdf = Pdf::loadView('crm::pdf.costing_template', ['record' => $record]);
                     $name = Str::slug($record->name, '-');
-                    $leadName = Str::slug($record->lead?->company_name ?? $record->lead?->title ?? 'Unknown-Lead', '-');
-                    $fileName = "Costing_{$name}_{$leadName}.pdf";
+                    $fileName = "{$name}.pdf";
 
                     return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
             EditAction::make(),
-            \Filament\Actions\DeleteAction::make(),
+            DeleteAction::make(),
         ];
     }
 }
