@@ -16,6 +16,9 @@ return new class extends Migration
             $table->nullableUuidMorphs('parentable');
             $table->string('code')->unique()->nullable();
             $table->string('name');
+            $table->string('api_code')->nullable();
+            $table->foreignUuid('province_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'provinces' : 'master_data.provinces')->nullOnDelete();
+            $table->foreignUuid('regency_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'regencies' : 'master_data.regencies')->nullOnDelete();
             $table->boolean('has_branches')->default(false);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);

@@ -7,7 +7,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Modules\CRM\Filament\Clusters\CRM\CRMCluster;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Pages\ListCustomers;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerInfolist;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Tables\CustomersTable;
@@ -50,7 +49,10 @@ class CustomerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListCustomers::route('/'),
+            'index' => Pages\ListCustomers::route('/'),
+            'create' => Pages\CreateCustomer::route('/create'),
+            'view' => Pages\ViewCustomer::route('/{record}'),
+            'edit' => Pages\EditCustomer::route('/{record}/edit'),
         ];
     }
 }

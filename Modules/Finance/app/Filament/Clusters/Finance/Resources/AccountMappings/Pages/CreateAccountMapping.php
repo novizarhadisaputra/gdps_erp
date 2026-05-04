@@ -8,4 +8,9 @@ use Modules\Finance\Filament\Clusters\Finance\Resources\AccountMappings\AccountM
 class CreateAccountMapping extends CreateRecord
 {
     protected static string $resource = AccountMappingResource::class;
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

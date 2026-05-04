@@ -22,7 +22,7 @@ class ProjectAreaForm
             ->components(static::schema());
     }
 
-    public static function schema(): array
+    public static function schema(bool $includeParent = true): array
     {
         return [
             Section::make('Location Details')
@@ -104,7 +104,7 @@ class ProjectAreaForm
                         ->placeholder('Auto-filled')
                         ->dehydrated()
                         ->helperText('BPS/Official geographic code.'),
-                ])->columns(3),
+                ]),
 
             Section::make('Internal Identification')
                 ->description('Provide internal coding and status for this project area.')
@@ -120,7 +120,8 @@ class ProjectAreaForm
                                 ->label('Project Area'),
                         ])
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->visible($includeParent),
                     TextInput::make('code')
                         ->label('Internal Area Code')
                         ->unique(ProjectArea::class, 'code', ignoreRecord: true)
@@ -139,7 +140,7 @@ class ProjectAreaForm
                         ->label('Default Area')
                         ->default(false)
                         ->helperText('Sets this as the primary default area for new projects.'),
-                ])->columns(3),
+                ]),
 
         ];
     }

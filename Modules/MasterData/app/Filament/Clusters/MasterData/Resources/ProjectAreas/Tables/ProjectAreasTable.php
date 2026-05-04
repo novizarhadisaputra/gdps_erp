@@ -10,12 +10,10 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
-use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Services\WilayahSyncService;
 
@@ -68,10 +66,8 @@ class ProjectAreasTable
             ])
             ->recordActions([
                 ActionGroup::make([
-                    ViewAction::make()
-                        ->schema(fn (Schema $schema) => ProjectAreaForm::configure($schema)),
-                    EditAction::make()
-                        ->schema(fn (Schema $schema) => ProjectAreaForm::configure($schema)),
+                    ViewAction::make(),
+                    EditAction::make(),
                     DeleteAction::make(),
                     Action::make('syncSubRegions')
                         ->label('Sync Regencies')

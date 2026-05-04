@@ -2,13 +2,14 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Tables;
 
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Schemas\Schema;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Modules\CRM\Filament\Clusters\CRM\Resources\Customers\Schemas\CustomerForm;
 
 class CustomersTable
 {
@@ -43,8 +44,11 @@ class CustomersTable
                 //
             ])
             ->recordActions([
-                EditAction::make()
-                    ->schema(fn (Schema $schema) => CustomerForm::configure($schema)),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

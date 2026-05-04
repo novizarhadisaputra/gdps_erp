@@ -19,6 +19,10 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
+            $table->foreignUuid('province_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'provinces' : 'master_data.provinces')->nullOnDelete();
+            $table->foreignUuid('regency_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'regencies' : 'master_data.regencies')->nullOnDelete();
+            $table->foreignUuid('district_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'districts' : 'master_data.districts')->nullOnDelete();
+            $table->foreignUuid('village_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'villages' : 'master_data.villages')->nullOnDelete();
             $table->json('contacts')->nullable();
             $table->string('status')->default('active');
             $table->timestamps();

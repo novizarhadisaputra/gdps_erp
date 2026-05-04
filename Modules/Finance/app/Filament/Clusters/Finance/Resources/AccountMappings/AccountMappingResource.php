@@ -38,6 +38,7 @@ class AccountMappingResource extends Resource
         return [
             'index' => Pages\ListAccountMappings::route('/'),
             'create' => Pages\CreateAccountMapping::route('/create'),
+            'view' => Pages\ViewAccountMapping::route('/{record}'),
             'edit' => Pages\EditAccountMapping::route('/{record}/edit'),
         ];
     }

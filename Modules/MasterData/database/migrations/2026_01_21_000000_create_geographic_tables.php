@@ -43,13 +43,6 @@ return new class extends Migration
             $table->string('name');
             $table->timestamps();
         });
-
-        // Add geographic fields to existing project areas table
-        Schema::table($schema ? "$schema.project_areas" : 'project_areas', function (Blueprint $table) use ($schema) {
-            $table->string('api_code')->nullable()->after('code');
-            $table->foreignUuid('province_id')->nullable()->after('api_code')->constrained($schema ? "$schema.provinces" : 'provinces')->nullOnDelete();
-            $table->foreignUuid('regency_id')->nullable()->after('province_id')->constrained($schema ? "$schema.regencies" : 'regencies')->nullOnDelete();
-        });
     }
 
     /**
@@ -58,12 +51,6 @@ return new class extends Migration
     public function down(): void
     {
         $schema = config('database.default') === 'sqlite' ? null : 'master_data';
-
-        Schema::table($schema ? "$schema.project_areas" : 'project_areas', function (Blueprint $table) {
-            $table->dropForeign(['regency_id']);
-            $table->dropForeign(['province_id']);
-            $table->dropColumn(['api_code', 'province_id', 'regency_id']);
-        });
 
         Schema::dropIfExists($schema ? "$schema.villages" : 'villages');
         Schema::dropIfExists($schema ? "$schema.districts" : 'districts');

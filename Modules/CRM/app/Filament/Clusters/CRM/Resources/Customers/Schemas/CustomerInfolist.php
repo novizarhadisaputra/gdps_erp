@@ -9,6 +9,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
+use Modules\CRM\Models\Customer;
 
 class CustomerInfolist
 {
@@ -44,20 +45,20 @@ class CustomerInfolist
                             ->schema([
                                 TextEntry::make('npwp_document')
                                     ->label('NPWP')
-                                    ->state(fn ($record) => $record->getFirstMedia('npwp')?->file_name ?? 'No NPWP')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('npwp'), true)
+                                    ->state(fn (Customer $record) => $record->getFirstMedia('npwp')?->file_name ?? 'No NPWP')
+                                    ->url(fn (Customer $record) => $record->getFirstMediaUrl('npwp'), true)
                                     ->icon(Heroicon::OutlinedIdentification)
                                     ->color(fn ($state) => $state === 'No NPWP' ? 'gray' : 'primary'),
                                 TextEntry::make('legal_docs_count')
                                     ->label('Legal Documents')
-                                    ->state(fn ($record) => $record->getMedia('legal_documents')->count().' File(s)')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('legal_documents'), true)
+                                    ->state(fn (Customer $record) => $record->getMedia('legal_documents')->count().' File(s)')
+                                    ->url(fn (Customer $record) => $record->getFirstMediaUrl('legal_documents'), true)
                                     ->icon(Heroicon::OutlinedScale)
-                                    ->color(fn ($record) => $record->getMedia('legal_documents')->count() > 0 ? 'primary' : 'gray'),
+                                    ->color(fn (Customer $record) => $record->getMedia('legal_documents')->count() > 0 ? 'primary' : 'gray'),
                                 TextEntry::make('company_profile_doc')
                                     ->label('Company Profile')
-                                    ->state(fn ($record) => $record->getFirstMedia('company_profile')?->file_name ?? 'No Profile')
-                                    ->url(fn ($record) => $record->getFirstMediaUrl('company_profile'), true)
+                                    ->state(fn (Customer $record) => $record->getFirstMedia('company_profile')?->file_name ?? 'No Profile')
+                                    ->url(fn (Customer $record) => $record->getFirstMediaUrl('company_profile'), true)
                                     ->icon(Heroicon::OutlinedBuildingOffice)
                                     ->color(fn ($state) => $state === 'No Profile' ? 'gray' : 'primary'),
                             ]),
@@ -92,7 +93,7 @@ class CustomerInfolist
                                     ]),
                             ])
                             ->columns(1)
-                            ->emptyState('No account mappings defined for this customer.'),
+                            ->placeholder('No account mappings defined for this customer.'),
                     ])->columnSpanFull(),
             ]);
     }

@@ -15,6 +15,7 @@ use Modules\MasterData\Enums\ActiveStatus;
 use Modules\MasterData\Enums\Gender;
 use Modules\MasterData\Enums\LegalEntityType;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ContactRoles\Schemas\ContactRoleForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Models\ContactRole;
 use Modules\MasterData\Models\District;
 use Modules\MasterData\Models\Province;
@@ -45,8 +46,8 @@ class CustomerForm
                         ->maxLength(3)
                         ->placeholder('e.g. GIA')
                         ->helperText('Unique 3-character customer abbreviation used in project codes.')
-                        ->disabled(fn ($record) => $record !== null)
-                        ->hidden(fn ($record) => $record === null && $isCreateOption)
+                        ->disabled(fn (?Customer $record) => $record !== null)
+                        ->hidden(fn (?Customer $record) => $record === null && $isCreateOption)
                         ->dehydrated(),
                     Select::make('legal_entity_type')
                         ->label('Legal Entity Type')
@@ -210,19 +211,10 @@ class CustomerForm
                 ->schema([
                     Repeater::make('projectAreas')
                         ->relationship('projectAreas')
-                        ->schema([
-                            TextInput::make('name')
-                                ->label('Area Name')
-                                ->required()
-                                ->placeholder('e.g. Area Jakarta')
-                                ->columnSpan(2),
-                            TextInput::make('code')
-                                ->label('Area Code')
-                                ->placeholder('e.g. AR-JKT'),
-                        ])
-                        ->columns(3)
+                        ->schema(ProjectAreaForm::schema(false))
                         ->addActionLabel('Add Project Area')
-                        ->collapsible(),
+                        ->collapsible()
+                        ->itemLabel(fn (array $state): ?string => $state['name'] ?? null),
                 ]),
 
         ];
