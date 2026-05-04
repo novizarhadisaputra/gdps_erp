@@ -1837,6 +1837,7 @@ class ProfitabilityAnalysisForm
                     'unit_of_measure' => $item['unit_of_measure'] ?? 'Unit',
                     'unit_amount' => $item['unit_cost_price'],
                     'amount' => $item['total_monthly_cost'],
+                    'duration_months' => $item['duration_months'] ?? null,
                     'risk_level' => $item['risk_level'] ?? 'very_low',
                     'employee_type' => $item['employee_type'] ?? 'ppu',
                     'is_labor_intensive' => $item['is_labor_intensive'] ?? false,

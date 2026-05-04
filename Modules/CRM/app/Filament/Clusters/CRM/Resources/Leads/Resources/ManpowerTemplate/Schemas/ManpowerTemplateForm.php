@@ -303,6 +303,11 @@ class ManpowerTemplateForm
                                                             ->default('ppu')
                                                             ->required()
                                                             ->helperText('Standard BPJS participation type for this specific role.'),
+                                                        Toggle::make('use_ter_method')
+                                                            ->label('Use TER Method (PPh 21)')
+                                                            ->default(true)
+                                                            ->live()
+                                                            ->helperText('Enable to use the 2024 TER method. Disable for Progressive (Pasal 17).'),
                                                     ]),
 
                                                 Section::make('Company Coverage')
@@ -360,6 +365,13 @@ class ManpowerTemplateForm
                                                                     ->required()
                                                                     ->live()
                                                                     ->columnSpan(1),
+                                                                Select::make('frequency')
+                                                                    ->options(['monthly' => 'Monthly', 'daily' => 'Daily'])
+                                                                    ->default('monthly')
+                                                                    ->required()
+                                                                    ->live()
+                                                                    ->columnSpan(1)
+                                                                    ->helperText('Daily allowances are multiplied by working days.'),
                                                                 Toggle::make('is_fixed')
                                                                     ->label('Fixed')
                                                                     ->default(true)
@@ -480,6 +492,7 @@ class ManpowerTemplateForm
                                             extraCosts: $item['extra_costs'] ?? [],
                                             ptkpCode: $item['ptkp_status'] ?? 'TK/0',
                                             isBpjsActive: (bool) ($item['is_bpjs_active'] ?? true),
+                                            useTerMethod: (bool) ($item['use_ter_method'] ?? true),
                                             borneByCompany: [
                                                 'tax' => (bool) ($item['is_tax_borne_by_company'] ?? false),
                                                 'jkn' => (bool) ($item['is_employee_jkn_borne_by_company'] ?? false),
@@ -551,7 +564,7 @@ class ManpowerTemplateForm
                                             <span class='font-bold uppercase shrink-0'>Information:</span>
                                             <ul class='list-disc list-inside space-y-1 opacity-80'>
                                                 <li>Calculations follow BPJS PPU and latest JKK risk categories.</li>
-                                                <li>PPh 21 Tax uses the TER (Monthly Effective Rate) method.</li>
+                                                <li>PPh 21 Tax supports both TER and Progressive (Pasal 17) methods.</li>
                                                 <li>Extra costs are monthly accruals from annual budgets.</li>
                                                 <li>Policies can be defined at Cluster level or overridden per Personnel.</li>
                                             </ul>

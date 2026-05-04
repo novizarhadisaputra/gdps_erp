@@ -191,33 +191,33 @@
             <table>
                 <tr>
                     <th>Customer</th>
-                    <td class="info-value">{{ $record->customer->name ?? '-' }}</td>
+                    <td class="info-value">{{ $record->customer->name ?? '........' }}</td>
                 </tr>
                 <tr>
                     <th>Project Scope (SOW)</th>
-                    <td>{{ $record->scope_of_work ?? '-' }}</td>
+                    <td>{{ $record->scope_of_work ?? '................' }}</td>
                 </tr>
                 <tr>
                     <th>Location</th>
-                    <td>{{ $record->location ?? '-' }}</td>
+                    <td>{{ $record->location ?? '................' }}</td>
                 </tr>
                 <tr>
                     <th>Estimation Dates</th>
                     <td>
                         <strong>Start:</strong>
-                        {{ $record->estimated_start_date ? $record->estimated_start_date->format('d M Y') : '-' }}
+                        {{ $record->estimated_start_date ? $record->estimated_start_date->format('d M Y') : '........' }}
                         &nbsp;&bull;&nbsp;
                         <strong>End:</strong>
-                        {{ $record->estimated_end_date ? $record->estimated_end_date->format('d M Y') : '-' }}
+                        {{ $record->estimated_end_date ? $record->estimated_end_date->format('d M Y') : '........' }}
                     </td>
                 </tr>
                 <tr>
                     <th>Description</th>
-                    <td>{!! nl2br(e($record->description ?? '-')) !!}</td>
+                    <td>{!! nl2br(e($record->description ?? '................')) !!}</td>
                 </tr>
                 <tr>
                     <th>Work Activities</th>
-                    <td>{!! nl2br(e($record->work_activities ?? '-')) !!}</td>
+                    <td>{!! nl2br(e($record->work_activities ?? '................')) !!}</td>
                 </tr>
             </table>
 
@@ -226,15 +226,15 @@
             <table>
                 <tr>
                     <th>Manpower Qualifications</th>
-                    <td>{!! nl2br(e($record->manpower_qualifications ?? '-')) !!}</td>
+                    <td>{!! nl2br(e($record->manpower_qualifications ?? '................')) !!}</td>
                 </tr>
                 <tr>
                     <th>Service Level</th>
-                    <td>{!! nl2br(e($record->service_level ?? '-')) !!}</td>
+                    <td>{!! nl2br(e($record->service_level ?? '................')) !!}</td>
                 </tr>
                 <tr>
                     <th>Billing Requirements</th>
-                    <td>{!! nl2br(e($record->billing_requirements ?? '-')) !!}</td>
+                    <td>{!! nl2br(e($record->billing_requirements ?? '................')) !!}</td>
                 </tr>
             </table>
 
@@ -243,7 +243,7 @@
             <table>
                 <tr>
                     <th>Risk Register No.</th>
-                    <td class="info-value">{{ $record->risk_register_number ?? '-' }}</td>
+                    <td class="info-value">{{ $record->risk_register_number ?? '........' }}</td>
                 </tr>
                 <tr>
                     <th>Risk Management</th>
@@ -255,14 +255,14 @@
                                 @endforeach
                             </ul>
                         @else
-                            {{ $record->risk_management ? (is_string($record->risk_management) ? $record->risk_management : '-') : '-' }}
+                            {{ $record->risk_management ? (is_string($record->risk_management) ? $record->risk_management : '........') : '........' }}
                         @endif
                     </td>
                 </tr>
                 <tr>
                     <th>Customer PIC</th>
                     <td>
-                        <span class="info-value">{{ $record->pic_customer_name }}</span>
+                        <span class="info-value">{{ $record->pic_customer_name ?? '........' }}</span>
                         @if ($record->pic_customer_phone)
                             <div style="font-size: 10px; color: #64748b;">Phone: {{ $record->pic_customer_phone }}
                             </div>
@@ -271,7 +271,7 @@
                 </tr>
                 <tr>
                     <th>Remarks</th>
-                    <td>{!! nl2br(e($record->remarks ?? '-')) !!}</td>
+                    <td>{!! nl2br(e($record->remarks ?? '................')) !!}</td>
                 </tr>
             </table>
 

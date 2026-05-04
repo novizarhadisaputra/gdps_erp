@@ -145,6 +145,7 @@ class ManpowerTemplate extends Model implements HasMedia
                     extraCosts: $item->extra_costs ?? [],
                     ptkpCode: $item->ptkp_status ?? 'TK/0',
                     isBpjsActive: (bool) ($item->is_bpjs_active ?? true),
+                    useTerMethod: (bool) ($item->use_ter_method ?? true),
                     borneByCompany: [
                         'tax' => (bool) ($item->is_tax_borne_by_company ?? false),
                         'jkn' => (bool) ($item->is_employee_jkn_borne_by_company ?? false),

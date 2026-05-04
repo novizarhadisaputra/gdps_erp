@@ -10,6 +10,8 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Modules\CRM\Models\Customer;
+use Modules\MasterData\Models\ProjectArea;
 
 class AccountMappingsTable
 {
@@ -17,12 +19,30 @@ class AccountMappingsTable
     {
         return $table
             ->columns([
-                TextColumn::make('mappable_type')
-                    ->label('Entity Type')
-                    ->state(fn ($record) => class_basename($record->mappable_type))
-                    ->badge(),
+                TextColumn::make('customer')
+                    ->label('Customer')
+                    ->state(function ($record) {
+                        if ($record->mappable instanceof Customer) {
+                            return $record->mappable->name;
+                        }
+                        if ($record->mappable instanceof ProjectArea) {
+                            return $record->mappable->getCustomer()?->name ?? 'Unknown';
+                        }
+
+                        return '-';
+                    })
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('mappable.name')
-                    ->label('Entity Name')
+                    ->label('Project Area')
+                    ->state(function ($record) {
+                        if ($record->mappable instanceof ProjectArea) {
+                            return $record->mappable->name;
+                        }
+
+                        return '(Customer Level)';
+                    })
+                    ->color(fn ($state) => $state === '(Customer Level)' ? 'gray' : 'primary')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('type')

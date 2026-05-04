@@ -77,6 +77,7 @@ return new class extends Migration
             $table->string('ptkp_status')->default('TK/0')->comment('Tax status for PPh 21');
             $table->boolean('is_bpjs_active')->default(true)->comment('Whether BPJS is enabled for this position');
             $table->boolean('is_tax_borne_by_company')->default(false)->comment('Whether company pays the employee tax portion');
+            $table->boolean('use_ter_method')->default(true)->comment('Whether to use TER (Effective Rate) for tax calculation');
 
             // Employee Portions Borne by Company
             $table->boolean('is_employee_jkn_borne_by_company')->default(false)->comment('Company covers employee BPJS Health portion');

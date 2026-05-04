@@ -434,13 +434,13 @@
                     @php $grandTotal += (float)($item['total_price'] ?? 0); @endphp
                     <tr>
                         <td class="text-center">{{ $no++ }}</td>
-                        <td>{{ $item['work_measurement'] ?? $item['item_name'] ?? '-' }}</td>
+                        <td>{{ $item['work_measurement'] ?? $item['item_name'] ?? '................' }}</td>
                         <td class="text-center">{{ number_format($item['quantity'] ?? 0) }}</td>
-                        <td class="text-center">{{ $item['uom'] ?? '-' }}</td>
+                        <td class="text-center">{{ $item['uom'] ?? '........' }}</td>
                         <td class="text-right">{{ number_format($item['unit_price'] ?? 0, 0, ',', '.') }}</td>
                         <td class="text-right">{{ number_format($item['total_price'] ?? 0, 0, ',', '.') }}</td>
-                        <td class="text-center">{{ $item['so_reference'] ?? '-' }}</td>
-                        <td>{{ $item['remarks'] ?? '-' }}</td>
+                        <td class="text-center">{{ $item['so_reference'] ?? '........' }}</td>
+                        <td>{{ $item['remarks'] ?? '........' }}</td>
                     </tr>
                 @endforeach
             </tbody>

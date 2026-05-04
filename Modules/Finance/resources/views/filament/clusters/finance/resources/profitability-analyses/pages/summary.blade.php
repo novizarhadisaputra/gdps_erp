@@ -158,7 +158,7 @@
                                     {{ $category?->name === 'Manpower' ? (int) $items->sum('quantity') . ' Headcount' : '-' }}
                                 </td>
                                 <td class="px-8 py-3 text-right text-xs text-gray-600 tabular-nums">
-                                    @money($items->sum(fn($i) => (float)($i->total_monthly_cost ?? 0)), 'IDR', true)
+                                    @money($items->sum(fn($i) => (float)($i->monthly_contribution ?? 0)), 'IDR', true)
                                 </td>
                             </tr>
                         @endforeach

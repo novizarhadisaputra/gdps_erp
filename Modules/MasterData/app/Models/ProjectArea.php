@@ -67,4 +67,38 @@ class ProjectArea extends Model
     {
         return $this->morphMany(\Modules\Finance\Models\AccountMapping::class, 'mappable');
     }
+
+    /**
+     * Get the root customer for this project area by traversing up the parentable hierarchy.
+     */
+    public function getCustomer(): ?\Modules\CRM\Models\Customer
+    {
+        if ($this->parentable_type === \Modules\CRM\Models\Customer::class) {
+            return $this->parentable;
+        }
+
+        if ($this->parentable_type === self::class && $this->parentable) {
+            return $this->parentable->getCustomer();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get all descendant project areas for a given parentable.
+     */
+    public static function getAllDescendantsFor(\Illuminate\Database\Eloquent\Model $parentable): \Illuminate\Support\Collection
+    {
+        $areas = self::where('parentable_id', $parentable->id)
+            ->where('parentable_type', get_class($parentable))
+            ->get();
+
+        $all = collect($areas);
+
+        foreach ($areas as $area) {
+            $all = $all->merge(self::getAllDescendantsFor($area));
+        }
+
+        return $all;
+    }
 }

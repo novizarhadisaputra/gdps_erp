@@ -260,7 +260,7 @@
                             <td class="text-center">
                                 {{ $category?->name === 'Manpower' ? (int) $items->sum('quantity') . ' HC' : '-' }}
                             </td>
-                            <td class="text-right">{{ $formatMoney($items->sum(fn($i) => (float)($i->total_monthly_cost ?? 0))) }}</td>
+                            <td class="text-right">{{ $formatMoney($items->sum(fn($i) => (float)($i->monthly_contribution ?? 0))) }}</td>
                         </tr>
                     @endforeach
 

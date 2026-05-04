@@ -122,6 +122,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             'start_date' => 'date',
             'end_date' => 'date',
             'salary_increase_rate' => 'decimal:2',
+            'project_duration' => 'decimal:2',
         ];
     }
 
@@ -252,10 +253,16 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             }
 
             return $subItems->map(function ($item) use ($category, $categoryId) {
+                $rawMonthlyCost = self::parseNumericValue($item['amount'] ?? $item['total_monthly_cost'] ?? 0);
+                $duration = self::parseNumericValue($item['duration_months'] ?? $this->project_duration);
+                $contribution = ($this->project_duration > 0) ? ($rawMonthlyCost * $duration / $this->project_duration) : $rawMonthlyCost;
+
                 return (object) [
                     'direct_cost_category_id' => $categoryId,
                     'category' => $category,
-                    'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? $item['total_monthly_cost'] ?? 0),
+                    'total_monthly_cost' => $rawMonthlyCost,
+                    'duration_months' => $duration,
+                    'monthly_contribution' => $contribution,
                     'unit_cost_price' => self::parseNumericValue($item['unit_amount'] ?? $item['unit_cost_price'] ?? 0),
                     'quantity' => self::parseNumericValue($item['quantity'] ?? 1),
                     'uom' => $item['uom'] ?? $item['unit_of_measure'] ?? (isset($item['job_position_name']) || isset($item['job_position_id']) ? 'Orang' : 'Unit'),
@@ -352,20 +359,69 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         }
     }
 
+    public function getProjectDurationAttribute(): float
+    {
+        if ($this->start_date && $this->end_date) {
+            $days = $this->start_date->diffInDays($this->end_date);
+
+            return max(1, round($days / (365 / 12), 2));
+        }
+
+        if ($this->generalInformation && $this->generalInformation->estimated_start_date && $this->generalInformation->estimated_end_date) {
+            $days = $this->generalInformation->estimated_start_date->diffInDays($this->generalInformation->estimated_end_date);
+
+            return max(1, round($days / (365 / 12), 2));
+        }
+
+        return 1.0;
+    }
+
     protected static function parseNumericValue(mixed $value): float
     {
         if (is_numeric($value)) {
             return (float) $value;
         }
 
-        if (is_string($value)) {
-            // Remove thousand separators (.) and replace decimal separator (,) with (.)
-            $cleanValue = str_replace(['.', ','], ['', '.'], $value);
-
-            return (float) $cleanValue;
+        if (! is_string($value) || empty($value)) {
+            return 0.0;
         }
 
-        return 0.0;
+        // Remove any non-numeric/separator characters (except minus sign)
+        $value = preg_replace('/[^\d\.,-]/', '', $value);
+
+        if (empty($value)) {
+            return 0.0;
+        }
+
+        // Determine if it's Indonesian format (1.234,56) or US format (1,234.56)
+        $dots = substr_count($value, '.');
+        $commas = substr_count($value, ',');
+
+        if ($dots > 0 && $commas > 0) {
+            // Mixed separators - usually the last one is the decimal
+            $lastDot = strrpos($value, '.');
+            $lastComma = strrpos($value, ',');
+
+            if ($lastDot > $lastComma) {
+                // US Format: 1,234.56 -> remove commas
+                $value = str_replace(',', '', $value);
+            } else {
+                // ID Format: 1.234,56 -> remove dots, replace comma with dot
+                $value = str_replace('.', '', $value);
+                $value = str_replace(',', '.', $value);
+            }
+        } elseif ($commas > 0 && $dots === 0) {
+            // Only commas - could be 1,234 (US thousands) or 1234,56 (ID decimal)
+            // In most ERP contexts here, a single comma in a string without dots is treated as decimal
+            // unless it's clearly a thousand separator (e.g. 1,000).
+            // However, to be safe for ID context:
+            $value = str_replace(',', '.', $value);
+        } elseif ($dots > 1) {
+            // Multiple dots - must be thousand separators (ID: 1.000.000)
+            $value = str_replace('.', '', $value);
+        }
+
+        return (float) $value;
     }
 
     public function getManpowerRequirementsAttribute(): array
@@ -388,9 +444,9 @@ class ProfitabilityAnalysis extends Model implements HasMedia
         return $items->map(fn ($item) => [
             'job_position_id' => $item['job_position_id'] ?? $item['costable_id'] ?? null,
             'job_position_name' => $item['name'] ?? $item['job_position_name'] ?? 'Personnel',
-            'quantity' => (float) ($item['quantity'] ?? $item['qty'] ?? 1),
-            'unit_cost' => (float) ($item['unit_amount'] ?? $item['unit_cost'] ?? $item['unit_cost_price'] ?? 0),
-            'total_monthly_cost' => (float) ($item['amount'] ?? $item['line_total'] ?? $item['total_monthly_cost'] ?? 0),
+            'quantity' => self::parseNumericValue($item['quantity'] ?? $item['qty'] ?? 1),
+            'unit_cost' => self::parseNumericValue($item['unit_amount'] ?? $item['unit_cost'] ?? $item['unit_cost_price'] ?? 0),
+            'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? $item['line_total'] ?? $item['total_monthly_cost'] ?? 0),
             'risk_level' => $item['risk_level'] ?? 'very_low',
             'employee_type' => $item['employee_type'] ?? 'ppu',
             'is_labor_intensive' => $item['is_labor_intensive'] ?? false,

@@ -217,7 +217,7 @@
     $sourceNumber = '-';
     $displaySourceType = $labels['source_doc'][$lang];
     $isInternal = false;
-    $refNo = '-';
+    $refNo = '................';
     $so = null;
 
     if ($source) {
@@ -278,7 +278,7 @@
         $so?->payment_terms ??
         ($record->invoice_date && $record->due_date
             ? $record->invoice_date->diffInDays($record->due_date) . ' ' . $labels['days'][$lang]
-            : '-');
+            : '........');
 
     // Dynamic Payment Info
     $paymentInfo = is_array($record->payment_info)
@@ -750,8 +750,8 @@
                     <div style="margin-top: 5px;">
                         <span class="font-bold">{{ $labels['an'][$lang] }} {{ $accountName }}</span><br>
                         @foreach ($banks as $bank)
-                            <span class="font-bold">{{ $bank['bank_name'] ?? '' }} :
-                                {{ $bank['account_number'] ?? '' }} ({{ $bank['currency'] ?? 'IDR' }})</span><br>
+                            <span class="font-bold">{{ $bank['bank_name'] ?? '........' }} :
+                                {{ $bank['account_number'] ?? '........' }} ({{ $bank['currency'] ?? 'IDR' }})</span><br>
                         @endforeach
                     </div>
                 </div>

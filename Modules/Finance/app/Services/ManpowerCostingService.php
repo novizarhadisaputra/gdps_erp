@@ -51,7 +51,8 @@ class ManpowerCostingService
         bool $isBpjsActive = true,
         array $borneByCompany = [], // ['jkn' => bool, 'jkk' => bool, etc]
         float $salaryIncreaseRate = 0.063, // 6.3% annual increase assumption
-        ?int $baseYear = null
+        ?int $baseYear = null,
+        bool $useTerMethod = true
     ): array {
         $baseYear = $baseYear ?? $year ?? (int) date('Y');
         $yearDelta = max(0, ($year ?? $baseYear) - $baseYear);
@@ -104,8 +105,13 @@ class ManpowerCostingService
             $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
             $type = $allowance['type'] ?? 'nominal';
             $isFixed = $allowance['is_fixed'] ?? true;
+            $frequency = $allowance['frequency'] ?? 'monthly';
 
             $amount = $type === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+
+            if ($frequency === 'daily') {
+                $amount *= $workingDays;
+            }
 
             if ($isFixed) {
                 $fixedAllowances += $amount;
@@ -118,9 +124,9 @@ class ManpowerCostingService
         $totalMonthlySalary = $upah + $nonFixedAllowances;
 
         // Determine Basis for BPJS, THR, Compensation
-        $bpjsBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $bpjsBasisId, 'bpjs');
-        $thrBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $thrBasisId, 'thr', $includeNonFixedInAccruals);
-        $compensationBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $compensationBasisId, 'compensation', $includeNonFixedInAccruals);
+        $bpjsBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $bpjsBasisId, 'bpjs', false, $workingDays);
+        $thrBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $thrBasisId, 'thr', $includeNonFixedInAccruals, $workingDays);
+        $compensationBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $compensationBasisId, 'compensation', $includeNonFixedInAccruals, $workingDays);
 
         // BPJS Calculation
         if ($isBpjsActive) {
@@ -135,19 +141,17 @@ class ManpowerCostingService
         $thr = $thrBillingMethod === 'monthly_accrual' ? ($thrBasisAmount / 12) : 0;
         $compensation = $compensationBillingMethod === 'monthly_accrual' ? ($compensationBasisAmount / 12) : 0;
 
-        // If Lump Sum is selected, we might want to return the full amount in a specific breakdown field
-        // but for monthly direct cost calculation in PA, it's usually 0 if not accrued.
-        $thrLumpSum = $thrBillingMethod === 'lump_sum' ? $thrBasisAmount : 0;
-        $compensationLumpSum = $compensationBillingMethod === 'lump_sum' ? $compensationBasisAmount : 0;
-
         // Extra monthly costs which are flat (Equipment/Training)
         $extraCostsTotal = array_reduce($extraCosts, fn ($carry, $item) => $carry + (float) ($item['amount'] ?? 0), 0);
 
         // PPH21 Calculation
-        $pph21 = $this->calculatePph21($totalMonthlySalary + $thr + $compensation, $bpjsHealth, $bpjsEmployment, $ptkpCode);
+        if ($useTerMethod) {
+            $pph21 = $this->calculatePph21($totalMonthlySalary + $thr + $compensation, $bpjsHealth, $bpjsEmployment, $ptkpCode);
+        } else {
+            $pph21 = $this->calculateProgressivePph21($totalMonthlySalary + $thr + $compensation, $bpjsHealth, $bpjsEmployment, $ptkpCode);
+        }
 
         // Management Fee Calculation
-        // Management fee base usually includes all costs plus PPh 21 (if borne by company)
         $totalDirectCost = $upah + $nonFixedAllowances + $bpjsHealth['employer_total'] + $bpjsEmployment['employer_total'] + $thr + $compensation + $extraCostsTotal;
 
         if ($borneByCompany['tax'] ?? false) {
@@ -160,7 +164,7 @@ class ManpowerCostingService
 
         $breakdown = [
             'Gaji Pokok' => $basicSalary,
-            'Tunjangan Jabatan' => 0.0, // Will be filled from allowances logic
+            'Tunjangan Jabatan' => 0.0,
             'Tunjangan Komunikasi' => 0.0,
             'Tunjangan Sertifikasi' => 0.0,
             'SUBTOTAL UPAH' => $upah,
@@ -176,20 +180,25 @@ class ManpowerCostingService
             'SUBTOTAL TUNJANGAN NON-TETAP' => $nonFixedAllowances,
             'THR (Accrual)' => $thr,
             'Kompensasi (Accrual)' => $compensation,
-            'PPh 21 (TER)' => $pph21['total'],
+            'PPh 21 ('.($useTerMethod ? 'TER' : 'Pasal 17').')' => $pph21['total'],
             'Seragam & Perlengkapan' => $extraCostsTotal,
-            'Training & Sertifikasi' => 0.0, // Split if needed
+            'Training & Sertifikasi' => 0.0,
             'SUBTOTAL DIRECT COST' => $totalDirectCost,
             'Management Fee' => $adminFee + $managementFeeFlat,
             'TOTAL BILLING' => $totalCostToCompany,
         ];
 
-        // Map allowances to specific breakdown keys if they match by name (case-insensitive)
+        // Map allowances to specific breakdown keys
         foreach ($allowances as $allowance) {
             $name = $allowance['name'] ?? '';
             $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
             $type = $allowance['type'] ?? 'nominal';
+            $freq = $allowance['frequency'] ?? 'monthly';
             $amount = $type === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+
+            if ($freq === 'daily') {
+                $amount *= $workingDays;
+            }
 
             foreach ($breakdown as $key => $bVal) {
                 if (strtolower($key) === strtolower($name)) {
@@ -214,8 +223,6 @@ class ManpowerCostingService
                 'thr' => $thr,
                 'compensation' => $compensation,
                 'basis' => $thrBasisAmount,
-                'thr_lump_sum' => $thrLumpSum,
-                'compensation_lump_sum' => $compensationLumpSum,
             ],
             'extra_costs' => $extraCosts,
             'extra_costs_total' => $extraCostsTotal,
@@ -231,7 +238,7 @@ class ManpowerCostingService
         ];
     }
 
-    protected function calculateBasisAmount(float $basicSalary, array $allowances, ?string $basisId, string $type, bool $legacyIncludeNonFixed = false): float
+    protected function calculateBasisAmount(float $basicSalary, array $allowances, ?string $basisId, string $type, bool $legacyIncludeNonFixed = false, int $workingDays = 21): float
     {
         $basis = null;
         if ($basisId) {
@@ -241,12 +248,16 @@ class ManpowerCostingService
         }
 
         if (! $basis) {
-            // Default logic if no basis selected
             $fixedTotal = 0.0;
             foreach ($allowances as $allowance) {
                 if ($allowance['is_fixed'] ?? true) {
                     $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
-                    $fixedTotal += $allowance['type'] === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+                    $freq = $allowance['frequency'] ?? 'monthly';
+                    $amt = ($allowance['type'] ?? 'nominal') === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+                    if ($freq === 'daily') {
+                        $amt *= $workingDays;
+                    }
+                    $fixedTotal += $amt;
                 }
             }
 
@@ -255,7 +266,12 @@ class ManpowerCostingService
                 foreach ($allowances as $allowance) {
                     if (! ($allowance['is_fixed'] ?? true)) {
                         $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
-                        $amount += $allowance['type'] === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+                        $freq = $allowance['frequency'] ?? 'monthly';
+                        $amt = ($allowance['type'] ?? 'nominal') === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+                        if ($freq === 'daily') {
+                            $amt *= $workingDays;
+                        }
+                        $amount += $amt;
                     }
                 }
             }
@@ -268,7 +284,11 @@ class ManpowerCostingService
 
         foreach ($allowances as $allowance) {
             $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
-            $amt = $allowance['type'] === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+            $freq = $allowance['frequency'] ?? 'monthly';
+            $amt = ($allowance['type'] ?? 'nominal') === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+            if ($freq === 'daily') {
+                $amt *= $workingDays;
+            }
             $isFixed = $allowance['is_fixed'] ?? true;
             $isBpjsBase = $allowance['is_bpjs_base'] ?? false;
 
@@ -281,7 +301,6 @@ class ManpowerCostingService
                     $total += $amt;
                 }
             }
-            // gaji_pokok = do nothing, total remains $basicSalary
         }
 
         return $total;
@@ -425,7 +444,7 @@ class ManpowerCostingService
         /** @var BpjsJpConfig|null $jpConfig */
         $jpConfig = BpjsJpConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
         if ($jpConfig) {
-            $base = min($upah, (float) ($jpConfig->cap_nominal ?? 10042300)); // JP Cap 2024 is 10,042,300
+            $base = min($upah, (float) ($jpConfig->cap_nominal ?? 11086300)); // Updated to 2025 Cap
             $employer = $base * (float) $jpConfig->employer_rate;
             $employee = $base * (float) $jpConfig->employee_rate;
 
@@ -444,42 +463,57 @@ class ManpowerCostingService
 
     protected function calculatePph21(float $taxableIncome, array $bpjsHealth, array $bpjsEmployment, string $ptkpCode = 'TK/0'): array
     {
-        // 1. Get Category from PTKP Code (A, B, or C)
-        /** @var TaxPtkpConfig|null $ptkp */
         $ptkp = TaxPtkpConfig::where('code', $ptkpCode)->first();
         $category = $ptkp?->tax_category ?? 'A';
 
-        // JKK, JKM, JP, and Health (Employer portion) are tax objects for the employee in this spreadsheet template.
-        // JHT (Employer portion) is NOT a tax object.
         $jkkEmployer = (float) ($bpjsEmployment['details']['jkk']['employer'] ?? 0);
         $jkmEmployer = (float) ($bpjsEmployment['details']['jkm']['employer'] ?? 0);
-        $jpEmployer = (float) ($bpjsEmployment['details']['jp']['employer'] ?? 0);
         $healthEmployer = (float) ($bpjsHealth['employer'] ?? 0);
 
-        // Bruto = Salary + Allowances + Accrued Benefits (smoothed) + BPJS Employer (Taxable parts)
-        $bruto = $taxableIncome + $healthEmployer + $jkkEmployer + $jkmEmployer + $jpEmployer;
+        // JP Employer is NOT taxable bruto for employee (corrected per spreadsheet)
+        $bruto = $taxableIncome + $healthEmployer + $jkkEmployer + $jkmEmployer;
 
-        /** @var TaxTerRate|null $ter */
         $ter = TaxTerRate::where('category', $category)
-            ->where('min_gross', '<=', $bruto)
-            ->where('max_gross', '>=', $bruto)
-            ->where('is_active', true)
-            ->first();
+            ->where('min_gross', '<=', $bruto)->where('max_gross', '>=', $bruto)->where('is_active', true)->first();
 
         $rate = (float) ($ter?->rate ?? 0);
         $totalTax = $bruto * ($rate / 100);
 
-        return [
-            'total' => $totalTax,
-            'rate' => $rate,
-            'bruto' => $bruto,
-            'category' => $category,
-            'details' => [
-                'ptkp_code' => $ptkpCode,
-                'jkk' => $jkkEmployer,
-                'jkm' => $jkmEmployer,
-                'health' => $healthEmployer,
-            ],
-        ];
+        return ['total' => $totalTax, 'rate' => $rate, 'bruto' => $bruto, 'category' => $category];
+    }
+
+    protected function calculateProgressivePph21(float $monthlyIncome, array $bpjsHealth, array $bpjsEmployment, string $ptkpCode = 'TK/0'): array
+    {
+        $ptkp = TaxPtkpConfig::where('code', $ptkpCode)->first();
+        $ptkpValue = (float) ($ptkp?->amount ?? 54000000);
+
+        $jkkEmployer = (float) ($bpjsEmployment['details']['jkk']['employer'] ?? 0);
+        $jkmEmployer = (float) ($bpjsEmployment['details']['jkm']['employer'] ?? 0);
+        $healthEmployer = (float) ($bpjsHealth['employer'] ?? 0);
+        $jhtEmployee = (float) ($bpjsEmployment['details']['jht']['employee'] ?? 0);
+        $jpEmployee = (float) ($bpjsEmployment['details']['jp']['employee'] ?? 0);
+
+        $brutoMonthly = $monthlyIncome + $healthEmployer + $jkkEmployer + $jkmEmployer;
+        $biayaJabatan = min(500000, $brutoMonthly * 0.05);
+        $netMonthly = $brutoMonthly - $biayaJabatan - $jhtEmployee - $jpEmployee;
+
+        $netYearly = $netMonthly * 12;
+        $pkp = max(0, floor(($netYearly - $ptkpValue) / 1000) * 1000);
+
+        $totalTaxYearly = 0;
+        $remainingPkp = $pkp;
+        $rates = \Modules\MasterData\Models\TaxPasal17Rate::where('is_active', true)->orderBy('min_pkp', 'asc')->get();
+
+        foreach ($rates as $rate) {
+            $layerWidth = ($rate->max_pkp ? ($rate->max_pkp - $rate->min_pkp) : INF);
+            $taxableInLayer = min($remainingPkp, $layerWidth);
+            $totalTaxYearly += $taxableInLayer * ($rate->rate / 100);
+            $remainingPkp -= $taxableInLayer;
+            if ($remainingPkp <= 0) {
+                break;
+            }
+        }
+
+        return ['total' => $totalTaxYearly / 12, 'bruto' => $brutoMonthly, 'net_yearly' => $netYearly, 'pkp' => $pkp];
     }
 }

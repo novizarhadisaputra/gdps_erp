@@ -175,7 +175,7 @@
                     <td style="border: none; color: #64748b;">Customer</td>
                     <td style="border: none; font-weight: bold;">{{ $record->project?->customer?->name }}</td>
                     <td style="border: none; color: #64748b;">Previous Code</td>
-                    <td style="border: none; font-weight: bold;">{{ $record->previous_code ?? '-' }}</td>
+                    <td style="border: none; font-weight: bold;">{{ $record->previous_code ?? '........' }}</td>
                 </tr>
             </table>
 
@@ -185,23 +185,23 @@
                 <tr>
                     <td style="border: none; width: 25%; color: #64748b;">Visit Schedule</td>
                     <td style="border: none; width: 25%; font-weight: bold;">
-                        {{ $record->operational_visit_schedule ?? '-' }}</td>
+                        {{ $record->operational_visit_schedule ?? '........' }}</td>
                     <td style="border: none; width: 25%; color: #64748b;">Cut Off Date</td>
                     <td style="border: none; width: 25%; font-weight: bold;">
-                        {{ $record->bapp_cut_off_date?->format('d M Y') ?? '-' }}</td>
+                        {{ $record->bapp_cut_off_date?->format('d M Y') ?? '........' }}</td>
                 </tr>
                 <tr>
                     <td style="border: none; color: #64748b;">Billing Option</td>
-                    <td style="border: none; font-weight: bold;">{{ $record->billingOption?->name ?? '-' }}</td>
+                    <td style="border: none; font-weight: bold;">{{ $record->billingOption?->name ?? '........' }}</td>
                     <td style="border: none; color: #64748b;">Max Invoice Delivery</td>
                     <td style="border: none; font-weight: bold;">
-                        {{ $record->max_invoice_send_date?->format('d M Y') ?? '-' }}</td>
+                        {{ $record->max_invoice_send_date?->format('d M Y') ?? '........' }}</td>
                 </tr>
                 <tr>
                     <td style="border: none; color: #64748b;">OPREP Name</td>
-                    <td style="border: none; font-weight: bold;">{{ $record->oprep?->name ?? '-' }}</td>
+                    <td style="border: none; font-weight: bold;">{{ $record->oprep?->name ?? '........' }}</td>
                     <td style="border: none; color: #64748b;">AMS Name</td>
-                    <td style="border: none; font-weight: bold;">{{ $record->ams?->name ?? '-' }}</td>
+                    <td style="border: none; font-weight: bold;">{{ $record->ams?->name ?? '........' }}</td>
                 </tr>
             </table>
 
@@ -226,7 +226,7 @@
                 <tr>
                     <td style="border: none; color: #64748b;">Payment Term</td>
                     <td style="border: none; font-weight: bold;" colspan="3">
-                        {{ $record->paymentTerm?->name ?? '-' }}</td>
+                        {{ $record->paymentTerm?->name ?? '........' }}</td>
                 </tr>
             </table>
 
@@ -283,10 +283,10 @@
                     <tr>
                         <td style="border: none; width: 25%; color: #64748b;">TAD Payroll Date</td>
                         <td style="border: none; width: 25%; font-weight: bold;">
-                            {{ $record->payroll_date?->day ?? '-' }}</td>
+                            {{ $record->payroll_date?->day ?? '........' }}</td>
                         <td style="border: none; width: 25%; color: #64748b;">Overtime Cut Off</td>
                         <td style="border: none; width: 25%; font-weight: bold;">
-                            {{ $record->overtime_cut_off_date?->day ?? '-' }}</td>
+                            {{ $record->overtime_cut_off_date?->day ?? '........' }}</td>
                     </tr>
                 </table>
                 <table>
@@ -302,7 +302,7 @@
                             <tr>
                                 <td>{{ $rem['component_name'] }}</td>
                                 <td class="text-right">{{ $formatMoney($rem['amount'] ?? 0) }}</td>
-                                <td>{{ $rem['notes'] ?? '-' }}</td>
+                                <td>{{ $rem['notes'] ?? '........' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
