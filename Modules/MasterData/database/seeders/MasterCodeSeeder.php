@@ -264,7 +264,7 @@ class MasterCodeSeeder extends Seeder
                 }
 
                 // 1. Try to match Regency first (Official Geography)
-                $regency = Regency::where('name', 'ILIKE', "%{$namePart}%")->first();
+                $regency = Regency::where('name', 'LIKE', "%{$namePart}%")->first();
                 if ($regency) {
                     $data['regency_id'] = $regency->id;
                     $data['province_id'] = $regency->province_id;
@@ -274,7 +274,7 @@ class MasterCodeSeeder extends Seeder
                 }
 
                 // 2. Try to match Province
-                $province = Province::where('name', 'ILIKE', "%{$namePart}%")->first();
+                $province = Province::where('name', 'LIKE', "%{$namePart}%")->first();
                 if ($province) {
                     $data['province_id'] = $province->id;
                     $data['regency_id'] = null;

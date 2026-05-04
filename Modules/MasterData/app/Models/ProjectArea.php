@@ -43,6 +43,11 @@ class ProjectArea extends Model
         return ProjectAreaFactory::new();
     }
 
+    public function customers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\Modules\CRM\Models\Customer::class, 'customer_project_area');
+    }
+
     public function parentable(): \Illuminate\Database\Eloquent\Relations\MorphTo
     {
         return $this->morphTo();
@@ -73,22 +78,29 @@ class ProjectArea extends Model
      */
     public function getCustomer(): ?\Modules\CRM\Models\Customer
     {
-        if ($this->parentable_type === \Modules\CRM\Models\Customer::class) {
-            return $this->parentable;
-        }
-
         if ($this->parentable_type === self::class && $this->parentable) {
             return $this->parentable->getCustomer();
         }
 
-        return null;
+        return $this->customers()->first();
     }
 
     /**
-     * Get all descendant project areas for a given parentable.
+     * Get all descendant project areas for a given parentable or customer.
      */
     public static function getAllDescendantsFor(\Illuminate\Database\Eloquent\Model $parentable): \Illuminate\Support\Collection
     {
+        if ($parentable instanceof \Modules\CRM\Models\Customer) {
+            $rootAreas = $parentable->projectAreas()->get();
+            $all = collect($rootAreas);
+
+            foreach ($rootAreas as $area) {
+                $all = $all->merge(self::getAllDescendantsFor($area));
+            }
+
+            return $all->unique('id');
+        }
+
         $areas = self::where('parentable_id', $parentable->id)
             ->where('parentable_type', get_class($parentable))
             ->get();

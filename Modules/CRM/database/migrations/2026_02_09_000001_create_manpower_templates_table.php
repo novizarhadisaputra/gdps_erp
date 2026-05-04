@@ -33,7 +33,6 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('manpower_template_id')->constrained(config('database.default') === 'sqlite' ? 'manpower_templates' : 'crm.manpower_templates')->cascadeOnDelete()->comment('Parent template reference');
             $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters')->nullOnDelete()->comment('Master data product cluster reference (Aviation, FM, etc.)');
-            $table->string('name')->comment('Cluster/section name (e.g., Cluster 1, Section A)');
             $table->text('description')->nullable()->comment('Detailed information about the cluster');
 
             // Default policies for the cluster (can be overridden by items)

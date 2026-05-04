@@ -18,7 +18,6 @@ class ManpowerTemplateCluster extends Model
     protected $fillable = [
         'manpower_template_id',
         'product_cluster_id',
-        'name',
         'description',
         'jkn_category',
         'thr_billing_method',

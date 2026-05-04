@@ -80,10 +80,10 @@ class AccountMappingForm
                                             return null;
                                         }
 
-                                        $data['parentable_id'] = $customerId;
-                                        $data['parentable_type'] = Customer::class;
+                                        $area = ProjectArea::create($data);
+                                        $area->customers()->attach($customerId);
 
-                                        return ProjectArea::create($data)->id;
+                                        return $area->id;
                                     })
                                     ->afterStateHydrated(function ($component, $record) {
                                         if ($record && $record->mappable_type === ProjectArea::class) {

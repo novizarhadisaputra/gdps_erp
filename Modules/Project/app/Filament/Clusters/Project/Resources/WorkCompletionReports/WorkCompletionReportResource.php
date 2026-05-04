@@ -2,6 +2,8 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports;
 
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -35,6 +37,21 @@ class WorkCompletionReportResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function getSubNavigationPosition(): SubNavigationPosition
+    {
+        return SubNavigationPosition::Start;
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            Pages\ViewWorkCompletionReport::class,
+            Pages\EditWorkCompletionReport::class,
+            Pages\GenerateFinancialDocuments::class,
+            Pages\SendWorkCompletionReport::class,
+        ]);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return WorkCompletionReportForm::configure($schema);
@@ -58,6 +75,7 @@ class WorkCompletionReportResource extends Resource
             'view' => ViewWorkCompletionReport::route('/{record}'),
             'edit' => EditWorkCompletionReport::route('/{record}/edit'),
             'send' => SendWorkCompletionReport::route('/{record}/send'),
+            'generate-financial-documents' => Pages\GenerateFinancialDocuments::route('/{record}/generate-financial-documents'),
         ];
     }
 }

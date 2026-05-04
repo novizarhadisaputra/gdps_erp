@@ -162,7 +162,7 @@ class ManpowerTemplate extends Model implements HasMedia
                 $lineTotal = $unitCost * $qty;
                 $totalTemplateCost += $lineTotal;
 
-                $res['cluster_name'] = $cluster->name;
+                $res['cluster_name'] = $cluster->productCluster?->name ?? 'Unassigned';
                 $res['job_position_id'] = $jpId;
                 $res['job_position_name'] = $jp->name;
                 $res['job_position_code'] = $jp->code;

@@ -38,6 +38,7 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxF
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
+use Modules\MasterData\Models\MinimumWage;
 use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\UnitOfMeasure;
 
@@ -658,10 +659,37 @@ class ProfitabilityAnalysisForm
                                                             ->createOptionForm(JobPositionForm::schema())
                                                             ->createOptionAction(fn (Action $action) => $action->slideOver())
                                                             ->createOptionUsing(fn (array $data) => JobPosition::create($data)->id)
-                                                            ->afterStateUpdated(function ($state, Set $set) {
-                                                                if ($state) {
-                                                                    $set('name', JobPosition::find($state)?->name);
-                                                                    $set('unit_of_measure', 'Person');
+                                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                                if (! $state) {
+                                                                    return;
+                                                                }
+
+                                                                $jobPosition = self::getCachedModel(JobPosition::class, $state);
+                                                                $set('name', $jobPosition?->name);
+                                                                $set('unit_of_measure', 'Person');
+
+                                                                // If the category is 'manpower' and salary is empty, fallback to UMK
+                                                                $categoryId = $get('../../direct_cost_category_id');
+                                                                $category = self::getCachedModel(DirectCostCategory::class, $categoryId);
+
+                                                                if ($category?->code === 'manpower') {
+                                                                    $unitAmount = self::parseNumericValue($get('unit_amount'));
+                                                                    if ($unitAmount <= 0) {
+                                                                        $projectAreaId = $get('/project_area_id');
+                                                                        $year = $get('/year') ?? date('Y');
+
+                                                                        if ($projectAreaId) {
+                                                                            $minWage = MinimumWage::where('project_area_id', $projectAreaId)
+                                                                                ->where('year', $year)
+                                                                                ->where('is_active', true)
+                                                                                ->first();
+
+                                                                            if ($minWage) {
+                                                                                $set('unit_amount', $minWage->amount);
+                                                                                self::calculateSubItemAmount($get, $set);
+                                                                            }
+                                                                        }
+                                                                    }
                                                                 }
                                                             })
                                                             ->placeholder('Select job position')

@@ -70,12 +70,17 @@ class GeneralInformationForm
                                 ->placeholder('Select end date')
                                 ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->end_date : null),
                             Select::make('project_area_id')
-                                ->relationship('projectArea', 'name')
+                                ->relationship(
+                                    name: 'projectArea',
+                                    titleAttribute: 'name',
+                                    modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where('customers.id', $get('customer_id')))
+                                )
                                 ->label('Project Area')
                                 ->searchable()
                                 ->preload()
                                 ->required()
                                 ->placeholder('Select project area')
+                                ->visible(fn (Get $get) => filled($get('customer_id')))
                                 ->default(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null),
                             Select::make('work_scheme_id')
                                 ->relationship('workScheme', 'name')

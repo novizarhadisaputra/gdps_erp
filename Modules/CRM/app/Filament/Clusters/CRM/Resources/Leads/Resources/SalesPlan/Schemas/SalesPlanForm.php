@@ -116,13 +116,34 @@ class SalesPlanForm
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('project_area_id')
                                     ->label('Project Area')
-                                    ->relationship('projectArea', 'name')
+                                    ->relationship(
+                                        name: 'projectArea',
+                                        titleAttribute: 'name',
+                                        modifyQueryUsing: function ($query, $livewire) {
+                                            $customerId = $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords
+                                                ? $livewire->getOwnerRecord()->customer_id
+                                                : null;
+
+                                            return $query->when($customerId, fn ($q) => $q->whereHas('customers', fn ($c) => $c->where('customers.id', $customerId)));
+                                        }
+                                    )
                                     ->required()
                                     ->searchable()
                                     ->preload()
                                     ->createOptionForm(ProjectAreaForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                    ->createOptionUsing(fn (array $data) => ProjectArea::create($data)->id)
+                                    ->createOptionUsing(function (array $data, $livewire) {
+                                        $area = ProjectArea::create($data);
+                                        $customerId = $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords
+                                            ? $livewire->getOwnerRecord()->customer_id
+                                            : null;
+
+                                        if ($customerId) {
+                                            $area->customers()->attach($customerId);
+                                        }
+
+                                        return $area->id;
+                                    })
                                     ->editOptionForm(ProjectAreaForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             ]),

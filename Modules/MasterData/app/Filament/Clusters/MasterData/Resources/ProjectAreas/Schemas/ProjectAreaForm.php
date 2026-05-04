@@ -9,7 +9,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\CRM\Models\Customer;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Province;
 use Modules\MasterData\Models\Regency;
@@ -110,17 +109,15 @@ class ProjectAreaForm
                 ->description('Provide internal coding and status for this project area.')
                 ->schema([
                     MorphToSelect::make('parentable')
-                        ->label('Parent Entity')
+                        ->label('Parent Area')
                         ->types([
-                            MorphToSelect\Type::make(Customer::class)
-                                ->titleAttribute('name')
-                                ->label('Customer'),
                             MorphToSelect\Type::make(ProjectArea::class)
                                 ->titleAttribute('name')
                                 ->label('Project Area'),
                         ])
                         ->searchable()
                         ->preload()
+                        ->helperText('Select a parent area if this is a sub-area (nesting).')
                         ->visible($includeParent),
                     TextInput::make('code')
                         ->label('Internal Area Code')

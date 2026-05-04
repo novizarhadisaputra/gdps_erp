@@ -103,8 +103,8 @@ class Customer extends Model implements HasMedia
         return $this->morphMany(\Modules\Finance\Models\AccountMapping::class, 'mappable');
     }
 
-    public function projectAreas(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function projectAreas(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->morphMany(\Modules\MasterData\Models\ProjectArea::class, 'parentable');
+        return $this->belongsToMany(\Modules\MasterData\Models\ProjectArea::class, 'customer_project_area');
     }
 }

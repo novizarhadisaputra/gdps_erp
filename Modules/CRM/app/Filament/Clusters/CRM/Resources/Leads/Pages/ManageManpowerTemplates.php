@@ -97,8 +97,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                             $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $lead->id, 'record' => $record->id]));
                         })
                         ->successNotificationTitle('Manual Manpower Costing created'),
-                    CreateAction::make()
-                        ->after(fn (ManpowerTemplate $record) => $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
+                    CreateAction::make(),
                 ])
                     ->label('Options')
                     ->icon(Heroicon::OutlinedEllipsisVertical)

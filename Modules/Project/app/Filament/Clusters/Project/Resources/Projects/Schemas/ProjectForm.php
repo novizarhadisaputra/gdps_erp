@@ -118,15 +118,29 @@ class ProjectForm
                         ->live(),
                     Select::make('project_area_id')
                         ->label('Project Area')
-                        ->relationship('projectArea', 'name')
+                        ->relationship(
+                            name: 'projectArea',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where('customers.id', $get('customer_id')))
+                        )
                         ->required()
                         ->searchable()
                         ->preload()
                         ->placeholder('Select project area')
                         ->helperText('The geographic or organizational area of the project.')
                         ->live()
+                        ->visible(fn (Get $get) => filled($get('customer_id')))
                         ->createOptionForm(ProjectAreaForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->createOptionUsing(function (array $data, Get $get) {
+                            $area = ProjectArea::create($data);
+                            $customerId = $get('customer_id');
+                            if ($customerId) {
+                                $area->customers()->attach($customerId);
+                            }
+
+                            return $area->id;
+                        })
                         ->editOptionForm(ProjectAreaForm::schema())
                         ->editOptionAction(fn (Action $action) => $action->slideOver()),
                     Select::make('work_scheme_id')

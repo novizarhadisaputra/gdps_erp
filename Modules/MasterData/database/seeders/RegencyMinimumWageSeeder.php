@@ -11,7 +11,7 @@ class RegencyMinimumWageSeeder extends Seeder
 {
     public function run(): void
     {
-        $year = 2025;
+        $year = 2026;
 
         $umkData = [
             // DKI Jakarta
@@ -48,7 +48,7 @@ class RegencyMinimumWageSeeder extends Seeder
             // Banten
             ['Tangerang', 4910000, 'Banten', RegencyMinimumWageType::City],
             ['Tangerang Selatan', 4670791, 'Banten', RegencyMinimumWageType::City],
-            ['Cilegon', 4800000, 'Banten', RegencyMinimumWageType::City],
+            ['Cilegon', 4813988, 'Banten', RegencyMinimumWageType::City],
             ['Serang', 4500000, 'Banten', RegencyMinimumWageType::City],
             ['Pandeglang', 3000000, 'Banten', RegencyMinimumWageType::Regency],
             ['Lebak', 3000000, 'Banten', RegencyMinimumWageType::Regency],

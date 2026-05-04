@@ -150,13 +150,26 @@ class LeadForm
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('project_area_id')
                                 ->label('Project Area')
-                                ->relationship('projectArea', 'name')
+                                ->relationship(
+                                    name: 'projectArea',
+                                    titleAttribute: 'name',
+                                    modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where('customers.id', $get('customer_id')))
+                                )
                                 ->searchable()
                                 ->preload()
                                 ->placeholder('Select project area')
+                                ->visible(fn (Get $get) => filled($get('customer_id')))
                                 ->createOptionForm(ProjectAreaForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                ->createOptionUsing(fn (array $data) => ProjectArea::create($data)->id)
+                                ->createOptionUsing(function (array $data, Get $get) {
+                                    $area = ProjectArea::create($data);
+                                    $customerId = $get('customer_id');
+                                    if ($customerId) {
+                                        $area->customers()->attach($customerId);
+                                    }
+
+                                    return $area->id;
+                                })
                                 ->editOptionForm(ProjectAreaForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('tax_id')

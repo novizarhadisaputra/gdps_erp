@@ -207,14 +207,16 @@ class CustomerForm
                 ]),
 
             Section::make('Project Areas')
-                ->description('Define organizational branches or project locations for this customer.')
+                ->description('Assign existing branches or project locations to this customer, or create new ones.')
                 ->schema([
-                    Repeater::make('projectAreas')
-                        ->relationship('projectAreas')
-                        ->schema(ProjectAreaForm::schema(false))
-                        ->addActionLabel('Add Project Area')
-                        ->collapsible()
-                        ->itemLabel(fn (array $state): ?string => $state['name'] ?? null),
+                    Select::make('projectAreas')
+                        ->relationship('projectAreas', 'name')
+                        ->multiple()
+                        ->searchable()
+                        ->preload()
+                        ->createOptionForm(ProjectAreaForm::schema(false))
+                        ->createOptionAction(fn (Action $action) => $action->slideOver())
+                        ->helperText('Select the project areas associated with this customer.'),
                 ]),
 
         ];

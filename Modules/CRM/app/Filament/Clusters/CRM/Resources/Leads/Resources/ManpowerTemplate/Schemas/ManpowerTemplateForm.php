@@ -21,7 +21,9 @@ use Illuminate\Support\HtmlString;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Models\JobPosition;
-use Modules\MasterData\Models\RegencyMinimumWage;
+use Modules\MasterData\Models\MinimumWage;
+use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\TaxPtkpConfig;
 
 class ManpowerTemplateForm
@@ -53,13 +55,39 @@ class ManpowerTemplateForm
                             ->helperText('A descriptive name to identify this costing template.'),
                         Select::make('project_area_id')
                             ->label('Project Area')
-                            ->relationship('projectArea', 'name')
+                            ->relationship(
+                                name: 'projectArea',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: function ($query, $livewire) {
+                                    $customerId = $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords
+                                        ? $livewire->getOwnerRecord()->customer_id
+                                        : null;
+
+                                    return $query->when($customerId, fn ($q) => $q->whereHas('customers', fn ($c) => $c->where('customers.id', $customerId)));
+                                }
+                            )
                             ->searchable()
                             ->preload()
                             ->required()
                             ->live()
                             ->placeholder('Select City/Regency')
                             ->helperText('Determines the applicable UMK/Minimum Wage for calculations.')
+                            ->createOptionForm(ProjectAreaForm::schema())
+                            ->createOptionAction(fn (Action $action) => $action->slideOver())
+                            ->createOptionUsing(function (array $data, $livewire) {
+                                $area = ProjectArea::create($data);
+                                $customerId = $livewire instanceof \Filament\Resources\Pages\ManageRelatedRecords
+                                    ? $livewire->getOwnerRecord()->customer_id
+                                    : null;
+
+                                if ($customerId) {
+                                    $area->customers()->attach($customerId);
+                                }
+
+                                return $area->id;
+                            })
+                            ->editOptionForm(ProjectAreaForm::schema())
+                            ->editOptionAction(fn (Action $action) => $action->slideOver())
                             ->afterStateUpdated(function (Set $set, Get $get, $state) {
                                 if (! $state) {
                                     return;
@@ -70,10 +98,9 @@ class ManpowerTemplateForm
                                 foreach ($clusters as $cKey => $cluster) {
                                     $clusterItems = $cluster['items'] ?? [];
                                     foreach ($clusterItems as $iKey => $item) {
-                                        $umk = RegencyMinimumWage::where('project_area_id', $state)
-                                            ->whereIn('year', [2025, 2026])
+                                        $umk = MinimumWage::where('project_area_id', $state)
+                                            ->where('year', $get('year') ?? date('Y'))
                                             ->where('is_active', true)
-                                            ->orderBy('year', 'desc')
                                             ->first();
 
                                         if ($umk) {
@@ -82,6 +109,13 @@ class ManpowerTemplateForm
                                     }
                                 }
                             }),
+                        TextInput::make('year')
+                            ->label('Year')
+                            ->numeric()
+                            ->default(date('Y'))
+                            ->required()
+                            ->live()
+                            ->helperText('Determines the UMK year and tax regulations applied.'),
                         Select::make('work_scheme_id')
                             ->label('Work Scheme')
                             ->relationship('workScheme', 'name')
@@ -112,21 +146,18 @@ class ManpowerTemplateForm
                         Repeater::make('clusters')
                             ->relationship('clusters')
                             ->label('Product Clusters / Sections')
+                            ->itemLabel(fn (array $state): ?string => ProductCluster::find($state['product_cluster_id'] ?? null)?->name ?? 'New Cluster')
                             ->schema([
-                                Grid::make(2)
+                                Grid::make(1)
                                     ->schema([
-                                        TextInput::make('name')
-                                            ->label('Cluster Name')
-                                            ->placeholder('e.g., Cluster Aviation, Security Section')
-                                            ->required()
-                                            ->columnSpan(1),
                                         Select::make('product_cluster_id')
                                             ->label('Product Cluster (Master)')
                                             ->relationship('productCluster', 'name')
                                             ->searchable()
                                             ->preload()
                                             ->required()
-                                            ->columnSpan(1),
+                                            ->live()
+                                            ->columnSpanFull(),
                                     ]),
 
                                 Section::make('Cluster Defaults')
@@ -189,9 +220,9 @@ class ManpowerTemplateForm
                                                         if (! $areaId) {
                                                             return;
                                                         }
-                                                        $umk = RegencyMinimumWage::where('project_area_id', $areaId)
+                                                        $umk = MinimumWage::where('project_area_id', $areaId)
+                                                            ->where('year', $get('../../../year') ?? date('Y'))
                                                             ->where('is_active', true)
-                                                            ->orderBy('year', 'desc')
                                                             ->first();
                                                         if ($umk) {
                                                             $set('basic_salary', $umk->amount);
@@ -475,7 +506,7 @@ class ManpowerTemplateForm
                                             basicSalary: (float) ($item['basic_salary'] ?? 0),
                                             allowances: $item['allowances'] ?? [],
                                             projectAreaId: $areaId,
-                                            year: date('Y'),
+                                            year: $get('year') ?? date('Y'),
                                             workSchemeId: $workSchemeId,
                                             workPatternId: $item['work_pattern_id'] ?? null,
                                             riskLevel: $item['risk_level'] ?? 'very_low',

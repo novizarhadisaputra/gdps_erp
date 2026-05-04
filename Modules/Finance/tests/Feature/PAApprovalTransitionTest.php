@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Finance;
+namespace Modules\Finance\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CRM\Enums\LeadStatus;

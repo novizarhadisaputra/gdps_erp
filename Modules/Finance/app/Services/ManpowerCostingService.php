@@ -9,7 +9,7 @@ use Modules\MasterData\Models\BpjsJhtConfig;
 use Modules\MasterData\Models\BpjsJkkConfig;
 use Modules\MasterData\Models\BpjsJkmConfig;
 use Modules\MasterData\Models\BpjsJpConfig;
-use Modules\MasterData\Models\RegencyMinimumWage;
+use Modules\MasterData\Models\MinimumWage;
 use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\TaxTerRate;
 use Modules\MasterData\Models\ThrBasisType;
@@ -77,7 +77,7 @@ class ManpowerCostingService
         } else {
             $umk = 0;
             if (filled($projectAreaId) && filled($year)) {
-                $umk = RegencyMinimumWage::where('project_area_id', $projectAreaId)
+                $umk = MinimumWage::where('project_area_id', $projectAreaId)
                     ->where('year', $year)
                     ->first()?->amount ?? 0;
             }
