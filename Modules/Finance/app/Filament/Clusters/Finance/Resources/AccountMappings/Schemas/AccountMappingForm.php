@@ -12,6 +12,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Modules\CRM\Models\Customer;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\Schemas\ChartOfAccountForm;
 use Modules\Finance\Models\ChartOfAccount;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Models\ProjectArea;
@@ -137,7 +138,9 @@ class AccountMappingForm
                                             ->mapWithKeys(fn ($item) => [$item->id => "{$item->code} - {$item->name}"]);
                                     })
                                     ->searchable()
-                                    ->required(),
+                                    ->required()
+                                    ->createOptionForm(ChartOfAccountForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
 
                                 Select::make('revenue_type_id')
                                     ->label('Revenue Type')
