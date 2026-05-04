@@ -31,7 +31,8 @@ class AccrueRevenueInfolist
                         ->schema([
                             Grid::make(4)
                                 ->schema([
-                                    TextEntry::make('revenue_type')
+                                    TextEntry::make('revenueType.name')
+                                        ->label('Revenue Type')
                                         ->badge(),
                                     TextEntry::make('invoice.number')
                                         ->label('Invoice'),

@@ -138,7 +138,7 @@ trait HasWorkCompletionReportActions
                 $newSplits = [];
                 foreach ($defaultTypes as $typeId) {
                     $type = RevenueTypeModel::find($typeId);
-                    $amount = ($type->code === 'manpower' || $type->code === 'main_work') ? $mainWorkAmount : $totalFee;
+                    $amount = ($type->code === 'manpower') ? $mainWorkAmount : $totalFee;
 
                     // Resolve COA from mapping
                     $area = ProjectArea::find($record->project_area_id);
@@ -275,7 +275,7 @@ trait HasWorkCompletionReportActions
 
                             // Default Amount Logic
                             $amount = 0;
-                            if ($type->code === 'manpower' || $type->code === 'main_work') {
+                            if ($type->code === 'manpower') {
                                 $amount = $mainWorkAmount;
                             }
                             if ($type->code === 'mgmt_fee') {
@@ -453,10 +453,9 @@ trait HasWorkCompletionReportActions
                         'chart_of_account_id' => $split['chart_of_account_id'],
                     ]);
 
-                    $manpowerType = RevenueTypeModel::where('code', 'manpower')->first()
-                        ?? RevenueTypeModel::where('code', 'main_work')->first();
+                    $manpowerType = RevenueTypeModel::where('code', 'manpower')->first();
 
-                    $itemName = ($revenueType->code === 'manpower' || $revenueType->code === 'main_work') ? 'Manpower' : $revenueType->name;
+                    $itemName = ($revenueType->code === 'manpower') ? 'Manpower' : $revenueType->name;
                     $invoiceItems = [
                         [
                             'item_name' => $itemName,
@@ -498,7 +497,7 @@ trait HasWorkCompletionReportActions
                         ],
                         'content_config' => [
                             'revenue_type_code' => $revenueType->code,
-                            'is_manpower' => ($revenueType->code === 'manpower' || $revenueType->code === 'main_work'),
+                            'is_manpower' => ($revenueType->code === 'manpower'),
                         ],
                     ]);
 

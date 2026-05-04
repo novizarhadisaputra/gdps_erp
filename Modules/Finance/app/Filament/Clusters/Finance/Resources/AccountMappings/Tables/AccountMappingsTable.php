@@ -74,8 +74,8 @@ class AccountMappingsTable
                 SelectFilter::make('mappable_type')
                     ->label('Entity Type')
                     ->options([
-                        \Modules\MasterData\Models\ProjectArea::class => 'Project Area',
-                        \Modules\CRM\Models\Customer::class => 'Customer',
+                        ProjectArea::class => 'Project Area',
+                        Customer::class => 'Customer',
                     ]),
                 SelectFilter::make('type')
                     ->label('Mapping Type')

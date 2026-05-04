@@ -59,7 +59,7 @@ class MasterCodeSeeder extends Seeder
 
         // Revenue Types
         $revenueTypes = [
-            ['name' => 'Main Work', 'code' => 'main_work'],
+            ['name' => 'Manpower', 'code' => 'manpower'],
             ['name' => 'Management Fee', 'code' => 'mgmt_fee'],
             ['name' => 'Other Revenue', 'code' => 'other_revenue'],
         ];

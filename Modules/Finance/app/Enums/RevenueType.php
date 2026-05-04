@@ -4,7 +4,7 @@ namespace Modules\Finance\Enums;
 
 enum RevenueType: string
 {
-    case MainWork = 'main_work';
+    case Manpower = 'manpower';
     case Overtime = 'overtime';
     case Travel = 'travel';
     case Material = 'material';
@@ -14,7 +14,7 @@ enum RevenueType: string
     public function getLabel(): string
     {
         return match ($this) {
-            self::MainWork => 'Pekerjaan Utama',
+            self::Manpower => 'Manpower',
             self::Overtime => 'Lemburan',
             self::Travel => 'SPPD / Perjalanan Dinas',
             self::Material => 'Material',

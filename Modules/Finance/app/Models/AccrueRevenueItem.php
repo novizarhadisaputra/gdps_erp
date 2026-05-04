@@ -19,7 +19,6 @@ class AccrueRevenueItem extends Model
     protected $fillable = [
         'accrue_revenue_id',
         'revenue_type_id',
-        'revenue_type',
         'amount_estimated',
         'amount_actual',
         'amount_expense_estimated',
