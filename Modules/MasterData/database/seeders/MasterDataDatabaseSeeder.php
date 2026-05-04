@@ -32,6 +32,7 @@ class MasterDataDatabaseSeeder extends Seeder
             TaxPasal17RateSeeder::class,
             ApiClientSeeder::class,
             ProductClusterLogoSeeder::class,
+            AppSettingSeeder::class,
         ]);
     }
 }

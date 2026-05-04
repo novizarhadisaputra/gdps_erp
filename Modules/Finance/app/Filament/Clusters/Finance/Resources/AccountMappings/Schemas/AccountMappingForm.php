@@ -66,7 +66,7 @@ class AccountMappingForm
                                     })
                                     ->searchable()
                                     ->live()
-                                    ->createOptionForm(ProjectAreaForm::schema())
+                                    ->createOptionForm(ProjectAreaForm::schema(includeParent: false))
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->createOptionUsing(function (array $data, Get $get) {
                                         $customerId = $get('customer_id');
@@ -123,7 +123,19 @@ class AccountMappingForm
 
                                 Select::make('chart_of_account_id')
                                     ->label('Chart of Account (GL)')
-                                    ->options(ChartOfAccount::query()->pluck('name', 'id'))
+                                    ->options(function () {
+                                        return ChartOfAccount::query()
+                                            ->get()
+                                            ->mapWithKeys(fn ($item) => [$item->id => "{$item->code} - {$item->name}"]);
+                                    })
+                                    ->getSearchResultsUsing(function (string $search) {
+                                        return ChartOfAccount::query()
+                                            ->where('name', 'ILIKE', "%{$search}%")
+                                            ->orWhere('code', 'ILIKE', "%{$search}%")
+                                            ->limit(50)
+                                            ->get()
+                                            ->mapWithKeys(fn ($item) => [$item->id => "{$item->code} - {$item->name}"]);
+                                    })
                                     ->searchable()
                                     ->required(),
 

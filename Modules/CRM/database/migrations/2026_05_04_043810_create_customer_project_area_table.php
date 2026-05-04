@@ -12,12 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customer_project_area', function (Blueprint $table) {
-            $table->uuid('id')->primary();
             $table->foreignUuid('customer_id')->constrained()->cascadeOnDelete();
             $table->foreignUuid('project_area_id')->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['customer_id', 'project_area_id'], 'cust_proj_area_unique');
+            $table->primary(['customer_id', 'project_area_id']);
         });
     }
 

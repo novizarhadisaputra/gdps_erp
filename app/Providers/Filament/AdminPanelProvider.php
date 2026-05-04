@@ -25,7 +25,6 @@ use Modules\CRM\Filament\Clusters\CRM\Widgets\CRMStatsOverviewWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\MonthlyPerformanceTrendWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\ProductClusterChartWidget;
 use Modules\CRM\Filament\Clusters\CRM\Widgets\RevenueSegmentDonutWidget;
-use MWGuerra\FileManager\FileManagerPlugin;
 use Outerweb\FilamentTranslatableFields\TranslatableFieldsPlugin;
 use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
 
@@ -67,7 +66,6 @@ class AdminPanelProvider extends PanelProvider
                         'sm' => 2,
                     ]),
                 FilamentLoggerPlugin::make(),
-                FileManagerPlugin::make(),
                 FilamentApexChartsPlugin::make(),
                 FilamentLaravelLogPlugin::make()->authorize(
                     fn () => auth()->user()->isAdmin()

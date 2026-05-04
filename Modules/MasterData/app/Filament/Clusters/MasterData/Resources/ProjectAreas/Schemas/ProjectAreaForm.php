@@ -4,6 +4,7 @@ namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas
 
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MorphToSelect;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -27,19 +28,33 @@ class ProjectAreaForm
             Section::make('Location Details')
                 ->description('Specify the geographic location and official regional data for this project area.')
                 ->schema([
-                    TextInput::make('name')
+                    Select::make('name')
                         ->label('Area Name')
                         ->placeholder('Start typing to find location (e.g. Jakarta, Bali)...')
                         ->required()
-                        ->maxLength(255)
-                        ->datalist(function () {
-                            return Province::pluck('name')
-                                ->merge(Regency::pluck('name'))
-                                ->unique()
-                                ->sort()
+                        ->searchable()
+                        ->options(function () {
+                            return Province::limit(10)->pluck('name', 'name')
+                                ->merge(Regency::limit(20)->pluck('name', 'name'))
                                 ->toArray();
                         })
-                        ->live(onBlur: true)
+                        ->getSearchResultsUsing(function (string $search): array {
+                            $provinces = Province::where('name', 'ILIKE', "%{$search}%")
+                                ->limit(10)
+                                ->pluck('name', 'name')
+                                ->toArray();
+
+                            $regencies = Regency::where('name', 'ILIKE', "%{$search}%")
+                                ->limit(20)
+                                ->pluck('name', 'name')
+                                ->toArray();
+
+                            return [
+                                'Provinces' => $provinces,
+                                'Regencies' => $regencies,
+                            ];
+                        })
+                        ->live()
                         ->afterStateUpdated(function ($state, Set $set) {
                             if (! $state) {
                                 $set('province_id', null);
@@ -52,7 +67,7 @@ class ProjectAreaForm
                             }
 
                             // Look for existing Regency first (most common level for project areas)
-                            $regency = Regency::with('province')->where('name', 'ILIKE', "%{$state}%")->first();
+                            $regency = Regency::with('province')->where('name', $state)->first();
                             if ($regency) {
                                 $set('province_id', $regency->province_id);
                                 $set('regency_id', $regency->id);
@@ -64,7 +79,7 @@ class ProjectAreaForm
                             }
 
                             // Look for existing Province
-                            $province = Province::where('name', 'ILIKE', "%{$state}%")->first();
+                            $province = Province::where('name', $state)->first();
                             if ($province) {
                                 $set('province_id', $province->id);
                                 $set('regency_id', null);
@@ -107,8 +122,14 @@ class ProjectAreaForm
 
             Section::make('Internal Identification')
                 ->description('Provide internal coding and status for this project area.')
-                ->schema([
-                    MorphToSelect::make('parentable')
+                ->schema(array_filter([
+                    TextInput::make('code')
+                        ->label('Internal Area Code')
+                        ->unique(ProjectArea::class, 'code', ignoreRecord: true)
+                        ->nullable()
+                        ->placeholder('e.g. AREA-001')
+                        ->helperText('Internal identifier for project mapping.'),
+                    $includeParent ? MorphToSelect::make('parentable')
                         ->label('Parent Area')
                         ->types([
                             MorphToSelect\Type::make(ProjectArea::class)
@@ -116,15 +137,7 @@ class ProjectAreaForm
                                 ->label('Project Area'),
                         ])
                         ->searchable()
-                        ->preload()
-                        ->helperText('Select a parent area if this is a sub-area (nesting).')
-                        ->visible($includeParent),
-                    TextInput::make('code')
-                        ->label('Internal Area Code')
-                        ->unique(ProjectArea::class, 'code', ignoreRecord: true)
-                        ->nullable()
-                        ->placeholder('e.g. AREA-001')
-                        ->helperText('Internal identifier for project mapping.'),
+                        ->preload() : null,
                     Toggle::make('is_active')
                         ->label('Active Status')
                         ->default(true)
@@ -137,7 +150,7 @@ class ProjectAreaForm
                         ->label('Default Area')
                         ->default(false)
                         ->helperText('Sets this as the primary default area for new projects.'),
-                ]),
+                ])),
 
         ];
     }
