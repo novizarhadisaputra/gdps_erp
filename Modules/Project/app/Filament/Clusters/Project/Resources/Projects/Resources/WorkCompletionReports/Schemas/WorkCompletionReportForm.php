@@ -587,12 +587,23 @@ class WorkCompletionReportForm
                                 ->placeholder('Select tax configuration')
                                 ->helperText('The applicable tax rate (e.g., PPN 11%).')
                                 ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                    $rate = Tax::find($state)?->rate ?? 0;
+                                    $tax = Tax::find($state);
+                                    $rate = $tax?->rate ?? 0;
                                     $set('tax_percentage', $rate);
 
+                                    $wording = "Penyelesaian pekerjaan di atas belum termasuk PPN {$rate}%";
+                                    $wordingEn = "The above work completion does not include {$rate}% VAT";
+
+                                    if ($tax && ($tax->base_rate_numerator != 1 || $tax->base_rate_denominator != 1)) {
+                                        $ratio = " (Dasar Pengenaan Pajak: {$tax->base_rate_numerator}/{$tax->base_rate_denominator})";
+                                        $ratioEn = " (Taxable Base: {$tax->base_rate_numerator}/{$tax->base_rate_denominator})";
+                                        $wording .= $ratio;
+                                        $wordingEn .= $ratioEn;
+                                    }
+
                                     $set('tax_wording', [
-                                        'id' => "Penyelesaian pekerjaan di atas belum termasuk PPN {$rate}%",
-                                        'en' => "The above work completion does not include {$rate}% VAT",
+                                        'id' => $wording,
+                                        'en' => $wordingEn,
                                     ]);
                                 })
                                 ->afterStateHydrated(function ($state, Set $set, Get $get) {
@@ -660,8 +671,15 @@ class WorkCompletionReportForm
 
                                     $set('tax_base_amount', $baseAmount);
 
-                                    $taxPercent = (float) ($get('tax_percentage') ?? 12);
-                                    $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                    $taxId = $get('tax_id');
+                                    $taxRecord = $taxId ? Tax::find($taxId) : null;
+
+                                    if ($taxRecord) {
+                                        $set('tax_amount', $taxRecord->calculateTax($baseAmount));
+                                    } else {
+                                        $taxPercent = (float) ($get('tax_percentage') ?? 12);
+                                        $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                    }
                                 }),
 
                             TextInput::make('tax_base_amount')
@@ -779,18 +797,7 @@ class WorkCompletionReportForm
                                         });
                                     }
 
-                                    $rate = (float) $tax->rate;
-                                    $taxAmount = 0;
-
-                                    if ($tax->calculation_type === 'formula') {
-                                        $num = (float) ($tax->base_rate_numerator ?? 1);
-                                        $den = (float) ($tax->base_rate_denominator ?? 1);
-                                        $taxAmount = round($baseAmount * ($num / $den) * ($rate / 100));
-                                    } elseif ($tax->calculation_type === 'inclusive') {
-                                        $taxAmount = round($baseAmount * ($rate / (100 + $rate)));
-                                    } else {
-                                        $taxAmount = round($baseAmount * ($rate / 100));
-                                    }
+                                    $taxAmount = $tax->calculateTax($baseAmount);
 
                                     return 'IDR '.number_format($taxAmount, 0, ',', '.');
                                 }),

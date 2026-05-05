@@ -180,8 +180,9 @@ class InvoiceForm
                                                 $items = $source->items ?? []; // Current locale items for calculation
                                                 $sum = collect($items)->sum('total_price');
                                                 $set('amount', $sum);
-                                                $taxPercent = $source->tax_percentage ?? '12';
-                                                $tax = round($sum * ($taxPercent / 100));
+                                                $taxId = $source->tax_id;
+                                                $taxRecord = $taxId ? Tax::find($taxId) : null;
+                                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? 12) / 100));
                                                 $set('tax_amount', $tax);
                                                 $set('total_amount', $sum + $tax);
                                             }
@@ -230,8 +231,9 @@ class InvoiceForm
 
                                                 $sum = collect($invoiceItems)->sum('total_price');
                                                 $set('amount', $sum);
-                                                $taxPercent = $get('tax_percentage') ?? '12';
-                                                $tax = $sum * ($taxPercent / 100);
+                                                $taxId = $get('tax_id');
+                                                $taxRecord = $taxId ? Tax::find($taxId) : null;
+                                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? 12) / 100));
                                                 $set('tax_amount', $tax);
                                                 $set('total_amount', $sum + $tax);
                                             }
@@ -463,9 +465,11 @@ class InvoiceForm
                                     $sum += self::parseNumber($item['total_price'] ?? 0);
                                 }
                                 $set('amount', $sum);
-                                $taxPercentRaw = $get('tax_percentage') ?? 12;
-                                $taxPercent = (float) $taxPercentRaw;
-                                $tax = round($sum * ($taxPercent / 100));
+
+                                $taxId = $get('tax_id');
+                                $taxRecord = $taxId ? Tax::find($taxId) : null;
+                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? 12) / 100));
+
                                 $set('tax_amount', $tax);
                                 $set('total_amount', $sum + $tax);
                             }),
@@ -493,8 +497,9 @@ class InvoiceForm
                                         if ($get('tax_basis') === 'total' || ! $get('tax_basis')) {
                                             $set('tax_base_amount', $amount);
 
-                                            $taxPercent = (float) ($get('tax_percentage') ?? 12);
-                                            $tax = round($amount * ($taxPercent / 100));
+                                            $taxId = $get('tax_id');
+                                            $taxRecord = $taxId ? Tax::find($taxId) : null;
+                                            $tax = $taxRecord ? $taxRecord->calculateTax($amount) : round($amount * (($get('tax_percentage') ?? 12) / 100));
                                             $set('tax_amount', $tax);
                                             $set('total_amount', $amount + $tax);
                                         }
@@ -535,8 +540,9 @@ class InvoiceForm
 
                                         $set('tax_base_amount', $baseAmount);
 
-                                        $taxPercent = (float) ($get('tax_percentage') ?? 12);
-                                        $tax = round($baseAmount * ($taxPercent / 100));
+                                        $taxId = $get('tax_id');
+                                        $taxRecord = $taxId ? Tax::find($taxId) : null;
+                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? 12) / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
                                     }),
@@ -555,8 +561,10 @@ class InvoiceForm
                                         $baseAmount = self::parseNumber($state);
                                         $amount = self::parseNumber($get('amount'));
 
-                                        $taxPercent = (float) ($get('tax_percentage') ?? 12);
-                                        $tax = round($baseAmount * ($taxPercent / 100));
+                                        $taxId = $get('tax_id');
+                                        $taxRecord = $taxId ? Tax::find($taxId) : null;
+                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? 12) / 100));
+
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
                                     }),
@@ -583,13 +591,23 @@ class InvoiceForm
                                         $baseAmount = self::parseNumber($get('tax_base_amount'));
                                         $amount = self::parseNumber($get('amount'));
 
-                                        $taxAmount = round($baseAmount * ($taxPercent / 100));
+                                        $taxAmount = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * ($taxPercent / 100));
                                         $set('tax_amount', $taxAmount);
                                         $set('total_amount', $amount + $taxAmount);
 
+                                        $wording = "PPN {$taxPercent}%";
+                                        $wordingEn = "{$taxPercent}% VAT";
+
+                                        if ($taxRecord && ($taxRecord->base_rate_numerator != 1 || $taxRecord->base_rate_denominator != 1)) {
+                                            $ratio = " (Dasar Pengenaan Pajak: {$taxRecord->base_rate_numerator}/{$taxRecord->base_rate_denominator})";
+                                            $ratioEn = " (Taxable Base: {$taxRecord->base_rate_numerator}/{$taxRecord->base_rate_denominator})";
+                                            $wording .= $ratio;
+                                            $wordingEn .= $ratioEn;
+                                        }
+
                                         $set('tax_wording', [
-                                            'id' => "PPN {$taxPercent}%",
-                                            'en' => "{$taxPercent}% VAT",
+                                            'id' => $wording,
+                                            'en' => $wordingEn,
                                         ]);
                                     })
                                     ->afterStateHydrated(function ($state, Set $set, Get $get) {

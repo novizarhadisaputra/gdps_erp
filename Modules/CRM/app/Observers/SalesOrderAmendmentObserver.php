@@ -88,9 +88,15 @@ class SalesOrderAmendmentObserver
                 // 1. Calculate new service total amount (monthly) - Sum of both items and personnel
                 $totalServiceMonth = $itemsData->sum('total_price') + $manpowerData->sum('total_price');
 
-                // 2. Add Management Fee and Tax (following original SO percentages)
+                // 2. Add Management Fee and Tax (following original SO percentages and tax parameters)
                 $mgtFeeVal = $totalServiceMonth * ($so->management_fee_percentage / 100);
-                $taxVal = round(($totalServiceMonth + $mgtFeeVal) * ($so->tax_percentage / 100), 0);
+
+                if ($so->tax) {
+                    $taxVal = $so->tax->calculateTax($totalServiceMonth + $mgtFeeVal);
+                } else {
+                    $taxRate = (float) ($so->tax_percentage ?? 11);
+                    $taxVal = round(($totalServiceMonth + $mgtFeeVal) * ($taxRate / 100), 0);
+                }
                 $newGrandTotal = round($totalServiceMonth + $mgtFeeVal + $taxVal, 0);
 
                 $so->update([

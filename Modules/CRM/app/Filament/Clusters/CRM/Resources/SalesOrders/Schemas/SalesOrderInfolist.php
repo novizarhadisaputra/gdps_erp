@@ -85,7 +85,18 @@ class SalesOrderInfolist
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('amount')
-                                    ->label('Grand Total / Month')
+                                    ->label('Total (Before Tax)')
+                                    ->money('IDR')
+                                    ->size(TextSize::Large)
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('grand_total_after_tax')
+                                    ->label('Grand Total (After Tax)')
+                                    ->state(function (SalesOrder $record) {
+                                        $subtotal = (float) $record->amount;
+                                        $taxAmount = $record->tax ? $record->tax->calculateTax($subtotal) : round($subtotal * (($record->tax_percentage ?? 11) / 100));
+
+                                        return $subtotal + $taxAmount;
+                                    })
                                     ->money('IDR')
                                     ->size(TextSize::Large)
                                     ->weight(FontWeight::Bold)
@@ -99,8 +110,18 @@ class SalesOrderInfolist
                             ]),
                         Grid::make(2)
                             ->schema([
-                                TextEntry::make('payment_terms')->label('Payment Terms'),
-                                TextEntry::make('replacement_sla')->label('Replacement SLA'),
+                                TextEntry::make('payment_terms')
+                                    ->label('Payment Terms')
+                                    ->state(fn (SalesOrder $record) => $record->payment_terms ?: ($record->content_config['payment_terms'] ?? '-')),
+                                TextEntry::make('replacement_sla')
+                                    ->label('Replacement SLA')
+                                    ->state(fn (SalesOrder $record) => $record->replacement_sla ?: ($record->content_config['replacement_sla'] ?? '-')),
+                                TextEntry::make('probation_period')
+                                    ->label('Probation Period')
+                                    ->state(fn (SalesOrder $record) => $record->probation_period ?: ($record->content_config['probation_period'] ?? '-')),
+                                TextEntry::make('reporting_schedule')
+                                    ->label('Reporting Schedule')
+                                    ->state(fn (SalesOrder $record) => $record->reporting_schedule ?: ($record->content_config['reporting_schedule'] ?? '-')),
                             ]),
                     ])->columnSpanFull(),
 

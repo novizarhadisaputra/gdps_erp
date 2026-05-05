@@ -47,4 +47,27 @@ class Tax extends Model
     {
         return TaxFactory::new();
     }
+
+    public function calculateTax(float $amount): float
+    {
+        $numerator = (int) ($this->base_rate_numerator ?? 1);
+        $denominator = (int) ($this->base_rate_denominator ?? 1);
+        $rate = (float) ($this->rate ?? 0);
+
+        // Standard calculation: Amount * Ratio * (Rate / 100)
+        return round($amount * ($numerator / $denominator) * ($rate / 100));
+    }
+
+    public function getTaxLabelAttribute(): string
+    {
+        $label = $this->name;
+        $num = (int) ($this->base_rate_numerator ?? 1);
+        $den = (int) ($this->base_rate_denominator ?? 1);
+
+        if ($num !== 1 || $den !== 1) {
+            $label .= " (Adj. {$num}/{$den})";
+        }
+
+        return $label;
+    }
 }
