@@ -12,6 +12,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Modules\CRM\Models\Customer;
+use Modules\Finance\Models\AccountMapping;
 use Modules\MasterData\Models\ProjectArea;
 
 class AccountMappingsTable
@@ -22,7 +23,7 @@ class AccountMappingsTable
             ->columns([
                 TextColumn::make('customer')
                     ->label('Customer')
-                    ->state(function ($record) {
+                    ->state(function (AccountMapping $record) {
                         if ($record->mappable instanceof Customer) {
                             return $record->mappable->name;
                         }
@@ -36,7 +37,7 @@ class AccountMappingsTable
                     ->sortable(),
                 TextColumn::make('mappable.name')
                     ->label('Project Area')
-                    ->state(function ($record) {
+                    ->state(function (AccountMapping $record) {
                         if ($record->mappable instanceof ProjectArea) {
                             return $record->mappable->name;
                         }
@@ -53,7 +54,6 @@ class AccountMappingsTable
                         'accrual' => 'warning',
                         'revenue' => 'success',
                         'receivable' => 'primary',
-                        'unbilled_receivable' => 'info',
                         default => 'gray',
                     })
                     ->sortable(),
@@ -67,9 +67,15 @@ class AccountMappingsTable
                     ->sortable(),
                 TextColumn::make('chartOfAccount.name')
                     ->label('GL Account')
+                    ->description(fn (AccountMapping $record) => $record->chartOfAccount?->code)
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
+                TextColumn::make('note')
+                    ->label('Note')
+                    ->searchable()
+                    ->toggleable()
+                    ->limit(30),
             ])
             ->filters([
                 SelectFilter::make('mappable_type')
@@ -84,8 +90,30 @@ class AccountMappingsTable
                         'accrual' => 'Accrual',
                         'revenue' => 'Revenue',
                         'receivable' => 'Receivable',
-                        'unbilled_receivable' => 'Unbilled Receivable',
                     ]),
+                SelectFilter::make('customer_id')
+                    ->label('Filter by Customer')
+                    ->options(Customer::pluck('name', 'id'))
+                    ->searchable()
+                    ->query(function ($query, array $data) {
+                        if (! $data['value']) {
+                            return;
+                        }
+
+                        $query->where(function ($q) use ($data) {
+                            $q->where(function ($sub) use ($data) {
+                                $sub->where('mappable_type', Customer::class)
+                                    ->where('mappable_id', $data['value']);
+                            })->orWhere(function ($sub) use ($data) {
+                                $sub->where('mappable_type', ProjectArea::class)
+                                    ->whereIn('mappable_id', function ($inner) use ($data) {
+                                        $inner->select('project_area_id')
+                                            ->from('master_data.customer_project_area')
+                                            ->where('customer_id', $data['value']);
+                                    });
+                            });
+                        });
+                    }),
             ])
             ->recordActions([
                 ActionGroup::make([
@@ -98,6 +126,8 @@ class AccountMappingsTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->paginated([10, 25, 50, 100])
+            ->defaultPaginationPageOption(50);
     }
 }

@@ -12,7 +12,8 @@ class FinanceDatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            ChartOfAccountSeeder::class,
+            SapChartOfAccountSeeder::class,
+            AccountMappingSeeder::class,
         ]);
     }
 }

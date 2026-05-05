@@ -5,6 +5,7 @@ namespace Modules\Finance\Filament\Clusters\Finance\Resources\AccountMappings\Sc
 use Filament\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -114,11 +115,9 @@ class AccountMappingForm
                                 Select::make('type')
                                     ->label('Mapping Type')
                                     ->options([
-                                        'accrual' => 'Accrual',
+                                        'accrual' => 'Accrued Revenue',
                                         'revenue' => 'Revenue',
-                                        'receivable' => 'Receivable',
-                                        'unbilled_receivable' => 'Unbilled Receivable',
-                                        'expense' => 'Expense',
+                                        'receivable' => 'Account Receivable (AR)',
                                     ])
                                     ->required(),
 
@@ -153,6 +152,11 @@ class AccountMappingForm
                                     ->options(RevenueSegment::query()->pluck('name', 'id'))
                                     ->searchable()
                                     ->nullable(),
+
+                                TextInput::make('note')
+                                    ->label('Reference Note')
+                                    ->placeholder('Original reference from spreadsheet')
+                                    ->columnSpanFull(),
                             ]),
                     ]),
             ]);

@@ -6,6 +6,7 @@ use Illuminate\Support\Carbon;
 use Modules\Finance\Enums\AccrueRevenueStatus;
 use Modules\Finance\Models\AccrueRevenue;
 use Modules\Finance\Models\ProfitabilityAnalysisMonthly;
+use Modules\Finance\Services\JournalService;
 
 class AccrueRevenueObserver
 {
@@ -84,6 +85,7 @@ class AccrueRevenueObserver
         }
 
         // 3. Update header quietly to avoid infinite loop
+        $oldStatus = $accrueRevenue->getOriginal('status');
         $accrueRevenue->updateQuietly([
             'total_amount_estimated' => $totalEstimated,
             'total_amount_actual' => $totalActual,
@@ -92,7 +94,12 @@ class AccrueRevenueObserver
             'status' => $status,
         ]);
 
-        // 4. Sync to external performance tables
+        // 4. Trigger automated Journaling when status becomes Open (Finalized Draft)
+        if ($status === AccrueRevenueStatus::Open && $oldStatus === AccrueRevenueStatus::Draft) {
+            app(JournalService::class)->generateFromAccrueRevenue($accrueRevenue);
+        }
+
+        // 5. Sync to external performance tables
         $this->syncPerformance($accrueRevenue, $totalActual);
     }
 

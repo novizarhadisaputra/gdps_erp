@@ -28,7 +28,6 @@ class AccrueRevenueItem extends Model
         'amount_actual',
         'amount_expense_estimated',
         'amount_expense_actual',
-        'has_management_fee',
         'invoice_id',
         'work_completion_report_id',
         'revenue_chart_of_account_id',
@@ -54,7 +53,6 @@ class AccrueRevenueItem extends Model
             'amount_actual' => 'decimal:2',
             'amount_expense_estimated' => 'decimal:2',
             'amount_expense_actual' => 'decimal:2',
-            'has_management_fee' => 'boolean',
             'is_reversed' => 'boolean',
         ];
     }

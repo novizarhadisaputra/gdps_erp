@@ -8,7 +8,6 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -113,17 +112,6 @@ class AccrueRevenueForm
                                             ->searchable()
                                             ->preload()
                                             ->live(),
-                                        Toggle::make('has_management_fee')
-                                            ->label('Apply Mgmt Fee (10%)')
-                                            ->inline(false)
-                                            ->dehydrated()
-                                            ->live()
-                                            ->afterStateUpdated(function (Get $get, Set $set, ?bool $state) {
-                                                if ($state) {
-                                                    $expense = (float) $get('amount_expense_estimated');
-                                                    $set('amount_estimated', round($expense * 1.1, 2));
-                                                }
-                                            }),
                                         Select::make('invoice_id')
                                             ->label('Associated Invoice')
                                             ->options(fn (Get $get) => Invoice::where('customer_id', $get('../../customer_id'))->pluck('number', 'id'))
@@ -154,12 +142,7 @@ class AccrueRevenueForm
                                             ->numeric()
                                             ->required()
                                             ->live(onBlur: true)
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                                if ($get('has_management_fee')) {
-                                                    $set('amount_estimated', round((float) $state * 1.1, 2));
-                                                }
-                                            }),
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                                         TextInput::make('amount_estimated')
                                             ->label('Estimated Revenue (Invoiced)')
                                             ->prefix('IDR')
@@ -175,15 +158,7 @@ class AccrueRevenueForm
                                                     }
                                                 },
                                             ])
-                                            ->helperText(function (Get $get) {
-                                                $rev = (float) $get('amount_estimated');
-                                                $exp = (float) $get('amount_expense_estimated');
-                                                if ($exp > $rev && $rev > 0) {
-                                                    return '❌ Revenue must be greater than or equal to expense.';
-                                                }
-
-                                                return 'Total revenue for this segment.';
-                                            })
+                                            ->helperText('Total revenue for this segment.')
                                             ->extraInputAttributes(fn (Get $get) => [
                                                 'style' => (float) $get('amount_expense_estimated') > (float) $get('amount_estimated')
                                                     ? 'color: #dc2626; font-weight: bold;'
@@ -198,12 +173,7 @@ class AccrueRevenueForm
                                             ->numeric()
                                             ->live(onBlur: true)
                                             ->placeholder('Actual cost')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                                if ($get('has_management_fee') && ! $get('invoice_id')) {
-                                                    $set('amount_actual', round((float) $state * 1.1, 2));
-                                                }
-                                            }),
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                                         TextInput::make('amount_actual')
                                             ->label('Actual Revenue')
                                             ->prefix('IDR')

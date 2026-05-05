@@ -5,8 +5,6 @@ namespace Modules\Finance\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Traits\HasProfitabilityAnalysisActions;
-use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\Finance\Models\ProfitabilityThreshold;
 use Modules\MasterData\Models\DirectCostCategory;
 use Tests\TestCase;
 
@@ -115,32 +113,5 @@ class ProfitabilityAnalysisCalculationTest extends TestCase
         $this->assertEquals(30000000, $setResults['/data.direct_cost']);
         // Revenue = 30M (Costs) + 5M (MGMT Fee) = 35M
         $this->assertEquals(35000000, $setResults['/data.revenue_per_month']);
-    }
-
-    public function test_validate_profitability_thresholds()
-    {
-
-        ProfitabilityThreshold::create([
-            'name' => 'Default',
-            'min_gpm' => 15.00,
-            'min_npm' => 5.00,
-        ]);
-
-        $pa = new ProfitabilityAnalysis;
-        $pa->margin_percentage = 10.00; // Below 15%
-        $pa->net_profit_margin = 8.00;
-
-        $result = $this->validateProfitability($pa);
-        $this->assertFalse($result);
-
-        $pa->margin_percentage = 20.00;
-        $pa->net_profit_margin = 4.00; // Below 5%
-        $result = $this->validateProfitability($pa);
-        $this->assertFalse($result);
-
-        $pa->margin_percentage = 20.00;
-        $pa->net_profit_margin = 6.00;
-        $result = $this->validateProfitability($pa);
-        $this->assertTrue($result);
     }
 }

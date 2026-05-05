@@ -19,7 +19,6 @@ use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas\ProfitabilityAnalysisForm;
 use Modules\Finance\Models\ProfitabilityAnalysis;
-use Modules\Finance\Models\ProfitabilityThreshold;
 use Modules\MasterData\Services\SignatureService;
 
 trait HasProfitabilityAnalysisActions
@@ -433,10 +432,6 @@ trait HasProfitabilityAnalysisActions
                     ->default(fn ($record) => $record?->proposal?->number ?? 'Project for '.$record?->customer?->name),
             ])
             ->action(function ($record, array $data) {
-                if (! $this->validateProfitability($record)) {
-                    return;
-                }
-
                 $service = app(ProjectGenerationService::class);
 
                 $project = $service->generateFromPA($record);
@@ -475,10 +470,6 @@ trait HasProfitabilityAnalysisActions
                     ->required(),
             ])
             ->action(function ($record, array $data) {
-                if (! $this->validateProfitability($record)) {
-                    return;
-                }
-
                 DB::transaction(function () use ($record, $data) {
                     $proposal = Proposal::create([
                         'customer_id' => $record->customer_id,
@@ -772,35 +763,5 @@ trait HasProfitabilityAnalysisActions
                     && $rec->status === ProfitabilityAnalysisStatus::Approved
                     && $rec->project()->exists();
             });
-    }
-
-    protected function validateProfitability(ProfitabilityAnalysis $record): bool
-    {
-        $threshold = ProfitabilityThreshold::first();
-        if (! $threshold) {
-            return true;
-        }
-
-        if ($record->margin_percentage < $threshold->min_gpm) {
-            Notification::make()
-                ->title('GPM Below Threshold')
-                ->body('The Gross Profit Margin ('.number_format($record->margin_percentage, 2).'%) is below the required minimum of '.number_format($threshold->min_gpm, 2).'%.')
-                ->danger()
-                ->send();
-
-            return false;
-        }
-
-        if ($record->net_profit_margin < $threshold->min_npm) {
-            Notification::make()
-                ->title('NPM Below Threshold')
-                ->body('The Net Profit Margin ('.number_format($record->net_profit_margin, 2).'%) is below the required minimum of '.number_format($threshold->min_npm, 2).'%.')
-                ->danger()
-                ->send();
-
-            return false;
-        }
-
-        return true;
     }
 }

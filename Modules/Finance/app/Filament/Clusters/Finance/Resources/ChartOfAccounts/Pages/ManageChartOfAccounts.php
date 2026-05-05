@@ -7,6 +7,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
 use Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\ChartOfAccountResource;
@@ -29,6 +30,8 @@ class ManageChartOfAccounts extends TreePage
                         ->icon(Heroicon::Plus)
                         ->color('success')
                         ->url(fn (Model $record) => static::getResource()::getUrl('create', ['parent_id' => $record->id])),
+                    ViewAction::make()
+                        ->url(fn (Model $record) => static::getResource()::getUrl('view', ['record' => $record])),
                     EditAction::make()
                         ->url(fn (Model $record) => static::getResource()::getUrl('edit', ['record' => $record])),
                     DeleteAction::make(),

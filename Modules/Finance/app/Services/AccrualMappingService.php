@@ -20,9 +20,24 @@ class AccrualMappingService
         ?string $revenueTypeId = null,
         ?string $revenueSegmentId = null
     ): ?string {
+        $mapping = $this->resolveAccountMapping($type, $area, $customer, $revenueTypeId, $revenueSegmentId);
+
+        return $mapping?->chartOfAccount?->code;
+    }
+
+    /**
+     * Resolve the AccountMapping record using hierarchical lookup.
+     */
+    public function resolveAccountMapping(
+        string $type,
+        ?ProjectArea $area = null,
+        ?Customer $customer = null,
+        ?string $revenueTypeId = null,
+        ?string $revenueSegmentId = null
+    ): ?AccountMapping {
         // 1. Check Project Area Hierarchy
         if ($area) {
-            $mapping = $this->lookupAreaMapping($type, $area, $revenueTypeId, $revenueSegmentId);
+            $mapping = $this->lookupAreaMappingRecord($type, $area, $revenueTypeId, $revenueSegmentId);
             if ($mapping) {
                 return $mapping;
             }
@@ -30,7 +45,7 @@ class AccrualMappingService
 
         // 2. Check Customer
         if ($customer) {
-            $mapping = $this->lookupCustomerMapping($type, $customer, $revenueTypeId, $revenueSegmentId);
+            $mapping = $this->lookupCustomerMappingRecord($type, $customer, $revenueTypeId, $revenueSegmentId);
             if ($mapping) {
                 return $mapping;
             }
@@ -40,8 +55,39 @@ class AccrualMappingService
     }
 
     /**
-     * Identify missing mappings for a whole AccrueRevenue record.
+     * Identify missing mappings for an Invoice record.
      */
+    public function getMissingInvoiceMappings(\Modules\Finance\Models\Invoice $record): array
+    {
+        $missing = [];
+        $projectArea = $record->projectArea;
+        $customer = $record->customer;
+
+        $arAccount = $this->resolveAccount(
+            'receivable',
+            $projectArea,
+            $customer
+        );
+
+        $accrualAccount = $this->resolveAccount(
+            'accrual',
+            $projectArea,
+            $customer
+        );
+
+        if (! $arAccount || ! $accrualAccount) {
+            $missing[] = [
+                'type' => 'invoice',
+                'missing_receivable' => ! $arAccount,
+                'missing_accrual' => ! $accrualAccount,
+                'mappable_type' => $projectArea ? ProjectArea::class : Customer::class,
+                'mappable_id' => $projectArea ? $projectArea->id : $customer->id,
+            ];
+        }
+
+        return $missing;
+    }
+
     public function getMissingMappings(AccrueRevenue $record): array
     {
         $missing = [];
@@ -83,9 +129,9 @@ class AccrualMappingService
         return $missing;
     }
 
-    protected function lookupAreaMapping(string $type, ProjectArea $area, ?string $revenueTypeId, ?string $revenueSegmentId): ?string
+    protected function lookupAreaMappingRecord(string $type, ProjectArea $area, ?string $revenueTypeId, ?string $revenueSegmentId): ?AccountMapping
     {
-        $mapping = $this->findBestMapping(ProjectArea::class, $area->id, $type, $revenueTypeId, $revenueSegmentId);
+        $mapping = $this->findBestMapping($area::class, $area->id, $type, $revenueTypeId, $revenueSegmentId);
 
         if ($mapping) {
             return $mapping;
@@ -93,23 +139,23 @@ class AccrualMappingService
 
         // Recursive lookup for parent area
         if ($area->parentable_id && $area->parentable_type === ProjectArea::class) {
-            return $this->lookupAreaMapping($type, $area->parentable, $revenueTypeId, $revenueSegmentId);
+            return $this->lookupAreaMappingRecord($type, $area->parentable, $revenueTypeId, $revenueSegmentId);
         }
 
         // Fallback to customer if area is attached to customer
         if ($area->parentable_id && $area->parentable_type === Customer::class) {
-            return $this->lookupCustomerMapping($type, $area->parentable, $revenueTypeId, $revenueSegmentId);
+            return $this->lookupCustomerMappingRecord($type, $area->parentable, $revenueTypeId, $revenueSegmentId);
         }
 
         return null;
     }
 
-    protected function lookupCustomerMapping(string $type, Customer $customer, ?string $revenueTypeId, ?string $revenueSegmentId): ?string
+    protected function lookupCustomerMappingRecord(string $type, Customer $customer, ?string $revenueTypeId, ?string $revenueSegmentId): ?AccountMapping
     {
-        return $this->findBestMapping(Customer::class, $customer->id, $type, $revenueTypeId, $revenueSegmentId);
+        return $this->findBestMapping($customer::class, $customer->id, $type, $revenueTypeId, $revenueSegmentId);
     }
 
-    protected function findBestMapping(string $mappableType, string $mappableId, string $type, ?string $revenueTypeId, ?string $revenueSegmentId): ?string
+    protected function findBestMapping(string $mappableType, string $mappableId, string $type, ?string $revenueTypeId, ?string $revenueSegmentId): ?AccountMapping
     {
         $query = AccountMapping::where('mappable_type', $mappableType)
             ->where('mappable_id', $mappableId)
@@ -122,7 +168,7 @@ class AccrualMappingService
             ->first();
 
         if ($exact) {
-            return $exact->chartOfAccount?->code;
+            return $exact;
         }
 
         // Try Revenue Type match
@@ -133,7 +179,7 @@ class AccrualMappingService
                 ->whereNull('revenue_segment_id')
                 ->first();
             if ($typeMatch) {
-                return $typeMatch->chartOfAccount?->code;
+                return $typeMatch;
             }
         }
 
@@ -145,17 +191,15 @@ class AccrualMappingService
                 ->where('revenue_segment_id', $revenueSegmentId)
                 ->first();
             if ($segmentMatch) {
-                return $segmentMatch->chartOfAccount?->code;
+                return $segmentMatch;
             }
         }
 
         // Try general match for this area/customer and mapping type
-        $mapping = (clone $query)
+        return (clone $query)
             ->with('chartOfAccount')
             ->whereNull('revenue_type_id')
             ->whereNull('revenue_segment_id')
             ->first();
-
-        return $mapping?->chartOfAccount?->code;
     }
 }

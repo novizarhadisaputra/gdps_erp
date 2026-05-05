@@ -19,6 +19,7 @@ class AccountMapping extends Model
         'revenue_type_id',
         'revenue_segment_id',
         'chart_of_account_id',
+        'note',
     ];
 
     public function mappable(): MorphTo
