@@ -409,26 +409,25 @@ class WorkCompletionReportForm
                             ->dehydrated(false)
                             ->helperText('Selecting a contact will populate the fields below for the signing party.'),
 
-                        Grid::make(3)->schema([
-                            Select::make('content_config.recipient_gender')
-                                ->label('Salutation')
-                                ->options(Gender::class)
-                                ->required()
-                                ->native(false)
-                                ->placeholder('Select gender')
-                                ->helperText('Gender-based salutation for the recipient (Bapak/Ibu).'),
+                        Select::make('content_config.recipient_gender')
+                            ->label('Salutation')
+                            ->options(Gender::class)
+                            ->required()
+                            ->native(false)
+                            ->placeholder('Select gender')
+                            ->helperText('Gender-based salutation for the recipient (Bapak/Ibu).'),
 
-                            TextInput::make('content_config.recipient_name')
-                                ->label('Recipient Name')
-                                ->placeholder('Full name of the signatory')
-                                ->helperText('The name of the individual who will sign on behalf of the customer.')
-                                ->required(),
+                        TextInput::make('content_config.recipient_name')
+                            ->label('Recipient Name')
+                            ->placeholder('Full name of the signatory')
+                            ->helperText('The name of the individual who will sign on behalf of the customer.')
+                            ->required(),
 
-                            TextInput::make('content_config.recipient_title')
-                                ->label('Recipient Title/Position')
-                                ->placeholder('e.g. Operation Manager')
-                                ->helperText('Official job title of the signatory.'),
-                        ]),
+                        TextInput::make('content_config.recipient_title')
+                            ->label('Recipient Title/Position')
+                            ->placeholder('e.g. Operation Manager')
+                            ->helperText('Official job title of the signatory.'),
+
                     ])
                     ->collapsible(),
 

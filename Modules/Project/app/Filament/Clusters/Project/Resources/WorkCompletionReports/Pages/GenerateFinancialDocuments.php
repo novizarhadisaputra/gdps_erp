@@ -91,7 +91,39 @@ class GenerateFinancialDocuments extends Page
         $items = is_array($record->items) && isset($record->items['id']) ? $record->items['id'] : ($record->items ?? []);
         $totalBapp = collect($items)->sum('total_price');
         $totalFee = collect($items)->sum('management_fee');
-        $mainWorkAmount = $totalBapp - $totalFee;
+
+        // Check if we have fee percentage in content_config or default to 0
+        $mfRate = (float) ($record->content_config['management_fee_percentage'] ?? 0);
+
+        if ($totalFee <= 0) {
+            // Fallback to snapshot summary if available
+            if (isset($record->snapshot['summary'])) {
+                $price = (float) ($record->snapshot['summary']['total_price'] ?? 0);
+                $cost = (float) ($record->snapshot['summary']['total_cost'] ?? 0);
+                if ($price > $cost && $cost > 0) {
+                    $totalFee = $price - $cost;
+                    $mainWorkAmount = $cost;
+                    // Derive rate if missing
+                    if ($mfRate <= 0) {
+                        $mfRate = round(($totalFee / $mainWorkAmount) * 100, 2);
+                    }
+                } else {
+                    $mainWorkAmount = $totalBapp;
+                }
+            } elseif ($mfRate > 0) {
+                // Calculate based on percentage (Bottom-up)
+                $mainWorkAmount = round($totalBapp / (1 + ($mfRate / 100)), 0);
+                $totalFee = $totalBapp - $mainWorkAmount;
+            } else {
+                $mainWorkAmount = $totalBapp - $totalFee;
+            }
+        } else {
+            $mainWorkAmount = $totalBapp - $totalFee;
+            // Derive rate if missing and we have amounts
+            if ($mfRate <= 0 && $mainWorkAmount > 0) {
+                $mfRate = round(($totalFee / $mainWorkAmount) * 100, 2);
+            }
+        }
 
         // 3. Prepare Splits with COA Resolution
         $newSplits = [];
@@ -99,25 +131,9 @@ class GenerateFinancialDocuments extends Page
             $type = RevenueTypeModel::find($typeId);
             $amount = ($type->code === 'manpower') ? $mainWorkAmount : $totalFee;
 
-            // Resolve COA from mapping
-            $area = ProjectArea::find($record->project_area_id);
-            $coaId = null;
-
-            // Hierarchical lookup for COA
-            while ($area) {
-                $coaId = AccountMapping::where('mappable_type', ProjectArea::class)
-                    ->where('mappable_id', $area->id)
-                    ->where('revenue_type_id', $typeId)
-                    ->first()?->chart_of_account_id;
-
-                if ($coaId) {
-                    break;
-                }
-
-                $area = ($area->parentable_type === ProjectArea::class)
-                    ? ProjectArea::find($area->parentable_id)
-                    : null;
-            }
+            // Resolve COA from mapping using the new helper
+            $coaId = $this->resolveCoa($typeId, $record->project_area_id, 'revenue');
+            $expenseCoaId = $this->resolveCoa($typeId, $record->project_area_id, 'expense');
 
             $newSplits[] = [
                 'revenue_type_id' => $typeId,
@@ -126,13 +142,15 @@ class GenerateFinancialDocuments extends Page
                 'amount_actual' => $amount,
                 'amount_expense_estimated' => 0,
                 'amount_expense_actual' => 0,
-                'chart_of_account_id' => $coaId,
+                'revenue_chart_of_account_id' => $coaId,
+                'expense_chart_of_account_id' => $expenseCoaId,
             ];
         }
 
         return [
             'project_area_id' => $record->project_area_id,
             'revenue_type_ids' => $defaultTypes,
+            'management_fee_percentage' => $mfRate > 0 ? $mfRate : null,
             'financial_splits' => $newSplits,
             'tax_wording' => $record->getTranslation('tax_wording', 'id'),
         ];
@@ -189,6 +207,20 @@ class GenerateFinancialDocuments extends Page
                                 ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                     $this->refreshSplits($get, $set);
                                 }),
+                            TextInput::make('management_fee_percentage')
+                                ->label('Extract Management Fee (%)')
+                                ->numeric()
+                                ->suffix('%')
+                                ->helperText('If the source document does not provide a breakdown, enter the percentage to automatically extract Management Fee from the total.')
+                                ->live()
+                                ->visible(function (Get $get) {
+                                    $mgmtFeeType = RevenueTypeModel::where('code', 'mgmt_fee')->first();
+
+                                    return in_array($mgmtFeeType?->id, $get('revenue_type_ids') ?? []);
+                                })
+                                ->afterStateUpdated(function (Get $get, Set $set) {
+                                    $this->refreshSplits($get, $set);
+                                }),
                         ])->columns(2),
 
                     Step::make('Financial Segmentation')
@@ -225,12 +257,13 @@ class GenerateFinancialDocuments extends Page
                                         ->prefix('IDR')
                                         ->required()
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                                    Select::make('chart_of_account_id')
-                                        ->label('GL Account (COA)')
+                                    Select::make('revenue_chart_of_account_id')
+                                        ->label('Revenue Account (COA)')
                                         ->options(ChartOfAccount::all()->mapWithKeys(fn ($coa) => [$coa->id => "{$coa->code} - {$coa->name}"]))
                                         ->required()
                                         ->searchable()
                                         ->preload()
+                                        ->columnSpan(2)
                                         ->createOptionForm([
                                             TextInput::make('code')
                                                 ->required()
@@ -249,8 +282,14 @@ class GenerateFinancialDocuments extends Page
                                                 ]),
                                             Toggle::make('is_active')
                                                 ->default(true),
-                                        ])
-                                        ->editOptionForm([
+                                        ]),
+                                    Select::make('expense_chart_of_account_id')
+                                        ->label('Expense Account (COA)')
+                                        ->options(ChartOfAccount::all()->mapWithKeys(fn ($coa) => [$coa->id => "{$coa->code} - {$coa->name}"]))
+                                        ->searchable()
+                                        ->preload()
+                                        ->columnSpan(2)
+                                        ->createOptionForm([
                                             TextInput::make('code')
                                                 ->required()
                                                 ->unique(ChartOfAccount::class, 'code', ignoreRecord: true),
@@ -266,9 +305,9 @@ class GenerateFinancialDocuments extends Page
                                                     'Expense' => 'Expense',
                                                     'Other' => 'Other',
                                                 ]),
-                                            Toggle::make('is_active'),
+                                            Toggle::make('is_active')
+                                                ->default(true),
                                         ]),
-
                                 ])
                                 ->addable(false)
                                 ->deletable(false)
@@ -290,7 +329,7 @@ class GenerateFinancialDocuments extends Page
             ->statePath('data');
     }
 
-    protected function resolveCoa(int $typeId, ?int $areaId): ?int
+    protected function resolveCoa(string|int $typeId, string|int|null $areaId, string $mappingType = 'revenue'): string|int|null
     {
         $area = $areaId ? ProjectArea::find($areaId) : null;
         $coaId = null;
@@ -300,6 +339,7 @@ class GenerateFinancialDocuments extends Page
             $coaId = AccountMapping::where('mappable_type', ProjectArea::class)
                 ->where('mappable_id', $area->id)
                 ->where('revenue_type_id', $typeId)
+                ->where('type', $mappingType)
                 ->first()?->chart_of_account_id;
 
             if ($coaId) {
@@ -315,6 +355,7 @@ class GenerateFinancialDocuments extends Page
         return AccountMapping::where('mappable_type', Customer::class)
             ->where('mappable_id', $this->record->customer_id)
             ->where('revenue_type_id', $typeId)
+            ->where('type', $mappingType)
             ->first()?->chart_of_account_id;
     }
 
@@ -330,7 +371,30 @@ class GenerateFinancialDocuments extends Page
         $items = is_array($this->record->items) && isset($this->record->items['id']) ? $this->record->items['id'] : $this->record->items;
         $totalBapp = collect($items)->sum('total_price');
         $totalFee = collect($items)->sum('management_fee');
-        $mainWorkAmount = $totalBapp - $totalFee;
+
+        $mfRate = (float) ($get('management_fee_percentage') ?? 0);
+
+        if ($totalFee <= 0) {
+            // Fallback to snapshot summary if available
+            if (isset($this->record->snapshot['summary'])) {
+                $price = (float) ($this->record->snapshot['summary']['total_price'] ?? 0);
+                $cost = (float) ($this->record->snapshot['summary']['total_cost'] ?? 0);
+                if ($price > $cost && $cost > 0) {
+                    $totalFee = $price - $cost;
+                    $mainWorkAmount = $cost;
+                } else {
+                    $mainWorkAmount = $totalBapp;
+                }
+            } elseif ($mfRate > 0) {
+                // Calculate based on percentage (Bottom-up)
+                $mainWorkAmount = round($totalBapp / (1 + ($mfRate / 100)), 0);
+                $totalFee = $totalBapp - $mainWorkAmount;
+            } else {
+                $mainWorkAmount = $totalBapp - $totalFee;
+            }
+        } else {
+            $mainWorkAmount = $totalBapp - $totalFee;
+        }
 
         $currentSplits = $get('financial_splits') ?? [];
         $newSplits = [];
@@ -340,8 +404,12 @@ class GenerateFinancialDocuments extends Page
             $existing = collect($currentSplits)->firstWhere('revenue_type_id', $typeId);
 
             if ($existing) {
-                // If Area changed, update COA only
-                $existing['chart_of_account_id'] = $this->resolveCoa($typeId, $get('project_area_id'));
+                // Update amount based on calculation logic
+                $amount = ($type->code === 'manpower') ? $mainWorkAmount : (($type->code === 'mgmt_fee') ? $totalFee : $existing['amount_actual']);
+                $existing['amount_estimated'] = $amount;
+                $existing['amount_actual'] = $amount;
+                $existing['revenue_chart_of_account_id'] = $this->resolveCoa($typeId, $get('project_area_id'), 'revenue');
+                $existing['expense_chart_of_account_id'] = $this->resolveCoa($typeId, $get('project_area_id'), 'expense');
                 $newSplits[] = $existing;
 
                 continue;
@@ -363,7 +431,8 @@ class GenerateFinancialDocuments extends Page
                 'amount_actual' => $amount,
                 'amount_expense_estimated' => 0,
                 'amount_expense_actual' => 0,
-                'chart_of_account_id' => $this->resolveCoa($typeId, $get('project_area_id')),
+                'revenue_chart_of_account_id' => $this->resolveCoa($typeId, $get('project_area_id'), 'revenue'),
+                'expense_chart_of_account_id' => $this->resolveCoa($typeId, $get('project_area_id'), 'expense'),
             ];
         }
         $set('financial_splits', $newSplits);
@@ -433,7 +502,8 @@ class GenerateFinancialDocuments extends Page
                 'amount_expense_actual' => (float) $split['amount_expense_actual'],
                 'work_completion_report_id' => $record->id,
                 'description' => $revenueType->name.' - '.($record->project->name ?? $record->number),
-                'chart_of_account_id' => $split['chart_of_account_id'],
+                'revenue_chart_of_account_id' => $split['revenue_chart_of_account_id'],
+                'expense_chart_of_account_id' => $split['expense_chart_of_account_id'] ?? null,
             ]);
 
             $itemName = ($revenueType->code === 'manpower') ? 'Manpower' : $revenueType->name;

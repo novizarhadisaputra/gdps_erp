@@ -31,7 +31,8 @@ class AccrueRevenueItem extends Model
         'has_management_fee',
         'invoice_id',
         'work_completion_report_id',
-        'description',
+        'revenue_chart_of_account_id',
+        'expense_chart_of_account_id',
         'is_reversed',
     ];
 

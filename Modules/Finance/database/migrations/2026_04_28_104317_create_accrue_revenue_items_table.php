@@ -24,6 +24,8 @@ return new class extends Migration
             $table->foreignUuid('work_completion_report_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports')->nullOnDelete();
             $table->boolean('is_reversed')->default(false);
             $table->text('description')->nullable();
+            $table->foreignUuid('revenue_chart_of_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts')->nullOnDelete();
+            $table->foreignUuid('expense_chart_of_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

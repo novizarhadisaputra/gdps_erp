@@ -154,6 +154,7 @@ class AccrueRevenueForm
                                             ->numeric()
                                             ->required()
                                             ->live(onBlur: true)
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                                 if ($get('has_management_fee')) {
                                                     $set('amount_estimated', round((float) $state * 1.1, 2));
@@ -165,6 +166,7 @@ class AccrueRevenueForm
                                             ->numeric()
                                             ->required()
                                             ->live(onBlur: true)
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->rules(fn (Get $get): array => [
                                                 function (string $attribute, $value, Closure $fail) use ($get) {
                                                     $expense = (float) $get('amount_expense_estimated');
@@ -180,7 +182,7 @@ class AccrueRevenueForm
                                                     return '❌ Revenue must be greater than or equal to expense.';
                                                 }
 
-                                                return 'Calculated as Expense + 10% Mgmt Fee (if applicable).';
+                                                return 'Total revenue for this segment.';
                                             })
                                             ->extraInputAttributes(fn (Get $get) => [
                                                 'style' => (float) $get('amount_expense_estimated') > (float) $get('amount_estimated')
@@ -196,6 +198,7 @@ class AccrueRevenueForm
                                             ->numeric()
                                             ->live(onBlur: true)
                                             ->placeholder('Actual cost')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                                 if ($get('has_management_fee') && ! $get('invoice_id')) {
                                                     $set('amount_actual', round((float) $state * 1.1, 2));
@@ -206,6 +209,7 @@ class AccrueRevenueForm
                                             ->prefix('IDR')
                                             ->numeric()
                                             ->placeholder('Final billed amount')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->rules(fn (Get $get): array => [
                                                 function (string $attribute, $value, Closure $fail) use ($get) {
                                                     $expense = (float) $get('amount_expense_actual');

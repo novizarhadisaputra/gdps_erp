@@ -73,16 +73,28 @@ class AccrueRevenueTable
                     ->label('Accrual Period')
                     ->date('F Y')
                     ->sortable(),
+                TextColumn::make('total_amount_expense_estimated')
+                    ->label('Est. Expense')
+                    ->money('IDR')
+                    ->sortable()
+                    ->toggleable()
+                    ->summarize(Sum::make()->label('Total Est. Expense')),
                 TextColumn::make('total_amount_estimated')
-                    ->label('Estimated Revenue')
+                    ->label('Est. Revenue')
                     ->money('IDR')
                     ->sortable()
-                    ->summarize(Sum::make()->label('Total Estimated')),
+                    ->summarize(Sum::make()->label('Total Est. Revenue')),
+                TextColumn::make('total_amount_expense_actual')
+                    ->label('Act. Expense')
+                    ->money('IDR')
+                    ->sortable()
+                    ->toggleable()
+                    ->summarize(Sum::make()->label('Total Act. Expense')),
                 TextColumn::make('total_amount_actual')
-                    ->label('Actual Revenue')
+                    ->label('Act. Revenue')
                     ->money('IDR')
                     ->sortable()
-                    ->summarize(Sum::make()->label('Total Actual'))
+                    ->summarize(Sum::make()->label('Total Act. Revenue'))
                     ->weight('bold'),
             ])
             ->defaultSort('accrual_period', 'desc')

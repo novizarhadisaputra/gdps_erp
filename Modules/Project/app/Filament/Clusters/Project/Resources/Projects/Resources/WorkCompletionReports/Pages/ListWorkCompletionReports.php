@@ -2,15 +2,30 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages;
 
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Modules\Project\Enums\WorkCompletionStatus;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\WorkCompletionReportResource;
 use Modules\Project\Models\WorkCompletionReport;
 
 class ListWorkCompletionReports extends ListRecords
 {
+    use InteractsWithParentRecord;
+
     protected static string $resource = WorkCompletionReportResource::class;
+
+    public function getBreadcrumbs(): array
+    {
+        $project = $this->getParentRecord();
+
+        return [
+            ProjectResource::getUrl('index') => 'Projects',
+            ProjectResource::getUrl('view', ['record' => $project]) => $project->name ?? 'Project',
+            WorkCompletionReportResource::getUrl('index', ['project' => $project]) => 'BAPP',
+        ];
+    }
 
     public function getTabs(): array
     {

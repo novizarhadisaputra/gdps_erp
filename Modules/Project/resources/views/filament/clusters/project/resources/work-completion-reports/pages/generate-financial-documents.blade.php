@@ -12,10 +12,6 @@
             <form wire:submit="generate">
                 <div class="space-y-6">
                     {{ $this->form }}
-
-                    <div class="flex flex-wrap items-center gap-4 justify-start mt-6 pt-6 border-t border-gray-200">
-                        {{ $this->generateAction }}
-                    </div>
                 </div>
             </form>
         </x-filament::section>

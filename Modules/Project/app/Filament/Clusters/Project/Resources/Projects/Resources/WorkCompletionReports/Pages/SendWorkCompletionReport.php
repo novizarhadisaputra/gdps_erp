@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages;
+namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages;
 
 use BackedEnum;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -10,6 +10,7 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\Concerns\InteractsWithParentRecord;
 use Filament\Resources\Pages\Concerns\InteractsWithRecord;
 use Filament\Resources\Pages\Page;
 use Filament\Schemas\Schema;
@@ -19,11 +20,13 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Modules\Project\Enums\WorkCompletionStatus;
-use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\ProjectResource;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\WorkCompletionReportResource;
 use Throwable;
 
 class SendWorkCompletionReport extends Page
 {
+    use InteractsWithParentRecord;
     use InteractsWithRecord;
 
     protected static string $resource = WorkCompletionReportResource::class;
@@ -38,6 +41,20 @@ class SendWorkCompletionReport extends Page
         return 'Send Email';
     }
 
+    public function getBreadcrumbs(): array
+    {
+        $project = $this->getParentRecord();
+        $record = $this->getRecord();
+
+        return [
+            ProjectResource::getUrl('index') => 'Projects',
+            ProjectResource::getUrl('view', ['record' => $project]) => $project->name ?? 'Project',
+            WorkCompletionReportResource::getUrl('index', ['project' => $project]) => 'BAPP',
+            WorkCompletionReportResource::getUrl('view', ['project' => $project, 'record' => $record]) => $record->number ?? 'View',
+            '#' => 'Send Email',
+        ];
+    }
+
     protected string $view = 'project::filament.clusters.project.resources.work-completion-reports.pages.send-work-completion-report';
 
     public ?array $data = [];
@@ -46,7 +63,6 @@ class SendWorkCompletionReport extends Page
     {
         $this->record = $this->resolveRecord($record);
 
-        // No restriction, allow fallback PDF generation
         $this->form->fill([
             'subject' => 'Work Completion Report (BAPP) - '.$this->record->number,
             'recipient_email' => $this->record->customer?->email,
@@ -129,7 +145,10 @@ class SendWorkCompletionReport extends Page
             Action::make('back')
                 ->label('Back to BAPP')
                 ->color('gray')
-                ->url(fn () => $this->getResource()::getUrl('view', ['record' => $this->record])),
+                ->url(fn () => $this->getResource()::getUrl('view', [
+                    'project' => $this->record->project_id,
+                    'record' => $this->record,
+                ])),
         ];
     }
 
@@ -244,7 +263,10 @@ class SendWorkCompletionReport extends Page
                 ->success()
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
+            $this->redirect($this->getResource()::getUrl('view', [
+                'project' => $this->record->project_id,
+                'record' => $this->record,
+            ]));
         } catch (Throwable $e) {
             Log::error('BAPP Email Failure: '.$e->getMessage(), [
                 'file' => $e->getFile(),

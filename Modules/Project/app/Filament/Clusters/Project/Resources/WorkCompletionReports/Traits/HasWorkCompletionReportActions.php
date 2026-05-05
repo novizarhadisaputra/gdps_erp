@@ -31,6 +31,7 @@ trait HasWorkCompletionReportActions
 
             ActionGroup::make([
                 // Primary Workflow Actions
+                $this->getGenerateDraftAction(),
                 $this->getSubmitAction(),
                 $this->getApproveAction(),
                 $this->getSendToCustomerAction(),
@@ -46,8 +47,6 @@ trait HasWorkCompletionReportActions
                 DeleteAction::make()
                     ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Draft),
             ])
-                ->label('Actions')
-                ->icon(Heroicon::OutlinedChevronDown)
                 ->color('primary')
                 ->button()
                 ->visible(fn () => $this instanceof ViewRecord),
@@ -104,7 +103,44 @@ trait HasWorkCompletionReportActions
             ->icon('heroicon-o-presentation-chart-bar')
             ->color('success')
             ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Approved && ! $record->accrueRevenueItems()->exists())
-            ->url(fn (WorkCompletionReport $record) => $this->getResource()::getUrl('generate-financial-documents', ['record' => $record]));
+            ->url(fn (WorkCompletionReport $record) => $this->getResource()::getUrl('generate-financial-documents', [
+                'project' => $record->project_id,
+                'record' => $record,
+            ]));
+    }
+
+    protected function getGenerateDraftAction(): Action
+    {
+        return Action::make('generateDraft')
+            ->label('Generate Draft Report')
+            ->color('success')
+            ->icon('heroicon-o-document-plus')
+            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Draft)
+            ->requiresConfirmation()
+            ->modalHeading('Generate BAPP Draft')
+            ->modalDescription('This will generate a PDF draft of the BAPP and attach it to the documents section. You can download it after generation.')
+            ->action(function (WorkCompletionReport $record) {
+                app()->setLocale('id'); // Default draft to Indonesian
+
+                $pdf = Pdf::loadView('project::pdf.work_completion_report', [
+                    'record' => $record,
+                    'language' => 'id',
+                ]);
+
+                $name = str_replace(['/', '\\'], '-', $record->number);
+                $fileName = "Draft-{$name}.pdf";
+
+                // Save to media collection
+                $record->addMediaFromStream($pdf->output())
+                    ->usingFileName($fileName)
+                    ->toMediaCollection('draft_report');
+
+                Notification::make()
+                    ->title('Draft Generated Successfully')
+                    ->body('The draft report has been attached to the record.')
+                    ->success()
+                    ->send();
+            });
     }
 
     protected function getSubmitAction(): Action
@@ -118,6 +154,16 @@ trait HasWorkCompletionReportActions
             ->modalHeading('Submit BAPP for Approval')
             ->modalDescription('Are you sure you want to submit this Work Completion Report for internal approval? This will notify the first set of approvers.')
             ->action(function (WorkCompletionReport $record) {
+                if (! $record->hasMedia('draft_report')) {
+                    Notification::make()
+                        ->title('Missing Document')
+                        ->body('Please upload or generate Draft BAPP (Unsigned) before submitting.')
+                        ->warning()
+                        ->send();
+
+                    return;
+                }
+
                 $record->update(['status' => WorkCompletionStatus::Submitted]);
 
                 // Notify the first step approvers
@@ -145,7 +191,10 @@ trait HasWorkCompletionReportActions
                     return;
                 }
 
-                $this->redirect(ClusterResource::getUrl('send', ['record' => $record]));
+                $this->redirect(static::getResource()::getUrl('send', [
+                    'project' => $record->project_id,
+                    'record' => $record,
+                ]));
             });
     }
 
@@ -157,7 +206,10 @@ trait HasWorkCompletionReportActions
             ->icon('heroicon-o-arrow-path')
             ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Sent)
             ->action(function (WorkCompletionReport $record) {
-                $this->redirect(ClusterResource::getUrl('send', ['record' => $record]));
+                $this->redirect(static::getResource()::getUrl('send', [
+                    'project' => $record->project_id,
+                    'record' => $record,
+                ]));
             });
     }
 

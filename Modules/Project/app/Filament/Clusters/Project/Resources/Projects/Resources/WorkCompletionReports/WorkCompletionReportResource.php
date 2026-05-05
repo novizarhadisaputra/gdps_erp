@@ -2,6 +2,8 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports;
 
+use Filament\Pages\Enums\SubNavigationPosition;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -11,6 +13,7 @@ use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkC
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\EditWorkCompletionReport;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ListWorkCompletionReports;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ManageWorkCompletionReportComments;
+use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\SendWorkCompletionReport;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages\ViewWorkCompletionReport;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas\WorkCompletionReportForm;
 use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas\WorkCompletionReportInfolist;
@@ -26,6 +29,21 @@ class WorkCompletionReportResource extends Resource
     protected static ?string $parentResource = ProjectResource::class;
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function getSubNavigationPosition(): SubNavigationPosition
+    {
+        return SubNavigationPosition::Start;
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            ViewWorkCompletionReport::class,
+            EditWorkCompletionReport::class,
+            SendWorkCompletionReport::class,
+            ManageWorkCompletionReportComments::class,
+        ]);
+    }
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -54,6 +72,7 @@ class WorkCompletionReportResource extends Resource
             'create' => CreateWorkCompletionReport::route('/create'),
             'view' => ViewWorkCompletionReport::route('/{record}'),
             'edit' => EditWorkCompletionReport::route('/{record}/edit'),
+            'send' => SendWorkCompletionReport::route('/{record}/send'),
             'discussions' => ManageWorkCompletionReportComments::route('/{record}/discussions'),
         ];
     }

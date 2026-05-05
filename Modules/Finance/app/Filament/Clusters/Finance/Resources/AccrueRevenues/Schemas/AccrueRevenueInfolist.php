@@ -36,9 +36,17 @@ class AccrueRevenueInfolist
                                         ->badge(),
                                     TextEntry::make('invoice.number')
                                         ->label('Invoice'),
+                                    TextEntry::make('amount_expense_estimated')
+                                        ->label('Est. Expense')
+                                        ->money('IDR'),
                                     TextEntry::make('amount_estimated')
+                                        ->label('Est. Revenue')
+                                        ->money('IDR'),
+                                    TextEntry::make('amount_expense_actual')
+                                        ->label('Act. Expense')
                                         ->money('IDR'),
                                     TextEntry::make('amount_actual')
+                                        ->label('Act. Revenue')
                                         ->money('IDR'),
                                 ]),
                             TextEntry::make('description')
@@ -51,8 +59,16 @@ class AccrueRevenueInfolist
                 ->schema([
                     Grid::make(2)
                         ->schema([
+                            TextEntry::make('total_amount_expense_estimated')
+                                ->label('Total Estimated Expense')
+                                ->money('IDR')
+                                ->weight('bold'),
                             TextEntry::make('total_amount_estimated')
                                 ->label('Total Estimated Revenue')
+                                ->money('IDR')
+                                ->weight('bold'),
+                            TextEntry::make('total_amount_expense_actual')
+                                ->label('Total Actual Expense')
                                 ->money('IDR')
                                 ->weight('bold'),
                             TextEntry::make('total_amount_actual')
