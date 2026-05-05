@@ -23,7 +23,7 @@ use Modules\MasterData\Models\UnitOfMeasure;
 use Modules\MasterData\Models\WorkScheme;
 use Tests\TestCase;
 
-class IntegrationProfitabilityAnalysisTest extends TestCase
+class ProfitabilityAnalysisIntegrationTest extends TestCase
 {
     use RefreshDatabase;
 

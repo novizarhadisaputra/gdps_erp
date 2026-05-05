@@ -21,6 +21,11 @@ class ProfitabilityAnalysisMonthly extends Model
 
     protected $table = 'profitability_analysis_monthlies';
 
+    protected static function newFactory()
+    {
+        return \Modules\Finance\Database\Factories\ProfitabilityAnalysisMonthlyFactory::new();
+    }
+
     /**
      * The attributes that are mass assignable.
      */

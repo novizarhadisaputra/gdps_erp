@@ -20,6 +20,7 @@ use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\MinimumWage;
 use Modules\MasterData\Models\ProductCluster;

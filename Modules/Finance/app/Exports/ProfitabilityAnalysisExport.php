@@ -186,7 +186,10 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
         $items = [];
         $service = app(SignatureService::class);
         $rules = $service->getRequiredApprovers($this->record);
-        $specificRules = $rules->filter(fn ($r) => $r->signature_type === $type);
+        $specificRules = $rules->filter(function ($r) use ($type) {
+            /** @var \Modules\MasterData\Models\ApprovalRule $r */
+            return $r->signature_type === $type;
+        });
 
         // Map existing signatures
         foreach ($signatures as $signature) {
@@ -213,7 +216,10 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
 
         // Add pending if no signature match for required rules
         foreach ($specificRules as $rule) {
-            $hasSig = $signatures->contains(fn ($s) => $service->isEligibleApprover($rule, $s->user));
+            $hasSig = $signatures->contains(function ($s) use ($service, $rule) {
+                /** @var \Modules\MasterData\Models\ApprovalSignature $s */
+                return $service->isEligibleApprover($rule, $s->user);
+            });
             if (! $hasSig) {
                 $items[] = $this->getExpectedApproverForRule($rule, $type);
             }

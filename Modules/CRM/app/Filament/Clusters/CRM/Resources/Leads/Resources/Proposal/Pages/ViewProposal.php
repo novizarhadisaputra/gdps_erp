@@ -64,28 +64,28 @@ class ViewProposal extends ViewRecord
                     return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
 
-            Action::make('incompleteWarning')
-                ->label('Submit')
-                ->color('gray')
-                ->icon(Heroicon::OutlinedExclamationTriangle)
-                ->disabled()
-                ->tooltip('Harap lengkapi semua data wajib (Required) termasuk link ke Profitability Analysis untuk dapat melakukan Submit.')
-                ->visible(fn () => $this->record->status === ProposalStatus::Draft && ! $this->record->isComplete()),
-
-            Action::make('Submit')
-                ->label('Submit')
-                ->color('info')
-                ->icon(Heroicon::OutlinedPaperAirplane)
-                ->requiresConfirmation()
-                ->action(function () {
-                    $this->record->update(['status' => ProposalStatus::Submitted]);
-                    app(SignatureService::class)->notifyNextApprovers($this->record);
-
-                    Notification::make()->title('Proposal Submitted Successfully')->success()->send();
-                })
-                ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->record->isComplete()),
-
             ActionGroup::make([
+                Action::make('incompleteWarning')
+                    ->label('Submit')
+                    ->color('gray')
+                    ->icon(Heroicon::OutlinedExclamationTriangle)
+                    ->disabled()
+                    ->tooltip('Please complete all required fields, including uploading the Final Proposal and filling in the Meeting Date, before submitting.')
+                    ->visible(fn () => $this->record->status === ProposalStatus::Draft && ! $this->isReadyToSubmit()),
+
+                Action::make('Submit')
+                    ->label('Submit')
+                    ->color('info')
+                    ->icon(Heroicon::OutlinedPaperAirplane)
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $this->record->update(['status' => ProposalStatus::Submitted]);
+                        app(SignatureService::class)->notifyNextApprovers($this->record);
+
+                        Notification::make()->title('Proposal Submitted Successfully')->success()->send();
+                    })
+                    ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->isReadyToSubmit()),
+
                 Action::make('convertToMoA')
                     ->label('Convert to MoA (BA)')
                     ->icon(Heroicon::OutlinedDocumentDuplicate)
@@ -93,7 +93,6 @@ class ViewProposal extends ViewRecord
                     ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->minutesOfAgreements()->exists())
                     ->requiresConfirmation()
                     ->action(function () {
-                        // Fetch General Information from the Lead to transfer data
                         $gi = $this->record->lead?->generalInformations()
                             ->where('status', GeneralInformationStatus::Approved)
                             ->latest('created_at')
@@ -111,7 +110,7 @@ class ViewProposal extends ViewRecord
                             'amount' => $this->record->amount,
                             'scope_of_work' => $gi?->scope_of_work ?? '',
                             'timeline' => $timeline,
-                            'terms' => $gi?->billing_requirements ?? '', // Billing requirements often contain payment terms
+                            'terms' => $gi?->billing_requirements ?? '',
                             'negotiation_date' => now(),
                             'status' => MoAStatus::Draft,
                         ]);
@@ -196,10 +195,16 @@ class ViewProposal extends ViewRecord
                         'lead' => $this->record->lead_id,
                     ])),
             ])
-                ->label('Options')
                 ->icon(Heroicon::OutlinedEllipsisVertical)
                 ->color('gray')
                 ->button(),
         ];
+    }
+
+    protected function isReadyToSubmit(): bool
+    {
+        return $this->record->isComplete()
+            && $this->record->hasMedia('final_proposal')
+            && filled($this->record->meeting_date);
     }
 }

@@ -99,7 +99,10 @@ trait HasProfitabilityAnalysisActions
                 $required = $service->getRequiredApprovers($record)
                     ->where('signature_type', 'MarginApproval');
 
-                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+                $eligibleRules = $required->filter(function ($rule) use ($service) {
+                    /** @var \Modules\MasterData\Models\SignatureRule $rule */
+                    return $service->isEligibleApprover($rule, auth()->user());
+                });
 
                 if ($eligibleRules->isEmpty()) {
                     Notification::make()
@@ -111,7 +114,10 @@ trait HasProfitabilityAnalysisActions
                     return;
                 }
 
-                $matchingRule = $eligibleRules->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
+                $matchingRule = $eligibleRules->first(function ($rule) use ($record) {
+                    /** @var \Modules\MasterData\Models\SignatureRule $rule */
+                    return ! $record->isRuleSatisfied($rule);
+                });
 
                 if (! $matchingRule) {
                     Notification::make()
@@ -128,7 +134,10 @@ trait HasProfitabilityAnalysisActions
                     $userRoles = auth()->user()->roles;
                     $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
 
-                    $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
+                    $matchedRole = $userRoles->first(function ($role) use ($ruleRoleIdentifiers) {
+                        /** @var \Spatie\Permission\Models\Role $role */
+                        return in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers);
+                    });
                     $recordedRole = $matchedRole?->name;
                 }
 
@@ -168,8 +177,10 @@ trait HasProfitabilityAnalysisActions
                     ->where('signature_type', 'MarginApproval');
 
                 // Parallel Approval: User can see the button if they match ANY remaining margin rule
-                return $required->contains(fn ($rule) => ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
-                );
+                return $required->contains(function ($rule) use ($record, $service) {
+                    /** @var \Modules\MasterData\Models\SignatureRule $rule */
+                    return ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user());
+                });
             });
     }
 
@@ -304,7 +315,10 @@ trait HasProfitabilityAnalysisActions
                 $required = $service->getRequiredApprovers($record)
                     ->where('signature_type', 'Approver');
 
-                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+                $eligibleRules = $required->filter(function ($rule) use ($service) {
+                    /** @var \Modules\MasterData\Models\SignatureRule $rule */
+                    return $service->isEligibleApprover($rule, auth()->user());
+                });
 
                 if ($eligibleRules->isEmpty()) {
                     Notification::make()
@@ -316,7 +330,10 @@ trait HasProfitabilityAnalysisActions
                     return;
                 }
 
-                $matchingRule = $eligibleRules->first(fn ($rule) => ! $record->isRuleSatisfied($rule));
+                $matchingRule = $eligibleRules->first(function ($rule) use ($record) {
+                    /** @var \Modules\MasterData\Models\SignatureRule $rule */
+                    return ! $record->isRuleSatisfied($rule);
+                });
 
                 if (! $matchingRule) {
                     Notification::make()
@@ -333,7 +350,10 @@ trait HasProfitabilityAnalysisActions
                     $userRoles = auth()->user()->roles;
                     $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
 
-                    $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
+                    $matchedRole = $userRoles->first(function ($role) use ($ruleRoleIdentifiers) {
+                        /** @var \Spatie\Permission\Models\Role $role */
+                        return in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers);
+                    });
                     $recordedRole = $matchedRole?->name;
                 }
 
@@ -375,8 +395,10 @@ trait HasProfitabilityAnalysisActions
                     ->where('signature_type', 'Approver');
 
                 // Parallel Approval: Match ANY remaining PA approval rule
-                return $required->contains(fn ($rule) => ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user())
-                );
+                return $required->contains(function ($rule) use ($record, $service) {
+                    /** @var \Modules\MasterData\Models\SignatureRule $rule */
+                    return ! $record->isRuleSatisfied($rule) && $service->isEligibleApprover($rule, auth()->user());
+                });
             });
     }
 
@@ -545,21 +567,19 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Manpower')
             ->icon(Heroicon::OutlinedUsers)
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 3))
-            ->fillForm(fn ($record) => $record->toArray())
+            ->fillForm(fn ($record) => array_merge($record->toArray(), [
+                'manpowerItems' => $record->manpower_requirements,
+            ]))
             ->action(function ($record, array $data) {
                 DB::transaction(function () use ($record, $data) {
+                    // Update record with form data.
+                    // This will update analysis_details (JSONB) and other fields.
                     $record->update($data);
-
-                    if (isset($data['manpowerItems'])) {
-                        $record->manpowerItems()->delete();
-                        foreach ($data['manpowerItems'] as $item) {
-                            $record->manpowerItems()->create($item);
-                        }
-                    }
                 });
 
                 Notification::make()
-                    ->title('Manpower Costing Updated')
+                    ->title('Success')
+                    ->body('Manpower requirements updated successfully.')
                     ->success()
                     ->send();
             })
@@ -577,21 +597,17 @@ trait HasProfitabilityAnalysisActions
             ->label('Edit Operational')
             ->icon(Heroicon::OutlinedWrenchScrewdriver)
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 4))
-            ->fillForm(fn ($record) => $record->toArray())
+            ->fillForm(fn ($record) => array_merge($record->toArray(), [
+                'operationalItems' => $record->operational_requirements,
+            ]))
             ->action(function ($record, array $data) {
                 DB::transaction(function () use ($record, $data) {
                     $record->update($data);
-
-                    if (isset($data['operationalItems'])) {
-                        $record->operationalItems()->delete();
-                        foreach ($data['operationalItems'] as $item) {
-                            $record->operationalItems()->create($item);
-                        }
-                    }
                 });
 
                 Notification::make()
-                    ->title('Operational Costing Updated')
+                    ->title('Success')
+                    ->body('Operational & equipment costs updated successfully.')
                     ->success()
                     ->send();
             })
@@ -611,10 +627,13 @@ trait HasProfitabilityAnalysisActions
             ->schema(fn () => ProfitabilityAnalysisForm::schema(startStep: 5))
             ->fillForm(fn ($record) => $record->toArray())
             ->action(function ($record, array $data) {
-                $record->update($data);
+                DB::transaction(function () use ($record, $data) {
+                    $record->update($data);
+                });
 
                 Notification::make()
-                    ->title('Manual Costs Updated')
+                    ->title('Success')
+                    ->body('General information updated successfully.')
                     ->success()
                     ->send();
             })

@@ -16,6 +16,11 @@ class AccrueRevenueItem extends Model
 {
     use HasFactory, HasModuleSchema, HasUuids, SoftDeletes;
 
+    protected static function newFactory()
+    {
+        return \Modules\Finance\Database\Factories\AccrueRevenueItemFactory::new();
+    }
+
     protected $fillable = [
         'accrue_revenue_id',
         'revenue_type_id',

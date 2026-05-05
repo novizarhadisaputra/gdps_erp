@@ -66,6 +66,7 @@ trait HasDigitalSignatures
             ->get();
 
         return $signatures->contains(function ($signature) use ($rule) {
+            /** @var \Modules\MasterData\Models\Signature $signature */
             if ($rule->approver_type === 'Role') {
                 $ruleRoleIdentifiers = $rule->approver_role ?? [];
 
@@ -105,6 +106,7 @@ trait HasDigitalSignatures
         $service = app(SignatureService::class);
         $rules = $service->getRequiredApprovers($this);
         $rules = $rules->filter(function ($rule) use ($typeValue) {
+            /** @var \Modules\MasterData\Models\ApprovalRule $rule */
             $ruleType = $rule->signature_type instanceof \BackedEnum ? $rule->signature_type->value : (string) $rule->signature_type;
 
             return $ruleType === $typeValue;

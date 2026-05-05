@@ -27,7 +27,7 @@ class ProjectResourceTest extends TestCase
 
         $project = Project::factory()->create([
             'name' => 'Test Project',
-            'code' => 'PROJ-001',
+            'number' => 'PROJ-001',
         ]);
 
         Livewire::test(ListProjects::class)

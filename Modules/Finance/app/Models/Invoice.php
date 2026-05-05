@@ -32,6 +32,11 @@ class Invoice extends Model implements HasMedia
     use InteractsWithMedia;
     use SoftDeletes;
 
+    protected static function newFactory()
+    {
+        return \Modules\Finance\Database\Factories\InvoiceFactory::new();
+    }
+
     public array $translatable = [
         'tax_wording',
         'items',

@@ -61,7 +61,7 @@ class SalesOrderForm
                                         ->helperText('Connect this SO to an existing project to retrieve financial and staffing data.')
                                         ->required()
                                         ->live()
-                                        ->afterStateUpdated(function ($state, Set $set) {
+                                        ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                             if (! $state) {
                                                 return;
                                             }
@@ -586,7 +586,7 @@ class SalesOrderForm
                                                 ->placeholder('Click or drag file here...')
                                                 ->required(false)
                                                 ->helperText(fn (Get $get) => $get('type') === SalesOrderType::Internal
-                                                    ? 'Upload the approved internal document. This will automatically approve the Sales Order.'
+                                                    ? 'Upload the internal document memo/ST/SPK.'
                                                     : 'Internal review version or initial proposal (Optional).'
                                                 ),
 

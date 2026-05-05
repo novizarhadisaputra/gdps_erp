@@ -10,7 +10,7 @@ use Modules\Finance\Classes\ProjectGenerationService;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Tests\TestCase;
 
-class ProjectRegenerationTest extends TestCase
+class ProjectRegenerationWorkflowTest extends TestCase
 {
     use RefreshDatabase;
 

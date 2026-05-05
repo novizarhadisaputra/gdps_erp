@@ -167,6 +167,7 @@ class ProfitabilityAnalysisObserver
             // Copy Media Snapshots
             foreach (['tor', 'rfp', 'rfq', 'cogs_source', 'manpower_costing_backup', 'operational_costing_backup'] as $collection) {
                 $analysis->getMedia($collection)->each(function ($media) use ($revision, $collection) {
+                    /** @var \Spatie\MediaLibrary\MediaCollections\Models\Media $media */
                     $media->copy($revision, $collection);
                 });
             }

@@ -50,6 +50,7 @@ class EditGeneralInformation extends EditRecord
             'name' => $pic->name,
             'phone' => $pic->phone,
             'email' => $pic->email,
+            'job_position_id' => $pic->job_position_id,
             'contact_role_id' => $pic->contact_role_id,
         ])->toArray();
 
@@ -73,6 +74,7 @@ class EditGeneralInformation extends EditRecord
                     'name' => $picData['name'],
                     'phone' => $picData['phone'] ?? null,
                     'email' => $picData['email'] ?? null,
+                    'job_position_id' => $picData['job_position_id'] ?? null,
                     'contact_role_id' => $picData['contact_role_id'] ?? null,
                 ]);
             } else {
@@ -80,6 +82,7 @@ class EditGeneralInformation extends EditRecord
                     'name' => $picData['name'],
                     'phone' => $picData['phone'] ?? null,
                     'email' => $picData['email'] ?? null,
+                    'job_position_id' => $picData['job_position_id'] ?? null,
                     'contact_role_id' => $picData['contact_role_id'] ?? null,
                 ]);
             }

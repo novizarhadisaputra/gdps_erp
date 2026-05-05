@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\MasterData\Models\ContactRole;
+use Modules\MasterData\Models\JobPosition;
 
 class GeneralInformationPic extends Model
 {
@@ -17,8 +18,8 @@ class GeneralInformationPic extends Model
     protected $fillable = [
         'general_information_id',
         'contact_role_id',
+        'job_position_id',
         'name',
-        'job_position',
         'phone',
         'email',
     ];
@@ -31,5 +32,10 @@ class GeneralInformationPic extends Model
     public function contactRole(): BelongsTo
     {
         return $this->belongsTo(ContactRole::class);
+    }
+
+    public function jobPosition(): BelongsTo
+    {
+        return $this->belongsTo(JobPosition::class);
     }
 }

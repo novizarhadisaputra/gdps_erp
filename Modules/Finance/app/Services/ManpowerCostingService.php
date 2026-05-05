@@ -10,6 +10,7 @@ use Modules\MasterData\Models\BpjsJkkConfig;
 use Modules\MasterData\Models\BpjsJkmConfig;
 use Modules\MasterData\Models\BpjsJpConfig;
 use Modules\MasterData\Models\MinimumWage;
+use Modules\MasterData\Models\TaxPasal17Rate;
 use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\TaxTerRate;
 use Modules\MasterData\Models\ThrBasisType;
@@ -142,7 +143,9 @@ class ManpowerCostingService
         $compensation = $compensationBillingMethod === 'monthly_accrual' ? ($compensationBasisAmount / 12) : 0;
 
         // Extra monthly costs which are flat (Equipment/Training)
-        $extraCostsTotal = array_reduce($extraCosts, fn ($carry, $item) => $carry + (float) ($item['amount'] ?? 0), 0);
+        $extraCostsTotal = array_reduce($extraCosts, function (float $carry, array $item): float {
+            return $carry + (float) ($item['amount'] ?? 0);
+        }, 0.0);
 
         // PPH21 Calculation
         if ($useTerMethod) {
@@ -349,7 +352,10 @@ class ManpowerCostingService
         // --- 1. JKK --- //
         /** @var BpjsJkkConfig|null $jkkConfig */
         $jkkConfig = BpjsJkkConfig::where('employee_type', $employeeType)
-            ->when($employeeType === 'ppu', fn ($q) => $q->where('risk_level', $riskLevel))
+            ->when($employeeType === 'ppu', function ($q) use ($riskLevel) {
+                /** @var \Illuminate\Database\Eloquent\Builder $q */
+                return $q->where('risk_level', $riskLevel);
+            })
             ->where('is_active', true)
             ->first();
 
@@ -502,7 +508,7 @@ class ManpowerCostingService
 
         $totalTaxYearly = 0;
         $remainingPkp = $pkp;
-        $rates = \Modules\MasterData\Models\TaxPasal17Rate::where('is_active', true)->orderBy('min_pkp', 'asc')->get();
+        $rates = TaxPasal17Rate::where('is_active', true)->orderBy('min_pkp', 'asc')->get();
 
         foreach ($rates as $rate) {
             $layerWidth = ($rate->max_pkp ? ($rate->max_pkp - $rate->min_pkp) : INF);

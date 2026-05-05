@@ -107,21 +107,27 @@ class InvoiceForm
                                     ->label('Reference Document')
                                     ->types([
                                         MorphToSelect\Type::make(SalesOrder::class)
+                                            ->label('Sales Order (SO)')
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
                                         MorphToSelect\Type::make(WorkCompletionReport::class)
+                                            ->label('Work Completion Report (BAPP)')
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
                                         MorphToSelect\Type::make(PurchaseOrder::class)
+                                            ->label('Purchase Order (PO)')
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
                                         MorphToSelect\Type::make(WorkOrder::class)
+                                            ->label('Work Order (SPK)')
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
                                         MorphToSelect\Type::make(CooperationAgreement::class)
+                                            ->label('Cooperation Agreement (PKS)')
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
                                         MorphToSelect\Type::make(MinutesOfAgreement::class)
+                                            ->label('Minutes of Agreement (MOA)')
                                             ->titleAttribute('number')
                                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->number} - {$record->customer?->name}"),
                                     ])

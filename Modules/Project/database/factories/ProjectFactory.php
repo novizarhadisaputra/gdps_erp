@@ -19,7 +19,7 @@ class ProjectFactory extends Factory
         return [
             'name' => $this->faker->sentence(3),
             'customer_id' => \Modules\CRM\Models\Customer::factory(),
-            'project_number' => '0001',
+            'project_number' => $this->faker->unique()->bothify('####'),
             'work_scheme_id' => \Modules\MasterData\Models\WorkScheme::factory(),
             'product_cluster_id' => \Modules\MasterData\Models\ProductCluster::factory(),
             'tax_id' => \Modules\MasterData\Models\Tax::factory(),

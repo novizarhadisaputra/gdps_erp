@@ -123,9 +123,12 @@ class ProfitabilityAnalysisForm
                     ->label('Project Identification')
                     ->description('Identify RR submission and associated customer.')
                     ->icon(Heroicon::Identification)
-                    ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
+                    ->disabled(function ($record) {
+                        /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
+                        return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
+                    })
                     ->schema([
-                        Grid::make(3)
+                        Grid::make(2)
                             ->schema([
                                 Select::make('general_information_id')
                                     ->relationship('generalInformation', 'number')
@@ -173,16 +176,19 @@ class ProfitabilityAnalysisForm
                                                 $manpowerCategoryId = DirectCostCategory::where('code', 'manpower')->first()?->id;
                                                 $duration = self::getProjectDurationMonths($get);
 
-                                                $manpowerItems = collect($salesPlan->job_positions)->map(fn ($jobPositionId) => [
-                                                    'costable_type' => JobPosition::class,
-                                                    'costable_id' => $jobPositionId,
-                                                    'direct_cost_category_id' => $manpowerCategoryId,
-                                                    'unit_of_measure' => 'Person',
-                                                    'quantity' => 1,
-                                                    'duration_months' => $duration,
-                                                    'markup_percentage' => 0,
-                                                    'is_manpower' => true,
-                                                ])->toArray();
+                                                $manpowerItems = collect($salesPlan->job_positions)->map(function ($jobPositionId) use ($manpowerCategoryId, $duration) {
+                                                    /** @var string|int $jobPositionId */
+                                                    return [
+                                                        'costable_type' => JobPosition::class,
+                                                        'costable_id' => $jobPositionId,
+                                                        'direct_cost_category_id' => $manpowerCategoryId,
+                                                        'unit_of_measure' => 'Person',
+                                                        'quantity' => 1,
+                                                        'duration_months' => $duration,
+                                                        'markup_percentage' => 0,
+                                                        'is_manpower' => true,
+                                                    ];
+                                                })->toArray();
 
                                                 $set('manpowerItems', $manpowerItems);
                                             }
@@ -229,7 +235,10 @@ class ProfitabilityAnalysisForm
                                     ->disabled()
                                     ->dehydrated()
                                     ->columnSpan(1)
-                                    ->visible(fn ($record) => filled($record?->previous_code)),
+                                    ->visible(function ($record) {
+                                        /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
+                                        return filled($record?->previous_code);
+                                    }),
                             ]),
 
                     ]),
@@ -238,7 +247,10 @@ class ProfitabilityAnalysisForm
                     ->label('Operational Parameters')
                     ->description('Configure project scope, work scheme, area, and asset ownership.')
                     ->icon(Heroicon::AdjustmentsHorizontal)
-                    ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
+                    ->disabled(function ($record) {
+                        /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
+                        return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
+                    })
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -250,9 +262,13 @@ class ProfitabilityAnalysisForm
                                     ->dehydrated()
                                     ->placeholder('Select product cluster')
                                     ->helperText('Categorization of the main project services.')
-                                    ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->product_cluster_id : null)
+                                    ->default(function ($livewire) {
+                                        return $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->product_cluster_id : null;
+                                    })
                                     ->createOptionForm(ProductClusterForm::schema())
-                                    ->createOptionAction(fn (Action $action) => $action->slideOver()),
+                                    ->createOptionAction(function (Action $action) {
+                                        return $action->slideOver();
+                                    }),
                                 Select::make('work_scheme_id')
                                     ->relationship('workScheme', 'name')
                                     ->required()
@@ -261,7 +277,9 @@ class ProfitabilityAnalysisForm
                                     ->live()
                                     ->placeholder('Select work scheme')
                                     ->helperText('Working pattern (affects manpower costing).')
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        return self::calculateDirectCost($get, $set);
+                                    })
                                     ->dehydrated(),
                                 Select::make('project_area_id')
                                     ->relationship('projectArea', 'name')
@@ -271,9 +289,13 @@ class ProfitabilityAnalysisForm
                                     ->live()
                                     ->placeholder('Select project area')
                                     ->helperText('Main project location (affects minimum wage references).')
-                                    ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null)
+                                    ->default(function ($livewire) {
+                                        return $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->project_area_id : null;
+                                    })
                                     ->createOptionForm(ProjectAreaForm::schema())
-                                    ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                    ->createOptionAction(function (Action $action) {
+                                        return $action->slideOver();
+                                    })
                                     ->dehydrated(),
                                 TextInput::make('year')
                                     ->label('Year')
@@ -292,19 +314,25 @@ class ProfitabilityAnalysisForm
                                     ->dehydrated()
                                     ->placeholder('Select project type')
                                     ->helperText('Main project execution type (e.g. TAD, Borongan).')
-                                    ->default(fn ($livewire) => $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->project_type_id : null),
+                                    ->default(function ($livewire) {
+                                        return $livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->project_type_id : null;
+                                    }),
 
                                 DatePicker::make('start_date')
                                     ->live()
                                     ->placeholder('Select project start date')
                                     ->helperText('Estimated date when project operations begin.')
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        return self::calculateDirectCost($get, $set);
+                                    })
                                     ->dehydrated(),
                                 DatePicker::make('end_date')
                                     ->live()
                                     ->placeholder('Select project end date')
                                     ->helperText('Estimated date when project operations conclude.')
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        return self::calculateDirectCost($get, $set);
+                                    })
                                     ->dehydrated(),
 
                                 Select::make('tax_id')
@@ -338,13 +366,17 @@ class ProfitabilityAnalysisForm
                                 Toggle::make('require_manpower_costing')
                                     ->label('Require Manpower Costing')
                                     ->default(true)
-                                    ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                                    ->hidden(function (Get $get) {
+                                        return (bool) $get('is_manual_cost');
+                                    })
                                     ->live()
                                     ->dehydrated(),
                                 Toggle::make('require_operational_costing')
                                     ->label('Require Operational Costing')
                                     ->default(true)
-                                    ->hidden(fn (Get $get) => (bool) $get('is_manual_cost'))
+                                    ->hidden(function (Get $get) {
+                                        return (bool) $get('is_manual_cost');
+                                    })
                                     ->live()
                                     ->dehydrated(),
                                 Toggle::make('is_manual_cost')
@@ -422,8 +454,13 @@ class ProfitabilityAnalysisForm
                     ->label('Manpower Planning')
                     ->description('Determine personnel needs based on job positions or manpower packets.')
                     ->icon(Heroicon::UserGroup)
-                    ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
-                    ->visible(fn (Get $get) => (bool) $get('is_manual_cost') || (bool) $get('require_manpower_costing'))
+                    ->disabled(function ($record) {
+                        /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
+                        return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
+                    })
+                    ->visible(function (Get $get) {
+                        return (bool) $get('is_manual_cost') || (bool) $get('require_manpower_costing');
+                    })
                     ->schema([
                         Select::make('analysis_details.manpower_template_id')
                             ->label('Manpower Template')
@@ -436,7 +473,10 @@ class ProfitabilityAnalysisForm
                                 return ManpowerTemplate::query()
                                     ->where('lead_id', $leadId)
                                     ->get()
-                                    ->mapWithKeys(fn ($item) => [$item->id => ($item->code ? "[{$item->code}] " : '').$item->name])
+                                    ->mapWithKeys(function ($item) {
+                                        /** @var \Modules\CRM\Models\ManpowerTemplate $item */
+                                        return [$item->id => ($item->code ? "[{$item->code}] " : '').$item->name];
+                                    })
                                     ->toArray();
                             })
                             ->searchable()
@@ -446,15 +486,23 @@ class ProfitabilityAnalysisForm
 
                         TextEntry::make('manpower_link')
                             ->label('Manpower Costing Attachment')
-                            ->state(fn (Get $get) => new HtmlString(self::getTemplateAttachmentLinkHtml($get('analysis_details.manpower_template_id'), 'manpower')))
+                            ->state(function (Get $get) {
+                                return new HtmlString(self::getTemplateAttachmentLinkHtml($get('analysis_details.manpower_template_id'), 'manpower'));
+                            })
                             ->html()
-                            ->visible(fn (Get $get) => (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'))),
+                            ->visible(function (Get $get) {
+                                return (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'));
+                            }),
 
                         TextEntry::make('manpower_preview')
                             ->label('Personnel Summary')
-                            ->state(fn (Get $get) => new HtmlString(self::getManpowerPreviewHtml($get('analysis_details.manpower_template_id'))))
+                            ->state(function (Get $get) {
+                                return new HtmlString(self::getManpowerPreviewHtml($get('analysis_details.manpower_template_id')));
+                            })
                             ->html()
-                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'))),
+                            ->visible(function (Get $get) {
+                                return ! (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'));
+                            }),
 
                         Repeater::make('manpowerItems')
                             ->schema([
@@ -472,7 +520,9 @@ class ProfitabilityAnalysisForm
                     ->description('Determine material, equipment, services, and other cost requirements.')
                     ->icon(Heroicon::ShoppingCart)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
-                    ->visible(fn (Get $get) => (bool) $get('is_manual_cost') || (bool) $get('require_operational_costing'))
+                    ->visible(function (Get $get) {
+                        return (bool) $get('is_manual_cost') || (bool) $get('require_operational_costing');
+                    })
                     ->schema([
                         Select::make('analysis_details.costing_template_id')
                             ->label('Operational Template')
@@ -485,7 +535,10 @@ class ProfitabilityAnalysisForm
                                 return CostingTemplate::query()
                                     ->where('lead_id', $leadId)
                                     ->get()
-                                    ->mapWithKeys(fn ($item) => [$item->id => ($item->code ? "[{$item->code}] " : '').$item->name])
+                                    ->mapWithKeys(function ($item) {
+                                        /** @var \Modules\CRM\Models\CostingTemplate $item */
+                                        return [$item->id => ($item->code ? "[{$item->code}] " : '').$item->name];
+                                    })
                                     ->toArray();
                             })
                             ->searchable()
@@ -503,7 +556,18 @@ class ProfitabilityAnalysisForm
                             ->label('Equipment & Material Summary')
                             ->state(fn (Get $get) => new HtmlString(self::getOperationalPreviewHtml($get('analysis_details.costing_template_id'))))
                             ->html()
-                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && filled($get('analysis_details.costing_template_id'))),
+                            ->visible(function (Get $get) {
+                                return ! (bool) $get('is_manual_cost') && filled($get('analysis_details.costing_template_id'));
+                            }),
+
+                        Repeater::make('operationalItems')
+                            ->schema([
+                                TextInput::make('item_name'),
+                                TextInput::make('quantity'),
+                                TextInput::make('total_monthly_cost'),
+                            ])
+                            ->hidden()
+                            ->dehydrated(),
                     ]),
 
                 Step::make('Manual Costing')
@@ -511,8 +575,13 @@ class ProfitabilityAnalysisForm
                     ->label('Manual Cost Entry')
                     ->description('Enter high-level monthly direct costs and revenue.')
                     ->icon(Heroicon::Calculator)
-                    ->visible(fn (Get $get) => (bool) $get('is_manual_cost') || ! empty($get('analysis_details.manual_costs')))
-                    ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
+                    ->visible(function (Get $get) {
+                        return (bool) $get('is_manual_cost') || ! empty($get('analysis_details.manual_costs'));
+                    })
+                    ->disabled(function ($record) {
+                        /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
+                        return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
+                    })
                     ->schema([
                         Section::make('Monthly Budgeting')
                             ->description('Provide estimated monthly totals for direct cost categories.')
@@ -562,6 +631,7 @@ class ProfitabilityAnalysisForm
 
                                         // Get Lead Media (RFQ, RFP, etc)
                                         $lead->getMedia('*')->each(function ($media) use ($links, $docIcon) {
+                                            /** @var \Spatie\MediaLibrary\MediaCollections\Models\Media $media */
                                             $url = $media->disk === 's3'
                                                 ? $media->getTemporaryUrl(now()->addMinutes(30))
                                                 : $media->getUrl();
@@ -581,7 +651,9 @@ class ProfitabilityAnalysisForm
 
                                         // Get GI Media
                                         $lead->generalInformations->each(function ($gi) use ($links, $dupIcon) {
+                                            /** @var \Modules\CRM\Models\GeneralInformation $gi */
                                             $gi->getMedia('*')->each(function ($media) use ($links, $dupIcon) {
+                                                /** @var \Spatie\MediaLibrary\MediaCollections\Models\Media $media */
                                                 $url = $media->disk === 's3'
                                                     ? $media->getTemporaryUrl(now()->addMinutes(30))
                                                     : $media->getUrl();
@@ -611,8 +683,12 @@ class ProfitabilityAnalysisForm
                                     ->label('Manual Cost Breakdown')
                                     ->itemLabel(fn (array $state): ?string => DirectCostCategory::find($state['direct_cost_category_id'] ?? null)?->name ?? 'New Manual Cost')
                                     ->live()
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
-                                    ->afterStateHydrated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set))
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        return self::calculateDirectCost($get, $set);
+                                    })
+                                    ->afterStateHydrated(function (Get $get, Set $set) {
+                                        return self::calculateDirectCost($get, $set);
+                                    })
                                     ->schema([
                                         Grid::make(3)
                                             ->schema([
@@ -623,7 +699,9 @@ class ProfitabilityAnalysisForm
                                                     ->distinct()
                                                     ->live()
                                                     ->createOptionForm(DirectCostCategoryForm::schema(type: 'direct'))
-                                                    ->createOptionUsing(fn (array $data) => DirectCostCategory::create($data)->id)
+                                                    ->createOptionUsing(function (array $data) {
+                                                        return DirectCostCategory::create($data)->id;
+                                                    })
                                                     ->editOptionForm(DirectCostCategoryForm::schema(type: 'direct'))
                                                     ->fillEditOptionActionFormUsing(fn (Select $component): ?array => DirectCostCategory::find($component->getState())?->toArray())
                                                     ->updateOptionUsing(fn (Select $component, array $data) => DirectCostCategory::find($component->getState())?->update($data))
@@ -638,7 +716,9 @@ class ProfitabilityAnalysisForm
                                                     ->required()
                                                     ->placeholder('Enter total or add breakdown below')
                                                     ->live(onBlur: true)
-                                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set, '../../'))
+                                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                                        return self::calculateDirectCost($get, $set, '../../');
+                                                    })
                                                     ->extraAttributes(['class' => 'font-bold bg-gray-50'])
                                                     ->columnSpan(1),
                                             ]),
@@ -702,10 +782,14 @@ class ProfitabilityAnalysisForm
                                                             ->searchable()
                                                             ->preload()
                                                             ->live()
-                                                            ->visible(fn (Get $get) => DirectCostCategory::find($get('../../direct_cost_category_id'))?->code === 'tools_equipment')
+                                                            ->visible(function (Get $get) {
+                                                                return DirectCostCategory::find($get('../../direct_cost_category_id'))?->code === 'tools_equipment';
+                                                            })
                                                             ->createOptionForm(ItemForm::schema())
                                                             ->createOptionAction(fn (Action $action) => $action->slideOver())
-                                                            ->createOptionUsing(fn (array $data) => Item::create($data)->id)
+                                                            ->createOptionUsing(function (array $data) {
+                                                                return Item::create($data)->id;
+                                                            })
                                                             ->afterStateUpdated(function ($state, Set $set) {
                                                                 if ($state) {
                                                                     $item = Item::with('unitOfMeasure')->find($state);
@@ -751,7 +835,9 @@ class ProfitabilityAnalysisForm
                                                             ->placeholder('0')
                                                             ->helperText('The cost per unit per month.')
                                                             ->live(onBlur: true)
-                                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateSubItemAmount($get, $set))
+                                                            ->afterStateUpdated(function (Get $get, Set $set) {
+                                                                return self::calculateSubItemAmount($get, $set);
+                                                            })
                                                             ->columnSpan(1),
                                                         TextInput::make('amount')
                                                             ->label('Total')
@@ -772,7 +858,9 @@ class ProfitabilityAnalysisForm
                                     ->columnSpanFull()
                                     ->itemLabel(fn (array $state): ?string => filled($state['direct_cost_category_id'] ?? null) ? DirectCostCategory::find($state['direct_cost_category_id'])?->name : 'New Manual Cost')
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
+                                    ->afterStateUpdated(function (Get $get, Set $set) {
+                                        return self::calculateDirectCost($get, $set);
+                                    }),
                             ]),
                     ]),
 
@@ -780,7 +868,10 @@ class ProfitabilityAnalysisForm
                     ->label('Indirect Costs')
                     ->description('Set management expenses, entertainment, and other indirect fees.')
                     ->icon(Heroicon::ReceiptPercent)
-                    ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
+                    ->disabled(function ($record) {
+                        /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
+                        return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
+                    })
                     ->schema([
 
                         TextInput::make('analysis_details.manual_indirect_total')
@@ -920,7 +1011,10 @@ class ProfitabilityAnalysisForm
                     ->label('Financial Performance')
                     ->description('Key monthly and project-wide financial metrics.')
                     ->icon(Heroicon::PresentationChartLine)
-                    ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
+                    ->disabled(function ($record) {
+                        /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
+                        return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
+                    })
                     ->schema([
                         Section::make('Automated Cost Review')
                             ->description('Aggregated monthly costs calculated from personnel, tools, and indirect inputs.')
@@ -1435,6 +1529,7 @@ class ProfitabilityAnalysisForm
             $set('analysis_details.manpower_template_id', $state);
 
             $items = $template->items->map(function ($item) {
+                /** @var \Modules\CRM\Models\ManpowerTemplateItem $item */
                 return [
                     'job_position_id' => $item->job_position_id,
                     'quantity' => $item->count,
@@ -1487,10 +1582,13 @@ class ProfitabilityAnalysisForm
                     }
                 }
 
-                $subItems = $item->subItems->map(fn ($si) => [
-                    'name' => $si->name,
-                    'amount' => 0,
-                ])->toArray();
+                $subItems = $item->subItems->map(function ($si) {
+                    /** @var \Modules\MasterData\Models\ItemSubItem $si */
+                    return [
+                        'name' => $si->name,
+                        'amount' => 0,
+                    ];
+                })->toArray();
 
                 if ($existingIndex >= 0) {
                     $updatedManualCosts[$existingIndex]['amount'] = 0;
@@ -1509,7 +1607,10 @@ class ProfitabilityAnalysisForm
             // Final Deduplication by Category ID
             $manualCosts = collect($updatedManualCosts)
                 ->groupBy('direct_cost_category_id')
-                ->map(fn ($group) => $group->last())
+                ->map(function ($group) {
+                    /** @var \Illuminate\Support\Collection $group */
+                    return $group->last();
+                })
                 ->values()
                 ->toArray();
 
@@ -1851,6 +1952,7 @@ class ProfitabilityAnalysisForm
 
         if ($categoryIndex !== false) {
             $subItems = collect($items)->map(function ($item) {
+                /** @var array $item */
                 // If job position, get name
                 $name = 'Item';
                 if (! empty($item['costable_id'])) {

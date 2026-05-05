@@ -98,6 +98,12 @@ class ProjectGenerationService
                 'oprep_id' => $projectData['oprep_id'],
                 'ams_id' => $projectData['ams_id'],
                 'project_type_id' => $projectData['project_type_id'],
+                'payment_term_id' => $pa->lead?->payment_term_id,
+                'billing_option_id' => $pa->lead?->billing_option_id,
+                'description' => $pa->lead?->generalInformations()
+                    ->whereIn('status', ['approved', 'submitted'])
+                    ->latest('created_at')
+                    ->first()?->scope_of_work ?? $pa->lead?->description,
             ]);
 
             // 5. Update PA status
@@ -194,9 +200,25 @@ class ProjectGenerationService
             return (int) $pa->project_number;
         }
 
-        // 3. Fallback: Calculate next sequence number for this Customer + Work Scheme
+        // 3. Shared Sequence Logic (Tax Variants)
+        // If there's an existing project with the same Customer, Area, Cluster, and Work Scheme,
+        // but a DIFFERENT Tax ID, it's considered a tax variant and should share the same sequence number.
+        $sharedProject = Project::query()
+            ->where('customer_id', $pa->customer_id)
+            ->where('project_area_id', $pa->project_area_id)
+            ->where('product_cluster_id', $pa->product_cluster_id)
+            ->where('work_scheme_id', $pa->work_scheme_id)
+            ->where('tax_id', '!=', $pa->tax_id)
+            ->first();
+
+        if ($sharedProject && ! empty($sharedProject->project_number)) {
+            return (int) $sharedProject->project_number;
+        }
+
+        // 4. Fallback: Calculate next sequence number for this Customer
+        // The sequence is scoped to the Customer to maintain a clean numbering plan.
         $lastProject = Project::where('customer_id', '=', $pa->customer_id)
-            ->where('work_scheme_id', '=', $pa->work_scheme_id)
+            ->whereNotNull('project_number')
             ->orderByRaw('CAST(project_number AS INTEGER) DESC')
             ->first();
 

@@ -9,7 +9,7 @@ use Modules\MasterData\Models\MinimumWage;
 use Modules\MasterData\Models\ProjectArea;
 use Tests\TestCase;
 
-class ManpowerCostingTest extends TestCase
+class ManpowerCostingServiceTest extends TestCase
 {
     use RefreshDatabase;
 

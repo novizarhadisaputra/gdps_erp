@@ -11,7 +11,7 @@ use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ProjectArea;
 use Tests\TestCase;
 
-class DetailedPAExportTest extends TestCase
+class ProfitabilityAnalysisExportTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -36,15 +36,42 @@ class DetailedPAExportTest extends TestCase
 
         $jobPosition = JobPosition::factory()->create();
 
-        $pa->manpowerItems()->create([
-            'costable_id' => $jobPosition->id,
-            'costable_type' => JobPosition::class,
-            'quantity' => 1,
-            'unit_cost_price' => 5000000,
-            'multiplier' => 1,
-            'total_cost' => 5000000,
-            'markup_percentage' => 10,
-            'total_monthly_sale' => 5500000,
+        $manpowerCategory = \Modules\MasterData\Models\DirectCostCategory::create([
+            'code' => 'manpower',
+            'name' => 'Manpower',
+            'type' => 'direct',
+        ]);
+
+        $pa->update([
+            'is_manual_cost' => true,
+            'analysis_details' => [
+                'manual_costs' => [
+                    [
+                        'direct_cost_category_id' => $manpowerCategory->id,
+                        'amount' => 5000000,
+                        'sub_items' => [
+                            [
+                                'job_position_id' => $jobPosition->id,
+                                'name' => $jobPosition->name,
+                                'quantity' => 1,
+                                'unit_amount' => 5000000,
+                                'amount' => 5000000,
+                                'is_manpower' => true,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'direct_cost' => 5000000,
+            'revenue_per_month' => 6000000,
+            'management_fee' => 1000000,
+            'management_fee_rate' => 16.67,
+            'margin_percentage' => 16.67,
+            'ebitda' => 1000000,
+            'ebit' => 1000000,
+            'ebt' => 1000000,
+            'net_profit' => 800000,
+            'net_profit_margin' => 13.33,
         ]);
 
         // We focus on testing the export class itself

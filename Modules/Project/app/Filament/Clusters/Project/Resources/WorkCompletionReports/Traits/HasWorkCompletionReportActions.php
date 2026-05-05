@@ -5,6 +5,7 @@ namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionRepo
 use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
@@ -29,16 +30,7 @@ trait HasWorkCompletionReportActions
                 ->hidden(fn () => $this instanceof EditRecord),
 
             ActionGroup::make([
-                $this->getExportPdfAction(),
-                $this->getGenerateAccrueRevenueAction(),
-                $this->getDiscussionsAction(),
-            ])
-                ->label('Options')
-                ->icon('heroicon-m-cog-6-tooth')
-                ->color('gray')
-                ->button(),
-
-            ActionGroup::make([
+                // Primary Workflow Actions
                 $this->getSubmitAction(),
                 $this->getApproveAction(),
                 $this->getSendToCustomerAction(),
@@ -46,11 +38,19 @@ trait HasWorkCompletionReportActions
                 $this->getConfirmCustomerSignatureAction(),
                 $this->getReviseAction(),
                 $this->getRejectAction(),
+
+                // Secondary Utility Actions
+                $this->getExportPdfAction(),
+                $this->getGenerateAccrueRevenueAction(),
+                $this->getDiscussionsAction(),
+                DeleteAction::make()
+                    ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Draft),
             ])
-                ->label('Workflow')
+                ->label('Actions')
                 ->icon(Heroicon::OutlinedChevronDown)
                 ->color('primary')
-                ->button(),
+                ->button()
+                ->visible(fn () => $this instanceof ViewRecord),
         ];
     }
 

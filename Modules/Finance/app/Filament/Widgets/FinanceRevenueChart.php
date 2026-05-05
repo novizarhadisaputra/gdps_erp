@@ -37,7 +37,10 @@ class FinanceRevenueChart extends ApexChartWidget
             ->limit(12)
             ->get();
 
-        $labels = $data->map(fn ($item) => sprintf('%04d-%02d', $item->year, $item->month))->toArray();
+        $labels = $data->map(function ($item) {
+            /** @var object{year: int, month: int} $item */
+            return sprintf('%04d-%02d', $item->year, $item->month);
+        })->toArray();
         $revenue = $data->pluck('total_revenue')->toArray();
         $expense = $data->pluck('total_expense')->toArray();
 

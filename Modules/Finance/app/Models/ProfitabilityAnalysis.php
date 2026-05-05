@@ -232,8 +232,9 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         $topLevelItems = collect($this->analysis_details['manual_costs'] ?? []);
 
-        return $topLevelItems->flatMap(function ($group) {
+        return $topLevelItems->flatMap(function (array $group) {
             $categoryId = $group['direct_cost_category_id'] ?? null;
+            /** @var \Modules\MasterData\Models\DirectCostCategory|null $category */
             $category = $categoryId ? DirectCostCategory::find($categoryId) : null;
             $subItems = collect($group['sub_items'] ?? []);
 
@@ -253,6 +254,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             }
 
             return $subItems->map(function ($item) use ($category, $categoryId) {
+                /** @var array $item */
                 $rawMonthlyCost = self::parseNumericValue($item['amount'] ?? $item['total_monthly_cost'] ?? 0);
                 $duration = self::parseNumericValue($item['duration_months'] ?? $this->project_duration);
                 $contribution = ($this->project_duration > 0) ? ($rawMonthlyCost * $duration / $this->project_duration) : $rawMonthlyCost;
@@ -277,7 +279,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         $jsonIndirect = collect($this->analysis_details['indirect_costs'] ?? []);
 
-        return $jsonIndirect->map(function ($item) {
+        return $jsonIndirect->map(function (array $item) {
             return (object) [
                 'direct_cost_category_id' => $item['direct_cost_category_id'] ?? null,
                 'category' => isset($item['direct_cost_category_id']) ? DirectCostCategory::find($item['direct_cost_category_id']) : null,
@@ -296,7 +298,8 @@ class ProfitabilityAnalysis extends Model implements HasMedia
     {
         $items = $this->getDirectItems();
 
-        return (float) $items->filter(function ($item) use ($categoryCode) {
+        return (float) $items->filter(function (object $item) use ($categoryCode) {
+            /** @var object{category: ?object{code: ?string}} $item */
             return ($item->category->code ?? null) === $categoryCode;
         })->sum('total_monthly_cost');
     }
@@ -430,8 +433,12 @@ class ProfitabilityAnalysis extends Model implements HasMedia
 
         if ($this->is_manual_cost) {
             $items = collect($this->analysis_details['manual_costs'] ?? [])
-                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) == $manpowerCategoryId)
-                ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+                ->filter(function (array $item) use ($manpowerCategoryId) {
+                    return ($item['direct_cost_category_id'] ?? null) == $manpowerCategoryId;
+                })
+                ->flatMap(function (array $item) {
+                    return $item['sub_items'] ?? [$item];
+                });
         } else {
             $manpowerId = $this->analysis_details['manpower_template_id'] ?? null;
             if (! $manpowerId) {
@@ -441,50 +448,52 @@ class ProfitabilityAnalysis extends Model implements HasMedia
             $items = collect($template?->getCostSimulation()['rows'] ?? []);
         }
 
-        return $items->map(fn ($item) => [
-            'job_position_id' => $item['job_position_id'] ?? $item['costable_id'] ?? null,
-            'job_position_name' => $item['name'] ?? $item['job_position_name'] ?? 'Personnel',
-            'quantity' => self::parseNumericValue($item['quantity'] ?? $item['qty'] ?? 1),
-            'unit_cost' => self::parseNumericValue($item['unit_amount'] ?? $item['unit_cost'] ?? $item['unit_cost_price'] ?? 0),
-            'total_monthly_cost' => self::parseNumericValue($item['amount'] ?? $item['line_total'] ?? $item['total_monthly_cost'] ?? 0),
-            'risk_level' => $item['risk_level'] ?? 'very_low',
-            'employee_type' => $item['employee_type'] ?? 'ppu',
-            'is_labor_intensive' => $item['is_labor_intensive'] ?? false,
-            'bill_thr_monthly' => $item['bill_thr_monthly'] ?? true,
-            'bill_compensation_monthly' => $item['bill_compensation_monthly'] ?? true,
-            'include_non_fixed_in_accruals' => $item['include_non_fixed_in_accruals'] ?? false,
-            'extra_costs' => $item['extra_costs'] ?? [],
-            'uom' => $item['uom'] ?? $item['unit_of_measure'] ?? 'Person',
-            'ptkp_config_id' => $item['ptkp_config_id'] ?? null,
-            'cost_breakdown' => $item['cost_breakdown'] ?? null,
-        ])->toArray();
+        return $items->map(function ($item) {
+            /** @var array|object $item */
+            return [
+                'job_position_id' => is_array($item) ? ($item['job_position_id'] ?? $item['costable_id'] ?? null) : ($item->job_position_id ?? null),
+                'job_position_name' => is_array($item) ? ($item['name'] ?? $item['job_position_name'] ?? 'Personnel') : ($item->name ?? 'Personnel'),
+                'quantity' => self::parseNumericValue(is_array($item) ? ($item['quantity'] ?? $item['qty'] ?? 1) : ($item->quantity ?? 1)),
+                'unit_cost' => self::parseNumericValue(is_array($item) ? ($item['unit_amount'] ?? $item['unit_cost'] ?? $item['unit_cost_price'] ?? 0) : ($item->unit_amount ?? 0)),
+                'total_monthly_cost' => self::parseNumericValue(is_array($item) ? ($item['amount'] ?? $item['line_total'] ?? $item['total_monthly_cost'] ?? 0) : ($item->amount ?? 0)),
+                'risk_level' => is_array($item) ? ($item['risk_level'] ?? 'very_low') : ($item->risk_level ?? 'very_low'),
+                'employee_type' => is_array($item) ? ($item['employee_type'] ?? 'ppu') : ($item->employee_type ?? 'ppu'),
+                'is_labor_intensive' => is_array($item) ? ($item['is_labor_intensive'] ?? false) : ($item->is_labor_intensive ?? false),
+                'bill_thr_monthly' => is_array($item) ? ($item['bill_thr_monthly'] ?? true) : ($item->bill_thr_monthly ?? true),
+                'bill_compensation_monthly' => is_array($item) ? ($item['bill_compensation_monthly'] ?? true) : ($item->bill_compensation_monthly ?? true),
+                'include_non_fixed_in_accruals' => is_array($item) ? ($item['include_non_fixed_in_accruals'] ?? false) : ($item->include_non_fixed_in_accruals ?? false),
+                'extra_costs' => is_array($item) ? ($item['extra_costs'] ?? []) : ($item->extra_costs ?? []),
+                'uom' => is_array($item) ? ($item['uom'] ?? $item['unit_of_measure'] ?? 'Person') : ($item->uom ?? 'Person'),
+                'ptkp_config_id' => is_array($item) ? ($item['ptkp_config_id'] ?? null) : ($item->ptkp_config_id ?? null),
+                'cost_breakdown' => is_array($item) ? ($item['cost_breakdown'] ?? null) : ($item->cost_breakdown ?? null),
+            ];
+        })->toArray();
     }
 
-    public function getFinancialAssumptionsAttribute(): array
+    public function getOperationalRequirementsAttribute(): array
     {
-        $operationalCategoryId = DirectCostCategory::where('code', 'tools_equipment')->first()?->id;
+        $manpowerCategoryId = DirectCostCategory::where('code', 'manpower')->first()?->id;
 
         if ($this->is_manual_cost) {
-            $opItems = collect($this->analysis_details['manual_costs'] ?? [])
-                ->filter(fn ($item) => ($item['direct_cost_category_id'] ?? null) != DirectCostCategory::where('code', 'manpower')->first()?->id) // Filter out manpower, keep everything else as operational
-                ->flatMap(fn ($item) => $item['sub_items'] ?? [$item]);
+            $items = collect($this->analysis_details['manual_costs'] ?? [])
+                ->filter(function (array $item) use ($manpowerCategoryId) {
+                    return ($item['direct_cost_category_id'] ?? null) != $manpowerCategoryId;
+                })
+                ->flatMap(function (array $item) {
+                    return $item['sub_items'] ?? [$item];
+                });
         } else {
             $costingId = $this->analysis_details['costing_template_id'] ?? null;
-            if ($costingId) {
-                $template = CostingTemplate::find($costingId);
-                $opItems = $template?->costingTemplateItems ?? collect();
-            } else {
-                $opItems = collect();
+            if (! $costingId) {
+                return [];
             }
+            $template = CostingTemplate::with(['costingTemplateItems.item'])->find($costingId);
+            $items = $template?->costingTemplateItems ?? collect();
         }
 
-        return [
-            'interest_rate' => $this->interest_rate,
-            'tax_rate' => $this->tax_rate,
-            'management_fee_rate' => $this->management_fee_rate,
-            'asset_ownership' => $this->asset_ownership,
-            'is_manual_cost' => $this->is_manual_cost,
-            'operational_costs' => $opItems->map(fn ($item) => [
+        return $items->map(function ($item) {
+            /** @var array|object $item */
+            return [
                 'item_id' => is_array($item) ? ($item['item_id'] ?? $item['costable_id'] ?? null) : $item->item_id,
                 'item_name' => is_array($item) ? ($item['name'] ?? $item['item_name'] ?? null) : ($item->item?->name ?? $item->description),
                 'quantity' => (float) (is_array($item) ? ($item['quantity'] ?? 1) : $item->quantity),
@@ -492,8 +501,19 @@ class ProfitabilityAnalysis extends Model implements HasMedia
                 'total_monthly_cost' => (float) (is_array($item) ? ($item['amount'] ?? $item['total_monthly_cost'] ?? 0) : $item->monthly_cost),
                 'uom' => is_array($item) ? ($item['uom'] ?? $item['unit_of_measure'] ?? 'Unit') : ($item->item?->unitOfMeasure?->name ?? 'Unit'),
                 'calculation_type' => is_array($item) ? ($item['calculation_type'] ?? 'nominal') : 'nominal',
-                'percentage_basis' => is_array($item) ? ($item['percentage_basis'] ?? null) : null,
-            ])->toArray(),
+            ];
+        })->toArray();
+    }
+
+    public function getFinancialAssumptionsAttribute(): array
+    {
+        return [
+            'interest_rate' => $this->interest_rate,
+            'tax_rate' => $this->tax_rate,
+            'management_fee_rate' => $this->management_fee_rate,
+            'asset_ownership' => $this->asset_ownership,
+            'is_manual_cost' => $this->is_manual_cost,
+            'operational_costs' => $this->operational_requirements,
         ];
     }
 }

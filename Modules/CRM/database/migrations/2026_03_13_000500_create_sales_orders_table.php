@@ -28,6 +28,7 @@ return new class extends Migration
             // Financials from PA
             $table->decimal('management_fee_percentage', 5, 2)->default(10.00);
             $table->decimal('tax_percentage', 5, 2)->default(11.00);
+            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes');
 
             // Staffing & Execution
             $table->foreignUuid('sales_pic_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'employees' : 'master_data.employees');

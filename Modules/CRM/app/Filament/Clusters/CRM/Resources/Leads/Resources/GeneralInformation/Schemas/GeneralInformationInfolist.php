@@ -115,6 +115,10 @@ class GeneralInformationInfolist
                                     ->label('Name')
                                     ->listWithLineBreaks()
                                     ->bulleted(),
+                                TextEntry::make('pics.jobPosition.name')
+                                    ->label('Job Position')
+                                    ->listWithLineBreaks()
+                                    ->bulleted(),
                                 TextEntry::make('pics.contactRole.name')
                                     ->label('Role')
                                     ->listWithLineBreaks()

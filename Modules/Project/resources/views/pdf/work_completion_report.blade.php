@@ -179,7 +179,12 @@
         : null;
 
     // Signature Data
+    // Priority: Sales Order Project Manager -> Project Operation Representative (Oprep) -> Fallback
     $pm = ($source instanceof SalesOrder) ? $source->projectManager : null;
+    if (!$pm) {
+        $pm = $record->project?->oprep;
+    }
+    
     $pmName = $pm->name ?? '.....................';
     $pmTitle = $pm->position ?? 'Project Manager';
 

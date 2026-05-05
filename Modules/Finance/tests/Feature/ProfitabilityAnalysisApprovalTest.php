@@ -9,7 +9,7 @@ use Modules\Finance\Enums\ProfitabilityAnalysisStatus;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Tests\TestCase;
 
-class PAApprovalTransitionTest extends TestCase
+class ProfitabilityAnalysisApprovalTest extends TestCase
 {
     use RefreshDatabase;
 

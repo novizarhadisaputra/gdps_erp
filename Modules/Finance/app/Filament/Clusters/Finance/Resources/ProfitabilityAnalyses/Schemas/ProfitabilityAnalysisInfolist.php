@@ -199,7 +199,8 @@ class ProfitabilityAnalysisInfolist
                                             return 'No indirect costs defined.';
                                         }
 
-                                        return $items->map(function ($item) use ($record) {
+                                        return $items->map(function (object $item) use ($record) {
+                                            /** @var object $item */
                                             $name = $item->category->name ?? 'Miscellaneous';
                                             $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
                                             $formattedVal = number_format($val, 0, ',', '.');

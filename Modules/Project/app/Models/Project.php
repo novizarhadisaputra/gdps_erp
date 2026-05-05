@@ -25,7 +25,6 @@ use Modules\MasterData\Models\ProjectType;
 use Modules\MasterData\Models\RevenueSegment;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\WorkScheme;
-use Modules\Project\Database\Factories\ProjectFactory;
 use Modules\Project\Enums\ProjectStatus;
 use Modules\Project\Observers\ProjectObserver;
 use Spatie\MediaLibrary\HasMedia;
@@ -70,32 +69,42 @@ class Project extends Model implements HasMedia
 
     public static function generateProjectNumber(self $project): string
     {
-        // Formula: [Customer(3)][ProjectSeq(2)][Area(3)][BranchSeq(2)][Cluster(3)][TaxCode(2)]
-
+        // Formula: [Customer(3)][ProjectSeq(2)][Area(3)][Type(2)][Cluster(3)][TaxCode(2)]
         // Ensure relations are loaded for code segments
         $project->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'lead.customer', 'projectType']);
 
-        $customerCode = $project->customer?->code ?? $project->lead?->customer?->code ?? 'XXX';
-        $customerShortCode = str_pad(substr($customerCode, 0, 3), 3, 'X', STR_PAD_RIGHT);
+        // Helper to get code with logging for missing relations
+        $getCode = function ($relation, $default, $length, $label) use ($project) {
+            $code = $project->{$relation}?->code;
 
+            if (! $code && $relation === 'customer') {
+                $code = $project->lead?->customer?->code;
+            }
+
+            if (! $code) {
+                \Log::warning("Project Number Generation: Missing {$label} for Project", [
+                    'project_id' => $project->id,
+                    'customer_id' => $project->customer_id,
+                    'project_area_id' => $project->project_area_id,
+                    'project_type_id' => $project->project_type_id,
+                    'product_cluster_id' => $project->product_cluster_id,
+                    'tax_id' => $project->tax_id,
+                ]);
+
+                return str_pad($default, $length, '0', STR_PAD_RIGHT);
+            }
+
+            return str_pad(substr($code, 0, $length), $length, '0', STR_PAD_RIGHT);
+        };
+
+        $customerShortCode = $getCode('customer', '000', 3, 'Customer');
         $projectSeq = str_pad((string) ($project->project_number ?? '01'), 2, '0', STR_PAD_LEFT);
-
-        $areaCode = $project->projectArea?->code ?? 'XXX';
-        $areaShortCode = str_pad(substr($areaCode, 0, 3), 3, 'X', STR_PAD_RIGHT);
-
-        $typeCode = $project->projectType?->code ?? 'XXX';
-        $typeShortCode = str_pad(substr($typeCode, 0, 3), 3, 'X', STR_PAD_RIGHT);
-
-        $clusterCode = $project->productCluster?->code ?? 'XXX';
-        $clusterShortCode = str_pad(substr($clusterCode, 0, 3), 3, 'X', STR_PAD_RIGHT);
-
-        $taxCode = $project->tax?->code ?? 'XX';
-        $taxShortCode = str_pad(substr($taxCode, 0, 2), 2, 'X', STR_PAD_RIGHT);
+        $areaShortCode = $getCode('projectArea', '000', 3, 'Area');
+        $typeShortCode = $getCode('projectType', '00', 2, 'Type');
+        $clusterShortCode = $getCode('productCluster', '000', 3, 'Cluster');
+        $taxShortCode = $getCode('tax', '00', 2, 'Tax');
 
         $code = strtoupper("{$customerShortCode}{$projectSeq}{$areaShortCode}{$typeShortCode}{$clusterShortCode}{$taxShortCode}");
-
-        // If we still have 'XXX' or 'XX' in crucial segments, try to signal it or log it
-        // The user specifically wants to avoid this, so ensuring data is synchronized from Lead/PA is key.
 
         return $code;
     }
@@ -172,9 +181,9 @@ class Project extends Model implements HasMedia
         return $this->morphMany(Comment::class, 'commentable')->oldest();
     }
 
-    protected static function newFactory(): ProjectFactory
+    protected static function newFactory()
     {
-        return ProjectFactory::new();
+        return \Modules\Project\Database\Factories\ProjectFactory::new();
     }
 
     public function lead(): BelongsTo

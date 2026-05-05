@@ -18,6 +18,7 @@ class ProjectObserver
      */
     public function creating(Project $project): void
     {
+        // 1. Generate final project code
         if (empty($project->number)) {
             $project->number = Project::generateProjectNumber($project);
         }

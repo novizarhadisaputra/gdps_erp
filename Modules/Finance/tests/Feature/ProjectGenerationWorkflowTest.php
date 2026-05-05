@@ -18,7 +18,7 @@ use Modules\MasterData\Models\WorkScheme;
 use Modules\Project\Models\Project;
 use Tests\TestCase;
 
-class ProjectGenerationTest extends TestCase
+class ProjectGenerationWorkflowTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 

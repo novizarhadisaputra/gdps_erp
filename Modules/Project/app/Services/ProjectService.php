@@ -72,6 +72,7 @@ class ProjectService
                 'revenue_segment_id' => $analysis->revenue_segment_id ?? $lead->revenue_segment_id,
                 'billing_option_id' => $lead->billing_option_id,
                 'name' => $lead->title ?? $lead->name ?? $proposal->number ?? 'New Project',
+                'project_number' => $analysis->project_number,
                 'start_date' => $analysis->start_date ?? now(),
                 'end_date' => $analysis->end_date ?? now()->addYear(),
                 'status' => ProjectStatus::Planning,

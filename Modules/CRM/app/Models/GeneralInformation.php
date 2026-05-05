@@ -184,7 +184,7 @@ class GeneralInformation extends Model implements HasMedia
             'phone' => $pic->phone,
             'type' => (string) $pic->contact_role_id,
             'role' => $pic->contactRole?->name,
-            'job_position' => $pic->job_position,
+            'job_position' => $pic->jobPosition?->name,
         ])->toArray();
 
         foreach ($newContacts as $newContact) {

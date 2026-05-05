@@ -105,13 +105,6 @@ class SalesOrderObserver
             ]);
         }
 
-        // Automation: For Internal SO, if Draft SO (Internal Memo) is uploaded, flip status to Approved immediately
-        if ($salesOrder->type === SalesOrderType::Internal && $salesOrder->hasMedia('draft_so') && $salesOrder->status === SalesOrderStatus::Draft) {
-            $salesOrder->updateQuietly([
-                'status' => SalesOrderStatus::Approved,
-            ]);
-        }
-
         // Sync SO Number to SalesPlan for tracking
         if ($salesOrder->proposal && $salesOrder->proposal->lead && $salesOrder->proposal->lead->salesPlan) {
             $salesOrder->proposal->lead->salesPlan->updateQuietly([

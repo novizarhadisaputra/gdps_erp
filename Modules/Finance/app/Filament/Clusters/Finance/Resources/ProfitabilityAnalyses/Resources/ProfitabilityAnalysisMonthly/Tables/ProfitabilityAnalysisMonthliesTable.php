@@ -56,7 +56,10 @@ class ProfitabilityAnalysisMonthliesTable
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make()
-                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft),
+                        ->visible(function ($record) {
+                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
+                            return $record->status === ProfitabilityAnalysisMonthlyStatus::Draft;
+                        }),
 
                     Action::make('updatePerformance')
                         ->label('Update Performance')
@@ -72,6 +75,7 @@ class ProfitabilityAnalysisMonthliesTable
                                         ->required()
                                         ->live()
                                         ->afterStateUpdated(function ($state, $record, Set $set) {
+                                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
                                             $oldValue = (float) $record->forecast_revenue;
                                             $newValue = (float) str_replace(['.', ','], ['', '.'], $state);
                                             $set('forecast_delta', $newValue - $oldValue);
@@ -80,16 +84,20 @@ class ProfitabilityAnalysisMonthliesTable
                                         ->label('RoFo Delta')
                                         ->readOnly()
                                         ->prefix('IDR ')
-                                        ->extraInputAttributes(fn ($state) => [
-                                            'class' => (float) $state >= 0 ? 'text-success-600 dark:text-success-400 font-bold' : 'text-danger-600 dark:text-danger-400 font-bold',
-                                        ])
+                                        ->extraInputAttributes(function ($state) {
+                                            return [
+                                                'class' => (float) $state >= 0 ? 'text-success-600 dark:text-success-400 font-bold' : 'text-danger-600 dark:text-danger-400 font-bold',
+                                            ];
+                                        })
                                         ->dehydrated(false),
 
                                     TextInput::make('actual_revenue')
                                         ->label('Actual Revenue')
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR ')
-                                        ->disabled(fn () => ! auth()->user()->can('UpdateActual:Finance')) // Authorization check
+                                        ->disabled(function () {
+                                            return ! auth()->user()->can('UpdateActual:Finance');
+                                        }) // Authorization check
                                         ->live()
                                         ->afterStateUpdated(function ($state, $record, Set $set) {
                                             $oldValue = (float) $record->actual_revenue;
@@ -100,18 +108,22 @@ class ProfitabilityAnalysisMonthliesTable
                                         ->label('Actual Delta')
                                         ->readOnly()
                                         ->prefix('IDR ')
-                                        ->extraInputAttributes(fn ($state) => [
-                                            'class' => (float) $state >= 0 ? 'text-success-600 dark:text-success-400 font-bold' : 'text-danger-600 dark:text-danger-400 font-bold',
-                                        ])
+                                        ->extraInputAttributes(function ($state) {
+                                            return [
+                                                'class' => (float) $state >= 0 ? 'text-success-600 dark:text-success-400 font-bold' : 'text-danger-600 dark:text-danger-400 font-bold',
+                                            ];
+                                        })
                                         ->dehydrated(false),
                                 ]),
                         ])
-                        ->mountUsing(fn (Schema $form, ProfitabilityAnalysisMonthly $record) => $form->fill([
-                            'forecast_revenue' => $record->forecast_revenue,
-                            'actual_revenue' => $record->actual_revenue,
-                            'forecast_delta' => 0,
-                            'actual_delta' => 0,
-                        ]))
+                        ->mountUsing(function (Schema $form, ProfitabilityAnalysisMonthly $record) {
+                            return $form->fill([
+                                'forecast_revenue' => $record->forecast_revenue,
+                                'actual_revenue' => $record->actual_revenue,
+                                'forecast_delta' => 0,
+                                'actual_delta' => 0,
+                            ]);
+                        })
                         ->action(function (array $data, ProfitabilityAnalysisMonthly $record): void {
                             $oldForecast = (float) $record->forecast_revenue;
                             $newForecast = (float) $data['forecast_revenue'];
@@ -132,26 +144,44 @@ class ProfitabilityAnalysisMonthliesTable
                             $cache->forget('crm.lead_pipeline_levels');
                             $cache->forget('crm.team_performance');
                         })
-                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft),
+                        ->visible(function ($record) {
+                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
+                            return $record->status === ProfitabilityAnalysisMonthlyStatus::Draft;
+                        }),
 
                     Action::make('finalize')
                         ->label('Finalize Performance')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
-                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft)
-                        ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisMonthlyStatus::Finalized])),
+                        ->visible(function ($record) {
+                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
+                            return $record->status === ProfitabilityAnalysisMonthlyStatus::Draft;
+                        })
+                        ->action(function ($record) {
+                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
+                            return $record->update(['status' => ProfitabilityAnalysisMonthlyStatus::Finalized]);
+                        }),
 
                     Action::make('reopen')
                         ->label('Re-open for Edit')
                         ->icon('heroicon-o-arrow-path')
                         ->color('warning')
                         ->requiresConfirmation()
-                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Finalized)
-                        ->action(fn ($record) => $record->update(['status' => ProfitabilityAnalysisMonthlyStatus::Draft])),
+                        ->visible(function ($record) {
+                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
+                            return $record->status === ProfitabilityAnalysisMonthlyStatus::Finalized;
+                        })
+                        ->action(function ($record) {
+                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
+                            return $record->update(['status' => ProfitabilityAnalysisMonthlyStatus::Draft]);
+                        }),
 
                     DeleteAction::make()
-                        ->visible(fn ($record) => $record->status === ProfitabilityAnalysisMonthlyStatus::Draft),
+                        ->visible(function ($record) {
+                            /** @var \Modules\Finance\Models\ProfitabilityAnalysisMonthly $record */
+                            return $record->status === ProfitabilityAnalysisMonthlyStatus::Draft;
+                        }),
                 ]),
             ]);
     }

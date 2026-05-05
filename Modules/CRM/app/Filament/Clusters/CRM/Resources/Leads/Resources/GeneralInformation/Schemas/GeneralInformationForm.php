@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -10,9 +11,12 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Modules\MasterData\Enums\Gender;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Models\ContactRole;
+use Modules\MasterData\Models\JobPosition;
 
 class GeneralInformationForm
 {
@@ -163,9 +167,15 @@ class GeneralInformationForm
                                 ->native(false),
                             TextInput::make('name')
                                 ->required(),
-                            TextInput::make('job_position')
+                            Select::make('job_position_id')
                                 ->label('Job Position')
-                                ->placeholder('e.g. Procurement Manager'),
+                                ->options(fn () => JobPosition::where('is_active', true)->pluck('name', 'id'))
+                                ->searchable()
+                                ->preload()
+                                ->placeholder('Select job position')
+                                ->createOptionForm(JobPositionForm::schema())
+                                ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                ->createOptionUsing(fn (array $data) => JobPosition::create($data)->id),
                             TextInput::make('phone'),
                             TextInput::make('email')
                                 ->email(),
