@@ -26,6 +26,7 @@ use Modules\CRM\Models\SalesOrder;
 use Modules\CRM\Models\WorkOrder;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\MasterData\Enums\Gender;
+use Modules\MasterData\Models\AppSetting;
 use Modules\MasterData\Models\BankAccount;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
@@ -168,7 +169,8 @@ class InvoiceForm
                                         // Sync items and financial details
                                         if ($source instanceof WorkCompletionReport) {
                                             $set('tax_id', $source->tax_id);
-                                            $set('tax_percentage', $source->tax_percentage ?? 12);
+                                            $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                            $set('tax_percentage', $source->tax_percentage ?? $defaultVat);
                                             $set('project_area_id', $source->project_area_id);
                                             $set('tax_wording', $source->tax_wording);
                                             $set('content_config.recipient_name', $source->content_config['recipient_name'] ?? null);
@@ -182,7 +184,8 @@ class InvoiceForm
                                                 $set('amount', $sum);
                                                 $taxId = $source->tax_id;
                                                 $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? 12) / 100));
+                                                $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? $defaultVat) / 100));
                                                 $set('tax_amount', $tax);
                                                 $set('total_amount', $sum + $tax);
                                             }
@@ -233,7 +236,8 @@ class InvoiceForm
                                                 $set('amount', $sum);
                                                 $taxId = $get('tax_id');
                                                 $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? 12) / 100));
+                                                $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? $defaultVat) / 100));
                                                 $set('tax_amount', $tax);
                                                 $set('total_amount', $sum + $tax);
                                             }
@@ -246,8 +250,10 @@ class InvoiceForm
                                                 $set('items', $newItems);
                                                 $sum = collect($newItems)->sum('total_price');
                                                 $set('amount', $sum);
-                                                $set('tax_amount', $sum * 0.12);
-                                                $set('total_amount', $sum * 1.12);
+                                                $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                                $taxAmount = round($sum * ($defaultVat / 100));
+                                                $set('tax_amount', $taxAmount);
+                                                $set('total_amount', $sum + $taxAmount);
 
                                                 // Handle Internal Bank Account
                                                 if ($source->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
@@ -468,7 +474,8 @@ class InvoiceForm
 
                                 $taxId = $get('tax_id');
                                 $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? 12) / 100));
+                                $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? $defaultVat) / 100));
 
                                 $set('tax_amount', $tax);
                                 $set('total_amount', $sum + $tax);
@@ -499,7 +506,8 @@ class InvoiceForm
 
                                             $taxId = $get('tax_id');
                                             $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                            $tax = $taxRecord ? $taxRecord->calculateTax($amount) : round($amount * (($get('tax_percentage') ?? 12) / 100));
+                                            $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                            $tax = $taxRecord ? $taxRecord->calculateTax($amount) : round($amount * (($get('tax_percentage') ?? $defaultVat) / 100));
                                             $set('tax_amount', $tax);
                                             $set('total_amount', $amount + $tax);
                                         }
@@ -542,7 +550,8 @@ class InvoiceForm
 
                                         $taxId = $get('tax_id');
                                         $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? 12) / 100));
+                                        $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? $defaultVat) / 100));
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
                                     }),
@@ -563,7 +572,8 @@ class InvoiceForm
 
                                         $taxId = $get('tax_id');
                                         $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? 12) / 100));
+                                        $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? $defaultVat) / 100));
 
                                         $set('tax_amount', $tax);
                                         $set('total_amount', $amount + $tax);
@@ -618,7 +628,7 @@ class InvoiceForm
                                     }),
 
                                 Hidden::make('tax_percentage')
-                                    ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12),
+                                    ->default(fn () => Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00)),
 
                                 TextInput::make('tax_amount')
                                     ->label('Tax Amount (VAT)')

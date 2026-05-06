@@ -16,6 +16,9 @@ return new class extends Migration
         Schema::create($tableName, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('number')->unique(); // Journal Voucher Number
+            $table->integer('sequence_number')->default(0);
+            $table->integer('revision_number')->default(0);
+            $table->integer('year')->nullable();
             $table->date('date');
             $table->text('description')->nullable();
             $table->nullableUuidMorphs('reference'); // Reference to the triggering document (e.g. AccrueRevenue)

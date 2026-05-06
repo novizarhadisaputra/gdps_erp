@@ -71,26 +71,26 @@ class AccountMappingSeeder extends Seeder
             ['name' => 'PT. ANUGERAH BANGUN BERSAMA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. BAKER HUGHES INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. BRAJA MUKTI CAKRA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
-            ['name' => 'PT. EKSPRESS TRANSPORTASI ANTARBENUA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
-            ['name' => 'PT. JALAN JALAN NUSANTARA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
+            ['name' => 'PT. EKSPRES TRANSPORTASI ANTARBENUA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
+            ['name' => 'PT. JALAN-JALAN NUSANTARA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. KERETA CEPAT INDONESIA CHINA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. KOPNUSPOS', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
-            ['name' => 'PT. KRAYON KONSULTAN INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
+            ['name' => 'PT. KRAYON KONSULTAN INDO', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. LINFOX LOGISTICS INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. PLN INDONESIA POWER', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. POS LOGISTIK INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
-            ['name' => 'PT. SAIC INTERNATIONAL INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
+            ['name' => 'PT. SAIC INTERNASIONAL INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. SGMW MOTOR INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. SGMW SALES INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. WIRA ADIRAJASA DIRGANTARA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT.CITRA MULTI SERVICES', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. AICE ICE CREAM JATIM INDUSTRY', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
-            ['name' => 'PT. BADAN ACMIC ELEKTRONIK INDONESIA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
-            ['name' => 'PT. BENTOEL DISTRIBUSI UTAMA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
+            ['name' => 'PT. ACMIC ELECTRONIC', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
+            ['name' => 'PT. BENTOEL DISTRIBUTOR UTAMA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. BENTOEL PRIMA', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. GERBANG EDUKASI MAKMUR', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
             ['name' => 'PT. GRIFF PRIMA ABADI', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
-            ['name' => 'PT. SMART TELECOM', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
+            ['name' => 'PT. SMARTFREN TELECOM TBK', 'ar' => '10017200', 'rev' => '30015011', 'accrual' => '10018905'],
         ];
 
         $skipped = [];
@@ -98,24 +98,39 @@ class AccountMappingSeeder extends Seeder
         foreach ($data as $row) {
             $fullName = $row['name'];
 
-            // Clean name for better matching
-            $cleanName = str_replace(['PT.', 'PT', 'CV.', 'CV', 'TBK', 'Tbk', '-'], ' ', $fullName);
-            $cleanName = trim(preg_replace('/\s+/', ' ', $cleanName));
-
             // Logic to extract base name and area code
-            $baseCustomerName = $cleanName;
+            $baseCustomerName = $fullName;
             $areaCode = null;
             if (str_contains($fullName, '-')) {
                 $parts = explode('-', $fullName);
-                $baseCustomerName = trim(str_replace(['PT.', 'PT'], '', $parts[0]));
+                $baseCustomerName = trim($parts[0]);
                 $areaCode = trim($parts[1]);
             }
 
-            // Find Customer with loose matching
-            $customer = Customer::where('name', 'ILIKE', "%{$baseCustomerName}%")->first();
+            // Aggressive normalization for fuzzy matching
+            $normalize = function ($name) {
+                $name = str_replace(['PT.', 'PT', 'CV.', 'CV', 'TBK', 'Tbk'], '', $name);
+                $name = preg_replace('/[^a-zA-Z0-9]/', '', $name);
+
+                return strtolower($name);
+            };
+
+            $normalizedSearch = $normalize($baseCustomerName);
+
+            // Find Customer by comparing normalized names
+            $customer = Customer::all()->first(function ($c) use ($normalize, $normalizedSearch) {
+                return $normalize($c->name) === $normalizedSearch;
+            });
+
+            // Fallback to loose ILIKE if normalization didn't find exact match
+            if (! $customer) {
+                $customer = Customer::where('name', 'ILIKE', "%{$normalizedSearch}%")->first();
+            }
 
             if (! $customer) {
-                $customer = Customer::where('name', 'ILIKE', "%{$cleanName}%")->first();
+                // Final fallback: try cleaning common words and searching
+                $cleanSearch = trim(str_replace(['PT.', 'PT', 'TBK', 'Tbk'], '', $baseCustomerName));
+                $customer = Customer::where('name', 'ILIKE', "%{$cleanSearch}%")->first();
             }
 
             if (! $customer) {

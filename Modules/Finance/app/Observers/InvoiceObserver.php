@@ -114,7 +114,9 @@ class InvoiceObserver
         if ($invoice->wasChanged('status')) {
             if ($invoice->status === InvoiceStatus::Submitted) {
                 app(SignatureService::class)->notifyNextApprovers($invoice);
+            }
 
+            if ($invoice->status === InvoiceStatus::Approved) {
                 // Trigger Accrual Reversal logic
                 app(AccrualReversalService::class)->reverseAccrualsForInvoice($invoice);
             }

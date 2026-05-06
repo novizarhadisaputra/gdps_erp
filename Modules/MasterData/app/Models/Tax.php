@@ -70,4 +70,12 @@ class Tax extends Model
 
         return $label;
     }
+
+    public static function getDefaultRate(string $category, float $fallback = 0): float
+    {
+        return (float) (self::where('category', $category)
+            ->where('is_active', true)
+            ->where('is_default', true)
+            ->first()?->rate ?? $fallback);
+    }
 }

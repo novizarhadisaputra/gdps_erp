@@ -35,10 +35,12 @@ use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schem
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Taxes\Schemas\TaxForm;
+use Modules\MasterData\Models\AppSetting;
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\MinimumWage;
+use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\UnitOfMeasure;
 
@@ -410,7 +412,7 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('interest_rate')
                                     ->label('Interest Rate (%)')
                                     ->numeric()
-                                    ->default(1.50)
+                                    ->default(fn () => AppSetting::getPayload('finance', 'global_financial_parameters')['interest_rate'] ?? 1.50)
                                     ->placeholder('1.50')
                                     ->helperText('Estimated interest expense or cost of capital (Cost of Money).')
                                     ->live(onBlur: true)
@@ -419,7 +421,7 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('tax_rate')
                                     ->label('Corp Tax Rate (%)')
                                     ->numeric()
-                                    ->default(22.00)
+                                    ->default(fn () => Tax::getDefaultRate('corporate_income_tax', AppSetting::getPayload('finance', 'global_financial_parameters')['corp_tax_rate'] ?? 22.00))
                                     ->placeholder('22.00')
                                     ->helperText('Corporate Income Tax Rate.')
                                     ->live(onBlur: true)
@@ -428,7 +430,7 @@ class ProfitabilityAnalysisForm
                                 TextInput::make('management_fee_rate')
                                     ->label('Mgmt Fee / Target GPM (%)')
                                     ->numeric()
-                                    ->default(fn (Get $get, $livewire) => $get('/management_fee_rate') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->management_fee_percentage : 0) ?? 15.00)
+                                    ->default(fn (Get $get, $livewire) => $get('/management_fee_rate') ?? ($livewire instanceof ManageRelatedRecords ? $livewire->getOwnerRecord()->lead?->salesPlan?->management_fee_percentage : 0) ?? AppSetting::getPayload('finance', 'global_financial_parameters')['management_fee_rate'] ?? 15.00)
                                     ->placeholder('15.00')
                                     ->helperText('Target Gross Profit Margin percentage (Project Fee).')
                                     ->live(onBlur: true)
@@ -1755,8 +1757,9 @@ class ProfitabilityAnalysisForm
         $directCost = self::parseNumericValue($get($root.'direct_cost') ?? $get('/direct_cost') ?? 0);
         $indirectCost = self::parseNumericValue($get($root.'avg_monthly_indirect_cost') ?? $get('/avg_monthly_indirect_cost') ?? 0);
         $gpmTarget = self::parseNumericValue($get($root.'management_fee_rate') ?? $get('/management_fee_rate') ?? 15.00);
-        $interestRate = self::parseNumericValue($get($root.'interest_rate') ?? $get('/interest_rate') ?? 1.50);
-        $taxRate = self::parseNumericValue($get($root.'tax_rate') ?? $get('/tax_rate') ?? 22.00);
+        $financeSettings = AppSetting::getPayload('finance', 'global_financial_parameters') ?? [];
+        $interestRate = self::parseNumericValue($get($root.'interest_rate') ?? $get('/interest_rate') ?? $financeSettings['interest_rate'] ?? 1.50);
+        $taxRate = self::parseNumericValue($get($root.'tax_rate') ?? $get('/tax_rate') ?? Tax::getDefaultRate('corporate_income_tax', $financeSettings['corp_tax_rate'] ?? 22.00));
         $duration = self::getProjectDurationMonths($get, $root);
         $depreciation = self::parseNumericValue($get($root.'manual_depreciation') ?? $get('/manual_depreciation') ?? 0);
 

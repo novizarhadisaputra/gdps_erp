@@ -20,6 +20,13 @@ class AppSetting extends Model
             ->dontSubmitEmptyLogs();
     }
 
+    public static function getPayload(string $group, string $key, mixed $default = null): mixed
+    {
+        $setting = self::where('group', $group)->where('key', $key)->where('is_active', true)->first();
+
+        return $setting ? $setting->payload : $default;
+    }
+
     protected $fillable = [
         'group',
         'key',

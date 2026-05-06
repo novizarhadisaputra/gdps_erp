@@ -8,12 +8,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\CRM\Database\Factories\CustomerFactory;
 use Modules\CRM\Observers\CustomerObserver;
+use Modules\Finance\Models\AccountMapping;
 use Modules\MasterData\Enums\ActiveStatus;
 use Modules\MasterData\Enums\LegalEntityType;
 use Modules\MasterData\Models\District;
+use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Province;
 use Modules\MasterData\Models\Regency;
 use Modules\MasterData\Models\Village;
@@ -98,13 +102,13 @@ class Customer extends Model implements HasMedia
         return $this->belongsTo(Village::class);
     }
 
-    public function accountMappings(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function accountMappings(): MorphMany
     {
-        return $this->morphMany(\Modules\Finance\Models\AccountMapping::class, 'mappable');
+        return $this->morphMany(AccountMapping::class, 'mappable');
     }
 
-    public function projectAreas(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function projectAreas(): BelongsToMany
     {
-        return $this->belongsToMany(\Modules\MasterData\Models\ProjectArea::class, 'customer_project_area');
+        return $this->belongsToMany(ProjectArea::class, config('database.default') === 'sqlite' ? 'customer_project_area' : 'crm.customer_project_area');
     }
 }

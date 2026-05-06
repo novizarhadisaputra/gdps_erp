@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\MasterData\Models\RevenueSegment;
+use Modules\MasterData\Models\RevenueType;
 
 class AccountMapping extends Model
 {
@@ -34,11 +36,11 @@ class AccountMapping extends Model
 
     public function revenueType(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\RevenueType::class);
+        return $this->belongsTo(RevenueType::class);
     }
 
     public function revenueSegment(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\RevenueSegment::class);
+        return $this->belongsTo(RevenueSegment::class);
     }
 }

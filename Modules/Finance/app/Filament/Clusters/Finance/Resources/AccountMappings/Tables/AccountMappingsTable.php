@@ -108,7 +108,7 @@ class AccountMappingsTable
                                 $sub->where('mappable_type', ProjectArea::class)
                                     ->whereIn('mappable_id', function ($inner) use ($data) {
                                         $inner->select('project_area_id')
-                                            ->from('master_data.customer_project_area')
+                                            ->from('crm.customer_project_area')
                                             ->where('customer_id', $data['value']);
                                     });
                             });

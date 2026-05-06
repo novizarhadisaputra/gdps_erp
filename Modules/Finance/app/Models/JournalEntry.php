@@ -14,6 +14,9 @@ class JournalEntry extends Model
 
     protected $fillable = [
         'number',
+        'sequence_number',
+        'revision_number',
+        'year',
         'date',
         'description',
         'reference_id',

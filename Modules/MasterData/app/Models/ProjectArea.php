@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\CRM\Models\Customer;
+use Modules\Finance\Models\AccountMapping;
 use Modules\MasterData\Database\Factories\ProjectAreaFactory;
 use Modules\MasterData\Observers\ProjectAreaObserver;
 use Modules\MasterData\Traits\HasDefaultRecord;
@@ -45,7 +47,7 @@ class ProjectArea extends Model
 
     public function customers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(\Modules\CRM\Models\Customer::class, 'customer_project_area');
+        return $this->belongsToMany(Customer::class, config('database.default') === 'sqlite' ? 'customer_project_area' : 'crm.customer_project_area');
     }
 
     public function parentable(): \Illuminate\Database\Eloquent\Relations\MorphTo
@@ -70,7 +72,7 @@ class ProjectArea extends Model
 
     public function accountMappings(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
-        return $this->morphMany(\Modules\Finance\Models\AccountMapping::class, 'mappable');
+        return $this->morphMany(AccountMapping::class, 'mappable');
     }
 
     /**

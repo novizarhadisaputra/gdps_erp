@@ -124,6 +124,9 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'PPN00', 'name' => 'Non PPN (0%)', 'category' => 'sales', 'rate' => 0, 'is_default' => false],
             ['code' => 'PPN11', 'name' => 'PPN 11%', 'category' => 'sales', 'rate' => 11, 'is_default' => false],
             ['code' => 'PPN12', 'name' => 'PPN 12%', 'category' => 'sales', 'rate' => 12, 'is_default' => true],
+
+            // Corporate Tax
+            ['code' => 'PPH_BADAN', 'name' => 'PPh Badan', 'category' => 'corporate_income_tax', 'rate' => 22, 'is_default' => true],
         ];
         foreach ($taxes as $data) {
             Tax::updateOrCreate(['code' => $data['code']], $data);
@@ -444,6 +447,7 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'AUF', 'name' => 'Andalan Utama Foodindo', 'legal_entity_type' => LegalEntityType::PT],
             ['code' => 'PRS', 'name' => 'Perumnas', 'legal_entity_type' => null],
             ['code' => 'STN', 'name' => 'Sabre Travel Network Indonesia', 'legal_entity_type' => LegalEntityType::PT],
+            ['code' => 'CMS', 'name' => 'Citra Multi Services', 'legal_entity_type' => LegalEntityType::PT],
             ['code' => 'ZIN', 'name' => 'Zalora Indonesia', 'legal_entity_type' => LegalEntityType::PT],
             ['code' => 'BDU', 'name' => 'Bentoel Distributor Utama', 'legal_entity_type' => LegalEntityType::PT],
             ['code' => 'SII', 'name' => 'SAIC Internasional Indonesia', 'legal_entity_type' => LegalEntityType::PT],

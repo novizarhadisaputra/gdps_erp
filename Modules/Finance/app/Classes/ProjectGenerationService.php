@@ -5,7 +5,9 @@ namespace Modules\Finance\Classes;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Models\AppSetting;
 use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Models\Tax;
 use Modules\Project\Models\Project;
 
 class ProjectGenerationService
@@ -89,7 +91,8 @@ class ProjectGenerationService
                 'revenue_per_month' => $pa->revenue_per_month,
                 'direct_cost' => $pa->direct_cost,
                 'management_fee_per_month' => $pa->management_fee,
-                'ppn_percentage' => $pa->tax?->percentage ?? 11.00,
+                'ppn_percentage' => $pa->tax?->percentage
+                    ?? Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00),
                 'start_date' => $pa->start_date ?? $pa->lead?->start_date,
                 'end_date' => $pa->end_date ?? $pa->lead?->end_date,
                 'analysis_details' => $details,
