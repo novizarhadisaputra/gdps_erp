@@ -578,7 +578,7 @@ trait HasProfitabilityAnalysisActions
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
 
-                return ! ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
+                return ! ($rec->is_manual_cost ?? false) && in_array($rec?->status, [ProfitabilityAnalysisStatus::Draft, ProfitabilityAnalysisStatus::Rejected]);
             });
     }
 
@@ -606,7 +606,7 @@ trait HasProfitabilityAnalysisActions
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
 
-                return ! ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
+                return ! ($rec->is_manual_cost ?? false) && in_array($rec?->status, [ProfitabilityAnalysisStatus::Draft, ProfitabilityAnalysisStatus::Rejected]);
             });
     }
 
@@ -632,7 +632,7 @@ trait HasProfitabilityAnalysisActions
             ->visible(function ($record) {
                 $rec = $record ?? (method_exists($this, 'getRecord') ? $this->getRecord() : null);
 
-                return ($rec->is_manual_cost ?? false) && in_array($rec->status, ['draft', 'rejected']);
+                return ($rec->is_manual_cost ?? false) && in_array($rec?->status, [ProfitabilityAnalysisStatus::Draft, ProfitabilityAnalysisStatus::Rejected]);
             });
     }
 
@@ -655,7 +655,7 @@ trait HasProfitabilityAnalysisActions
             ->visible(function ($record) {
                 $status = $record?->status ?? (method_exists($this, 'getRecord') ? $this->getRecord()?->status : null);
 
-                return in_array($status, ['draft', 'rejected']);
+                return in_array($status, [ProfitabilityAnalysisStatus::Draft, ProfitabilityAnalysisStatus::Rejected]);
             });
     }
 

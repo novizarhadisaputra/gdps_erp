@@ -33,6 +33,8 @@ class AccountMappingForm
                             ->schema([
                                 Select::make('customer_id')
                                     ->label('Customer')
+                                    ->placeholder('Select a customer')
+                                    ->helperText('The main client entity this account mapping belongs to.')
                                     ->options(Customer::pluck('name', 'id'))
                                     ->searchable()
                                     ->required()
@@ -52,7 +54,8 @@ class AccountMappingForm
 
                                 Select::make('project_area_id')
                                     ->label('Project Area (Optional)')
-                                    ->helperText('Leave empty to apply mapping at the Customer level.')
+                                    ->placeholder('Select a project area')
+                                    ->helperText('Specify a sub-area for more granular mapping. Leave empty to apply at Customer level.')
                                     ->options(function (Get $get) {
                                         $customerId = $get('customer_id');
                                         if (! $customerId) {
@@ -114,6 +117,8 @@ class AccountMappingForm
                             ->schema([
                                 Select::make('type')
                                     ->label('Mapping Type')
+                                    ->placeholder('Select mapping category')
+                                    ->helperText('Identify if this account is used for Accruals, Revenue recognition, or Receivables.')
                                     ->options([
                                         'accrual' => 'Accrued Revenue',
                                         'revenue' => 'Revenue',
@@ -123,6 +128,8 @@ class AccountMappingForm
 
                                 Select::make('chart_of_account_id')
                                     ->label('Chart of Account (GL)')
+                                    ->placeholder('Search by code or name')
+                                    ->helperText('The General Ledger account from the SAP-aligned chart of accounts.')
                                     ->options(function () {
                                         return ChartOfAccount::query()
                                             ->get()
@@ -143,19 +150,24 @@ class AccountMappingForm
 
                                 Select::make('revenue_type_id')
                                     ->label('Revenue Type')
+                                    ->placeholder('All Revenue Types')
+                                    ->helperText('Optional: apply this mapping only to a specific revenue category.')
                                     ->options(RevenueType::query()->pluck('name', 'id'))
                                     ->searchable()
                                     ->nullable(),
 
                                 Select::make('revenue_segment_id')
                                     ->label('Revenue Segment')
+                                    ->placeholder('All Revenue Segments')
+                                    ->helperText('Optional: apply this mapping only to a specific business segment.')
                                     ->options(RevenueSegment::query()->pluck('name', 'id'))
                                     ->searchable()
                                     ->nullable(),
 
                                 TextInput::make('note')
                                     ->label('Reference Note')
-                                    ->placeholder('Original reference from spreadsheet')
+                                    ->placeholder('e.g., Original reference from mapping spreadsheet')
+                                    ->helperText('Internal notes for auditing and reconciliation purposes.')
                                     ->columnSpanFull(),
                             ]),
                     ]),

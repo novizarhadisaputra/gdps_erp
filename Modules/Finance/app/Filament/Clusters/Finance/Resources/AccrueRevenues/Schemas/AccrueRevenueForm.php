@@ -75,7 +75,8 @@ class AccrueRevenueForm
                                     ])
                                     ->required()
                                     ->native(false)
-                                    ->placeholder('Select SAP entity'),
+                                    ->placeholder('Select SAP entity')
+                                    ->helperText('Select the legal entity for SAP integration.'),
                             ]),
                         Grid::make(2)
                             ->schema([
@@ -111,12 +112,15 @@ class AccrueRevenueForm
                                             ->required()
                                             ->searchable()
                                             ->preload()
+                                            ->placeholder('Select revenue type')
+                                            ->helperText('Classification of this revenue (e.g. Manpower, Material).')
                                             ->live(),
                                         Select::make('invoice_id')
                                             ->label('Associated Invoice')
                                             ->options(fn (Get $get) => Invoice::where('customer_id', $get('../../customer_id'))->pluck('number', 'id'))
                                             ->searchable()
                                             ->placeholder('Optional')
+                                            ->helperText('Link to the issued invoice if available.')
                                             ->live()
                                             ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                                                 if ($state) {
@@ -141,6 +145,8 @@ class AccrueRevenueForm
                                             ->prefix('IDR')
                                             ->numeric()
                                             ->required()
+                                            ->placeholder('0')
+                                            ->helperText('Expected cost for this revenue segment.')
                                             ->live(onBlur: true)
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                                         TextInput::make('amount_estimated')
@@ -148,6 +154,8 @@ class AccrueRevenueForm
                                             ->prefix('IDR')
                                             ->numeric()
                                             ->required()
+                                            ->placeholder('0')
+                                            ->helperText('Expected revenue to be recognized.')
                                             ->live(onBlur: true)
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->rules(fn (Get $get): array => [
@@ -158,7 +166,6 @@ class AccrueRevenueForm
                                                     }
                                                 },
                                             ])
-                                            ->helperText('Total revenue for this segment.')
                                             ->extraInputAttributes(fn (Get $get) => [
                                                 'style' => (float) $get('amount_expense_estimated') > (float) $get('amount_estimated')
                                                     ? 'color: #dc2626; font-weight: bold;'
@@ -172,13 +179,15 @@ class AccrueRevenueForm
                                             ->prefix('IDR')
                                             ->numeric()
                                             ->live(onBlur: true)
-                                            ->placeholder('Actual cost')
+                                            ->placeholder('0')
+                                            ->helperText('Realized cost (from operational data).')
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                                         TextInput::make('amount_actual')
                                             ->label('Actual Revenue')
                                             ->prefix('IDR')
                                             ->numeric()
-                                            ->placeholder('Final billed amount')
+                                            ->placeholder('0')
+                                            ->helperText('Realized revenue (from final invoice).')
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->rules(fn (Get $get): array => [
                                                 function (string $attribute, $value, Closure $fail) use ($get) {
@@ -191,7 +200,8 @@ class AccrueRevenueForm
                                     ]),
                                 Textarea::make('description')
                                     ->label('Item Notes')
-                                    ->placeholder('Detailed description of work...')
+                                    ->placeholder('Detailed description of work or reason for variance...')
+                                    ->helperText('Provide context for this specific work item.')
                                     ->columnSpanFull(),
                             ])
                             ->itemLabel(fn (array $state): ?string => (! empty($state['revenue_type_id'])) ? RevenueType::find($state['revenue_type_id'])?->name : 'Work Item')
@@ -207,7 +217,8 @@ class AccrueRevenueForm
 
                         Textarea::make('description')
                             ->label('General Submission Notes')
-                            ->placeholder('Additional context for Finance team...')
+                            ->placeholder('Additional context for Finance team regarding this accrual submission...')
+                            ->helperText('Any overarching notes for the entire document.')
                             ->columnSpanFull(),
                     ])->columnSpanFull(),
             ]);

@@ -146,4 +146,9 @@ class WorkCompletionReport extends Model implements HasMedia
     {
         return $this->hasMany(\Modules\Finance\Models\AccrueRevenueItem::class);
     }
+
+    protected static function newFactory(): \Modules\Project\Database\Factories\WorkCompletionReportFactory
+    {
+        return \Modules\Project\Database\Factories\WorkCompletionReportFactory::new();
+    }
 }

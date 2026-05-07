@@ -84,7 +84,7 @@ class SalesOrderService
             'type' => SalesOrderType::Internal,
             'status' => SalesOrderStatus::Draft,
             'amount' => $totalSoAmount,
-            'management_fee_percentage' => $analysis->management_fee_rate,
+            'management_fee_percentage' => $analysis->management_fee_rate ?? 0.0,
             'tax_percentage' => $analysis->tax?->rate ?? 11,
             'sales_pic_id' => $project->ams_id ?? $analysis->lead?->ams_id,
             'project_manager_id' => $project->oprep_id ?? $analysis->lead?->oprep_id,

@@ -89,4 +89,9 @@ class ProjectChangeRequest extends Model
 
         $this->update(['status' => ProjectChangeRequestStatus::Submitted]);
     }
+
+    protected static function newFactory(): \Modules\Project\Database\Factories\ProjectChangeRequestFactory
+    {
+        return \Modules\Project\Database\Factories\ProjectChangeRequestFactory::new();
+    }
 }

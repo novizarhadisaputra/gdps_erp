@@ -425,11 +425,15 @@ class InvoiceForm
                                         TextInput::make('item_name')
                                             ->label('Item Name / Description')
                                             ->required()
+                                            ->placeholder('e.g. Monthly Cleaning Service')
+                                            ->helperText('Detailed description of the service or product.')
                                             ->columnSpanFull(),
                                         TextInput::make('quantity')
                                             ->label('Quantity')
                                             ->numeric()
                                             ->required()
+                                            ->placeholder('1')
+                                            ->helperText('Number of units being billed.')
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function (Get $get, Set $set) {
                                                 $qty = (float) ($get('quantity') ?? 0);
@@ -438,13 +442,17 @@ class InvoiceForm
                                             }),
                                         TextInput::make('uom')
                                             ->label('Unit')
-                                            ->required(),
+                                            ->required()
+                                            ->placeholder('e.g. Month, Pcs, Service')
+                                            ->helperText('The unit of measurement.'),
                                         TextInput::make('unit_price')
                                             ->label('Price / Unit')
                                             ->numeric()
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->prefix('IDR')
                                             ->required()
+                                            ->placeholder('0')
+                                            ->helperText('Gross price per unit before tax.')
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(function (Get $get, Set $set) {
                                                 $qty = (float) ($get('quantity') ?? 0);
@@ -719,7 +727,9 @@ class InvoiceForm
                         TextInput::make('payment_info.account_name')
                             ->label('Account Name (a.n.)')
                             ->required()
-                            ->readonly(),
+                            ->readonly()
+                            ->placeholder('Auto-filled from Bank')
+                            ->helperText('The beneficiary name for this account.'),
                         Repeater::make('payment_info.banks')
                             ->label('Bank Details (Snapshot)')
                             ->schema([

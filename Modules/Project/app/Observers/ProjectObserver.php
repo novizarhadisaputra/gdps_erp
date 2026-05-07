@@ -4,6 +4,7 @@ namespace Modules\Project\Observers;
 
 use App\Services\AnalyticsCacheService;
 use Modules\CRM\Enums\LeadStatus;
+use Modules\Finance\Services\AccrualGenerationService;
 use Modules\MasterData\Models\Employee;
 use Modules\Project\Enums\ProjectInformationStatus;
 use Modules\Project\Enums\ProjectMemberRole;
@@ -69,6 +70,14 @@ class ProjectObserver
             $project->lead->update([
                 'status' => LeadStatus::Won,
             ]);
+        }
+
+        // Generate 12-month revenue accruals if linked to a Profitability Analysis
+        if ($project->profitability_analysis_id && $project->profitabilityAnalysis) {
+            app(AccrualGenerationService::class)->generateFromPA(
+                $project->profitabilityAnalysis,
+                $project
+            );
         }
     }
 

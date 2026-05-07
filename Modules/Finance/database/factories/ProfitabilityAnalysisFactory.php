@@ -26,10 +26,14 @@ class ProfitabilityAnalysisFactory extends Factory
             'project_type_id' => \Modules\MasterData\Models\ProjectType::factory(),
             'tax_id' => \Modules\MasterData\Models\Tax::factory(),
             'work_scheme_id' => \Modules\MasterData\Models\WorkScheme::factory(),
-            'revenue_per_month' => $this->faker->randomFloat(2, 1000, 10000),
-            'direct_cost' => $this->faker->randomFloat(2, 500, 5000),
-            'management_fee' => $this->faker->randomFloat(2, 100, 1000),
-            'margin_percentage' => $this->faker->randomFloat(2, 5, 20),
+            'revenue_per_month' => 10000000,
+            'direct_cost' => 8000000,
+            'management_fee' => 1000000,
+            'management_fee_rate' => 10.0,
+            'margin_percentage' => 20.0,
+            'tax_rate' => 11.0,
+            'start_date' => now()->startOfMonth(),
+            'end_date' => now()->startOfMonth()->addYear()->subDay(),
         ];
     }
 }

@@ -231,12 +231,14 @@ class ProfitabilityAnalysisForm
                                     ->default(0)
                                     ->hiddenOn(operations: ['create'])
                                     ->dehydrated()
+                                    ->placeholder('0')
                                     ->columnSpan(1),
                                 TextInput::make('previous_code')
                                     ->label('Previous Code')
                                     ->disabled()
                                     ->dehydrated()
                                     ->columnSpan(1)
+                                    ->placeholder('Old document code')
                                     ->visible(function ($record) {
                                         /** @var \Modules\Finance\Models\ProfitabilityAnalysis|null $record */
                                         return filled($record?->previous_code);
@@ -466,6 +468,8 @@ class ProfitabilityAnalysisForm
                     ->schema([
                         Select::make('analysis_details.manpower_template_id')
                             ->label('Manpower Template')
+                            ->placeholder('Select manpower template')
+                            ->helperText('Pre-defined manpower structure for this project.')
                             ->options(function (Get $get) {
                                 $leadId = $get('lead_id');
                                 if (! $leadId) {
@@ -528,6 +532,8 @@ class ProfitabilityAnalysisForm
                     ->schema([
                         Select::make('analysis_details.costing_template_id')
                             ->label('Operational Template')
+                            ->placeholder('Select operational template')
+                            ->helperText('Pre-defined material and equipment costing for this project.')
                             ->options(function (Get $get) {
                                 $leadId = $get('lead_id');
                                 if (! $leadId) {
@@ -725,7 +731,9 @@ class ProfitabilityAnalysisForm
                                                     ->columnSpan(1),
                                             ]),
                                         TextInput::make('description')
-                                            ->label('Description/Notes'),
+                                            ->label('Description/Notes')
+                                            ->placeholder('Provide context or justification for this cost category')
+                                            ->helperText('Internal notes for auditing and reconciliation.'),
                                         Repeater::make('sub_items')
                                             ->label('Sub-component Breakdown')
                                             ->schema([
@@ -835,7 +843,7 @@ class ProfitabilityAnalysisForm
                                                             ->prefix('IDR ')
                                                             ->required()
                                                             ->placeholder('0')
-                                                            ->helperText('The cost per unit per month.')
+                                                            ->helperText('Gross cost per unit/person before margin.')
                                                             ->live(onBlur: true)
                                                             ->afterStateUpdated(function (Get $get, Set $set) {
                                                                 return self::calculateSubItemAmount($get, $set);
@@ -950,7 +958,8 @@ class ProfitabilityAnalysisForm
                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateIndirectCost($get, $set, '../../')),
                                         TextInput::make('description')
                                             ->label('Description/Notes')
-                                            ->placeholder('Optional notes for this indirect category')
+                                            ->placeholder('Optional details for this indirect cost category')
+                                            ->helperText('Provide context for auditing or management review.')
                                             ->columnSpanFull(),
                                         Repeater::make('sub_items')
                                             ->label('Sub-component Breakdown')

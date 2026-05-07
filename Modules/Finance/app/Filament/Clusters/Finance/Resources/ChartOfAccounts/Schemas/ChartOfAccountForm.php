@@ -26,13 +26,15 @@ class ChartOfAccountForm
                     TextInput::make('code')
                         ->required()
                         ->unique(ChartOfAccount::class, 'code', ignoreRecord: true)
-                        ->placeholder('e.g., 1101')
-                        ->label('Account Code'),
+                        ->placeholder('e.g. 1101, 4000')
+                        ->label('Account Code')
+                        ->helperText('The unique numerical code for this account.'),
 
                     TextInput::make('name')
                         ->required()
-                        ->placeholder('e.g., Cash in Bank')
-                        ->label('Account Name'),
+                        ->placeholder('e.g. Cash in Bank, Sales Revenue')
+                        ->label('Account Name')
+                        ->helperText('The descriptive name of the account.'),
 
                     Select::make('account_type')
                         ->required()
@@ -44,25 +46,30 @@ class ChartOfAccountForm
                             'Expense' => 'Expense',
                             'Other' => 'Other',
                         ])
-                        ->label('Account Type'),
+                        ->label('Account Type')
+                        ->placeholder('Select type')
+                        ->helperText('The financial category this account belongs to.'),
 
                     Select::make('parent_id')
                         ->relationship('parent', 'name')
                         ->searchable()
                         ->preload()
                         ->label('Parent Account')
-                        ->placeholder('Root'),
+                        ->placeholder('Select parent (optional)')
+                        ->helperText('Choose a parent account for hierarchical grouping.'),
                 ])->columns(2),
 
             Section::make('Additional Details')
                 ->schema([
                     Textarea::make('description')
-                        ->placeholder('Enter account description...')
+                        ->placeholder('Provide additional context for this account...')
+                        ->helperText('Internal notes regarding the usage of this account.')
                         ->rows(3),
 
                     Toggle::make('is_active')
                         ->default(true)
-                        ->label('Is Active'),
+                        ->label('Is Active')
+                        ->helperText('Whether this account is available for use in journal entries.'),
                 ]),
         ];
     }
