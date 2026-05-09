@@ -552,7 +552,16 @@ class GenerateFinancialDocuments extends Page
                 ],
             ]);
 
-            // Link the Accrual Item to the Invoice
+            // Link the Accrual Item to the Invoice via Mapping Table
+            \Modules\Finance\Models\AccrueInvoiceMapping::create([
+                'accrue_revenue_item_id' => $accrualItem->id,
+                'invoice_id' => $invoice->id,
+                'allocated_amount' => $splitAmount,
+                'reverse_amount' => $splitAmount,
+                'status' => \Modules\Finance\Enums\AccrueInvoiceMappingStatus::Active,
+            ]);
+
+            // Link the Accrual Item to the Invoice (Backward compatibility)
             $accrualItem->update(['invoice_id' => $invoice->id]);
         }
 

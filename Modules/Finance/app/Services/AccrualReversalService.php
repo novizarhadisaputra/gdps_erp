@@ -2,7 +2,7 @@
 
 namespace Modules\Finance\Services;
 
-use Modules\Finance\Models\AccrueRevenueItem;
+use Modules\Finance\Models\AccrueInvoiceMapping;
 use Modules\Finance\Models\Invoice;
 
 class AccrualReversalService
@@ -18,17 +18,25 @@ class AccrualReversalService
     public function reverseAccrualsForInvoice(Invoice $invoice): void
     {
         // 1. Generate the Reversal Journal Entry
+        // JournalService now handles mapping update and reversal journal creation
         $this->journalService->generateReversalFromInvoice($invoice);
 
-        // 2. Mark items as reversed
-        $items = AccrueRevenueItem::where('invoice_id', $invoice->id)
-            ->where('is_reversed', false)
+        // 2. Update status and actual amounts for linked accrual items
+        $mappings = AccrueInvoiceMapping::where('invoice_id', $invoice->id)
+            ->with('accrueRevenueItem')
             ->get();
 
-        foreach ($items as $item) {
+        foreach ($mappings as $mapping) {
+            $item = $mapping->accrueRevenueItem;
+
+            // Calculate total actual amount from all active mappings for this item
+            $totalActual = AccrueInvoiceMapping::where('accrue_revenue_item_id', $item->id)
+                ->whereIn('status', [\Modules\Finance\Enums\AccrueInvoiceMappingStatus::Active, \Modules\Finance\Enums\AccrueInvoiceMappingStatus::Reversed])
+                ->sum('allocated_amount');
+
             $item->update([
-                'is_reversed' => true,
-                'amount_actual' => $invoice->total_amount, // Align with actual billed amount
+                'amount_actual' => $totalActual,
+                'is_reversed' => $item->amount_estimated <= $totalActual, // Fully reversed if actual >= estimated
             ]);
         }
     }

@@ -169,4 +169,11 @@ class ViewInvoice extends ViewRecord
                 ->button(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \Modules\Finance\Filament\Clusters\Finance\Resources\Invoices\Widgets\InvoiceAccrualSummaryWidget::class,
+        ];
+    }
 }

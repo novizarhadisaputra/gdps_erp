@@ -34,21 +34,43 @@ class AccrueRevenueInfolist
                                     TextEntry::make('revenueType.name')
                                         ->label('Revenue Type')
                                         ->badge(),
-                                    TextEntry::make('invoice.number')
-                                        ->label('Invoice'),
-                                    TextEntry::make('amount_expense_estimated')
-                                        ->label('Est. Expense')
-                                        ->money('IDR'),
-                                    TextEntry::make('amount_estimated')
-                                        ->label('Est. Revenue')
-                                        ->money('IDR'),
+                                    TextEntry::make('status')
+                                        ->label('Status')
+                                        ->state(fn ($record) => $record->is_reversed ? 'Reversed' : ($record->accrueInvoiceMappings()->exists() ? 'Partially Invoiced' : 'Pending'))
+                                        ->badge()
+                                        ->color(fn ($state) => match ($state) {
+                                            'Reversed' => 'success',
+                                            'Partially Invoiced' => 'info',
+                                            default => 'gray',
+                                        }),
                                     TextEntry::make('amount_expense_actual')
                                         ->label('Act. Expense')
                                         ->money('IDR'),
                                     TextEntry::make('amount_actual')
                                         ->label('Act. Revenue')
-                                        ->money('IDR'),
+                                        ->money('IDR')
+                                        ->weight('bold')
+                                        ->color('primary'),
                                 ]),
+
+                            RepeatableEntry::make('accrueInvoiceMappings')
+                                ->label('Associated Invoices')
+                                ->schema([
+                                    Grid::make(3)->schema([
+                                        TextEntry::make('invoice.number')
+                                            ->label('Invoice Number')
+                                            ->weight('bold'),
+                                        TextEntry::make('allocated_amount')
+                                            ->label('Allocated')
+                                            ->money('IDR'),
+                                        TextEntry::make('status')
+                                            ->label('Reversal')
+                                            ->badge(),
+                                    ]),
+                                ])
+                                ->columnSpanFull()
+                                ->visible(fn ($record) => $record?->accrueInvoiceMappings()->exists()),
+
                             TextEntry::make('description')
                                 ->markdown(),
                         ])

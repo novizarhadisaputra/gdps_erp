@@ -34,4 +34,11 @@ class ViewAccrueRevenue extends ViewRecord
             EditAction::make(),
         ];
     }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \Modules\Finance\Filament\Clusters\Finance\Resources\AccrueRevenues\Widgets\AccrualInvoicingProgressWidget::class,
+        ];
+    }
 }

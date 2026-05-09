@@ -114,6 +114,11 @@ class Invoice extends Model implements HasMedia
         return $this->hasMany(AccrueRevenueItem::class);
     }
 
+    public function accrueInvoiceMappings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AccrueInvoiceMapping::class);
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('payment_proof')

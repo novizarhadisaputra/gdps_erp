@@ -47,7 +47,7 @@ class InvoiceInfolist
                                     ->label('Base Amount')
                                     ->money('IDR'),
                                 TextEntry::make('tax_amount')
-                                    ->label('Tax (11%)')
+                                    ->label('Tax')
                                     ->money('IDR'),
                                 TextEntry::make('total_amount')
                                     ->label('Total Amount')
@@ -56,6 +56,31 @@ class InvoiceInfolist
                                     ->color('primary'),
                             ]),
                     ])->columnSpanFull(),
+
+                Section::make('Linked Accruals')
+                    ->description('Accruals associated with this invoice that will be reversed upon approval.')
+                    ->schema([
+                        RepeatableEntry::make('accrueInvoiceMappings')
+                            ->label('')
+                            ->schema([
+                                Grid::make(4)->schema([
+                                    TextEntry::make('accrueRevenueItem.accrueRevenue.number')
+                                        ->label('Accrual Number')
+                                        ->weight(FontWeight::Bold),
+                                    TextEntry::make('accrueRevenueItem.revenue_type')
+                                        ->label('Revenue Type'),
+                                    TextEntry::make('allocated_amount')
+                                        ->label('Allocated Amount')
+                                        ->money('IDR'),
+                                    TextEntry::make('status')
+                                        ->label('Reversal Status')
+                                        ->badge(),
+                                ]),
+                            ])
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull()
+                    ->visible(fn ($record) => $record?->accrueInvoiceMappings()->exists()),
 
                 Section::make('Invoice Line Items')
                     ->schema([

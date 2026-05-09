@@ -66,4 +66,9 @@ class AccrueRevenueItem extends Model
     {
         return $this->belongsTo(Invoice::class);
     }
+
+    public function accrueInvoiceMappings(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AccrueInvoiceMapping::class);
+    }
 }

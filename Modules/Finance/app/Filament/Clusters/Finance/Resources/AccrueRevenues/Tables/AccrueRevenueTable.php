@@ -73,10 +73,10 @@ class AccrueRevenueTable
                     ->toggleable()
                     ->summarize(Sum::make()->label('Total Est. Expense')),
                 TextColumn::make('total_amount_estimated')
-                    ->label('Est. Revenue')
+                    ->label('Accrued Amount')
                     ->money('IDR')
                     ->sortable()
-                    ->summarize(Sum::make()->label('Total Est. Revenue')),
+                    ->summarize(Sum::make()->label('Total Accrued')),
                 TextColumn::make('total_amount_expense_actual')
                     ->label('Act. Expense')
                     ->money('IDR')
@@ -84,11 +84,12 @@ class AccrueRevenueTable
                     ->toggleable()
                     ->summarize(Sum::make()->label('Total Act. Expense')),
                 TextColumn::make('total_amount_actual')
-                    ->label('Act. Revenue')
+                    ->label('Invoiced Amount')
                     ->money('IDR')
                     ->sortable()
-                    ->summarize(Sum::make()->label('Total Act. Revenue'))
-                    ->weight('bold'),
+                    ->summarize(Sum::make()->label('Total Invoiced'))
+                    ->weight('bold')
+                    ->color(fn ($record) => $record->total_amount_actual >= $record->total_amount_estimated ? 'success' : 'warning'),
             ])
             ->defaultSort('accrual_period', 'desc')
             ->headerActions([

@@ -117,7 +117,10 @@ class InvoiceObserver
             }
 
             if ($invoice->status === InvoiceStatus::Approved) {
-                // Trigger Accrual Reversal logic
+                // 1. Trigger Invoice Journal (AR | Revenue | VAT Out)
+                app(\Modules\Finance\Services\JournalService::class)->generateFromInvoice($invoice);
+
+                // 2. Trigger Accrual Reversal logic (Revenue | Accrued Revenue)
                 app(AccrualReversalService::class)->reverseAccrualsForInvoice($invoice);
             }
 
