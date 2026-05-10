@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         User::updateOrCreate(
-            ['email' => 'rajabannisa.wahyuni@garudapratama.com'],
+            ['email' => 'admin@garudapratama.com'],
             [
                 'name' => 'System Administrator',
                 'password' => Hash::make('gdps2019!'),
@@ -40,7 +40,7 @@ class DatabaseSeeder extends Seeder
             FinanceDatabaseSeeder::class,
         ]);
 
-        $admin = User::query()->where('email', '=', 'rajabannisa.wahyuni@garudapratama.com')->first();
+        $admin = User::query()->where('email', '=', 'admin@garudapratama.com')->first();
         if ($admin) {
             $admin->assignRole('super_admin');
         }

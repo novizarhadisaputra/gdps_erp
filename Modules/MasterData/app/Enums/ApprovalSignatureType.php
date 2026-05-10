@@ -14,10 +14,10 @@ enum ApprovalSignatureType: string implements HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Reviewer => 'Reviewer',
-            self::Approver => 'Approver',
-            self::Acknowledger => 'Acknowledger',
-            self::MarginApproval => 'Margin Approval',
+            self::Reviewer => 'Diperiksa',
+            self::Approver => 'Disetujui',
+            self::Acknowledger => 'Mengetahui',
+            self::MarginApproval => 'Persetujuan Margin',
         };
     }
 }

@@ -1133,29 +1133,34 @@ class ProfitabilityAnalysisForm
 
                         Section::make('Cost Breakdown Details')
                             ->collapsed()
-                            ->schema([
-                                Grid::make(3)
-                                    ->schema([
-                                        TextInput::make('direct_cost_manpower')
-                                            ->label('Personnel')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->readOnly()
-                                            ->dehydrated(),
-                                        TextInput::make('direct_cost_tools')
-                                            ->label('Tools & Eq')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->readOnly()
-                                            ->dehydrated(),
-                                        TextInput::make('direct_cost_material')
-                                            ->label('Materials')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->readOnly()
-                                            ->dehydrated(),
-                                    ]),
-                            ]),
+                            ->visible(function (Get $get) {
+                                // Cek apakah ada salah satu kategori yang > 0
+                                $categories = DirectCostCategory::where('type', 'direct')->whereNull('parent_id')->pluck('id');
+                                foreach ($categories as $id) {
+                                    if ((float) $get("cost_breakdown_{$id}") > 0) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            })
+                            ->schema(function () {
+                                $categories = DirectCostCategory::where('type', 'direct')->whereNull('parent_id')->get();
+
+                                return [
+                                    Grid::make(3)
+                                        ->schema(
+                                            $categories->map(function ($cat) {
+                                                return TextInput::make("cost_breakdown_{$cat->id}")
+                                                    ->label($cat->name)
+                                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                    ->prefix('IDR ')
+                                                    ->readOnly()
+                                                    ->visible(fn (Get $get) => (float) $get("cost_breakdown_{$cat->id}") > 0)
+                                                    ->dehydrated();
+                                            })->toArray()
+                                        ),
+                                ];
+                            }),
 
                         Section::make('Total Project Value (Full Duration)')
                             ->compact()
@@ -1227,9 +1232,11 @@ class ProfitabilityAnalysisForm
         $totalProjectDepreciation = 0;
         $totalProjectIndirectCost = 0;
 
-        $manpowerCostMonthly = 0;
-        $toolsCostMonthly = 0;
-        $materialCostMonthly = 0;
+        $categoryTotals = [];
+        $categories = DirectCostCategory::where('type', 'direct')->whereNull('parent_id')->get();
+        foreach ($categories as $cat) {
+            $categoryTotals[$cat->id] = 0;
+        }
 
         $isManual = (bool) ($get($root.'is_manual_cost') ?? $get('is_manual_cost') ?? $get('/is_manual_cost') ?? false);
 
@@ -1253,14 +1260,12 @@ class ProfitabilityAnalysisForm
             $totalStep3Cost += $amount;
 
             if (isset($item['direct_cost_category_id'])) {
-                if ((string) $item['direct_cost_category_id'] === (string) $catManpowerId) {
-                    $manpowerCostMonthly += $amount;
-                } elseif ((string) $item['direct_cost_category_id'] === (string) $catToolsId) {
-                    $toolsCostMonthly += $amount;
-                } elseif ((string) $item['direct_cost_category_id'] === (string) $catMaterialId) {
-                    $materialCostMonthly += $amount;
+                $catId = $item['direct_cost_category_id'];
+                if (isset($categoryTotals[$catId])) {
+                    $categoryTotals[$catId] += $amount;
                 } else {
-                    $materialCostMonthly += $amount;
+                    // If category not in initial list, initialize it
+                    $categoryTotals[$catId] = $amount;
                 }
             }
         }
@@ -1318,14 +1323,10 @@ class ProfitabilityAnalysisForm
                 $cat = $catId ? DirectCostCategory::find($catId) : null;
                 $isManpowerAssumed = $item['is_manpower'] ?? false;
 
-                if ($cat?->code === 'manpower' || $isManpowerAssumed) {
-                    $manpowerCostMonthly += $monthlyCost;
-                } elseif ($cat?->code === 'tools_equipment') {
-                    $toolsCostMonthly += $monthlyCost;
-                } elseif ($cat?->code === 'material') {
-                    $materialCostMonthly += $monthlyCost;
-                } else {
-                    $materialCostMonthly += $monthlyCost;
+                if ($catId && isset($categoryTotals[$catId])) {
+                    $categoryTotals[$catId] += $monthlyCost;
+                } elseif ($isManpowerAssumed && $catManpowerId) {
+                    $categoryTotals[$catManpowerId] += $monthlyCost;
                 }
 
                 // Track depreciation (Direct items only)
@@ -1367,7 +1368,9 @@ class ProfitabilityAnalysisForm
                 $tempTotalRevenue += ($monthlySale * $duration);
 
                 // Add to breakdown trackers if needed
-                $materialCostMonthly += $monthlyCost;
+                if ($catId && isset($categoryTotals[$catId])) {
+                    $categoryTotals[$catId] += $monthlyCost;
+                }
             }
 
             $totalProjectCost = $tempTotalCost;
@@ -1415,11 +1418,14 @@ class ProfitabilityAnalysisForm
         $avgMonthlyDepreciation = $projectDurationMonths > 0 ? ($totalProjectDepreciation / $projectDurationMonths) : self::parseNumericValue($get($root.'manual_depreciation') ?? $get('manual_depreciation') ?? $get('/manual_depreciation') ?? 0);
 
         $set($root.'direct_cost', $avgMonthlyCost);
-        $set($root.'analysis_details.manual_revenue', $totalStep3Cost); // Use raw sum for UI display in Step 5
+        $set($root.'analysis_details.manual_revenue', $totalStep3Cost);
         $set($root.'depreciation', $avgMonthlyDepreciation);
-        $set($root.'direct_cost_manpower', $manpowerCostMonthly);
-        $set($root.'direct_cost_tools', $toolsCostMonthly);
-        $set($root.'direct_cost_material', $materialCostMonthly);
+
+        // Set dynamic breakdown fields
+        foreach ($categoryTotals as $catId => $total) {
+            $set($root."cost_breakdown_{$catId}", $total);
+        }
+
         $set($root.'total_project_cost_direct', $totalProjectCost);
         $set($root.'total_project_depreciation', $totalProjectDepreciation);
 

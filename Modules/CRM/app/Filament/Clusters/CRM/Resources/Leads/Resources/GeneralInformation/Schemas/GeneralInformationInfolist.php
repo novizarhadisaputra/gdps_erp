@@ -26,6 +26,15 @@ class GeneralInformationInfolist
                                 TextEntry::make('scope_of_work')
                                     ->columnSpanFull(),
                                 TextEntry::make('location'),
+                                TextEntry::make('projectArea.name')
+                                    ->label('Project Area'),
+                                TextEntry::make('workScheme.name')
+                                    ->label('Work Scheme'),
+                                TextEntry::make('productCluster.name')
+                                    ->label('Product Cluster'),
+                                TextEntry::make('salesPlan.project_code')
+                                    ->label('Source Sales Plan')
+                                    ->placeholder('No Project Code Linked'),
                             ]),
                         TextEntry::make('description')
                             ->columnSpanFull(),
@@ -169,6 +178,14 @@ class GeneralInformationInfolist
                             ->columnSpanFull(),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => $record?->signatures()->exists()),
+
+                Section::make('Remarks')
+                    ->schema([
+                        TextEntry::make('remarks')
+                            ->hiddenLabel()
+                            ->placeholder('No additional remarks'),
+                    ])->columnSpanFull()
+                    ->visible(fn ($record) => filled($record?->remarks)),
             ]);
     }
 }

@@ -21,6 +21,7 @@ class AdministrativeUserSeeder extends Seeder
             'VP Finance',
             'VP Operations',
             'VP Human Capital',
+            'Account Manager & Sales',
         ];
 
         foreach ($roles as $roleName) {
@@ -53,9 +54,15 @@ class AdministrativeUserSeeder extends Seeder
                 'signature_pin' => '123456',
             ],
             [
-                'name' => 'Wiwied Widyasmara',
+                'name' => 'Adityo Widiatmoko',
                 'role' => 'VP Human Capital',
-                'email' => 'wiwied@garudapratama.com',
+                'email' => 'adityo@garudapratama.com',
+                'signature_pin' => '123456',
+            ],
+            [
+                'name' => 'Rajabannisa Airo Wahyuni',
+                'role' => 'Account Manager & Sales',
+                'email' => 'rajabannisa.wahyuni@garudapratama.com',
                 'signature_pin' => '123456',
             ],
         ];
@@ -79,6 +86,7 @@ class AdministrativeUserSeeder extends Seeder
                 'VP Operations' => 'Operations',
                 'VP Human Capital' => 'Human Capital',
                 'Board of Directors' => 'Board of Director',
+                'Account Manager & Sales' => 'Business Support',
                 default => null,
             };
 

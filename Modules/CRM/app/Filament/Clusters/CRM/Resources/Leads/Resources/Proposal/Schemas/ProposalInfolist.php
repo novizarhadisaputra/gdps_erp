@@ -25,11 +25,24 @@ class ProposalInfolist
                                     ->label('Proposal Title')
                                     ->weight(FontWeight::Bold)
                                     ->columnSpanFull(),
+                                TextEntry::make('status')
+                                    ->badge(),
                                 TextEntry::make('number')
                                     ->label('Proposal Number')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('customer.name')
                                     ->label('Customer'),
+                                TextEntry::make('profitabilityAnalysis.number')
+                                    ->label('Profitability Analysis (PA)')
+                                    ->color('primary')
+                                    ->weight(FontWeight::Bold)
+                                    ->url(fn ($record) => $record->profitability_analysis_id ? \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::getUrl('view', ['record' => $record->profitability_analysis_id]) : null),
+                                TextEntry::make('workScheme.name')
+                                    ->label('Work Scheme'),
+                                TextEntry::make('product_cluster_id')
+                                    ->label('Product Cluster')
+                                    ->state(fn ($record) => $record->profitabilityAnalysis?->productCluster?->name ?? $record->lead?->productCluster?->name ?? '-')
+                                    ->badge(),
                                 TextEntry::make('amount')
                                     ->money('IDR'),
                                 TextEntry::make('submission_date')
@@ -78,15 +91,9 @@ class ProposalInfolist
                     ])->columnSpanFull(),
                 Section::make('Approval & Signatures')
                     ->schema([
-                        Grid::make(2)
-                            ->schema([
-                                TextEntry::make('status')
-                                    ->badge(),
-                            ]),
                         DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
-                    ])->columnSpanFull()
-                    ->visible(fn ($record) => $record?->signatures()->exists()),
+                    ])->columnSpanFull(),
 
                 Section::make('Discussions')
                     ->description('Internal team notes and revision context.')

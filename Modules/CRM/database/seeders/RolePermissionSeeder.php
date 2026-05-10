@@ -15,6 +15,7 @@ class RolePermissionSeeder extends Seeder
         $this->assignVPFinancePermissions();
         $this->assignVPOperationsPermissions();
         $this->assignVPHumanCapitalPermissions();
+        $this->assignAccountManagerAndSalesPermissions();
     }
 
     protected function assignBoardOfDirectorsPermissions(): void
@@ -142,6 +143,33 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:ProjectReview', 'View:ProjectReview',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
             'View:CRMCluster', 'View:MasterDataCluster', 'View:ProjectReviewDashboard',
+        ];
+
+        $this->syncPermissions($role, $permissions);
+    }
+
+    protected function assignAccountManagerAndSalesPermissions(): void
+    {
+        $role = Role::firstOrCreate(['name' => 'Account Manager & Sales', 'guard_name' => 'web']);
+
+        $permissions = [
+            'ViewAny:Lead', 'View:Lead', 'Create:Lead', 'Update:Lead',
+            'ViewAny:Proposal', 'View:Proposal', 'Create:Proposal', 'Update:Proposal', 'SendEmail:Proposal',
+            'ViewAny:MinutesOfAgreement', 'View:MinutesOfAgreement', 'Create:MinutesOfAgreement', 'Update:MinutesOfAgreement',
+            'ViewAny:Customer', 'View:Customer', 'Create:Customer', 'Update:Customer',
+            'ViewAny:GeneralInformation', 'View:GeneralInformation', 'Create:GeneralInformation', 'Update:GeneralInformation',
+            'ViewAny:SalesPlan', 'View:SalesPlan', 'Create:SalesPlan', 'Update:SalesPlan',
+            'ViewAny:ProfitabilityAnalysis', 'View:ProfitabilityAnalysis',
+            'ViewAny:SalesOrder', 'View:SalesOrder', 'Create:SalesOrder', 'Update:SalesOrder', 'SendEmail:SalesOrder',
+            'ViewAny:Invoice', 'View:Invoice',
+            'ViewAny:WorkCompletionReport', 'View:WorkCompletionReport',
+            'ViewAny:ProjectReview', 'View:ProjectReview', 'Create:ProjectReview', 'Update:ProjectReview',
+            'ViewAny:ProposalRevision', 'View:ProposalRevision',
+            'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
+            'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
+            'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
+            'View:CRMCluster', 'View:CRMAnalyticsPage', 'View:ProjectReviewDashboard',
+            'View:SummaryProfitabilityAnalysis',
         ];
 
         $this->syncPermissions($role, $permissions);

@@ -78,6 +78,7 @@ class GeneralInformationForm
                                     name: 'projectArea',
                                     titleAttribute: 'name',
                                     modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where('customers.id', $get('customer_id')))
+                                        ->orWhere('project_areas.id', $get('project_area_id'))
                                 )
                                 ->label('Project Area')
                                 ->searchable()

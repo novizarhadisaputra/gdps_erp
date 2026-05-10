@@ -38,6 +38,7 @@ class ApprovalRuleSeeder extends Seeder
             'VP Operations' => Role::where('name', 'VP Operations')->value('id'),
             'VP Human Capital' => Role::where('name', 'VP Human Capital')->value('id'),
             'Board of Directors' => Role::where('name', 'Board of Directors')->value('id'),
+            'Account Manager & Sales' => Role::where('name', 'Account Manager & Sales')->value('id'),
         ];
 
         // ApprovalRule::truncate(); // Removed to prevent wiping user-defined rules
@@ -54,45 +55,14 @@ class ApprovalRuleSeeder extends Seeder
                 'is_active' => true,
             ],
 
-            // Proposal Rules
+            // Proposal Rules - Only AMS signs the proposal after PA is approved
             [
                 'resource_type' => Proposal::class,
                 'conditions' => [],
                 'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_role' => array_values(array_filter([$roleIds['Account Manager & Sales']])),
                 'signature_type' => 'Approver',
-                'order' => 2,
-                'is_active' => true,
-            ],
-            [
-                'resource_type' => Proposal::class,
-                'conditions' => [
-                    ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
-                ],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Human Capital']])),
-                'signature_type' => 'Approver',
-                'order' => 3,
-                'is_active' => true,
-            ],
-            [
-                'resource_type' => Proposal::class,
-                'conditions' => [
-                    ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
-                ],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Operations']])),
-                'signature_type' => 'Approver',
-                'order' => 4,
-                'is_active' => true,
-            ],
-            [
-                'resource_type' => Proposal::class,
-                'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
-                'signature_type' => 'Approver',
-                'order' => 5,
+                'order' => 1,
                 'is_active' => true,
             ],
             // Minutes of Agreement Rules

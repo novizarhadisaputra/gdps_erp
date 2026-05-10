@@ -22,7 +22,7 @@ class UnitSyncSeeder extends Seeder
         $accessToken = null;
         try {
             // Using the system administrator credentials defined in DatabaseSeeder
-            $authData = $authService->login('rajabannisa.wahyuni@garudapratama.com', 'gdps2019!');
+            $authData = $authService->login('admin@garudapratama.com', 'gdps2019!');
             $accessToken = $authData['accessToken'] ?? $authData['access_token'] ?? null;
             $this->command->info('SSO login successful.');
         } catch (\Exception $e) {
