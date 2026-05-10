@@ -31,11 +31,10 @@ class UnitOfMeasureForm
                         ->helperText('The full descriptive name of the measurement unit.'),
                     TextInput::make('code')
                         ->label('Unit Code')
-                        ->required()
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
                         ->unique(UnitOfMeasure::class, 'code', ignoreRecord: true)
-                        ->maxLength(10)
-                        ->placeholder('e.g. KG, Pcs, HR')
-                        ->helperText('A short abbreviation for the unit (max 10 chars).'),
+                        ->helperText('A short abbreviation for the unit.'),
                 ])->columns(2),
 
             Section::make('Status & Defaults')

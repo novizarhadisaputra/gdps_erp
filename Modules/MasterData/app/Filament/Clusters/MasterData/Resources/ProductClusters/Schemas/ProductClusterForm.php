@@ -31,10 +31,10 @@ class ProductClusterForm
                         ->maxLength(255),
                     TextInput::make('code')
                         ->label('Cluster Code')
-                        ->placeholder('e.g. PC-SOFT, PC-SEC')
-                        ->helperText('A unique short code identifying the cluster.')
-                        ->required()
-                        ->unique(ProductCluster::class, 'code', ignoreRecord: true),
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
+                        ->unique(ProductCluster::class, 'code', ignoreRecord: true)
+                        ->helperText('A unique identification code for this cluster.'),
                 ])->columns(2),
 
             Section::make('Visual Branding')

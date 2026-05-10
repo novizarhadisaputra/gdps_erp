@@ -30,8 +30,8 @@ class BillingOptionForm
                         ->helperText('The descriptive name of the billing option.'),
                     TextInput::make('code')
                         ->label('Billing Code')
-                        ->placeholder('e.g. BILL-MONTH, BILL-QTR')
-                        ->required()
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
                         ->unique(BillingOption::class, 'code', ignoreRecord: true)
                         ->helperText('Unique identifier for this billing frequency.'),
                 ])->columns(2),

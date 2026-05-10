@@ -3,15 +3,18 @@
 namespace Modules\MasterData\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\ProductClusterFactory;
+use Modules\MasterData\Observers\ProductClusterObserver;
 use Modules\MasterData\Traits\HasDefaultRecord;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
+#[ObservedBy(ProductClusterObserver::class)]
 class ProductCluster extends Model implements HasMedia
 {
     use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids, InteractsWithMedia;

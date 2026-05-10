@@ -25,10 +25,10 @@ class EmployeeForm
                 ->description('Provide the basic employment details for this staff member.')
                 ->schema([
                     TextInput::make('code')
-                        ->required()
+                        ->label('Employee ID')
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
                         ->unique(Employee::class, 'code', ignoreRecord: true)
-                        ->maxLength(255)
-                        ->placeholder('EMP-001')
                         ->helperText('Unique identification code for the employee.'),
                     TextInput::make('name')
                         ->required()

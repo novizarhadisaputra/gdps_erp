@@ -3,17 +3,19 @@
 namespace Modules\MasterData\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Modules\MasterData\Traits\HasAutoCodeAndSlug;
+use Modules\MasterData\Observers\DirectCostCategoryObserver;
 use Modules\MasterData\Traits\HasDefaultRecord;
 
+#[ObservedBy(DirectCostCategoryObserver::class)]
 class DirectCostCategory extends Model
 {
-    use HasAutoCodeAndSlug, HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
+    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     /**
      * The attributes that are mass assignable.

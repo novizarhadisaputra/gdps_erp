@@ -2,7 +2,6 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\RevenueSegments\Schemas;
 
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -32,19 +31,10 @@ class RevenueSegmentForm
                         ->maxLength(255),
                     TextInput::make('code')
                         ->label('Segment Code')
-                        ->placeholder('e.g. RS-AVIA, RS-LOG')
-                        ->helperText('A unique short code identifying the revenue segment.')
-                        ->required()
-                        ->unique(RevenueSegment::class, 'code', ignoreRecord: true),
-                    Select::make('unit_id')
-                        ->relationship('unit', 'name')
-                        ->label('Associated Unit')
-                        ->placeholder('Select unit')
-                        ->helperText('The business unit this revenue segment belongs to.')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->visible(fn () => auth()->user()->can('view_all_master_data')),
+                        ->unique(RevenueSegment::class, 'code', ignoreRecord: true)
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
+                        ->helperText('Unique identification code for this revenue segment.'),
                 ])->columns(2),
 
             Section::make('Status & Defaults')

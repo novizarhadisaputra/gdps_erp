@@ -31,10 +31,10 @@ class WorkSchemeForm
                         ->maxLength(255),
                     TextInput::make('code')
                         ->label('Scheme Code')
-                        ->placeholder('e.g. WS-OFFICE, WS-SHIFT')
-                        ->helperText('A unique short code identifying the work scheme.')
-                        ->required()
-                        ->unique(WorkScheme::class, 'code', ignoreRecord: true),
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
+                        ->unique(WorkScheme::class, 'code', ignoreRecord: true)
+                        ->helperText('A unique identification code for this work scheme.'),
                 ])->columns(2),
 
             Section::make('Status & Defaults')

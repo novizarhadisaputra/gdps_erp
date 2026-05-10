@@ -31,10 +31,10 @@ class ProjectTypeForm
                         ->maxLength(255),
                     TextInput::make('code')
                         ->label('Type Code')
-                        ->placeholder('e.g. PT-OUT, PT-INT')
-                        ->helperText('A unique short code identifying the project type.')
-                        ->required()
-                        ->unique(ProjectType::class, 'code', ignoreRecord: true),
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
+                        ->unique(ProjectType::class, 'code', ignoreRecord: true)
+                        ->helperText('A unique identification code for this project type.'),
                 ])->columns(2),
 
             Section::make('Status & Defaults')

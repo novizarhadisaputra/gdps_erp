@@ -3,14 +3,15 @@
 namespace Modules\MasterData\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Modules\MasterData\Database\Factories\PaymentTermFactory;
+use Modules\MasterData\Observers\PaymentTermObserver;
 use Modules\MasterData\Traits\HasDefaultRecord;
 
-// use Modules\MasterData\Database\Factories\PaymentTermFactory;
-
+#[ObservedBy(PaymentTermObserver::class)]
 class PaymentTerm extends Model
 {
     use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;

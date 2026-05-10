@@ -30,10 +30,10 @@ class PaymentTermForm
                         ->maxLength(255),
                     TextInput::make('code')
                         ->label('Term Code')
-                        ->placeholder('e.g. NET30, COD')
-                        ->helperText('A unique short code identifying the payment term.')
-                        ->required()
-                        ->unique(PaymentTerm::class, 'code', ignoreRecord: true),
+                        ->placeholder('Auto-generated')
+                        ->readOnly()
+                        ->unique(PaymentTerm::class, 'code', ignoreRecord: true)
+                        ->helperText('A unique identification code for this payment term.'),
                     TextInput::make('days')
                         ->label('Credit Days')
                         ->numeric()
