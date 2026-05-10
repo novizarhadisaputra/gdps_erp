@@ -2,13 +2,16 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\JournalEntries\Tables;
 
-use Filament\Actions\ActionGroup;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Modules\Finance\Models\JournalEntry;
 
 class JournalEntriesTable
 {
@@ -72,6 +75,32 @@ class JournalEntriesTable
                 ActionGroup::make([
                     ViewAction::make(),
                     EditAction::make(),
+                    Action::make('printVoucher')
+                        ->label('Print Voucher')
+                        ->color('gray')
+                        ->icon('heroicon-o-printer')
+                        ->action(function (JournalEntry $record) {
+                            $logo = 'data:image/png;base64,'.base64_encode(file_get_contents(public_path('images/branding/header_left.png')));
+
+                            $sourceType = '-';
+                            if ($record->reference_type) {
+                                $sourceType = class_basename($record->reference_type);
+                            }
+
+                            $pdf = Pdf::loadView('finance::pdf.journal-voucher', [
+                                'record' => $record,
+                                'logo' => $logo,
+                                'sourceType' => $sourceType,
+                            ]);
+
+                            $name = str_replace(['/', '\\'], '-', $record->number);
+                            $fileName = "Voucher-{$name}.pdf";
+
+                            return response()->streamDownload(
+                                fn () => print ($pdf->output()),
+                                $fileName
+                            );
+                        }),
                 ]),
             ])
             ->toolbarActions([

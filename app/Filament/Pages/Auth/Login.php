@@ -31,7 +31,8 @@ class Login extends BaseLogin
                     ->password()
                     ->required()
                     ->extraInputAttributes(['tabindex' => 2]),
-            ]);
+            ])
+            ->statePath('data');
     }
 
     public function authenticate(): ?LoginResponse

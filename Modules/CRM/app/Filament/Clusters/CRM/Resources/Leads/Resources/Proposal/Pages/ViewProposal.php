@@ -18,6 +18,7 @@ use Modules\CRM\Enums\ProposalStatus;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource;
 use Modules\CRM\Models\MinutesOfAgreement;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Services\SignatureService;
 
 class ViewProposal extends ViewRecord
@@ -132,7 +133,7 @@ class ViewProposal extends ViewRecord
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
                     ]))
-                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Sent]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? false)),
+                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Sent, ProposalStatus::Approved]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? true)),
 
                 Action::make('revise')
                     ->label('Revise Proposal')
@@ -167,6 +168,84 @@ class ViewProposal extends ViewRecord
                         'record' => $this->record->id,
                     ]))
                     ->visible(fn () => $this->record->status === ProposalStatus::Draft),
+
+                Action::make('Approve')
+                    ->color('success')
+                    ->icon(Heroicon::OutlinedCheckCircle)
+                    ->requiresConfirmation()
+                    ->modalHeading('Approve Proposal')
+                    ->schema([
+                        TextInput::make('pin')
+                            ->label('Signature PIN')
+                            ->password()
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $service = app(SignatureService::class);
+                        if (! $service->verifyPin(auth()->user(), $data['pin'])) {
+                            Notification::make()->title('Incorrect PIN')->danger()->send();
+
+                            return;
+                        }
+
+                        $signatureType = ApprovalSignatureType::Approver;
+                        $required = $service->getRequiredApprovers($this->record)
+                            ->where('signature_type', $signatureType->value);
+
+                        $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+
+                        if ($eligibleRules->isEmpty()) {
+                            Notification::make()->title('Access Denied')->body('You do not have authorization for this document.')->warning()->send();
+
+                            return;
+                        }
+
+                        $matchingRule = $eligibleRules->first(fn ($rule) => ! $this->record->isRuleSatisfied($rule));
+
+                        if (! $matchingRule) {
+                            Notification::make()->title('Already Signed')->body('You have already signed this approval step.')->warning()->send();
+
+                            return;
+                        }
+
+                        $recordedRole = null;
+                        if ($matchingRule->approver_type === 'Role') {
+                            $userRoles = auth()->user()->roles;
+                            $ruleRoleIdentifiers = $matchingRule->approver_role ?? [];
+                            $matchedRole = $userRoles->first(fn ($role) => in_array($role->id, $ruleRoleIdentifiers) || in_array($role->name, $ruleRoleIdentifiers));
+                            $recordedRole = $matchedRole?->name;
+                        }
+
+                        $this->record->addSignature(auth()->user(), $signatureType, $recordedRole);
+                        $service->notifyNextApprovers($this->record);
+                        $service->notifyOwnerOnSignature($this->record, auth()->user(), $signatureType->value);
+
+                        if ($this->record->isFullyApproved()) {
+                            $this->record->update(['status' => ProposalStatus::Approved]);
+                            Notification::make()->title('Proposal Fully Approved')->success()->send();
+                        } else {
+                            Notification::make()->title('Proposal Signed Successfully')->success()->send();
+                        }
+
+                        $this->refreshFormData(['status']);
+                    })
+                    ->visible(function () {
+                        if ($this->record->status !== ProposalStatus::Submitted) {
+                            return false;
+                        }
+
+                        if ($this->record->isFullyApproved()) {
+                            return false;
+                        }
+
+                        $service = app(SignatureService::class);
+                        $required = $service->getRequiredApprovers($this->record)
+                            ->where('signature_type', ApprovalSignatureType::Approver->value);
+
+                        $nextRule = $required->first(fn ($rule) => ! $this->record->isRuleSatisfied($rule));
+
+                        return $nextRule && $service->isEligibleApprover($nextRule, auth()->user());
+                    }),
 
                 Action::make('Reject')
                     ->color('danger')

@@ -4,6 +4,7 @@ namespace Modules\MasterData\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Services\SignatureService;
@@ -48,7 +49,7 @@ class ApprovalRuleRelationshipTest extends TestCase
             ],
             'approver_type' => 'Role',
             'approver_role' => ['admin'],
-            'signature_type' => 'approval',
+            'signature_type' => ApprovalSignatureType::Approver,
             'order' => 1,
             'is_active' => true,
         ]);

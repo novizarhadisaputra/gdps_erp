@@ -218,6 +218,10 @@ class GeneralInformation extends Model implements HasMedia
             'product_cluster_id' => $this->salesPlan?->product_cluster_id ?? $this->lead?->product_cluster_id,
             'tax_id' => $this->tax_id,
             'project_area_id' => $this->project_area_id,
+            'payment_term_id' => $this->salesPlan?->payment_term_id,
+            'start_date' => $this->salesPlan?->start_date ?? $this->estimated_start_date,
+            'end_date' => $this->salesPlan?->end_date ?? $this->estimated_end_date,
+            'revenue_segment_id' => $this->salesPlan?->revenue_segment_id,
         ]);
 
         // Copy media collections to the new PA

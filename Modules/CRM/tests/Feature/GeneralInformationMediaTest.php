@@ -33,6 +33,7 @@ class GeneralInformationMediaTest extends TestCase
 
         $customer = Customer::factory()->create();
         $projectArea = ProjectArea::factory()->create();
+        $projectArea->customers()->attach($customer->id);
 
         $lead = Lead::factory()->create([
             'customer_id' => $customer->id,

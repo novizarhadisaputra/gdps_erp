@@ -148,6 +148,7 @@ class AccrueRevenueForm
                                             ->placeholder('0')
                                             ->helperText('Expected cost for this revenue segment.')
                                             ->live(onBlur: true)
+                                            ->minValue(0)
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
                                         TextInput::make('amount_estimated')
                                             ->label('Estimated Revenue (Invoiced)')
@@ -157,6 +158,7 @@ class AccrueRevenueForm
                                             ->placeholder('0')
                                             ->helperText('Expected revenue to be recognized.')
                                             ->live(onBlur: true)
+                                            ->minValue(0)
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->rules(fn (Get $get): array => [
                                                 function (string $attribute, $value, Closure $fail) use ($get) {

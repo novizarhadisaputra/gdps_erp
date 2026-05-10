@@ -5,8 +5,8 @@ namespace Modules\MasterData\Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\JhtConfigs\Pages\ListJhtConfigs;
-use Modules\MasterData\Models\JhtConfig;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsJhtConfigs\Pages\ListBpjsJhtConfigs;
+use Modules\MasterData\Models\BpjsJhtConfig;
 use Tests\TestCase;
 
 class JhtConfigResourceTest extends TestCase
@@ -24,7 +24,7 @@ class JhtConfigResourceTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $jht = JhtConfig::create([
+        $jht = BpjsJhtConfig::create([
             'name' => 'Test Jht Config',
             'employee_type' => 'ppu',
             'employer_rate' => 3.7,
@@ -32,7 +32,7 @@ class JhtConfigResourceTest extends TestCase
             'is_active' => true,
         ]);
 
-        Livewire::test(ListJhtConfigs::class)
+        Livewire::test(ListBpjsJhtConfigs::class)
             ->assertCanSeeTableRecords([$jht])
             ->assertSee('Test Jht Config');
     }

@@ -14,12 +14,13 @@ use Modules\CRM\Models\Customer;
 use Modules\Finance\Enums\AccrueRevenueStatus;
 use Modules\Finance\Observers\AccrueRevenueObserver;
 use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Traits\HasDigitalSignatures;
 use Modules\Project\Models\Project;
 
 #[ObservedBy(AccrueRevenueObserver::class)]
 class AccrueRevenue extends Model
 {
-    use HasFactory, HasModuleSchema, HasUuids, SoftDeletes;
+    use HasDigitalSignatures, HasFactory, HasModuleSchema, HasUuids, SoftDeletes;
 
     protected static function newFactory()
     {

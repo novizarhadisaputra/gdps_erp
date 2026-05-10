@@ -47,8 +47,8 @@ class AccrualInvoiceWorkflowTest extends TestCase
         ]);
         $this->revenueType = RevenueType::create([
             'id' => \Illuminate\Support\Str::uuid(),
-            'code' => 'manpower',
-            'name' => 'Manpower',
+            'code' => 'main',
+            'name' => 'Main Revenue',
             'is_active' => true,
         ]);
 
@@ -130,7 +130,7 @@ class AccrualInvoiceWorkflowTest extends TestCase
             'number' => 'INV/TEST/001',
             'items' => [
                 [
-                    'revenue_type_code' => 'manpower',
+                    'revenue_type_code' => 'main',
                     'total_price' => 800000,
                     'item_name' => 'Manpower Services',
                 ],

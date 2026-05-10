@@ -19,10 +19,12 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Modules\CRM\Models\Customer;
+use Modules\Finance\Enums\AccrueInvoiceMappingStatus;
 use Modules\Finance\Enums\AccrueRevenueStatus;
 use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Filament\Clusters\Finance\Resources\AccrueRevenues\AccrueRevenueResource;
 use Modules\Finance\Models\AccountMapping;
+use Modules\Finance\Models\AccrueInvoiceMapping;
 use Modules\Finance\Models\AccrueRevenue;
 use Modules\Finance\Models\AccrueRevenueItem;
 use Modules\Finance\Models\ChartOfAccount;
@@ -83,9 +85,9 @@ class GenerateFinancialDocuments extends Page
         $record = $this->record;
 
         // 1. Get the common revenue types IDs
-        $manpowerType = RevenueTypeModel::where('code', 'manpower')->first();
-        $mgmtFeeType = RevenueTypeModel::where('code', 'mgmt_fee')->first();
-        $defaultTypes = array_filter([$manpowerType?->id, $mgmtFeeType?->id]);
+        $mainType = RevenueTypeModel::where('code', 'main')->first();
+        $additionalType = RevenueTypeModel::where('code', 'additional')->first();
+        $defaultTypes = array_filter([$mainType?->id, $additionalType?->id]);
 
         // 2. Calculate Amounts from BAPP items
         $items = is_array($record->items) && isset($record->items['id']) ? $record->items['id'] : ($record->items ?? []);
@@ -129,7 +131,7 @@ class GenerateFinancialDocuments extends Page
         $newSplits = [];
         foreach ($defaultTypes as $typeId) {
             $type = RevenueTypeModel::find($typeId);
-            $amount = ($type->code === 'manpower') ? $mainWorkAmount : $totalFee;
+            $amount = ($type->code === 'main') ? $mainWorkAmount : $totalFee;
 
             // Resolve COA from mapping using the new helper
             $coaId = $this->resolveCoa($typeId, $record->project_area_id, 'revenue');
@@ -214,9 +216,9 @@ class GenerateFinancialDocuments extends Page
                                 ->helperText('If the source document does not provide a breakdown, enter the percentage to automatically extract Management Fee from the total.')
                                 ->live()
                                 ->visible(function (Get $get) {
-                                    $mgmtFeeType = RevenueTypeModel::where('code', 'mgmt_fee')->first();
+                                    $additionalType = RevenueTypeModel::where('code', 'additional')->first();
 
-                                    return in_array($mgmtFeeType?->id, $get('revenue_type_ids') ?? []);
+                                    return in_array($additionalType?->id, $get('revenue_type_ids') ?? []);
                                 })
                                 ->afterStateUpdated(function (Get $get, Set $set) {
                                     $this->refreshSplits($get, $set);
@@ -405,7 +407,7 @@ class GenerateFinancialDocuments extends Page
 
             if ($existing) {
                 // Update amount based on calculation logic
-                $amount = ($type->code === 'manpower') ? $mainWorkAmount : (($type->code === 'mgmt_fee') ? $totalFee : $existing['amount_actual']);
+                $amount = ($type->code === 'main') ? $mainWorkAmount : (($type->code === 'additional') ? $totalFee : $existing['amount_actual']);
                 $existing['amount_estimated'] = $amount;
                 $existing['amount_actual'] = $amount;
                 $existing['revenue_chart_of_account_id'] = $this->resolveCoa($typeId, $get('project_area_id'), 'revenue');
@@ -417,10 +419,10 @@ class GenerateFinancialDocuments extends Page
 
             // Default Amount Logic
             $amount = 0;
-            if ($type->code === 'manpower') {
+            if ($type->code === 'main') {
                 $amount = $mainWorkAmount;
             }
-            if ($type->code === 'mgmt_fee') {
+            if ($type->code === 'additional') {
                 $amount = $totalFee;
             }
 
@@ -506,7 +508,7 @@ class GenerateFinancialDocuments extends Page
                 'expense_chart_of_account_id' => $split['expense_chart_of_account_id'] ?? null,
             ]);
 
-            $itemName = ($revenueType->code === 'manpower') ? 'Manpower' : $revenueType->name;
+            $itemName = ($revenueType->code === 'main') ? 'Main Revenue' : $revenueType->name;
             $invoiceItems = [
                 [
                     'item_name' => $itemName,
@@ -548,17 +550,17 @@ class GenerateFinancialDocuments extends Page
                 ],
                 'content_config' => [
                     'revenue_type_code' => $revenueType->code,
-                    'is_manpower' => ($revenueType->code === 'manpower'),
+                    'is_main_revenue' => ($revenueType->code === 'main'),
                 ],
             ]);
 
             // Link the Accrual Item to the Invoice via Mapping Table
-            \Modules\Finance\Models\AccrueInvoiceMapping::create([
+            AccrueInvoiceMapping::create([
                 'accrue_revenue_item_id' => $accrualItem->id,
                 'invoice_id' => $invoice->id,
                 'allocated_amount' => $splitAmount,
                 'reverse_amount' => $splitAmount,
-                'status' => \Modules\Finance\Enums\AccrueInvoiceMappingStatus::Active,
+                'status' => AccrueInvoiceMappingStatus::Active,
             ]);
 
             // Link the Accrual Item to the Invoice (Backward compatibility)

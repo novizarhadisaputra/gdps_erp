@@ -33,6 +33,8 @@ return new class extends Migration
             $blueprint->string('tax_basis')->default('total');
             $blueprint->decimal('tax_base_amount', 15, 2)->nullable();
             $blueprint->decimal('tax_amount', 15, 2)->default(0);
+            $blueprint->json('tax_details')->nullable();
+            $blueprint->decimal('withholding_tax_amount', 20, 2)->default(0);
             $blueprint->decimal('total_amount', 15, 2);
 
             $blueprint->string('status')->default('draft');

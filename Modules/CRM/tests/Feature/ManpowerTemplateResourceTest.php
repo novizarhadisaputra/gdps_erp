@@ -11,7 +11,7 @@ use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\ManpowerTemplate;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\ProjectArea;
-use Modules\MasterData\Models\PtkpConfig;
+use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\WorkScheme;
 use Tests\TestCase;
 
@@ -27,10 +27,11 @@ class ManpowerTemplateResourceTest extends TestCase
 
     public function test_can_create_record(): void
     {
+        $lead = Lead::factory()->create();
         $projectArea = ProjectArea::factory()->create();
         $jobPosition = JobPosition::factory()->create();
-        $lead = Lead::factory()->create();
-        PtkpConfig::create([
+        $projectArea->customers()->attach($lead->customer_id);
+        TaxPtkpConfig::create([
             'code' => 'TK/0',
             'name' => 'TK/0',
             'annual_amount' => 54000000,
@@ -38,36 +39,53 @@ class ManpowerTemplateResourceTest extends TestCase
             'is_active' => true,
         ]);
 
+        $cluster = \Modules\MasterData\Models\ProductCluster::factory()->create();
         $this->actingAs(User::factory()->create());
 
         $component = Livewire::test(Pages\CreateManpowerTemplate::class, [
             'parentRecord' => $lead,
         ]);
 
-        $uuid = array_key_first($component->get('data.items') ?? []);
-
+        $clusterUuid = array_key_first($component->get('data.clusters') ?? []);
+        if (! $clusterUuid) {
+            $clusterUuid = Str::uuid()->toString();
+        }
+        $uuid = array_key_first($component->get("data.clusters.{$clusterUuid}.items") ?? []);
         if (! $uuid) {
-            $uuid = (string) Str::uuid();
+            $uuid = Str::uuid()->toString();
         }
 
         $component->fillForm([
             'name' => 'New Manpower Template',
             'project_area_id' => $projectArea->id,
             'work_scheme_id' => WorkScheme::factory()->create()->id,
+            'year' => date('Y'),
             'is_active' => true,
-            'items' => [
-                $uuid => [
-                    'job_position_id' => $jobPosition->id,
-                    'quantity' => 1,
-                    'basic_salary' => 5000000,
-                    'future_adjustment_rate' => 0,
-                    'ptkp_status' => 'TK/0',
-                    'risk_level' => 'very_low',
-                    'employee_type' => 'ppu',
+            'clusters' => [
+                $clusterUuid => [
+                    'product_cluster_id' => $cluster->id,
+                    'jkn_category' => 'PPU',
+                    'thr_billing_method' => 'monthly_accrual',
+                    'compensation_billing_method' => 'monthly_accrual',
+                    'items' => [
+                        $uuid => [
+                            'job_position_id' => $jobPosition->id,
+                            'quantity' => 1,
+                            'basic_salary' => 5000000,
+                            'future_adjustment_rate' => 0,
+                            'ptkp_status' => 'TK/0',
+                            'risk_level' => 'very_low',
+                            'employee_type' => 'ppu',
+                            'thr_basis_id' => \Modules\MasterData\Models\ThrBasisType::create(['name' => 'THR Basis', 'code' => (string) Str::uuid(), 'formula_code' => 'gaji_pokok'])->id,
+                            'compensation_basis_id' => \Modules\MasterData\Models\ThrBasisType::create(['name' => 'Comp Basis', 'code' => (string) Str::uuid(), 'formula_code' => 'gaji_pokok'])->id,
+                            'bpjs_basis_id' => \Modules\MasterData\Models\BpjsBasisType::create(['name' => 'BPJS Basis', 'code' => (string) Str::uuid(), 'formula_code' => 'gaji_pokok'])->id,
+                            'work_pattern_id' => \Modules\MasterData\Models\WorkPattern::create(['name' => 'Work Pattern', 'code' => (string) Str::uuid()])->id,
+                        ],
+                    ],
                 ],
             ],
-        ])
-            ->call('create')
+        ]);
+        $component->call('create')
             ->assertHasNoErrors();
 
         $this->assertDatabaseHas('manpower_templates', ['name' => 'New Manpower Template']);

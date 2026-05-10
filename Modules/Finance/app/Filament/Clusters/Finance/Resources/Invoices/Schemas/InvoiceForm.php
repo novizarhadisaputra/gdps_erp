@@ -29,6 +29,7 @@ use Modules\MasterData\Enums\Gender;
 use Modules\MasterData\Models\AppSetting;
 use Modules\MasterData\Models\BankAccount;
 use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\RevenueType;
 use Modules\MasterData\Models\Tax;
 use Modules\Project\Models\WorkCompletionReport;
 
@@ -45,6 +46,48 @@ class InvoiceForm
         }
 
         return (float) str_replace(',', '.', str_replace('.', '', $value));
+    }
+
+    public static function recalculateTotals(Get $get, Set $set): void
+    {
+        $amount = self::parseNumber($get('amount'));
+        $vatAmount = self::parseNumber($get('tax_amount'));
+
+        // Calculate Withholding Taxes from Repeater
+        $taxDetails = $get('tax_details') ?? [];
+        $withholdingTotal = 0;
+
+        foreach ($taxDetails as $detail) {
+            $withholdingTotal += self::parseNumber($detail['tax_amount'] ?? 0);
+        }
+
+        $set('withholding_tax_amount', $withholdingTotal);
+        $set('total_amount', $amount + $vatAmount - $withholdingTotal);
+    }
+
+    public static function resolveBaseAmount(string $basis, Get $get): float
+    {
+        $amount = self::parseNumber($get('amount'));
+
+        if ($basis === 'management_fee') {
+            $items = $get('items') ?? [];
+            $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+
+            $additionalTypeIds = RevenueType::where('code', 'additional')->pluck('id')->toArray();
+
+            return collect($activeItems)->filter(function ($item) use ($additionalTypeIds) {
+                if (isset($item['revenue_type_id']) && in_array($item['revenue_type_id'], $additionalTypeIds)) {
+                    return true;
+                }
+                $name = strtolower($item['item_name'] ?? '');
+
+                return str_contains($name, 'management fee') || str_contains($name, 'fee');
+            })->sum(function ($item) {
+                return self::parseNumber($item['total_price'] ?? 0);
+            });
+        }
+
+        return $amount;
     }
 
     public static function configure(Schema $schema): Schema
@@ -223,6 +266,7 @@ class InvoiceForm
                                                         'uom' => $item['uom'] ?? 'Unit',
                                                         'unit_price' => $item['unit_price'] ?? 0,
                                                         'total_price' => $item['total_price'] ?? 0,
+                                                        'revenue_type_id' => RevenueType::where('code', 'main')->first()?->id,
                                                     ],
                                                 ])->toArray();
 
@@ -256,8 +300,8 @@ class InvoiceForm
                                                 $set('total_amount', $sum + $taxAmount);
 
                                                 // Handle Internal Bank Account
-                                                if ($source->type->value === \Modules\CRM\Enums\SalesOrderType::Internal->value) {
-                                                    $internalBank = \Modules\MasterData\Models\BankAccount::where('account_name', 'like', '%Internal%')
+                                                if ($source->type->value === SalesOrderType::Internal->value) {
+                                                    $internalBank = BankAccount::where('account_name', 'like', '%Internal%')
                                                         ->where('is_active', true)
                                                         ->first();
 
@@ -266,7 +310,7 @@ class InvoiceForm
                                                         $set('payment_info', [
                                                             'account_name' => $internalBank->account_name,
                                                             'banks' => [
-                                                                \Illuminate\Support\Str::uuid()->toString() => [
+                                                                Str::uuid()->toString() => [
                                                                     'bank_name' => $internalBank->bank_name,
                                                                     'account_number' => $internalBank->account_number,
                                                                     'currency' => $internalBank->currency,
@@ -427,7 +471,15 @@ class InvoiceForm
                                             ->required()
                                             ->placeholder('e.g. Monthly Cleaning Service')
                                             ->helperText('Detailed description of the service or product.')
-                                            ->columnSpanFull(),
+                                            ->columnSpan(2),
+                                        Select::make('revenue_type_id')
+                                            ->label('Revenue Category')
+                                            ->options(RevenueType::where('is_active', true)->pluck('name', 'id'))
+                                            ->required()
+                                            ->default(fn () => RevenueType::where('is_default', true)->first()?->id)
+                                            ->live()
+                                            ->placeholder('Select category')
+                                            ->helperText('Classify this item as Main or Additional Revenue.'),
                                         TextInput::make('quantity')
                                             ->label('Quantity')
                                             ->numeric()
@@ -480,13 +532,18 @@ class InvoiceForm
                                 }
                                 $set('amount', $sum);
 
-                                $taxId = $get('tax_id');
-                                $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
-                                $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? $defaultVat) / 100));
+                                // Update VAT Base Amount if basis is total
+                                if ($get('tax_basis') === 'total' || ! $get('tax_basis')) {
+                                    $set('tax_base_amount', $sum);
 
-                                $set('tax_amount', $tax);
-                                $set('total_amount', $sum + $tax);
+                                    $taxId = $get('tax_id');
+                                    $taxRecord = $taxId ? Tax::find($taxId) : null;
+                                    $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
+                                    $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? $defaultVat) / 100));
+                                    $set('tax_amount', $tax);
+                                }
+
+                                self::recalculateTotals($get, $set);
                             }),
                     ])->collapsible(),
 
@@ -503,165 +560,218 @@ class InvoiceForm
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->required()
                                     ->live(onBlur: true)
-                                    ->placeholder('0')
-                                    ->helperText('The total billable amount before tax.')
                                     ->afterStateUpdated(function ($state, $set, $get) {
-                                        $amount = self::parseNumber($state);
-
-                                        // Update Tax Base Amount if basis is total
+                                        $sum = self::parseNumber($state);
+                                        // Update VAT Base Amount if basis is total
                                         if ($get('tax_basis') === 'total' || ! $get('tax_basis')) {
-                                            $set('tax_base_amount', $amount);
+                                            $set('tax_base_amount', $sum);
 
                                             $taxId = $get('tax_id');
                                             $taxRecord = $taxId ? Tax::find($taxId) : null;
                                             $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
-                                            $tax = $taxRecord ? $taxRecord->calculateTax($amount) : round($amount * (($get('tax_percentage') ?? $defaultVat) / 100));
+                                            $tax = $taxRecord ? $taxRecord->calculateTax($sum) : round($sum * (($get('tax_percentage') ?? $defaultVat) / 100));
                                             $set('tax_amount', $tax);
-                                            $set('total_amount', $amount + $tax);
-                                        }
-                                    }),
-
-                                Select::make('tax_basis')
-                                    ->label('Tax Basis (DPP)')
-                                    ->options([
-                                        'total' => 'Total Amount',
-                                        'management_fee' => 'Management Fee Only',
-                                        'custom' => 'Custom / Manual',
-                                    ])
-                                    ->default('total')
-                                    ->live()
-                                    ->required()
-                                    ->placeholder('Select tax calculation basis')
-                                    ->helperText('Choose whether tax is calculated from total amount, management fee, or entered manually.')
-                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                        $amount = self::parseNumber($get('amount'));
-                                        $baseAmount = $amount;
-
-                                        if ($state === 'management_fee') {
-                                            $items = $get('items') ?? [];
-                                            $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
-
-                                            $mfSum = collect($activeItems)->filter(function ($item) {
-                                                $name = strtolower($item['item_name'] ?? '');
-
-                                                return str_contains($name, 'management fee') || str_contains($name, 'fee');
-                                            })->sum(function ($item) {
-                                                return self::parseNumber($item['total_price'] ?? 0);
-                                            });
-
-                                            $baseAmount = $mfSum;
-                                        } elseif ($state === 'custom') {
-                                            $baseAmount = self::parseNumber($get('tax_base_amount'));
                                         }
 
-                                        $set('tax_base_amount', $baseAmount);
-
-                                        $taxId = $get('tax_id');
-                                        $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                        $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
-                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? $defaultVat) / 100));
-                                        $set('tax_amount', $tax);
-                                        $set('total_amount', $amount + $tax);
+                                        self::recalculateTotals($get, $set);
                                     }),
+                            ]),
 
-                                TextInput::make('tax_base_amount')
-                                    ->label('Taxable Amount (DPP)')
-                                    ->numeric()
-                                    ->prefix('IDR')
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                    ->required()
-                                    ->live(onBlur: true)
-                                    ->placeholder('0')
-                                    ->helperText('The amount used to calculate VAT (PPN).')
-                                    ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
-                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                        $baseAmount = self::parseNumber($state);
-                                        $amount = self::parseNumber($get('amount'));
+                        Grid::make(2)
+                            ->columns(2)
+                            ->columnSpanFull()
+                            ->schema([
+                                Section::make('Tax Information (VAT / PPN)')
+                                    ->description('Configure the Value Added Tax calculation basis and rate.')
+                                    ->columnSpan(1)
+                                    ->schema([
+                                        Select::make('tax_basis')
+                                            ->label('Tax Basis (DPP)')
+                                            ->options([
+                                                'total' => 'Total Amount',
+                                                'management_fee' => 'Management Fee Only',
+                                                'custom' => 'Custom / Manual',
+                                            ])
+                                            ->default('total')
+                                            ->live()
+                                            ->required()
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                $baseAmount = self::resolveBaseAmount($state, $get);
+                                                $set('tax_base_amount', $baseAmount);
 
-                                        $taxId = $get('tax_id');
-                                        $taxRecord = $taxId ? Tax::find($taxId) : null;
-                                        $defaultVat = Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00);
-                                        $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? $defaultVat) / 100));
+                                                $taxRecord = Tax::find($get('tax_id'));
+                                                $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? 11) / 100));
+                                                $set('tax_amount', $tax);
 
-                                        $set('tax_amount', $tax);
-                                        $set('total_amount', $amount + $tax);
-                                    }),
+                                                self::recalculateTotals($get, $set);
+                                            }),
 
-                                Select::make('tax_id')
-                                    ->label('VAT Category')
-                                    ->options(Tax::where('category', 'sales')->pluck('name', 'id'))
-                                    ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id)
-                                    ->required()
-                                    ->searchable()
-                                    ->preload()
-                                    ->live()
-                                    ->placeholder('Select VAT configuration')
-                                    ->helperText('The applicable tax rate (e.g., PPN 11%).')
-                                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                                        if (! $state) {
-                                            return;
-                                        }
+                                        TextInput::make('tax_base_amount')
+                                            ->label('Taxable Amount (DPP)')
+                                            ->numeric()
+                                            ->prefix('IDR')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                $baseAmount = self::parseNumber($state);
+                                                $taxRecord = Tax::find($get('tax_id'));
+                                                $tax = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * (($get('tax_percentage') ?? 11) / 100));
 
-                                        $taxRecord = Tax::find($state);
-                                        $taxPercent = $taxRecord?->rate ?? 0;
-                                        $set('tax_percentage', $taxPercent);
+                                                $set('tax_amount', $tax);
+                                                self::recalculateTotals($get, $set);
+                                            }),
 
-                                        $baseAmount = self::parseNumber($get('tax_base_amount'));
-                                        $amount = self::parseNumber($get('amount'));
+                                        Select::make('tax_id')
+                                            ->label('VAT Category')
+                                            ->options(Tax::where('category', 'sales')->pluck('name', 'id'))
+                                            ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id)
+                                            ->required()
+                                            ->searchable()
+                                            ->preload()
+                                            ->live()
+                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                if (! $state) {
+                                                    return;
+                                                }
 
-                                        $taxAmount = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * ($taxPercent / 100));
-                                        $set('tax_amount', $taxAmount);
-                                        $set('total_amount', $amount + $taxAmount);
+                                                $taxRecord = Tax::find($state);
+                                                $taxPercent = $taxRecord?->rate ?? 0;
+                                                $set('tax_percentage', $taxPercent);
 
-                                        $wording = "PPN {$taxPercent}%";
-                                        $wordingEn = "{$taxPercent}% VAT";
+                                                $baseAmount = self::parseNumber($get('tax_base_amount'));
+                                                $taxAmount = $taxRecord ? $taxRecord->calculateTax($baseAmount) : round($baseAmount * ($taxPercent / 100));
+                                                $set('tax_amount', $taxAmount);
 
-                                        if ($taxRecord && ($taxRecord->base_rate_numerator != 1 || $taxRecord->base_rate_denominator != 1)) {
-                                            $ratio = " (Dasar Pengenaan Pajak: {$taxRecord->base_rate_numerator}/{$taxRecord->base_rate_denominator})";
-                                            $ratioEn = " (Taxable Base: {$taxRecord->base_rate_numerator}/{$taxRecord->base_rate_denominator})";
-                                            $wording .= $ratio;
-                                            $wordingEn .= $ratioEn;
-                                        }
+                                                self::recalculateTotals($get, $set);
 
-                                        $set('tax_wording', [
-                                            'id' => $wording,
-                                            'en' => $wordingEn,
-                                        ]);
-                                    })
-                                    ->afterStateHydrated(function ($state, Set $set, Get $get) {
-                                        if ($state) {
-                                            $taxPercent = Tax::find($state)?->rate ?? 0;
-                                            $set('tax_percentage', $taxPercent);
-                                        }
-                                    }),
+                                                $wording = "PPN {$taxPercent}%";
+                                                $set('tax_wording', ['id' => $wording, 'en' => "{$taxPercent}% VAT"]);
+                                            }),
 
-                                Hidden::make('tax_percentage')
-                                    ->default(fn () => Tax::getDefaultRate('sales', AppSetting::getPayload('finance', 'global_financial_parameters')['vat_rate'] ?? 11.00)),
+                                        TextInput::make('tax_amount')
+                                            ->label('Tax Amount (VAT)')
+                                            ->numeric()
+                                            ->prefix('IDR')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::recalculateTotals($get, $set)),
+                                    ]),
 
-                                TextInput::make('tax_amount')
-                                    ->label('Tax Amount (VAT)')
-                                    ->numeric()
-                                    ->prefix('IDR')
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                    ->required()
-                                    ->live(onBlur: true)
-                                    ->placeholder('0')
-                                    ->helperText('Value Added Tax (PPN).')
-                                    ->afterStateUpdated(function (Get $get, $set) {
-                                        $amount = self::parseNumber($get('amount'));
-                                        $tax = self::parseNumber($get('tax_amount'));
-                                        $set('total_amount', $amount + $tax);
-                                    }),
+                                Section::make('Withholding Taxes (PPh Potongan)')
+                                    ->description('Add any income tax withholdings like PPh 23, PPh 4(2), etc.')
+                                    ->columnSpan(1)
+                                    ->schema([
+                                        Repeater::make('tax_details')
+                                            ->label('')
+                                            ->addActionLabel('Add Potongan Pajak')
+                                            ->schema([
+                                                Grid::make(2)
+                                                    ->schema([
+                                                        Select::make('tax_id')
+                                                            ->label('Tax Type')
+                                                            ->options(Tax::where('category', 'withholding')->pluck('name', 'id'))
+                                                            ->required()
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->live()
+                                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                                if (! $state) {
+                                                                    return;
+                                                                }
+                                                                $taxRecord = Tax::find($state);
+                                                                $basis = $get('tax_basis') ?? 'total';
+                                                                $baseAmount = self::resolveBaseAmount($basis, $get->get('../../../')); // Drill up to form root
+                                                                $taxAmount = $taxRecord ? $taxRecord->calculateTax($baseAmount) : 0;
 
-                                TextInput::make('total_amount')
-                                    ->label('Total Billed')
-                                    ->numeric()
-                                    ->prefix('IDR')
-                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                    ->readonly()
-                                    ->placeholder('0')
-                                    ->helperText('The grand total (Base Amount + VAT).')
-                                    ->required(),
+                                                                $set('tax_base_amount', $baseAmount);
+                                                                $set('tax_amount', $taxAmount);
+                                                            }),
+
+                                                        Select::make('tax_basis')
+                                                            ->label('Basis (DPP)')
+                                                            ->options([
+                                                                'total' => 'Total Amount',
+                                                                'management_fee' => 'Management Fee',
+                                                                'custom' => 'Custom',
+                                                            ])
+                                                            ->default('total')
+                                                            ->live()
+                                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                                $baseAmount = self::resolveBaseAmount($state, $get->get('../../../'));
+                                                                $set('tax_base_amount', $baseAmount);
+
+                                                                $taxRecord = Tax::find($get('tax_id'));
+                                                                $taxAmount = $taxRecord ? $taxRecord->calculateTax($baseAmount) : 0;
+                                                                $set('tax_amount', $taxAmount);
+                                                            }),
+
+                                                        TextInput::make('tax_base_amount')
+                                                            ->label('Base Amount')
+                                                            ->numeric()
+                                                            ->prefix('IDR')
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->readOnly(fn (Get $get) => $get('tax_basis') !== 'custom')
+                                                            ->live(onBlur: true)
+                                                            ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                                                                $taxRecord = Tax::find($get('tax_id'));
+                                                                $set('tax_amount', $taxRecord ? $taxRecord->calculateTax(self::parseNumber($state)) : 0);
+                                                            }),
+
+                                                        TextInput::make('tax_amount')
+                                                            ->label('Amount')
+                                                            ->numeric()
+                                                            ->prefix('IDR')
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->required()
+                                                            ->live(onBlur: true),
+                                                    ]),
+                                            ])
+                                            ->live()
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::recalculateTotals($get, $set))
+                                            ->afterStateHydrated(fn (Get $get, Set $set) => self::recalculateTotals($get, $set)),
+                                    ]),
+                            ]),
+
+                        Section::make('Financial Summary')
+                            ->schema([
+                                Grid::make(4)
+                                    ->schema([
+                                        TextInput::make('amount')
+                                            ->label('Base Amount (Gross)')
+                                            ->numeric()
+                                            ->prefix('IDR')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->readonly()
+                                            ->helperText('Sum of all line items.'),
+
+                                        TextInput::make('tax_amount')
+                                            ->label('Total VAT (PPN)')
+                                            ->numeric()
+                                            ->prefix('IDR')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->readonly()
+                                            ->helperText('Value Added Tax addition.'),
+
+                                        TextInput::make('withholding_tax_amount')
+                                            ->label('Total Withholding (PPh)')
+                                            ->numeric()
+                                            ->prefix('IDR')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->readonly()
+                                            ->helperText('Sum of all tax deductions.'),
+
+                                        TextInput::make('total_amount')
+                                            ->label('Total Billed (Net)')
+                                            ->numeric()
+                                            ->prefix('IDR')
+                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                            ->readonly()
+                                            ->required()
+                                            ->helperText('Gross + VAT - Withholding.'),
+                                    ]),
 
                                 TextInput::make('tax_wording')
                                     ->label('Tax Wording (PDF)')

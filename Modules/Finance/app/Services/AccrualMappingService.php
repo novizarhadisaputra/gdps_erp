@@ -18,9 +18,10 @@ class AccrualMappingService
         ?ProjectArea $area = null,
         ?Customer $customer = null,
         ?string $revenueTypeId = null,
-        ?string $revenueSegmentId = null
+        ?string $revenueSegmentId = null,
+        ?string $taxId = null
     ): ?string {
-        $mapping = $this->resolveAccountMapping($type, $area, $customer, $revenueTypeId, $revenueSegmentId);
+        $mapping = $this->resolveAccountMapping($type, $area, $customer, $revenueTypeId, $revenueSegmentId, $taxId);
 
         return $mapping?->chartOfAccount?->code;
     }
@@ -33,11 +34,12 @@ class AccrualMappingService
         ?ProjectArea $area = null,
         ?Customer $customer = null,
         ?string $revenueTypeId = null,
-        ?string $revenueSegmentId = null
+        ?string $revenueSegmentId = null,
+        ?string $taxId = null
     ): ?AccountMapping {
         // 1. Check Project Area Hierarchy
         if ($area) {
-            $mapping = $this->lookupAreaMappingRecord($type, $area, $revenueTypeId, $revenueSegmentId);
+            $mapping = $this->lookupAreaMappingRecord($type, $area, $revenueTypeId, $revenueSegmentId, $taxId);
             if ($mapping) {
                 return $mapping;
             }
@@ -129,9 +131,9 @@ class AccrualMappingService
         return $missing;
     }
 
-    protected function lookupAreaMappingRecord(string $type, ProjectArea $area, ?string $revenueTypeId, ?string $revenueSegmentId): ?AccountMapping
+    protected function lookupAreaMappingRecord(string $type, ProjectArea $area, ?string $revenueTypeId, ?string $revenueSegmentId, ?string $taxId = null): ?AccountMapping
     {
-        $mapping = $this->findBestMapping($area::class, $area->id, $type, $revenueTypeId, $revenueSegmentId);
+        $mapping = $this->findBestMapping($area::class, $area->id, $type, $revenueTypeId, $revenueSegmentId, $taxId);
 
         if ($mapping) {
             return $mapping;
@@ -139,32 +141,45 @@ class AccrualMappingService
 
         // Recursive lookup for parent area
         if ($area->parentable_id && $area->parentable_type === ProjectArea::class) {
-            return $this->lookupAreaMappingRecord($type, $area->parentable, $revenueTypeId, $revenueSegmentId);
+            return $this->lookupAreaMappingRecord($type, $area->parentable, $revenueTypeId, $revenueSegmentId, $taxId);
         }
 
         // Fallback to customer if area is attached to customer
         if ($area->parentable_id && $area->parentable_type === Customer::class) {
-            return $this->lookupCustomerMappingRecord($type, $area->parentable, $revenueTypeId, $revenueSegmentId);
+            return $this->lookupCustomerMappingRecord($type, $area->parentable, $revenueTypeId, $revenueSegmentId, $taxId);
         }
 
         return null;
     }
 
-    protected function lookupCustomerMappingRecord(string $type, Customer $customer, ?string $revenueTypeId, ?string $revenueSegmentId): ?AccountMapping
+    protected function lookupCustomerMappingRecord(string $type, Customer $customer, ?string $revenueTypeId, ?string $revenueSegmentId, ?string $taxId = null): ?AccountMapping
     {
-        return $this->findBestMapping($customer::class, $customer->id, $type, $revenueTypeId, $revenueSegmentId);
+        return $this->findBestMapping($customer::class, $customer->id, $type, $revenueTypeId, $revenueSegmentId, $taxId);
     }
 
-    protected function findBestMapping(string $mappableType, string $mappableId, string $type, ?string $revenueTypeId, ?string $revenueSegmentId): ?AccountMapping
+    protected function findBestMapping(string $mappableType, string $mappableId, string $type, ?string $revenueTypeId, ?string $revenueSegmentId, ?string $taxId = null): ?AccountMapping
     {
         $query = AccountMapping::where('mappable_type', $mappableType)
             ->where('mappable_id', $mappableId)
             ->where('type', $type);
 
+        // Priority 1: Exact match with tax_id (for withholding/specific taxes)
+        if ($taxId) {
+            $taxExact = (clone $query)
+                ->with('chartOfAccount')
+                ->where('tax_id', $taxId)
+                ->first();
+            if ($taxExact) {
+                return $taxExact;
+            }
+        }
+
+        // Priority 2: Exact match with Revenue Type and Segment
         $exact = (clone $query)
             ->with('chartOfAccount')
             ->where('revenue_type_id', $revenueTypeId)
             ->where('revenue_segment_id', $revenueSegmentId)
+            ->whereNull('tax_id')
             ->first();
 
         if ($exact) {

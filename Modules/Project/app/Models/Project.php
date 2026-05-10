@@ -67,28 +67,17 @@ class Project extends Model implements HasMedia
         'progress_percentage',
     ];
 
-    public static function generateProjectNumber(self $project): string
+    public static function generateProjectCode(self $project): string
     {
-        // Formula: [Customer(3)][ProjectSeq(2)][Area(3)][Type(2)][Cluster(3)][TaxCode(2)]
-        // Ensure relations are loaded for code segments
-        $project->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'lead.customer', 'projectType']);
+        // Formula: [WorkScheme(2)][ProductCluster(3)][Tax(2)][Customer(3)][Area(3)][ProjectNumber(4)]
+        $project->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'workScheme', 'projectType']);
 
-        // Helper to get code with logging for missing relations
         $getCode = function ($relation, $default, $length, $label) use ($project) {
             $code = $project->{$relation}?->code;
 
-            if (! $code && $relation === 'customer') {
-                $code = $project->lead?->customer?->code;
-            }
-
             if (! $code) {
-                \Log::warning("Project Number Generation: Missing {$label} for Project", [
+                \Log::warning("Project Code Generation: Missing {$label} for Project", [
                     'project_id' => $project->id,
-                    'customer_id' => $project->customer_id,
-                    'project_area_id' => $project->project_area_id,
-                    'project_type_id' => $project->project_type_id,
-                    'product_cluster_id' => $project->product_cluster_id,
-                    'tax_id' => $project->tax_id,
                 ]);
 
                 return str_pad($default, $length, '0', STR_PAD_RIGHT);
@@ -97,16 +86,19 @@ class Project extends Model implements HasMedia
             return str_pad(substr($code, 0, $length), $length, '0', STR_PAD_RIGHT);
         };
 
-        $customerShortCode = $getCode('customer', '000', 3, 'Customer');
-        $projectSeq = str_pad((string) ($project->project_number ?? '01'), 2, '0', STR_PAD_LEFT);
-        $areaShortCode = $getCode('projectArea', '000', 3, 'Area');
-        $typeShortCode = $getCode('projectType', '00', 2, 'Type');
-        $clusterShortCode = $getCode('productCluster', '000', 3, 'Cluster');
-        $taxShortCode = $getCode('tax', '00', 2, 'Tax');
+        $schemeCode = $getCode('workScheme', '00', 2, 'WorkScheme');
+        $clusterCode = $getCode('productCluster', '000', 3, 'Cluster');
+        $taxCode = $getCode('tax', '00', 2, 'Tax');
+        $customerCode = $getCode('customer', '000', 3, 'Customer');
+        $areaCode = $getCode('projectArea', '000', 3, 'Area');
+        $projectNum = str_pad((string) ($project->project_number ?? '1'), 4, '0', STR_PAD_LEFT);
 
-        $code = strtoupper("{$customerShortCode}{$projectSeq}{$areaShortCode}{$typeShortCode}{$clusterShortCode}{$taxShortCode}");
+        return strtoupper("{$schemeCode}{$clusterCode}{$taxCode}{$customerCode}{$areaCode}{$projectNum}");
+    }
 
-        return $code;
+    public static function generateProjectNumber(self $project): string
+    {
+        return self::generateProjectCode($project);
     }
 
     public function proposal(): BelongsTo

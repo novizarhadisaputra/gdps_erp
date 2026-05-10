@@ -5,8 +5,8 @@ namespace Modules\MasterData\Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\JpConfigs\Pages\ListJpConfigs;
-use Modules\MasterData\Models\JpConfig;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsJpConfigs\Pages\ListBpjsJpConfigs;
+use Modules\MasterData\Models\BpjsJpConfig;
 use Tests\TestCase;
 
 class JpConfigResourceTest extends TestCase
@@ -24,7 +24,7 @@ class JpConfigResourceTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $jp = JpConfig::create([
+        $jp = BpjsJpConfig::create([
             'name' => 'Test Jp Config',
             'employee_type' => 'ppu',
             'employer_rate' => 2.0,
@@ -32,7 +32,7 @@ class JpConfigResourceTest extends TestCase
             'is_active' => true,
         ]);
 
-        Livewire::test(ListJpConfigs::class)
+        Livewire::test(ListBpjsJpConfigs::class)
             ->assertCanSeeTableRecords([$jp])
             ->assertSee('Test Jp Config');
     }

@@ -9,6 +9,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Support\HtmlString;
+use Modules\MasterData\Services\SignatureService;
 
 class InvoiceInfolist
 {
@@ -173,6 +174,16 @@ class InvoiceInfolist
                                         ->label('Signed At')
                                         ->dateTime()
                                         ->icon('heroicon-m-calendar'),
+                                    TextEntry::make('qr_code')
+                                        ->label('QR Verification')
+                                        ->state(function ($record) {
+                                            $service = app(SignatureService::class);
+                                            $url = $service->createSignatureData($record->user, $record->signable, $record->signature_type);
+                                            $qr = $service->generateQRCode($url);
+
+                                            return new HtmlString("<img src='{$qr}' style='height: 60px; width: 60px; border: 1px solid #eee; padding: 2px;' />");
+                                        })
+                                        ->html(),
                                 ]),
                             ])
                             ->columnSpanFull(),

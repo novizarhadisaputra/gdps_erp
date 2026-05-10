@@ -4,6 +4,7 @@ namespace Modules\MasterData\Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CRM\Models\MinutesOfAgreement;
+use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Services\SignatureService;
 use Tests\TestCase;
@@ -31,7 +32,7 @@ class ApprovalRuleRangeTest extends TestCase
             'max_value' => 5000,
             'approver_type' => 'Role',
             'approver_role' => ['admin'],
-            'signature_type' => 'approval',
+            'signature_type' => ApprovalSignatureType::Approver,
             'order' => 1,
             'is_active' => true,
         ]);
@@ -82,7 +83,7 @@ class ApprovalRuleRangeTest extends TestCase
             ],
             'approver_type' => 'Role',
             'approver_role' => ['admin'],
-            'signature_type' => 'approval',
+            'signature_type' => ApprovalSignatureType::Approver,
             'order' => 1,
             'is_active' => true,
         ]);

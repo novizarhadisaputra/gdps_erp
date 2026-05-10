@@ -257,7 +257,8 @@
             <img src="{{ $footerKop }}"
                 style="width: 100%; height: auto; display: block; margin: 0; padding: 0; border: none; vertical-align: bottom;">
         @endif
-        <div style="position: absolute; bottom: 30px; right: 50px; color: #ffffff; font-size: 9px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+        <div
+            style="position: absolute; bottom: 30px; right: 50px; color: #ffffff; font-size: 9px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
             Halaman <span class="page-number"></span></div>
     </footer>
 
@@ -266,10 +267,12 @@
             <td class="title-box">
                 <h1>SALES ORDER / SURAT PESANAN</h1>
                 <p>{{ $record->number }}</p>
-                @if($record->sourceable)
-                    <div style="font-weight: normal; font-size: 10px; margin-top: 4px;">Ref: {{ $record->sourceable->number }}</div>
+                @if ($record->sourceable)
+                    <div style="font-weight: normal; font-size: 10px; margin-top: 4px;">Ref:
+                        {{ $record->sourceable->number }}</div>
                 @endif
-                <div style="font-weight: normal; font-size: 9px; margin-top: 2px;">Date: {{ $record->order_date->format('d F Y') }}</div>
+                <div style="font-weight: normal; font-size: 9px; margin-top: 2px;">Date:
+                    {{ $record->order_date->format('d F Y') }}</div>
             </td>
         </tr>
     </table>
@@ -355,14 +358,19 @@
         }
         $taxRate = ($record->tax_percentage / 100) * $taxBaseFactor;
         $mgtFeeRate = $record->management_fee_percentage / 100;
-        
+
         $subtotal = collect($items)->sum('total_price') + collect($manpower)->sum('total_price');
-        
+
         // Backward compatibility: If unit_cost is missing, reverse calculate it
         // cost = price * (1 - margin)
-        $totalCost = collect($items)->sum(fn($i) => ($i['unit_cost'] ?? ($i['unit_price'] * (1 - $mgtFeeRate))) * ($i['quantity'] ?? 0)) + 
-                    collect($manpower)->sum(fn($m) => ($m['unit_cost'] ?? ($m['unit_price'] * (1 - $mgtFeeRate))) * ($m['quantity'] ?? 0));
-        
+        $totalCost =
+            collect($items)->sum(
+                fn($i) => ($i['unit_cost'] ?? $i['unit_price'] * (1 - $mgtFeeRate)) * ($i['quantity'] ?? 0),
+            ) +
+            collect($manpower)->sum(
+                fn($m) => ($m['unit_cost'] ?? $m['unit_price'] * (1 - $mgtFeeRate)) * ($m['quantity'] ?? 0),
+            );
+
         $mgtFee = $subtotal - $totalCost;
         $vat = $subtotal * $taxRate;
         $grandTotal = $subtotal + $vat;
@@ -371,7 +379,8 @@
     <div class="total-box">
         <table>
             <tr>
-                <td class="bg-gray" style="width: 50%;">{{ $record->content_config['subtotal_label'] ?? 'Subtotal (Net Cost)' }}</td>
+                <td class="bg-gray" style="width: 50%;">
+                    {{ $record->content_config['subtotal_label'] ?? 'Subtotal (Net Cost)' }}</td>
                 <td class="text-right font-bold" style="width: 50%;">
                     {{ number_format($totalCost, 0, ',', '.') }}
                 </td>
@@ -383,14 +392,17 @@
                 </td>
             </tr>
             <tr>
-                <td class="bg-gray">{{ $record->content_config['vat_label'] ?? 'VAT' }} ({{ $record->tax_percentage }}%)</td>
+                <td class="bg-gray">{{ $record->content_config['vat_label'] ?? 'VAT' }}
+                    ({{ $record->tax_percentage }}%)</td>
                 <td class="text-right">
                     {{ number_format($vat, 0, ',', '.') }}
                 </td>
             </tr>
             <tr>
-                <td class="bg-gray" style="background-color: #000; color: #fff;">{{ $record->content_config['total_label'] ?? 'Grand Total / Month' }}</td>
-                <td class="text-right font-bold" style="background-color: #f3f4f6;">IDR {{ number_format($grandTotal, 0, ',', '.') }}</td>
+                <td class="bg-gray" style="background-color: #000; color: #fff;">
+                    {{ $record->content_config['total_label'] ?? 'Grand Total / Month' }}</td>
+                <td class="text-right font-bold" style="background-color: #f3f4f6;">IDR
+                    {{ number_format($grandTotal, 0, ',', '.') }}</td>
             </tr>
         </table>
     </div>
@@ -416,41 +428,79 @@
     <table class="signature-table">
         <tr>
             {{-- Account Manager / Sales PIC (Owner) --}}
+            @php
+                $ownerSignature = $record->signatures()->where('user_id', $record->sales_pic_id)->first();
+            @endphp
             <td>
                 <div class="font-bold">Proposed By</div>
-                <div class="sig-space" style="height: 40px;"></div>
+                <div class="sig-space" style="height: 60px;">
+                    @if ($ownerSignature)
+                        @php
+                            $qrUrl = $signatureService->createSignatureData(
+                                $ownerSignature->user,
+                                $record,
+                                $ownerSignature->signature_type,
+                            );
+                            $qrCode = $signatureService->generateQRCode($qrUrl);
+                        @endphp
+                        <img src="{{ $qrCode }}" class="qr-code">
+                    @else
+                        <div style="height: 60px; border: 1px dashed #ccc; width: 60px; margin: 0 auto;"></div>
+                    @endif
+                </div>
                 <div class="font-bold">( {{ $record->salesPic->name ?? 'Account Manager' }} )</div>
                 <div>PIC Sales / AMS</div>
             </td>
 
             {{-- Required Approvers from Rules --}}
             @foreach ($requiredApprovers as $rule)
+                @php
+                    // Find a suitable signature for this rule
+                    $signature = $record->signatures()->where('signature_type', $rule->signature_type)->first();
+
+                    // Find a suitable name to display for this role if not signed
+                    $eligibleUser = $signatureService->getEligibleUsers($rule)->first();
+                    $displayName = $signature
+                        ? $signature->user->name
+                        : ($eligibleUser
+                            ? $eligibleUser->name
+                            : '........................................');
+
+                    // Build a clean display role/position
+                    $displayRoles = \Spatie\Permission\Models\Role::whereIn('id', $rule->approver_role ?? [])
+                        ->pluck('name')
+                        ->toArray();
+                    $displayPositions = $rule->approver_position ?? [];
+                    $combinedRole = implode(' / ', array_merge($displayRoles, $displayPositions));
+
+                    if (empty($combinedRole)) {
+                        $combinedRole = $rule->signature_type->getLabel();
+                    }
+                @endphp
                 <td>
                     <div class="font-bold">{{ $rule->signature_type->getLabel() }}</div>
-                    <div class="sig-space" style="height: 40px;">
-                        {{-- No QR Code as requested --}}
+                    <div class="sig-space" style="height: 60px;">
+                        @if ($signature)
+                            @php
+                                $qrUrl = $signatureService->createSignatureData(
+                                    $signature->user,
+                                    $record,
+                                    $signature->signature_type,
+                                );
+                                $qrCode = $signatureService->generateQRCode($qrUrl);
+                            @endphp
+                            <img src="{{ $qrCode }}" class="qr-code">
+                        @else
+                            <div style="height: 60px; border: 1px dashed #ccc; width: 60px; margin: 0 auto;"></div>
+                        @endif
                     </div>
-                    @php
-                        // Find a suitable name to display for this role
-                        $eligibleUser = $signatureService->getEligibleUsers($rule)->first();
-                        $displayName = $eligibleUser ? $eligibleUser->name : '........................................';
-                        
-                        // Build a clean display role/position
-                        $displayRoles = Role::whereIn('id', $rule->approver_role ?? [])->pluck('name')->toArray();
-                        $displayPositions = $rule->approver_position ?? [];
-                        $combinedRole = implode(' / ', array_merge($displayRoles, $displayPositions));
-                        
-                        if (empty($combinedRole)) {
-                            $combinedRole = $rule->signature_type->getLabel();
-                        }
-                    @endphp
                     <div class="font-bold">( {{ $displayName }} )</div>
                     <div style="font-size: 8px; line-height: 1.1;">{{ $combinedRole }}</div>
                 </td>
             @endforeach
 
             {{-- Client Signature Placeholder (Manual) - Only for External --}}
-            @if($record->type === SalesOrderType::External)
+            @if ($record->type === SalesOrderType::External)
                 <td>
                     <div class="font-bold">Approved By (Customer)</div>
                     <div class="sig-space" style="height: 40px;"></div>

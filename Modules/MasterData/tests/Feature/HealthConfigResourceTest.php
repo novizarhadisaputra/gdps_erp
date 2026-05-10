@@ -5,8 +5,8 @@ namespace Modules\MasterData\Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\HealthConfigs\Pages\ListHealthConfigs;
-use Modules\MasterData\Models\HealthConfig;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsHealthConfigs\Pages\ListBpjsHealthConfigs;
+use Modules\MasterData\Models\BpjsHealthConfig;
 use Tests\TestCase;
 
 class HealthConfigResourceTest extends TestCase
@@ -24,7 +24,7 @@ class HealthConfigResourceTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $health = HealthConfig::create([
+        $health = BpjsHealthConfig::create([
             'name' => 'Test Health Config',
             'employee_type' => 'ppu',
             'employer_rate' => 4.0,
@@ -32,7 +32,7 @@ class HealthConfigResourceTest extends TestCase
             'is_active' => true,
         ]);
 
-        Livewire::test(ListHealthConfigs::class)
+        Livewire::test(ListBpjsHealthConfigs::class)
             ->assertCanSeeTableRecords([$health])
             ->assertSee('Test Health Config');
     }

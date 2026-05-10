@@ -229,108 +229,107 @@
             $refNo = $source->number; // Primary reference is the BAPP itself
 
             // Try to find a higher tier reference from the BAPP's source
-            if ($source->sourceable) {
-                $parentSource = $source->sourceable;
-                if ($parentSource instanceof \Modules\CRM\Models\SalesOrder) {
-                    $so = $parentSource;
-                    if ($parentSource->sourceable) {
-                        $refNo = $parentSource->sourceable->number;
-                    } else {
-                        $refNo = $parentSource->number;
-                    }
-                } elseif ($parentSource instanceof \Modules\CRM\Models\CooperationAgreement ||
-                    $parentSource instanceof \Modules\CRM\Models\PurchaseOrder ||
-                    $parentSource instanceof \Modules\CRM\Models\WorkOrder ||
-                    $parentSource instanceof \Modules\CRM\Models\MinutesOfAgreement) {
+        if ($source->sourceable) {
+            $parentSource = $source->sourceable;
+            if ($parentSource instanceof \Modules\CRM\Models\SalesOrder) {
+                $so = $parentSource;
+                if ($parentSource->sourceable) {
+                    $refNo = $parentSource->sourceable->number;
+                } else {
                     $refNo = $parentSource->number;
                 }
-            }
-        } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
-            $so = $source;
-            $isInternal = $source->type === \Modules\CRM\Enums\SalesOrderType::Internal;
-            $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
-            $sourceNumber = $source->number;
-
-            // If SO is based on PKS/PO/SPK, use that as Ref No
-            if ($source->sourceable) {
-                $refNo = $source->sourceable->number;
-            } else {
-                $refNo = $source->number;
-            }
-        } else {
-            // Direct source (PKS/PO/SPK/MOA)
-            $sourceNumber = $source->number;
-            $refNo = $source->number;
-
-            if ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
-                $displaySourceType = $labels['pks'][$lang];
-            } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
-                $displaySourceType = $labels['po'][$lang];
-            } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
-                $displaySourceType = $labels['spk'][$lang];
-            } elseif ($source instanceof \Modules\CRM\Models\MinutesOfAgreement) {
-                $displaySourceType = $labels['moa'][$lang];
+            } elseif (
+                $parentSource instanceof \Modules\CRM\Models\CooperationAgreement ||
+                $parentSource instanceof \Modules\CRM\Models\PurchaseOrder ||
+                $parentSource instanceof \Modules\CRM\Models\WorkOrder ||
+                $parentSource instanceof \Modules\CRM\Models\MinutesOfAgreement
+            ) {
+                $refNo = $parentSource->number;
             }
         }
+    } elseif ($source instanceof \Modules\CRM\Models\SalesOrder) {
+        $so = $source;
+        $isInternal = $source->type === \Modules\CRM\Enums\SalesOrderType::Internal;
+        $displaySourceType = $isInternal ? $labels['source_internal'][$lang] : $labels['source_so'][$lang];
+        $sourceNumber = $source->number;
+
+        // If SO is based on PKS/PO/SPK, use that as Ref No
+        if ($source->sourceable) {
+            $refNo = $source->sourceable->number;
+        } else {
+            $refNo = $source->number;
+        }
+    } else {
+        // Direct source (PKS/PO/SPK/MOA)
+        $sourceNumber = $source->number;
+        $refNo = $source->number;
+
+        if ($source instanceof \Modules\CRM\Models\CooperationAgreement) {
+            $displaySourceType = $labels['pks'][$lang];
+        } elseif ($source instanceof \Modules\CRM\Models\PurchaseOrder) {
+            $displaySourceType = $labels['po'][$lang];
+        } elseif ($source instanceof \Modules\CRM\Models\WorkOrder) {
+            $displaySourceType = $labels['spk'][$lang];
+        } elseif ($source instanceof \Modules\CRM\Models\MinutesOfAgreement) {
+            $displaySourceType = $labels['moa'][$lang];
+        }
     }
+}
 
-    $termOfPayment =
-        $so?->payment_terms ??
-        ($record->invoice_date && $record->due_date
-            ? $record->invoice_date->diffInDays($record->due_date) . ' ' . $labels['days'][$lang]
-            : '........');
+$termOfPayment =
+    $so?->payment_terms ??
+    ($record->invoice_date && $record->due_date
+        ? $record->invoice_date->diffInDays($record->due_date) . ' ' . $labels['days'][$lang]
+        : '........');
 
-    // Dynamic Payment Info
-    $paymentInfo = is_array($record->payment_info)
-        ? $record->payment_info
-        : (json_decode($record->payment_info, true) ?? []);
-    $accountName = strtoupper($paymentInfo['account_name'] ?? 'PT. GARUDA DAYA PRATAMA SEJAHTERA');
-    $banks = $paymentInfo['banks'] ?? [];
+// Dynamic Payment Info
+$paymentInfo = is_array($record->payment_info)
+    ? $record->payment_info
+    : json_decode($record->payment_info, true) ?? [];
+$accountName = strtoupper($paymentInfo['account_name'] ?? 'PT. GARUDA DAYA PRATAMA SEJAHTERA');
+$banks = $paymentInfo['banks'] ?? [];
 
-    // Branding Assets
-    $logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
-    $logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
-    $footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
+// Branding Assets
+$logoLogogram = imageToBase64(null, public_path('images/branding/header_left.png'));
+$logoDetail = imageToBase64(null, public_path('images/branding/header_right.png'));
+$footerKop = imageToBase64(null, public_path('images/branding/footer.png'));
 
-    // Customer Contact Logic
-    $customerContactName = $record->content_config['recipient_name'] 
-        ?? $so?->content_config['recipient_name'] 
-        ?? null;
-    $customerContactTitle = $record->content_config['recipient_title'] 
-        ?? $so?->content_config['recipient_title'] 
-        ?? null;
-    $customerContactGender = $record->content_config['recipient_gender'] 
-        ?? $so?->content_config['recipient_gender'] 
-        ?? null;
+// Customer Contact Logic
+$customerContactName =
+    $record->content_config['recipient_name'] ?? ($so?->content_config['recipient_name'] ?? null);
+$customerContactTitle =
+    $record->content_config['recipient_title'] ?? ($so?->content_config['recipient_title'] ?? null);
+$customerContactGender =
+    $record->content_config['recipient_gender'] ?? ($so?->content_config['recipient_gender'] ?? null);
 
-    if ((!$customerContactName || !$customerContactTitle) && !empty($record->customer?->contacts)) {
-        $firstContact = $record->customer->contacts[0];
-        $customerContactName = $customerContactName ?: ($firstContact['name'] ?? null);
-        $customerContactTitle = $customerContactTitle ?: ($firstContact['job_position'] ?? null);
-        $customerContactGender = $customerContactGender ?: ($firstContact['gender'] ?? null);
-    }
+if ((!$customerContactName || !$customerContactTitle) && !empty($record->customer?->contacts)) {
+    $firstContact = $record->customer->contacts[0];
+    $customerContactName = $customerContactName ?: $firstContact['name'] ?? null;
+    $customerContactTitle = $customerContactTitle ?: $firstContact['job_position'] ?? null;
+    $customerContactGender = $customerContactGender ?: $firstContact['gender'] ?? null;
+}
 
-    $customerContactTitle = $customerContactTitle ?? '.....................';
+$customerContactTitle = $customerContactTitle ?? '.....................';
 
-    $salutation = '';
-    if ($customerContactGender) {
-        $salutation =
-            $customerContactGender === 'male' ||
-            $customerContactGender === \Modules\MasterData\Enums\Gender::Male->value
-                ? $labels['mr'][$lang]
-                : $labels['ms'][$lang];
-    }
+$salutation = '';
+if ($customerContactGender) {
+    $salutation =
+        $customerContactGender === 'male' ||
+        $customerContactGender === \Modules\MasterData\Enums\Gender::Male->value
+            ? $labels['mr'][$lang]
+            : $labels['ms'][$lang];
+}
 
-    $customerContactDisplay = $customerContactName
-        ? ($salutation
-            ? $salutation . ' ' . $customerContactName
-            : $customerContactName)
-        : $labels['accounting_unit'][$lang];
+$customerContactDisplay = $customerContactName
+    ? ($salutation
+        ? $salutation . ' ' . $customerContactName
+        : $customerContactName)
+    : $labels['accounting_unit'][$lang];
 
-    $approverSig = $record->signatures()->where('signature_type', 'Approver')->first();
-    $approverUnit = $approverSig
-        ? ($approverSig->user->unit->name ?? $labels['accounting_unit'][$lang])
-        : $labels['accounting_unit'][$lang];
+$approverSig = $record->signatures()->where('signature_type', 'Approver')->first();
+$approverUnit = $approverSig
+    ? $approverSig->user->unit->name ?? $labels['accounting_unit'][$lang]
+    : $labels['accounting_unit'][$lang];
 @endphp
 
 @php
@@ -726,16 +725,35 @@
         <tr>
             <td>
                 {{ $labels['tax_base'][$lang] }}
-                @if($record->tax_basis === 'management_fee')
+                @if ($record->tax_basis === 'management_fee')
                     (Fee)
                 @endif
             </td>
-            <td class="text-right">{{ $isInternal ? '-' : number_format($record->tax_base_amount ?? $record->amount, 0, ',', '.') }}</td>
+            <td class="text-right">
+                {{ $isInternal ? '-' : number_format($record->tax_base_amount ?? $record->amount, 0, ',', '.') }}</td>
         </tr>
         <tr>
             <td>{{ $isInternal ? '-' : $tax_wording }}</td>
             <td class="text-right">{{ $isInternal ? '-' : number_format($record->tax_amount, 0, ',', '.') }}</td>
         </tr>
+
+        {{-- Withholding Tax Details --}}
+        @if ($record->tax_details && is_array($record->tax_details))
+            @foreach ($record->tax_details as $taxDetail)
+                @if (($taxDetail['tax_amount'] ?? 0) > 0)
+                    <tr>
+                        <td style="color: #dc2626; font-size: 10px;">
+                            (Less)
+                            {{ $taxDetail['tax_name'] ?? 'PPh' }}
+                        </td>
+                        <td class="text-right" style="color: #dc2626; font-size: 10px;">
+                            ({{ number_format($taxDetail['tax_amount'], 0, ',', '.') }})
+                        </td>
+                    </tr>
+                @endif
+            @endforeach
+        @endif
+
         <tr>
             <td>{{ $labels['total'][$lang] }}</td>
             <td class="text-right">{{ number_format($record->total_amount, 0, ',', '.') }}</td>
@@ -751,7 +769,9 @@
                         <span class="font-bold">{{ $labels['an'][$lang] }} {{ $accountName }}</span><br>
                         @foreach ($banks as $bank)
                             <span class="font-bold">{{ $bank['bank_name'] ?? '........' }} :
-                                {{ $bank['account_number'] ?? '........' }} ({{ $bank['currency'] ?? 'IDR' }})</span><br>
+                                {{ $bank['account_number'] ?? '........' }}
+                                ({{ $bank['currency'] ?? 'IDR' }})
+                            </span><br>
                         @endforeach
                     </div>
                 </div>
@@ -759,13 +779,28 @@
             <td width="40%" class="text-center" style="vertical-align: bottom;">
                 <div>{{ $labels['an'][$lang] }} PT. Garuda Daya Pratama Sejahtera</div>
 
-                <div style="height: 100px; margin: 10px 0; position: relative;">
+                @use(Modules\MasterData\Services\SignatureService)
+                @php
+                    $signatureService = app(SignatureService::class);
+                @endphp
+
+                <div
+                    style="height: 100px; margin: 10px 0; position: relative; display: flex; align-items: center; justify-content: center;">
                     @if ($approverSig)
-                        <div
-                            style="border: 2px dashed #4ade80; color: #166534; padding: 20px; font-weight: bold; width: 200px; margin: 0 auto;">
-                            {{ $labels['signed_by'][$lang] }}<br>
-                            {{ $approverSig->user->name }}<br>
-                            <small>{{ $approverSig->signed_at->locale($lang)->translatedFormat('d M Y H:i') }}</small>
+                        @php
+                            $qrUrl = $signatureService->createSignatureData(
+                                $approverSig->user,
+                                $record,
+                                $approverSig->signature_type,
+                            );
+                            $qrCode = $signatureService->generateQRCode($qrUrl);
+                        @endphp
+                        <div style="text-align: center;">
+                            <img src="{{ $qrCode }}" style="width: 80px; height: 80px;">
+                            <div style="font-size: 7px; color: #166534; margin-top: 5px; font-weight: bold;">
+                                {{ $labels['signed_by'][$lang] }}<br>
+                                {{ $approverSig->signed_at->locale($lang)->translatedFormat('d M Y H:i') }}
+                            </div>
                         </div>
                     @else
                         <div

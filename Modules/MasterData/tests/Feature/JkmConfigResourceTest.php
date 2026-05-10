@@ -5,8 +5,8 @@ namespace Modules\MasterData\Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-use Modules\MasterData\Filament\Clusters\MasterData\Resources\JkmConfigs\Pages\ListJkmConfigs;
-use Modules\MasterData\Models\JkmConfig;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\BpjsJkmConfigs\Pages\ListBpjsJkmConfigs;
+use Modules\MasterData\Models\BpjsJkmConfig;
 use Tests\TestCase;
 
 class JkmConfigResourceTest extends TestCase
@@ -24,14 +24,14 @@ class JkmConfigResourceTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $jkm = JkmConfig::create([
+        $jkm = BpjsJkmConfig::create([
             'name' => 'Test Jkm Config',
             'employee_type' => 'ppu',
             'employer_rate' => 0.3,
             'is_active' => true,
         ]);
 
-        Livewire::test(ListJkmConfigs::class)
+        Livewire::test(ListBpjsJkmConfigs::class)
             ->assertCanSeeTableRecords([$jkm])
             ->assertSee('Test Jkm Config');
     }

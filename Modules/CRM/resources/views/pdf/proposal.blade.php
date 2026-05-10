@@ -634,28 +634,101 @@ if ($hasDetailedLists) {
                 perhatian dan kerja samanya kami ucapkan terima kasih.</p>
         @endif
 
+        @use(Modules\MasterData\Services\SignatureService)
+        @php
+            $signatureService = app(SignatureService::class);
+            $requiredApprovers = $signatureService->getRequiredApprovers($record);
+
+            // Find AMS signature specifically
+            $amsSignature = $record
+                ->signatures()
+                ->where('user_id', $ams->id ?? 0)
+                ->first();
+        @endphp
         <div class="no-break" style="margin-top: 20px; padding-left: 20px; padding-right: 20px;">
             <table style="width: 100%; border: none; margin: 0; table-layout: fixed;">
                 <tr>
-                    <td style="border: none; width: 50%; padding: 0; text-align: left;">Diajukan oleh,</td>
-                    <td style="border: none; width: 50%; padding: 0; text-align: left;">Disetujui oleh,</td>
+                    <td style="border: none; width: 33%; padding: 0; text-align: left;">Diajukan oleh,</td>
+                    @foreach ($requiredApprovers as $rule)
+                        <td style="border: none; width: 33%; padding: 0; text-align: left;">
+                            {{ $rule->signature_type->getLabel() }} oleh,</td>
+                    @endforeach
+                    <td style="border: none; width: 33%; padding: 0; text-align: left;">Disetujui oleh,</td>
                 </tr>
                 <tr>
-                    <td style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: top;">
-                        <div style="margin-bottom: 30px;">
-                            <div style="height: 50px;"></div>
+                    {{-- AMS Signature --}}
+                    <td style="border: none; padding: 15px 0 0 0; text-align: left; vertical-align: top;">
+                        <div style="margin-bottom: 10px; height: 60px;">
+                            @if ($amsSignature)
+                                @php
+                                    $qrUrl = $signatureService->createSignatureData(
+                                        $amsSignature->user,
+                                        $record,
+                                        $amsSignature->signature_type,
+                                    );
+                                    $qrCode = $signatureService->generateQRCode($qrUrl);
+                                @endphp
+                                <img src="{{ $qrCode }}" style="width: 60px; height: 60px;">
+                            @else
+                                <div style="height: 60px; border: 1px dashed #cbd5e1; width: 60px;"></div>
+                            @endif
                         </div>
                         <div style="line-height: 1.4;">
-                            <strong style="font-size: 12px;">{{ $amsNameFormatted }}</strong><br>
+                            <strong style="font-size: 11px;">{{ $amsNameFormatted }}</strong><br>
                             Account Manager & Sales<br>
                             PT Garuda Daya Pratama Sejahtera
                         </div>
                     </td>
-                    <td style="border: none; width: 50%; padding: 25px 0 0 0; text-align: left; vertical-align: top;">
-                        <div style="height: 50px; margin-bottom: 30px;"></div>
+
+                    {{-- Internal Approvers --}}
+                    @foreach ($requiredApprovers as $rule)
+                        @php
+                            $sig = $record->signatures()->where('signature_type', $rule->signature_type)->first();
+                            $eligibleUser = $signatureService->getEligibleUsers($rule)->first();
+                            $displayName = $sig
+                                ? $sig->user->name
+                                : ($eligibleUser
+                                    ? $eligibleUser->name
+                                    : '.......................');
+
+                            $displayRoles = \App\Models\Role::whereIn('id', $rule->approver_role ?? [])
+                                ->pluck('name')
+                                ->toArray();
+                            $displayPositions = $rule->approver_position ?? [];
+                            $combinedRole =
+                                implode(' / ', array_merge($displayRoles, $displayPositions)) ?:
+                                $rule->signature_type->getLabel();
+                        @endphp
+                        <td style="border: none; padding: 15px 0 0 0; text-align: left; vertical-align: top;">
+                            <div style="margin-bottom: 10px; height: 60px;">
+                                @if ($sig)
+                                    @php
+                                        $qrUrl = $signatureService->createSignatureData(
+                                            $sig->user,
+                                            $record,
+                                            $sig->signature_type,
+                                        );
+                                        $qrCode = $signatureService->generateQRCode($qrUrl);
+                                    @endphp
+                                    <img src="{{ $qrCode }}" style="width: 60px; height: 60px;">
+                                @else
+                                    <div style="height: 60px; border: 1px dashed #cbd5e1; width: 60px;"></div>
+                                @endif
+                            </div>
+                            <div style="line-height: 1.4;">
+                                <strong style="font-size: 11px;">{{ $displayName }}</strong><br>
+                                {{ $combinedRole }}<br>
+                                PT Garuda Daya Pratama Sejahtera
+                            </div>
+                        </td>
+                    @endforeach
+
+                    {{-- Customer Signature --}}
+                    <td style="border: none; padding: 15px 0 0 0; text-align: left; vertical-align: top;">
+                        <div style="height: 60px; margin-bottom: 10px;"></div>
                         <div style="line-height: 1.4;">
                             <strong
-                                style="font-size: 12px; border-bottom: 1px solid #1e293b;">{{ $recipientNameFormatted ?: '....................................' }}</strong><br>
+                                style="font-size: 11px; border-bottom: 1px solid #1e293b;">{{ $recipientNameFormatted ?: '....................................' }}</strong><br>
                             {{ $recipientTitle ?? 'Jabatan' }}<br>
                             PT {{ $customerNameFormatted ?: '........................' }}
                         </div>

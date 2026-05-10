@@ -496,18 +496,44 @@
             Tangerang, {{ $record->document_date->translatedFormat('d F Y') }}
         </div>
 
+        @php
+            // Find internal signature for BAPP
+            $internalSig = $record->signatures()
+                ->where('signature_type', \Modules\MasterData\Enums\ApprovalSignatureType::Approver)
+                ->first();
+            
+            // If not found, try any signature from a GDPS user
+            if (!$internalSig) {
+                $internalSig = $record->signatures()->first();
+            }
+        @endphp
+
         <div class="signature-block">
             <div class="font-bold">{{ $labels['proposed_by'][$lang] }},</div>
             <div class="font-bold uppercase">PT Garuda Daya Pratama Sejahtera</div>
-            <div class="sig-space"></div>
-            <div class="font-bold">( {{ $pmName }} )</div>
-            <div>{{ $labels['position'][$lang] }} : {{ $pmTitle }}</div>
+            <div class="sig-space" style="display: flex; align-items: center; justify-content: center; height: 80px;">
+                @if ($internalSig)
+                    @php
+                        $qrUrl = $signatureService->createSignatureData(
+                            $internalSig->user,
+                            $record,
+                            $internalSig->signature_type,
+                        );
+                        $qrCode = $signatureService->generateQRCode($qrUrl);
+                    @endphp
+                    <img src="{{ $qrCode }}" style="width: 70px; height: 70px;">
+                @else
+                    <div style="height: 70px; border: 1px dashed #cbd5e1; width: 70px; margin: 0 auto;"></div>
+                @endif
+            </div>
+            <div class="font-bold">( {{ $internalSig ? $internalSig->user->name : $pmName }} )</div>
+            <div>{{ $labels['position'][$lang] }} : {{ $internalSig ? ($internalSig->user->position ?? $pmTitle) : $pmTitle }}</div>
         </div>
 
         <div class="signature-block">
             <div class="font-bold">{{ $labels['received_by'][$lang] }},</div>
             <div class="font-bold uppercase">{{ $record->customer->name ?? '-' }}</div>
-            <div class="sig-space"></div>
+            <div class="sig-space" style="height: 80px;"></div>
             <div class="font-bold">( {{ $customerContactDisplay }} )</div>
             <div>{{ $labels['position'][$lang] }} : {{ $customerContactTitle }}</div>
         </div>

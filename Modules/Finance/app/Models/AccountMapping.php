@@ -20,6 +20,7 @@ class AccountMapping extends Model
         'type',
         'revenue_type_id',
         'revenue_segment_id',
+        'tax_id',
         'chart_of_account_id',
         'note',
     ];
@@ -42,5 +43,10 @@ class AccountMapping extends Model
     public function revenueSegment(): BelongsTo
     {
         return $this->belongsTo(RevenueSegment::class);
+    }
+
+    public function tax(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\Tax::class);
     }
 }

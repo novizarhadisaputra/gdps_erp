@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Services;
 
+use Modules\Finance\Enums\AccrueInvoiceMappingStatus;
 use Modules\Finance\Models\AccrueInvoiceMapping;
 use Modules\Finance\Models\Invoice;
 
@@ -31,7 +32,7 @@ class AccrualReversalService
 
             // Calculate total actual amount from all active mappings for this item
             $totalActual = AccrueInvoiceMapping::where('accrue_revenue_item_id', $item->id)
-                ->whereIn('status', [\Modules\Finance\Enums\AccrueInvoiceMappingStatus::Active, \Modules\Finance\Enums\AccrueInvoiceMappingStatus::Reversed])
+                ->whereIn('status', [AccrueInvoiceMappingStatus::Active, AccrueInvoiceMappingStatus::Reversed])
                 ->sum('allocated_amount');
 
             $item->update([

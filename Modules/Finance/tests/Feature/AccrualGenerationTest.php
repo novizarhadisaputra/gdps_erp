@@ -33,14 +33,18 @@ class AccrualGenerationTest extends TestCase
         $projectType = ProjectType::factory()->create(['code' => 'TYP']);
 
         // 2. Setup Lead and Sales Plan with 12 months breakdown
+        // Use 'lead' status to prevent LeadObserver from auto-creating a SalesPlan
         $lead = Lead::factory()->create([
             'customer_id' => $customer->id,
             'project_area_id' => $projectArea->id,
             'product_cluster_id' => $productCluster->id,
             'tax_id' => $tax->id,
             'project_type_id' => $projectType->id,
+            'status' => \Modules\CRM\Enums\LeadStatus::Lead,
         ]);
 
+        // Move to Approach to trigger SalesPlan creation via Observer, or create it manually
+        // Here we create it manually to control the ID and dates exactly as needed
         $salesPlan = SalesPlan::factory()->create([
             'lead_id' => $lead->id,
             'start_date' => '2026-01-01',

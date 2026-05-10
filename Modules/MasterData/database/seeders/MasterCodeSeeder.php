@@ -59,9 +59,8 @@ class MasterCodeSeeder extends Seeder
 
         // Revenue Types
         $revenueTypes = [
-            ['name' => 'Manpower', 'code' => 'manpower'],
-            ['name' => 'Management Fee', 'code' => 'mgmt_fee'],
-            ['name' => 'Other Revenue', 'code' => 'other_revenue'],
+            ['name' => 'Main Revenue', 'code' => 'main', 'is_default' => true],
+            ['name' => 'Additional Revenue', 'code' => 'additional', 'is_default' => false],
         ];
         foreach ($revenueTypes as $data) {
             RevenueType::updateOrCreate(['code' => $data['code']], $data);
@@ -124,6 +123,11 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'PPN00', 'name' => 'Non PPN (0%)', 'category' => 'sales', 'rate' => 0, 'is_default' => false],
             ['code' => 'PPN11', 'name' => 'PPN 11%', 'category' => 'sales', 'rate' => 11, 'is_default' => false],
             ['code' => 'PPN12', 'name' => 'PPN 12%', 'category' => 'sales', 'rate' => 12, 'is_default' => true],
+
+            // Withholding Taxes (Potongan PPh)
+            ['code' => 'PPH23', 'name' => 'PPh 23 (Jasa - 2%)', 'category' => 'withholding', 'rate' => 2, 'is_default' => false, 'description' => 'Potongan PPh Pasal 23 atas Jasa'],
+            ['code' => 'PPH42', 'name' => 'PPh 4(2) (Sewa - 10%)', 'category' => 'withholding', 'rate' => 10, 'is_default' => false, 'description' => 'PPh Final Pasal 4 ayat 2 atas Sewa Bangunan'],
+            ['code' => 'PPH21', 'name' => 'PPh 21 (Dipotong - 5%)', 'category' => 'withholding', 'rate' => 5, 'is_default' => false, 'description' => 'Potongan PPh 21 atas jasa perorangan'],
 
             // Corporate Tax
             ['code' => 'PPH_BADAN', 'name' => 'PPh Badan', 'category' => 'corporate_income_tax', 'rate' => 22, 'is_default' => true],

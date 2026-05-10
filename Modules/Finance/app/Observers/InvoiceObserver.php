@@ -8,6 +8,7 @@ use Modules\Finance\Enums\InvoiceStatus;
 use Modules\Finance\Models\AccrueRevenueItem;
 use Modules\Finance\Models\Invoice;
 use Modules\Finance\Services\AccrualReversalService;
+use Modules\Finance\Services\JournalService;
 use Modules\MasterData\Models\BankAccount;
 use Modules\MasterData\Services\SignatureService;
 use Modules\Project\Models\WorkCompletionReport;
@@ -118,10 +119,14 @@ class InvoiceObserver
 
             if ($invoice->status === InvoiceStatus::Approved) {
                 // 1. Trigger Invoice Journal (AR | Revenue | VAT Out)
-                app(\Modules\Finance\Services\JournalService::class)->generateFromInvoice($invoice);
+                app(JournalService::class)->generateFromInvoice($invoice);
 
                 // 2. Trigger Accrual Reversal logic (Revenue | Accrued Revenue)
                 app(AccrualReversalService::class)->reverseAccrualsForInvoice($invoice);
+            }
+
+            if ($invoice->status === InvoiceStatus::Paid) {
+                app(JournalService::class)->generateFromCashReceipt($invoice);
             }
 
             // Revision Logic: Capture snapshot if status changed back to Draft from a non-Draft status
@@ -172,6 +177,9 @@ class InvoiceObserver
         // Automation: If Payment Proof is uploaded
         if (in_array($invoice->status, [InvoiceStatus::Sent, InvoiceStatus::Partial, InvoiceStatus::Overdue]) && $invoice->hasMedia('payment_proof')) {
             $invoice->updateQuietly(['status' => InvoiceStatus::Paid]);
+
+            // Trigger Cash Receipt Journal
+            app(JournalService::class)->generateFromCashReceipt($invoice);
         }
     }
 }

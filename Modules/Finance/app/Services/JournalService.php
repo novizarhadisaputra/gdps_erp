@@ -2,12 +2,17 @@
 
 namespace Modules\Finance\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Modules\Finance\Enums\AccrueInvoiceMappingStatus;
 use Modules\Finance\Models\AccrueInvoiceMapping;
 use Modules\Finance\Models\AccrueRevenue;
+use Modules\Finance\Models\ChartOfAccount;
 use Modules\Finance\Models\Invoice;
 use Modules\Finance\Models\JournalEntry;
 use Modules\Finance\Models\JournalItem;
+use Modules\MasterData\Models\BankAccount;
+use Modules\MasterData\Models\RevenueType;
 
 class JournalService
 {
@@ -44,9 +49,9 @@ class JournalService
                 'description' => "Automated Accrual for {$record->number} - {$record->customer->name}",
                 'reference_id' => $record->id,
                 'reference_type' => AccrueRevenue::class,
-                'total_amount' => $record->total_amount,
+                'total_amount' => $record->total_amount_estimated,
                 'status' => 'draft',
-                'created_by' => auth()->id(),
+                'created_by' => auth()->id() ?? User::where('email', 'like', '%admin%')->first()?->id,
             ]);
 
             $projectArea = $record->projectArea;
@@ -131,7 +136,7 @@ class JournalService
                 'reference_type' => Invoice::class,
                 'total_amount' => $invoice->total_amount,
                 'status' => 'draft',
-                'created_by' => auth()->id(),
+                'created_by' => auth()->id() ?? User::where('email', 'like', '%admin%')->first()?->id,
             ]);
 
             $projectArea = $invoice->projectArea;
@@ -155,8 +160,8 @@ class JournalService
             // 2. Credit: Revenue (Iterate over items)
             $items = is_array($invoice->items) && isset($invoice->items['id']) ? $invoice->items['id'] : $invoice->items;
             foreach ($items as $item) {
-                $revenueTypeCode = $item['revenue_type_code'] ?? 'manpower';
-                $revenueType = \Modules\MasterData\Models\RevenueType::where('code', $revenueTypeCode)->first();
+                $revenueTypeCode = $item['revenue_type_code'] ?? 'main';
+                $revenueType = RevenueType::where('code', $revenueTypeCode)->first();
 
                 $revenueMapping = $this->mappingService->resolveAccountMapping(
                     'revenue',
@@ -195,6 +200,32 @@ class JournalService
                 ]);
             }
 
+            // 4. Debit: Withholding Taxes (Prepaid Tax)
+            $taxDetails = is_array($invoice->tax_details) ? $invoice->tax_details : [];
+            foreach ($taxDetails as $detail) {
+                $taxId = $detail['tax_id'] ?? null;
+                $taxAmount = (float) ($detail['tax_amount'] ?? 0);
+
+                if ($taxAmount <= 0 || ! $taxId) {
+                    continue;
+                }
+
+                $taxRecord = \Modules\MasterData\Models\Tax::find($taxId);
+                $withholdingMapping = $this->mappingService->resolveAccountMapping('withholding_tax', $projectArea, $customer, null, null, $taxId);
+
+                if (! $withholdingMapping) {
+                    throw new \Exception('Missing account mapping for tax: '.($taxRecord?->name ?? $taxId));
+                }
+
+                JournalItem::create([
+                    'journal_entry_id' => $entry->id,
+                    'chart_of_account_id' => $withholdingMapping->chart_of_account_id,
+                    'debit' => $taxAmount,
+                    'credit' => 0,
+                    'note' => 'Potongan '.($taxRecord?->name ?? 'PPh').': '.$invoice->number,
+                ]);
+            }
+
             return $entry;
         });
     }
@@ -206,7 +237,7 @@ class JournalService
     public function generateReversalFromInvoice(Invoice $invoice): ?JournalEntry
     {
         $mappings = AccrueInvoiceMapping::where('invoice_id', $invoice->id)
-            ->where('status', 'active')
+            ->where('status', AccrueInvoiceMappingStatus::Active)
             ->with(['accrueRevenueItem.accrueRevenue', 'accrueRevenueItem.revenueType'])
             ->get();
 
@@ -230,7 +261,7 @@ class JournalService
                 'reference_type' => Invoice::class,
                 'total_amount' => $mappings->sum('reverse_amount'),
                 'status' => 'draft',
-                'created_by' => auth()->id(),
+                'created_by' => auth()->id() ?? User::where('email', 'like', '%admin%')->first()?->id,
             ]);
 
             foreach ($mappings as $mapping) {
@@ -280,9 +311,84 @@ class JournalService
                 // Link mapping to reversal journal
                 $mapping->update([
                     'reverse_journal_entry_id' => $entry->id,
-                    'status' => \Modules\Finance\Enums\AccrueInvoiceMappingStatus::Reversed,
+                    'status' => AccrueInvoiceMappingStatus::Reversed,
                 ]);
             }
+
+            return $entry;
+        });
+    }
+
+    /**
+     * Generate automated Journal Entry from an Invoice Payment (Cash Receipt).
+     * Logic: Dr Bank/Cash Account | Cr Accounts Receivable
+     */
+    public function generateFromCashReceipt(Invoice $invoice): ?JournalEntry
+    {
+        // Prevent duplicates
+        $existing = JournalEntry::where('reference_id', $invoice->id)
+            ->where('reference_type', Invoice::class)
+            ->where('description', 'like', 'Penerimaan Kas%')
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        if (! $invoice->bank_account_id) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($invoice) {
+            $year = date('Y');
+            $shortYear = date('y');
+            $latest = JournalEntry::where('year', $year)->orderBy('sequence_number', 'desc')->first();
+            $sequence = $latest ? $latest->sequence_number + 1 : 1;
+
+            $entry = JournalEntry::create([
+                'number' => sprintf('GDPS/UB/JV-%03d/%s', $sequence, $shortYear),
+                'sequence_number' => $sequence,
+                'year' => (int) $year,
+                'date' => now(), // Payment date
+                'description' => "Penerimaan Kas untuk {$invoice->number} - {$invoice->customer->name}",
+                'reference_id' => $invoice->id,
+                'reference_type' => Invoice::class,
+                'total_amount' => $invoice->total_amount,
+                'status' => 'draft',
+                'created_by' => auth()->id() ?? User::where('email', 'like', '%admin%')->first()?->id,
+            ]);
+
+            // 1. Debit: Bank/Cash Account (Linked to BankAccount)
+            $bankAccount = $invoice->bankAccount;
+            $bankCOA = ChartOfAccount::where('accountable_id', $invoice->bank_account_id)
+                ->where('accountable_type', BankAccount::class)
+                ->first();
+
+            if (! $bankCOA) {
+                throw new \Exception("Missing GL account mapping for bank account: {$bankAccount->account_name}");
+            }
+
+            JournalItem::create([
+                'journal_entry_id' => $entry->id,
+                'chart_of_account_id' => $bankCOA->id,
+                'debit' => $invoice->total_amount,
+                'credit' => 0,
+                'note' => "Payment: {$invoice->number} via {$bankAccount->bank_name}",
+            ]);
+
+            // 2. Credit: Accounts Receivable
+            $arMapping = $this->mappingService->resolveAccountMapping('receivable', $invoice->projectArea, $invoice->customer);
+            if (! $arMapping) {
+                throw new \Exception("Missing AR account mapping for customer: {$invoice->customer->name}");
+            }
+
+            JournalItem::create([
+                'journal_entry_id' => $entry->id,
+                'chart_of_account_id' => $arMapping->chart_of_account_id,
+                'debit' => 0,
+                'credit' => $invoice->total_amount,
+                'note' => "Clearing AR: {$invoice->number}",
+            ]);
 
             return $entry;
         });

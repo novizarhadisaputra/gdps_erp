@@ -14,6 +14,15 @@ class ManpowerTemplateItem extends Model
     use HasFactory, HasUuids;
     use HasModuleSchema;
 
+    protected static function booted(): void
+    {
+        static::creating(function (ManpowerTemplateItem $item) {
+            if (! $item->manpower_template_id && $item->manpower_template_cluster_id) {
+                $item->manpower_template_id = $item->cluster?->manpower_template_id;
+            }
+        });
+    }
+
     protected static function newFactory(): \Modules\CRM\Database\Factories\ManpowerTemplateItemFactory
     {
         return \Modules\CRM\Database\Factories\ManpowerTemplateItemFactory::new();

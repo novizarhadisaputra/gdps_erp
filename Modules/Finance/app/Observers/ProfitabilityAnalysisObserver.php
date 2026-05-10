@@ -109,7 +109,13 @@ class ProfitabilityAnalysisObserver
      */
     protected function generateMonthlyRecords(ProfitabilityAnalysis $analysis): void
     {
-        $analysis->loadMissing('lead.salesPlan.monthlyBreakdowns');
+        // Ensure lead_id is present before attempting to load relationships
+        if (! $analysis->lead_id) {
+            return;
+        }
+
+        // Force reload the lead relationship and its descendants to ensure we have the latest data from the database
+        $analysis->load('lead.salesPlan.monthlyBreakdowns');
         $salesPlan = $analysis->lead?->salesPlan;
 
         if (! $salesPlan || $salesPlan->monthlyBreakdowns->isEmpty()) {

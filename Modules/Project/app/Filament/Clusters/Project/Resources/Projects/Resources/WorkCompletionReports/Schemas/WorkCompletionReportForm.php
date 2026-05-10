@@ -25,6 +25,7 @@ use Modules\CRM\Models\SalesOrder;
 use Modules\CRM\Models\WorkOrder;
 use Modules\MasterData\Enums\Gender;
 use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\RevenueType;
 use Modules\MasterData\Models\Tax;
 use Modules\Project\Enums\WorkCompletionStatus;
 use Modules\Project\Models\Project;
@@ -73,7 +74,7 @@ class WorkCompletionReportForm
                                     ->placeholder('Upload scanned signature')
                                     ->helperText('Upload the final scanned document that has been signed by all relevant parties.')
                                     ->required(fn (Get $get) => $get('status') === WorkCompletionStatus::Submitted->value &&
-                                        $get('so_type') !== \Modules\CRM\Enums\SalesOrderType::Internal->value
+                                        $get('so_type') !== SalesOrderType::Internal->value
                                     ),
                             ]),
                     ])->columnSpanFull()
@@ -237,6 +238,7 @@ class WorkCompletionReportForm
                                             'management_fee' => round($feeForThisItem * $qty, 0),
                                             'so_reference' => $source->type->value === SalesOrderType::Internal->value ? '-' : $source->number,
                                             'remarks' => null,
+                                            'revenue_type_id' => RevenueType::where('code', 'main')->first()?->id,
                                         ];
                                     }
 
@@ -263,6 +265,7 @@ class WorkCompletionReportForm
                                             'management_fee' => round($feeForThisItem * $qty, 0),
                                             'so_reference' => $source->type->value === SalesOrderType::Internal->value ? '-' : $source->number,
                                             'remarks' => null,
+                                            'revenue_type_id' => RevenueType::where('code', 'main')->first()?->id,
                                         ];
                                     }
 
@@ -494,7 +497,11 @@ class WorkCompletionReportForm
                                     });
 
                                     if ($mfSum <= 0) {
-                                        $mfSum = collect($activeItems)->filter(function ($item) {
+                                        $additionalTypeIds = RevenueType::where('code', 'additional')->pluck('id')->toArray();
+                                        $mfSum = collect($activeItems)->filter(function ($item) use ($additionalTypeIds) {
+                                            if (isset($item['revenue_type_id']) && in_array($item['revenue_type_id'], $additionalTypeIds)) {
+                                                return true;
+                                            }
                                             $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                             return str_contains($name, 'management fee') || str_contains($name, 'fee management');
@@ -526,6 +533,14 @@ class WorkCompletionReportForm
                                             ->helperText('Description of work as it appears on the printed report.')
                                             ->required()
                                             ->columnSpan(1),
+                                        Select::make('revenue_type_id')
+                                            ->label('Revenue Category')
+                                            ->options(RevenueType::where('is_active', true)->pluck('name', 'id'))
+                                            ->required()
+                                            ->default(fn () => RevenueType::where('is_default', true)->first()?->id)
+                                            ->live()
+                                            ->placeholder('Select category')
+                                            ->helperText('Classify this item as Main or Additional Revenue.'),
                                         TextInput::make('so_reference')
                                             ->label('SO Reference')
                                             ->disabled(),
@@ -654,7 +669,11 @@ class WorkCompletionReportForm
                                         });
 
                                         if ($mfSum <= 0) {
-                                            $mfSum = collect($activeItems)->filter(function ($item) {
+                                            $additionalTypeIds = RevenueType::where('code', 'additional')->pluck('id')->toArray();
+                                            $mfSum = collect($activeItems)->filter(function ($item) use ($additionalTypeIds) {
+                                                if (isset($item['revenue_type_id']) && in_array($item['revenue_type_id'], $additionalTypeIds)) {
+                                                    return true;
+                                                }
                                                 $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee management');
@@ -706,7 +725,11 @@ class WorkCompletionReportForm
                                         });
 
                                         if ($mfSum <= 0) {
-                                            $mfSum = collect($activeItems)->filter(function ($item) {
+                                            $additionalTypeIds = RevenueType::where('code', 'additional')->pluck('id')->toArray();
+                                            $mfSum = collect($activeItems)->filter(function ($item) use ($additionalTypeIds) {
+                                                if (isset($item['revenue_type_id']) && in_array($item['revenue_type_id'], $additionalTypeIds)) {
+                                                    return true;
+                                                }
                                                 $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee management');
@@ -781,7 +804,11 @@ class WorkCompletionReportForm
                                         });
 
                                         if ($mfSum <= 0) {
-                                            $mfSum = collect($activeItems)->filter(function ($item) {
+                                            $additionalTypeIds = \Modules\MasterData\Models\RevenueType::where('code', 'additional')->pluck('id')->toArray();
+                                            $mfSum = collect($activeItems)->filter(function ($item) use ($additionalTypeIds) {
+                                                if (isset($item['revenue_type_id']) && in_array($item['revenue_type_id'], $additionalTypeIds)) {
+                                                    return true;
+                                                }
                                                 $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
 
                                                 return str_contains($name, 'management fee') || str_contains($name, 'fee management');
