@@ -30,6 +30,19 @@ use Modules\Project\Models\Project;
 
 class SalesOrderForm
 {
+    private static function parseNumber($value): float
+    {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+
+        if (! is_string($value)) {
+            return 0;
+        }
+
+        return (float) str_replace(',', '.', str_replace('.', '', $value));
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -227,7 +240,7 @@ class SalesOrderForm
                                                 ->action(function (Get $get, Set $set) {
                                                     $type = $get('sourceable_type');
                                                     $customerId = $get('customer_id');
-                                                    $amount = $get('amount') ?? 0;
+                                                    $amount = self::parseNumber($get('amount') ?? 0);
                                                     $serviceType = $get('service_type') ?? 'Service from Sales Order';
 
                                                     if (! $type || ! $customerId) {
@@ -506,6 +519,7 @@ class SalesOrderForm
                                         ->placeholder('0')
                                         ->helperText('The total monthly revenue (before tax) for this project.')
                                         ->numeric()
+                                        ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->required()
                                         ->live(),

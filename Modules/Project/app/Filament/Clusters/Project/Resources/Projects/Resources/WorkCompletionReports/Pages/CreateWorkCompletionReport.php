@@ -17,12 +17,18 @@ class CreateWorkCompletionReport extends CreateRecord
     {
         $project = $this->getParentRecord();
 
-        return [
+        $breadcrumbs = [
             ProjectResource::getUrl('index') => 'Projects',
-            ProjectResource::getUrl('view', ['record' => $project]) => $project->name ?? 'Project',
-            WorkCompletionReportResource::getUrl('index', ['project' => $project]) => 'BAPP',
-            '#' => 'Create',
         ];
+
+        if ($project) {
+            $breadcrumbs[ProjectResource::getUrl('view', ['record' => $project])] = $project->name ?? 'Project';
+            $breadcrumbs[WorkCompletionReportResource::getUrl('index', ['project' => $project])] = 'BAPP';
+        }
+
+        $breadcrumbs['#'] = 'Create';
+
+        return $breadcrumbs;
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

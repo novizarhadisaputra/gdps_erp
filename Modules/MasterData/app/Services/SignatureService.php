@@ -85,7 +85,7 @@ class SignatureService
             ->sortBy('order');
     }
 
-    public function isEligibleApprover(ApprovalRule $rule, User $user): bool
+    public function isEligibleApprover(ApprovalRule $rule, User $user, ?Model $model = null): bool
     {
         if ($rule->approver_type === 'Role') {
             $userRoles = $user->roles;
@@ -96,6 +96,35 @@ class SignatureService
             $ruleRoles = $rule->approver_role ?? [];
 
             return ! empty(array_intersect($userRoleIdentifiers, $ruleRoles));
+        }
+
+        if ($rule->approver_type === 'Relationship') {
+            if (! $model) {
+                return false;
+            }
+
+            $path = $rule->approver_role[0] ?? null;
+            if (! $path) {
+                return false;
+            }
+
+            // Resolve the target employee from the relationship path
+            $target = $model;
+            foreach (explode('.', $path) as $segment) {
+                if ($target && method_exists($target, $segment)) {
+                    $target = $target->$segment;
+                } else {
+                    $target = null;
+                    break;
+                }
+            }
+
+            if (! ($target instanceof \Modules\MasterData\Models\Employee)) {
+                return false;
+            }
+
+            // Match user with target employee by code or email
+            return ($user->employee_code === $target->code) || ($user->email === $target->email);
         }
 
         if ($rule->approver_type === 'User') {
@@ -289,9 +318,17 @@ class SignatureService
         if ($resource) {
             $parameters = ['record' => $model->getKey()];
 
-            // Check if it's a nested resource (like Proposal)
+            // Check if it's a nested resource
             if (isset($model->lead_id)) {
                 $parameters['lead'] = $model->lead_id;
+            }
+
+            if (isset($model->project_id)) {
+                $parameters['project'] = $model->project_id;
+            }
+
+            if (isset($model->sales_order_id)) {
+                $parameters['sales_order'] = $model->sales_order_id;
             }
 
             return $resource::getUrl('view', $parameters);

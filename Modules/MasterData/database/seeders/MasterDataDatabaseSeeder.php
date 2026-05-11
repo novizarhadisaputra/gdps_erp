@@ -33,6 +33,8 @@ class MasterDataDatabaseSeeder extends Seeder
             ApiClientSeeder::class,
             ProductClusterLogoSeeder::class,
             AppSettingSeeder::class,
+            RevenueTypeSeeder::class,
+            BankAccountSeeder::class,
         ]);
     }
 }

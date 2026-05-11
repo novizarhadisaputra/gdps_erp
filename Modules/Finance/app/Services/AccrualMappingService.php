@@ -71,20 +71,38 @@ class AccrualMappingService
             $customer
         );
 
-        $accrualAccount = $this->resolveAccount(
-            'accrual',
-            $projectArea,
-            $customer
-        );
-
-        if (! $arAccount || ! $accrualAccount) {
+        if (! $arAccount) {
             $missing[] = [
                 'type' => 'invoice',
-                'missing_receivable' => ! $arAccount,
-                'missing_accrual' => ! $accrualAccount,
+                'subtype' => 'receivable',
                 'mappable_type' => $projectArea ? ProjectArea::class : Customer::class,
                 'mappable_id' => $projectArea ? $projectArea->id : $customer->id,
             ];
+        }
+
+        // Check if there are linked accruals that need reversal accounts
+        $mappings = \Modules\Finance\Models\AccrueInvoiceMapping::where('invoice_id', $record->id)
+            ->with('accrueRevenueItem')
+            ->get();
+
+        foreach ($mappings as $mapping) {
+            $item = $mapping->accrueRevenueItem;
+            $type = $item->type === 'expense' ? 'expense_accrual' : 'accrual';
+            $offsetType = $item->type === 'expense' ? 'expense' : 'revenue';
+
+            $accrualAccount = $this->resolveAccount($type, $projectArea, $customer, $item->revenue_type_id);
+            $offsetAccount = $this->resolveAccount($offsetType, $projectArea, $customer, $item->revenue_type_id);
+
+            if (! $accrualAccount || ! $offsetAccount) {
+                $missing[] = [
+                    'type' => 'reversal',
+                    'item_id' => $item->id,
+                    'missing_accrual' => ! $accrualAccount,
+                    'missing_offset' => ! $offsetAccount,
+                    'mappable_type' => $projectArea ? ProjectArea::class : Customer::class,
+                    'mappable_id' => $projectArea ? $projectArea->id : $customer->id,
+                ];
+            }
         }
 
         return $missing;
@@ -98,30 +116,34 @@ class AccrualMappingService
         $revenueSegmentId = $record->project?->revenue_segment_id;
 
         foreach ($record->items as $item) {
+            $isExpense = $item->type === 'expense';
+            $accrualType = $isExpense ? 'expense_accrual' : 'accrual';
+            $offsetType = $isExpense ? 'expense' : 'revenue';
+
             $accrualAccount = $this->resolveAccount(
-                'accrual',
+                $accrualType,
                 $projectArea,
                 $customer,
                 $item->revenue_type_id,
                 $revenueSegmentId
             );
 
-            $revenueAccount = $this->resolveAccount(
-                'revenue',
+            $offsetAccount = $this->resolveAccount(
+                $offsetType,
                 $projectArea,
                 $customer,
                 $item->revenue_type_id,
                 $revenueSegmentId
             );
 
-            if (! $accrualAccount || ! $revenueAccount) {
+            if (! $accrualAccount || ! $offsetAccount) {
                 $missing[] = [
                     'item_id' => $item->id,
                     'revenue_type_id' => $item->revenue_type_id,
                     'revenue_type_name' => $item->revenueType?->name ?? 'Unknown',
                     'revenue_segment_id' => $revenueSegmentId,
                     'missing_accrual' => ! $accrualAccount,
-                    'missing_revenue' => ! $revenueAccount,
+                    'missing_offset' => ! $offsetAccount,
                     'mappable_type' => $projectArea ? ProjectArea::class : Customer::class,
                     'mappable_id' => $projectArea ? $projectArea->id : $customer->id,
                 ];

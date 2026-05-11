@@ -69,31 +69,27 @@ class Project extends Model implements HasMedia
 
     public static function generateProjectCode(self $project): string
     {
-        // Formula: [WorkScheme(2)][ProductCluster(3)][Tax(2)][Customer(3)][Area(3)][ProjectNumber(4)]
+        // Formula: [Customer(3)][Sequence(2)][Area(3)][WorkScheme(2)][ProductCluster(4)][Tax(2)]
         $project->loadMissing(['customer', 'projectArea', 'productCluster', 'tax', 'workScheme', 'projectType']);
 
-        $getCode = function ($relation, $default, $length, $label) use ($project) {
+        $getCode = function ($relation, $default, $label) use ($project) {
             $code = $project->{$relation}?->code;
 
             if (! $code) {
-                \Log::warning("Project Code Generation: Missing {$label} for Project", [
-                    'project_id' => $project->id,
-                ]);
-
-                return str_pad($default, $length, '0', STR_PAD_RIGHT);
+                return $default;
             }
 
-            return str_pad(substr($code, 0, $length), $length, '0', STR_PAD_RIGHT);
+            return strtoupper($code);
         };
 
-        $schemeCode = $getCode('workScheme', '00', 2, 'WorkScheme');
-        $clusterCode = $getCode('productCluster', '000', 3, 'Cluster');
-        $taxCode = $getCode('tax', '00', 2, 'Tax');
-        $customerCode = $getCode('customer', '000', 3, 'Customer');
-        $areaCode = $getCode('projectArea', '000', 3, 'Area');
-        $projectNum = str_pad((string) ($project->project_number ?? '1'), 4, '0', STR_PAD_LEFT);
+        $customerCode = $getCode('customer', 'UNK', 'Customer');
+        $projectNum = str_pad((string) ($project->project_number ?? '1'), 2, '0', STR_PAD_LEFT);
+        $areaCode = $getCode('projectArea', 'UNK', 'Area');
+        $schemeCode = $getCode('workScheme', '00', 'WorkScheme');
+        $clusterCode = $getCode('productCluster', 'UNK', 'Cluster');
+        $taxCode = $getCode('tax', 'P0', 'Tax');
 
-        return strtoupper("{$schemeCode}{$clusterCode}{$taxCode}{$customerCode}{$areaCode}{$projectNum}");
+        return "{$customerCode}{$projectNum}{$areaCode}{$schemeCode}{$clusterCode}{$taxCode}";
     }
 
     public static function generateProjectNumber(self $project): string
@@ -243,5 +239,10 @@ class Project extends Model implements HasMedia
         return $this->proposal?->amount
             ?? $this->profitabilityAnalysis?->revenue_per_month
             ?? 0.0;
+    }
+
+    public function getCodeAttribute(): string
+    {
+        return $this->number ?? '';
     }
 }

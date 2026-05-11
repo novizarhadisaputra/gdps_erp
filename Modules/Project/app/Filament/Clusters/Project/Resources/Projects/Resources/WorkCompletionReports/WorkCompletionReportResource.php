@@ -28,6 +28,11 @@ class WorkCompletionReportResource extends Resource
 
     protected static ?string $parentResource = ProjectResource::class;
 
+    public static function can(string $action, ?\Illuminate\Database\Eloquent\Model $record = null): bool
+    {
+        return true;
+    }
+
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     public static function getSubNavigationPosition(): SubNavigationPosition
@@ -74,6 +79,7 @@ class WorkCompletionReportResource extends Resource
             'edit' => EditWorkCompletionReport::route('/{record}/edit'),
             'send' => SendWorkCompletionReport::route('/{record}/send'),
             'discussions' => ManageWorkCompletionReportComments::route('/{record}/discussions'),
+            'generate-financial-documents' => \Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages\GenerateFinancialDocuments::route('/{record}/generate-financial-documents'),
         ];
     }
 }

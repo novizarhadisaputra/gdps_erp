@@ -134,7 +134,7 @@ class AccrueRevenueTable
                     DeleteAction::make(),
                 ]),
             ])
-            ->toolbarActions([
+            ->bulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('downloadSapBulk')
                         ->label('Export Selected to SAP')

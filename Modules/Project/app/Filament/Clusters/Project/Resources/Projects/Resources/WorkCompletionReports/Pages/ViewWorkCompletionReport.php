@@ -27,12 +27,18 @@ class ViewWorkCompletionReport extends ViewRecord
         $project = $this->getParentRecord();
         $record = $this->getRecord();
 
-        return [
+        $breadcrumbs = [
             ProjectResource::getUrl('index') => 'Projects',
-            ProjectResource::getUrl('view', ['record' => $project]) => $project->name ?? 'Project',
-            WorkCompletionReportResource::getUrl('index', ['project' => $project]) => 'BAPP',
-            '#' => $record->number ?? 'View',
         ];
+
+        if ($project) {
+            $breadcrumbs[ProjectResource::getUrl('view', ['record' => $project])] = $project->name ?? 'Project';
+            $breadcrumbs[WorkCompletionReportResource::getUrl('index', ['project' => $project])] = 'BAPP';
+        }
+
+        $breadcrumbs['#'] = $record->number ?? 'View';
+
+        return $breadcrumbs;
     }
 
     protected function getHeaderActions(): array

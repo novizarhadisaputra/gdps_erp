@@ -15,7 +15,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\CRM\Models\CommunicationLog;
 use Modules\CRM\Models\Customer;
+use Modules\Finance\Models\AccrueRevenueItem;
 use Modules\Finance\Models\Invoice;
+use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\Tax;
 use Modules\MasterData\Traits\HasDigitalSignatures;
@@ -39,6 +41,7 @@ class WorkCompletionReport extends Model implements HasMedia
     protected $fillable = [
         'project_id',
         'customer_id',
+        'product_cluster_id',
         'project_area_id',
         'number',
         'sequence_number',
@@ -61,6 +64,8 @@ class WorkCompletionReport extends Model implements HasMedia
         'tax_base_amount',
         'tax_amount',
         'tax_wording',
+        'tax_details',
+        'withholding_tax_amount',
         'content_config',
         'snapshot',
     ];
@@ -80,6 +85,8 @@ class WorkCompletionReport extends Model implements HasMedia
             'tax_percentage' => 'decimal:2',
             'tax_base_amount' => 'decimal:2',
             'tax_amount' => 'decimal:2',
+            'tax_details' => 'array',
+            'withholding_tax_amount' => 'decimal:2',
             'items' => 'array',
             'status' => WorkCompletionStatus::class,
             'content_config' => 'array',
@@ -142,9 +149,14 @@ class WorkCompletionReport extends Model implements HasMedia
         return $this->belongsTo(ProjectArea::class);
     }
 
+    public function productCluster(): BelongsTo
+    {
+        return $this->belongsTo(ProductCluster::class);
+    }
+
     public function accrueRevenueItems(): HasMany
     {
-        return $this->hasMany(\Modules\Finance\Models\AccrueRevenueItem::class);
+        return $this->hasMany(AccrueRevenueItem::class);
     }
 
     protected static function newFactory(): \Modules\Project\Database\Factories\WorkCompletionReportFactory

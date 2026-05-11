@@ -2,18 +2,20 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\AccrueRevenues\Schemas;
 
-use Closure;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Modules\Finance\Models\Invoice;
+use Illuminate\Support\HtmlString;
 use Modules\MasterData\Models\RevenueType;
 use Modules\Project\Models\Project;
 
@@ -26,7 +28,7 @@ class AccrueRevenueForm
                 Section::make('General Information')
                     ->description('Provide the project and time period for this revenue accrual.')
                     ->schema([
-                        Grid::make(4)
+                        Grid::make(3)
                             ->schema([
                                 TextInput::make('number')
                                     ->label('Document Number')
@@ -36,8 +38,8 @@ class AccrueRevenueForm
                                 Select::make('project_id')
                                     ->label('Project Code')
                                     ->relationship('project', 'name')
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->code}] {$record->name}")
-                                    ->searchable(['code', 'name'])
+                                    ->getOptionLabelFromRecordUsing(fn ($record) => "[{$record->number}] {$record->name}")
+                                    ->searchable(['number', 'name'])
                                     ->preload()
                                     ->placeholder('Select project code')
                                     ->required()
@@ -63,20 +65,6 @@ class AccrueRevenueForm
                                     ->disabled()
                                     ->dehydrated()
                                     ->placeholder('Auto-filled'),
-                                Select::make('company_code')
-                                    ->label('Business Unit (SAP)')
-                                    ->options([
-                                        'GA' => 'Garuda Indonesia',
-                                        'CIT' => 'Citilink',
-                                        'GMF' => 'GMF AeroAsia',
-                                        'ACS' => 'ACS (Aerofood)',
-                                        'POCO' => 'Poco Garuda',
-                                        'GDPS' => 'GDPS (Internal)',
-                                    ])
-                                    ->required()
-                                    ->native(false)
-                                    ->placeholder('Select SAP entity')
-                                    ->helperText('Select the legal entity for SAP integration.'),
                             ]),
                         Grid::make(2)
                             ->schema([
@@ -98,130 +86,152 @@ class AccrueRevenueForm
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('Revenue & Expense Details')
-                    ->description('Record revenue and corresponding costs for matching logic.')
-                    ->schema([
-                        Repeater::make('items')
-                            ->relationship('items')
+                Tabs::make('Accrual Details')
+                    ->tabs([
+                        Tab::make('Revenue Accruals')
+                            ->icon('heroicon-o-arrow-trending-up')
                             ->schema([
-                                Grid::make(3)
+                                Section::make('Revenue Items')
+                                    ->description('List of items we intend to bill to the customer for this period.')
                                     ->schema([
-                                        Select::make('revenue_type_id')
-                                            ->label('Revenue Segment')
-                                            ->relationship('revenueType', 'name')
-                                            ->required()
-                                            ->searchable()
-                                            ->preload()
-                                            ->placeholder('Select revenue type')
-                                            ->helperText('Classification of this revenue (e.g. Manpower, Material).')
-                                            ->live(),
-                                        Select::make('invoice_id')
-                                            ->label('Associated Invoice')
-                                            ->options(fn (Get $get) => Invoice::where('customer_id', $get('../../customer_id'))->pluck('number', 'id'))
-                                            ->searchable()
-                                            ->placeholder('Optional')
-                                            ->helperText('Link to the issued invoice if available.')
-                                            ->live()
-                                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-                                                if ($state) {
-                                                    $invoice = Invoice::find($state);
-                                                    if ($invoice) {
-                                                        $set('amount_actual', $invoice->total_amount);
-                                                    }
-                                                }
-                                            }),
-                                        Select::make('work_completion_report_id')
-                                            ->label('BAPP')
-                                            ->relationship('workCompletionReport', 'number')
-                                            ->searchable()
-                                            ->preload()
-                                            ->placeholder('Select BAPP')
-                                            ->helperText('Link to Work Completion Report.'),
-                                    ]),
-                                Grid::make(2)
-                                    ->schema([
-                                        TextInput::make('amount_expense_estimated')
-                                            ->label('Estimated Expense (Cost)')
-                                            ->prefix('IDR')
-                                            ->numeric()
-                                            ->required()
-                                            ->placeholder('0')
-                                            ->helperText('Expected cost for this revenue segment.')
-                                            ->live(onBlur: true)
-                                            ->minValue(0)
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                                        TextInput::make('amount_estimated')
-                                            ->label('Estimated Revenue (Invoiced)')
-                                            ->prefix('IDR')
-                                            ->numeric()
-                                            ->required()
-                                            ->placeholder('0')
-                                            ->helperText('Expected revenue to be recognized.')
-                                            ->live(onBlur: true)
-                                            ->minValue(0)
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->rules(fn (Get $get): array => [
-                                                function (string $attribute, $value, Closure $fail) use ($get) {
-                                                    $expense = (float) $get('amount_expense_estimated');
-                                                    if ((float) $value < $expense) {
-                                                        $fail('Revenue must cover at least the estimated expense.');
-                                                    }
-                                                },
+                                        Repeater::make('revenueItems')
+                                            ->relationship('revenueItems')
+                                            ->schema([
+                                                TextInput::make('type')
+                                                    ->hidden()
+                                                    ->default('revenue'),
+                                                Grid::make(3)
+                                                    ->schema([
+                                                        Select::make('revenue_type_id')
+                                                            ->label('Revenue Category')
+                                                            ->relationship('revenueType', 'name', fn ($query) => $query->whereJsonContains('applicable_to', 'revenue'))
+                                                            ->required()
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->placeholder('Select category')
+                                                            ->live()
+                                                            ->columnSpan(1),
+                                                        TextInput::make('amount_estimated')
+                                                            ->label('Planned Revenue')
+                                                            ->prefix('IDR')
+                                                            ->numeric()
+                                                            ->required()
+                                                            ->live(onBlur: true)
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->columnSpan(1),
+                                                        Select::make('work_completion_report_id')
+                                                            ->label('BAPP Reference')
+                                                            ->relationship('workCompletionReport', 'number')
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->placeholder('Optional')
+                                                            ->columnSpan(1),
+                                                    ]),
+                                                Textarea::make('description')
+                                                    ->label('Notes')
+                                                    ->rows(1)
+                                                    ->placeholder('Details about this revenue item...')
+                                                    ->columnSpanFull(),
                                             ])
-                                            ->extraInputAttributes(fn (Get $get) => [
-                                                'style' => (float) $get('amount_expense_estimated') > (float) $get('amount_estimated')
-                                                    ? 'color: #dc2626; font-weight: bold;'
-                                                    : '',
-                                            ]),
+                                            ->itemLabel(fn (array $state): ?string => (! empty($state['revenue_type_id'])) ? RevenueType::find($state['revenue_type_id'])?->name : 'Revenue Item')
+                                            ->addActionLabel('Add Revenue Item')
+                                            ->reorderable(false)
+                                            ->collapsible()
+                                            ->defaultItems(1),
                                     ]),
+                            ]),
+
+                        Tab::make('Expense Accruals')
+                            ->icon('heroicon-o-arrow-trending-down')
+                            ->schema([
+                                Section::make('Expense Items')
+                                    ->description('Internal costs and provisions we need to record this month.')
+                                    ->schema([
+                                        Repeater::make('expenseItems')
+                                            ->relationship('expenseItems')
+                                            ->schema([
+                                                TextInput::make('type')
+                                                    ->hidden()
+                                                    ->default('expense'),
+                                                Grid::make(2)
+                                                    ->schema([
+                                                        Select::make('revenue_type_id')
+                                                            ->label('Expense Category')
+                                                            ->relationship('revenueType', 'name', fn ($query) => $query->whereJsonContains('applicable_to', 'expense'))
+                                                            ->required()
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->placeholder('Select category')
+                                                            ->live()
+                                                            ->columnSpan(1),
+                                                        TextInput::make('amount_expense_estimated')
+                                                            ->label('Planned Cost')
+                                                            ->prefix('IDR')
+                                                            ->numeric()
+                                                            ->required()
+                                                            ->live(onBlur: true)
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->columnSpan(1),
+                                                    ]),
+                                                Textarea::make('description')
+                                                    ->label('Notes')
+                                                    ->rows(1)
+                                                    ->placeholder('Details about this expense...')
+                                                    ->columnSpanFull(),
+                                            ])
+                                            ->itemLabel(fn (array $state): ?string => (! empty($state['revenue_type_id'])) ? RevenueType::find($state['revenue_type_id'])?->name : 'Expense Item')
+                                            ->addActionLabel('Add Expense Item')
+                                            ->reorderable(false)
+                                            ->collapsible()
+                                            ->defaultItems(1),
+                                    ]),
+                            ]),
+
+                        Tab::make('Summary & Notes')
+                            ->icon('heroicon-o-document-text')
+                            ->schema([
                                 Grid::make(2)
                                     ->schema([
-                                        TextInput::make('amount_expense_actual')
-                                            ->label('Actual Expense')
+                                        TextInput::make('total_revenue')
+                                            ->label('Total Accrued Revenue')
                                             ->prefix('IDR')
-                                            ->numeric()
-                                            ->live(onBlur: true)
-                                            ->placeholder('0')
-                                            ->helperText('Realized cost (from operational data).')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0),
-                                        TextInput::make('amount_actual')
-                                            ->label('Actual Revenue')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (Get $get) => number_format(collect($get('revenueItems'))->sum('amount_estimated'), 0, ',', '.')),
+                                        TextInput::make('total_expense')
+                                            ->label('Total Accrued Expense')
                                             ->prefix('IDR')
-                                            ->numeric()
-                                            ->placeholder('0')
-                                            ->helperText('Realized revenue (from final invoice).')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->rules(fn (Get $get): array => [
-                                                function (string $attribute, $value, Closure $fail) use ($get) {
-                                                    $expense = (float) $get('amount_expense_actual');
-                                                    if ($value && (float) $value < $expense) {
-                                                        $fail('Actual revenue must cover at least the actual expense.');
-                                                    }
-                                                },
-                                            ]),
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->formatStateUsing(fn (Get $get) => number_format(collect($get('expenseItems'))->sum('amount_expense_estimated'), 0, ',', '.')),
+
+                                        TextEntry::make('margin_warning')
+                                            ->label('')
+                                            ->state(fn (Get $get): HtmlString => new HtmlString('
+                                                <div class="flex p-4 mb-4 text-sm text-amber-800 border border-amber-300 rounded-lg bg-amber-50 dark:bg-gray-800 dark:text-amber-300 dark:border-amber-800" role="alert">
+                                                  <svg class="flex-shrink-0 inline w-4 h-4 me-3 mt-[2px]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                                                  </svg>
+                                                  <span class="sr-only">Warning</span>
+                                                  <div>
+                                                    <span class="font-medium">Business Rule Warning:</span> Potential Margin Deficit detected.
+                                                    <ul class="mt-1.5 list-disc list-inside">
+                                                        <li>Accrued Expenses exceed Accrued Revenue for this period.</li>
+                                                        <li>Please verify the figures to ensure project profitability alignment.</li>
+                                                    </ul>
+                                                  </div>
+                                                </div>
+                                            '))
+                                            ->html()
+                                            ->columnSpanFull()
+                                            ->hidden(fn (Get $get) => (float) collect($get('revenueItems'))->sum('amount_estimated') >= (float) collect($get('expenseItems'))->sum('amount_expense_estimated')),
                                     ]),
                                 Textarea::make('description')
-                                    ->label('Item Notes')
-                                    ->placeholder('Detailed description of work or reason for variance...')
-                                    ->helperText('Provide context for this specific work item.')
+                                    ->label('Submission Notes')
+                                    ->placeholder('Additional context for Finance team...')
+                                    ->rows(4)
                                     ->columnSpanFull(),
-                            ])
-                            ->itemLabel(fn (array $state): ?string => (! empty($state['revenue_type_id'])) ? RevenueType::find($state['revenue_type_id'])?->name : 'Work Item')
-                            ->addActionLabel('Add Work Item')
-                            ->collapsible()
-                            ->defaultItems(1)
-                            ->columnSpanFull(),
-
-                        TextInput::make('sap_reference')
-                            ->label('SAP Document Reference')
-                            ->placeholder('e.g. 100001234')
-                            ->helperText('Record the SAP document number once uploaded.'),
-
-                        Textarea::make('description')
-                            ->label('General Submission Notes')
-                            ->placeholder('Additional context for Finance team regarding this accrual submission...')
-                            ->helperText('Any overarching notes for the entire document.')
-                            ->columnSpanFull(),
+                            ]),
                     ])->columnSpanFull(),
             ]);
     }

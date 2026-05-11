@@ -129,7 +129,10 @@ class SendWorkCompletionReport extends Page
             Action::make('back')
                 ->label('Back to BAPP')
                 ->color('gray')
-                ->url(fn () => $this->getResource()::getUrl('view', ['record' => $this->record])),
+                ->url(fn () => $this->getResource()::getUrl('view', [
+                    'project' => $this->record->project_id,
+                    'record' => $this->record,
+                ])),
         ];
     }
 
@@ -244,7 +247,10 @@ class SendWorkCompletionReport extends Page
                 ->success()
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
+            $this->redirect($this->getResource()::getUrl('view', [
+                'project' => $this->record->project_id,
+                'record' => $this->record,
+            ]));
         } catch (Throwable $e) {
             Log::error('BAPP Email Failure: '.$e->getMessage(), [
                 'file' => $e->getFile(),

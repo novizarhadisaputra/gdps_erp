@@ -71,14 +71,6 @@ class ProjectObserver
                 'status' => LeadStatus::Won,
             ]);
         }
-
-        // Generate 12-month revenue accruals if linked to a Profitability Analysis
-        if ($project->profitability_analysis_id && $project->profitabilityAnalysis) {
-            app(AccrualGenerationService::class)->generateFromPA(
-                $project->profitabilityAnalysis,
-                $project
-            );
-        }
     }
 
     /**
@@ -118,6 +110,15 @@ class ProjectObserver
             $project->lead->salesPlan->monthlyBreakdowns()->update([
                 'project_code' => $project->number,
             ]);
+        }
+
+        // Generate 12-month revenue accruals if linked to a Profitability Analysis
+        // We trigger this if it's a new project or if the PA was recently updated
+        if ($project->profitability_analysis_id && ($project->wasRecentlyCreated || $project->wasChanged('profitability_analysis_id'))) {
+            $analysis = $project->profitabilityAnalysis;
+            if ($analysis) {
+                app(AccrualGenerationService::class)->generateFromPA($analysis, $project);
+            }
         }
     }
 

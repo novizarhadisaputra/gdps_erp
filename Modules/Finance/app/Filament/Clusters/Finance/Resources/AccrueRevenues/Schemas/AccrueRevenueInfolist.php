@@ -27,6 +27,32 @@ class AccrueRevenueInfolist
                         ]),
                 ]),
 
+            Section::make('Linked Financial Documents')
+                ->description('Direct relationship between this accrual and generated invoices.')
+                ->schema([
+                    RepeatableEntry::make('revenueItems')
+                        ->label('Revenue Items & Invoices')
+                        ->schema([
+                            Grid::make(4)->schema([
+                                TextEntry::make('revenueType.name')
+                                    ->label('Category'),
+                                TextEntry::make('amount_actual')
+                                    ->label('Accrued Amount (DPP)')
+                                    ->money('IDR'),
+                                TextEntry::make('invoice.number')
+                                    ->label('Invoice Number')
+                                    ->placeholder('Not invoiced yet')
+                                    ->color('primary')
+                                    ->url(fn ($record) => $record->invoice_id ? route('filament.admin.finance.resources.invoices.view', ['record' => $record->invoice_id]) : null),
+                                TextEntry::make('invoice.status')
+                                    ->label('Invoice Status')
+                                    ->badge()
+                                    ->placeholder('-'),
+                            ]),
+                        ])
+                        ->columnSpanFull(),
+                ])->columnSpanFull(),
+
             Section::make('Revenue Items')
                 ->schema([
                     RepeatableEntry::make('items')
@@ -77,7 +103,7 @@ class AccrueRevenueInfolist
                                 ->markdown(),
                         ])
                         ->columnSpanFull(),
-                ]),
+                ])->columnSpanFull(),
 
             Section::make('Summary')
                 ->schema([
@@ -105,7 +131,7 @@ class AccrueRevenueInfolist
                         ->label('General Notes')
                         ->markdown()
                         ->columnSpanFull(),
-                ]),
+                ])->columnSpanFull(),
 
             Section::make('Approval History')
                 ->description('Digital signatures recorded during the approval process.')

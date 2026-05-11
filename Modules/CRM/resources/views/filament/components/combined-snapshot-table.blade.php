@@ -66,7 +66,8 @@
                 $numerator = (int)($record->tax?->base_rate_numerator ?? 1);
                 $denominator = (int)($record->tax?->base_rate_denominator ?? 1);
                 
-                $taxAmount = $subtotal * ($numerator / $denominator) * ($taxRate / 100);
+                $dpp = floor($subtotal * ($numerator / $denominator));
+                $taxAmount = floor($dpp * ($taxRate / 100));
                 
                 $taxLabel = "Tax (" . ($record->tax?->name ?? "PPN {$taxRate}%") . ")";
                 if ($numerator !== $denominator) {

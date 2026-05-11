@@ -17,12 +17,18 @@ class CreateProjectChangeRequest extends CreateRecord
     {
         $project = $this->getParentRecord();
 
-        return [
+        $breadcrumbs = [
             ProjectResource::getUrl('index') => 'Projects',
-            ProjectResource::getUrl('view', ['record' => $project]) => $project->name ?? 'Project',
-            ProjectChangeRequestResource::getUrl('index', ['project' => $project]) => 'Change Requests',
-            '#' => 'Create',
         ];
+
+        if ($project) {
+            $breadcrumbs[ProjectResource::getUrl('view', ['record' => $project])] = $project->name ?? 'Project';
+            $breadcrumbs[ProjectChangeRequestResource::getUrl('index', ['project' => $project])] = 'Change Requests';
+        }
+
+        $breadcrumbs['#'] = 'Create';
+
+        return $breadcrumbs;
     }
 
     protected function getRedirectUrl(): string

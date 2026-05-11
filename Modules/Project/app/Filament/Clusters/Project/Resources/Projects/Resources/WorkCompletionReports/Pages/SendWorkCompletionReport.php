@@ -46,13 +46,19 @@ class SendWorkCompletionReport extends Page
         $project = $this->getParentRecord();
         $record = $this->getRecord();
 
-        return [
+        $breadcrumbs = [
             ProjectResource::getUrl('index') => 'Projects',
-            ProjectResource::getUrl('view', ['record' => $project]) => $project->name ?? 'Project',
-            WorkCompletionReportResource::getUrl('index', ['project' => $project]) => 'BAPP',
-            WorkCompletionReportResource::getUrl('view', ['project' => $project, 'record' => $record]) => $record->number ?? 'View',
-            '#' => 'Send Email',
         ];
+
+        if ($project) {
+            $breadcrumbs[ProjectResource::getUrl('view', ['record' => $project])] = $project->name ?? 'Project';
+            $breadcrumbs[WorkCompletionReportResource::getUrl('index', ['project' => $project])] = 'BAPP';
+            $breadcrumbs[WorkCompletionReportResource::getUrl('view', ['project' => $project, 'record' => $record])] = $record->number ?? 'View';
+        }
+
+        $breadcrumbs['#'] = 'Send Email';
+
+        return $breadcrumbs;
     }
 
     protected string $view = 'project::filament.clusters.project.resources.work-completion-reports.pages.send-work-completion-report';

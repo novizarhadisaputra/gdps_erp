@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('accrue_invoice_mappings', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'accrue_invoice_mappings' : 'finance.accrue_invoice_mappings', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('accrue_revenue_item_id')->constrained('accrue_revenue_items')->onDelete('cascade');
-            $table->foreignUuid('invoice_id')->constrained('invoices')->onDelete('cascade');
+            $table->foreignUuid('accrue_revenue_item_id')->constrained(config('database.default') === 'sqlite' ? 'accrue_revenue_items' : 'finance.accrue_revenue_items')->onDelete('cascade');
+            $table->foreignUuid('invoice_id')->constrained(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices')->onDelete('cascade');
             $table->decimal('allocated_amount', 20, 2)->default(0);
             $table->decimal('reverse_amount', 20, 2)->default(0);
-            $table->foreignUuid('reverse_journal_entry_id')->nullable()->constrained('journal_entries')->onDelete('set null');
+            $table->foreignUuid('reverse_journal_entry_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'journal_entries' : 'finance.journal_entries')->onDelete('set null');
             $table->string('status')->default('active');
             $table->text('note')->nullable();
             $table->timestamps();
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('accrue_invoice_mappings');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'accrue_invoice_mappings' : 'finance.accrue_invoice_mappings');
     }
 };

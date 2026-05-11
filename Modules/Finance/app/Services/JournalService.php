@@ -60,45 +60,81 @@ class JournalService
 
             // 2. Process Items
             foreach ($record->items as $item) {
-                // Resolved accounts
-                $accrualMapping = $this->mappingService->resolveAccountMapping(
-                    'accrual',
-                    $projectArea,
-                    $customer,
-                    $item->revenue_type_id,
-                    $revenueSegmentId
-                );
+                $isExpense = $item->type === 'expense';
+                $accrualType = $isExpense ? 'expense_accrual' : 'accrual';
+                $offsetType = $isExpense ? 'expense' : 'revenue';
+                $amount = $isExpense ? $item->amount_expense_estimated : $item->amount_estimated;
 
-                $revenueMapping = $this->mappingService->resolveAccountMapping(
-                    'revenue',
-                    $projectArea,
-                    $customer,
-                    $item->revenue_type_id,
-                    $revenueSegmentId
-                );
-
-                if (! $accrualMapping || ! $revenueMapping) {
-                    throw new \Exception("Missing account mapping for revenue type: {$item->revenueType->name}");
+                if ($amount <= 0) {
+                    continue;
                 }
 
-                // Debit: Accrued Revenue
-                JournalItem::create([
-                    'journal_entry_id' => $entry->id,
-                    'chart_of_account_id' => $accrualMapping->chart_of_account_id,
-                    'debit' => $item->amount_estimated,
-                    'credit' => 0,
-                    'note' => $item->revenueType->name,
-                ]);
+                // Resolved accounts
+                $accrualMapping = $this->mappingService->resolveAccountMapping(
+                    $accrualType,
+                    $projectArea,
+                    $customer,
+                    $item->revenue_type_id,
+                    $revenueSegmentId
+                );
 
-                // Credit: Revenue
-                JournalItem::create([
-                    'journal_entry_id' => $entry->id,
-                    'chart_of_account_id' => $revenueMapping->chart_of_account_id,
-                    'debit' => 0,
-                    'credit' => $item->amount_estimated,
-                    'note' => $item->revenueType->name,
-                ]);
+                $offsetMapping = $this->mappingService->resolveAccountMapping(
+                    $offsetType,
+                    $projectArea,
+                    $customer,
+                    $item->revenue_type_id,
+                    $revenueSegmentId
+                );
+
+                if (! $accrualMapping || ! $offsetMapping) {
+                    throw new \Exception("Missing account mapping ({$accrualType}/{$offsetType}) for type: {$item->revenueType->name}");
+                }
+
+                if ($isExpense) {
+                    // Accrual Expense Logic:
+                    // Debit: Expense (Biaya)
+                    // Credit: Accrued Expense (Hutang Akrual)
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $offsetMapping->chart_of_account_id,
+                        'debit' => $amount,
+                        'credit' => 0,
+                        'note' => "Expense: {$item->revenueType->name}",
+                    ]);
+
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $accrualMapping->chart_of_account_id,
+                        'debit' => 0,
+                        'credit' => $amount,
+                        'note' => "Accrued Expense: {$item->revenueType->name}",
+                    ]);
+                } else {
+                    // Accrual Revenue Logic:
+                    // Debit: Accrued Revenue (Piutang Akrual)
+                    // Credit: Revenue (Pendapatan)
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $accrualMapping->chart_of_account_id,
+                        'debit' => $amount,
+                        'credit' => 0,
+                        'note' => "Accrued Revenue: {$item->revenueType->name}",
+                    ]);
+
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $offsetMapping->chart_of_account_id,
+                        'debit' => 0,
+                        'credit' => $amount,
+                        'note' => "Revenue: {$item->revenueType->name}",
+                    ]);
+                }
             }
+
+            // 3. Update total amount
+            $entry->update([
+                'total_amount' => $entry->items()->sum('debit'),
+            ]);
 
             return $entry;
         });
@@ -271,42 +307,65 @@ class JournalService
                 $customer = $accrueRevenue->customer;
                 $revenueSegmentId = $accrueRevenue->project?->revenue_segment_id;
 
+                $isExpense = $item->type === 'expense';
+                $accrualType = $isExpense ? 'expense_accrual' : 'accrual';
+                $offsetType = $isExpense ? 'expense' : 'revenue';
+
                 $accrualMapping = $this->mappingService->resolveAccountMapping(
-                    'accrual',
+                    $accrualType,
                     $projectArea,
                     $customer,
                     $item->revenue_type_id,
                     $revenueSegmentId
                 );
 
-                $revenueMapping = $this->mappingService->resolveAccountMapping(
-                    'revenue',
+                $offsetMapping = $this->mappingService->resolveAccountMapping(
+                    $offsetType,
                     $projectArea,
                     $customer,
                     $item->revenue_type_id,
                     $revenueSegmentId
                 );
 
-                if (! $accrualMapping || ! $revenueMapping) {
+                if (! $accrualMapping || ! $offsetMapping) {
                     continue;
                 }
 
-                // Reversal: Debit Revenue (to cancel), Credit Accrued Revenue (to clear)
-                JournalItem::create([
-                    'journal_entry_id' => $entry->id,
-                    'chart_of_account_id' => $revenueMapping->chart_of_account_id,
-                    'debit' => $mapping->reverse_amount,
-                    'credit' => 0,
-                    'note' => "Reversal: {$item->revenueType->name}",
-                ]);
+                if ($isExpense) {
+                    // Reversal Expense: Debit Accrued Expense (clear liability), Credit Expense (cancel provision)
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $accrualMapping->chart_of_account_id,
+                        'debit' => $mapping->reverse_amount,
+                        'credit' => 0,
+                        'note' => "Rev. Expense: {$item->revenueType->name}",
+                    ]);
 
-                JournalItem::create([
-                    'journal_entry_id' => $entry->id,
-                    'chart_of_account_id' => $accrualMapping->chart_of_account_id,
-                    'debit' => 0,
-                    'credit' => $mapping->reverse_amount,
-                    'note' => "Reversal: {$item->revenueType->name}",
-                ]);
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $offsetMapping->chart_of_account_id,
+                        'debit' => 0,
+                        'credit' => $mapping->reverse_amount,
+                        'note' => "Rev. Expense: {$item->revenueType->name}",
+                    ]);
+                } else {
+                    // Reversal Revenue: Debit Revenue (to cancel), Credit Accrued Revenue (to clear)
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $offsetMapping->chart_of_account_id,
+                        'debit' => $mapping->reverse_amount,
+                        'credit' => 0,
+                        'note' => "Rev. Revenue: {$item->revenueType->name}",
+                    ]);
+
+                    JournalItem::create([
+                        'journal_entry_id' => $entry->id,
+                        'chart_of_account_id' => $accrualMapping->chart_of_account_id,
+                        'debit' => 0,
+                        'credit' => $mapping->reverse_amount,
+                        'note' => "Rev. Revenue: {$item->revenueType->name}",
+                    ]);
+                }
 
                 // Link mapping to reversal journal
                 $mapping->update([
@@ -314,6 +373,11 @@ class JournalService
                     'status' => AccrueInvoiceMappingStatus::Reversed,
                 ]);
             }
+
+            // Update total amount
+            $entry->update([
+                'total_amount' => $entry->items()->sum('debit'),
+            ]);
 
             return $entry;
         });

@@ -503,7 +503,7 @@
                 }
 
                 $uniqueSignatures = $allSignatures->groupBy(
-                    fn($item) => $item['sig']->user_id . '_' . ($item['sig']->signature_type instanceof \Modules\MasterData\Enums\ApprovalSignatureType ? $item['sig']->signature_type->value : $item['sig']->signature_type),
+                    fn($item) => $item['sig']->user_id . '_' . ($item['sig']->signature_type instanceof \BackedEnum ? $item['sig']->signature_type->value : $item['sig']->signature_type),
                 );
             @endphp
 
@@ -516,14 +516,14 @@
                     <div class="flex flex-col items-center">
                         <p
                             class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-4 h-6 text-center leading-tight">
-                            {{ $sig->signature_type instanceof \Modules\MasterData\Enums\ApprovalSignatureType ? $sig->signature_type->getLabel() : ($sig->signature_type ?: 'Manual Approval') }}
+                            {{ $sig->signature_type instanceof \BackedEnum ? $sig->signature_type->getLabel() : ($sig->signature_type ?: 'Manual Approval') }}
                         </p>
 
                         @php
                             $qrUrl = $signatureService->createSignatureData(
                                 $sig->user,
                                 $sig->signable,
-                                $sig->signature_type ?: 'approved',
+                                $sig->signature_type instanceof \BackedEnum ? $sig->signature_type->value : ($sig->signature_type ?: 'approved'),
                             );
                             $qrCode = $signatureService->generateQRCode($qrUrl);
                         @endphp

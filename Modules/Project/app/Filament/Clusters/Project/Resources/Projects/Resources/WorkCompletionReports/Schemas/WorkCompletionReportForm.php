@@ -2,6 +2,7 @@
 
 namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Schemas;
 
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\MorphToSelect;
@@ -16,6 +17,7 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Models\CooperationAgreement;
 use Modules\CRM\Models\Customer;
@@ -109,14 +111,14 @@ class WorkCompletionReportForm
 
                                 $project = Project::find($state);
                                 if ($project?->lead?->industrialSector?->name === 'FMCG') {
-                                    $set('tax_percentage', '11');
+                                    $set('tax_percentage', '12');
 
                                     // Update related fields
                                     $baseAmount = self::parseNumber($get('tax_base_amount'));
-                                    $set('tax_amount', round($baseAmount * 0.11));
+                                    $set('tax_amount', floor($baseAmount * 0.12));
                                     $set('tax_wording', [
-                                        'id' => 'Penyelesaian pekerjaan di atas belum termasuk PPN 11%',
-                                        'en' => 'The above work completion does not include 11% VAT',
+                                        'id' => 'Penyelesaian pekerjaan di atas belum termasuk PPN 12%',
+                                        'en' => 'The above work completion does not include 12% VAT',
                                     ]);
                                 }
                             }),
@@ -540,6 +542,59 @@ class WorkCompletionReportForm
                                             ->default(fn () => RevenueType::where('is_default', true)->first()?->id)
                                             ->live()
                                             ->placeholder('Select category')
+                                            ->hintAction(
+                                                Action::make('category_guide')
+                                                    ->icon('heroicon-m-question-mark-circle')
+                                                    ->color('gray')
+                                                    ->label('')
+                                                    ->tooltip('Lihat Panduan Kategori')
+                                                    ->modalHeading('Panduan Kategori Pendapatan')
+                                                    ->modalDescription('Gunakan panduan ini untuk memilih kategori pendapatan yang tepat untuk setiap item pekerjaan.')
+                                                    ->modalContent(new HtmlString('
+                                                        <div class="space-y-4">
+                                                            <div class="grid grid-cols-1 gap-3">
+                                                                <div class="p-3 border rounded-xl bg-gray-50/50 dark:bg-gray-800/50">
+                                                                    <h4 class="font-bold text-primary-600 dark:text-primary-400 mb-1 flex items-center gap-2">
+                                                                        <span class="w-2 h-2 rounded-full bg-primary-600"></span>
+                                                                        Manpower & Management Fee
+                                                                    </h4>
+                                                                    <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Gaji pokok personil, tunjangan, dan fee manajemen bulanan sesuai kontrak utama. Kategori ini biasanya menjadi komponen pendapatan terbesar.</p>
+                                                                </div>
+                                                                <div class="p-3 border rounded-xl bg-gray-50/50 dark:bg-gray-800/50">
+                                                                    <h4 class="font-bold text-amber-600 dark:text-amber-400 mb-1 flex items-center gap-2">
+                                                                        <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                                                                        Overtime
+                                                                    </h4>
+                                                                    <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Tagihan jam lembur personil di luar jam kerja reguler. Pastikan perhitungan jam sudah diverifikasi dengan timesheet.</p>
+                                                                </div>
+                                                                <div class="p-3 border rounded-xl bg-gray-50/50 dark:bg-gray-800/50">
+                                                                    <h4 class="font-bold text-emerald-600 dark:text-emerald-400 mb-1 flex items-center gap-2">
+                                                                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                                                                        Material
+                                                                    </h4>
+                                                                    <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Biaya pengadaan barang fisik, suku cadang, ATK, seragam, atau perlengkapan kerja lainnya yang dibebankan ke customer.</p>
+                                                                </div>
+                                                                <div class="p-3 border rounded-xl bg-gray-50/50 dark:bg-gray-800/50">
+                                                                    <h4 class="font-bold text-blue-600 dark:text-blue-400 mb-1 flex items-center gap-2">
+                                                                        <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                                                                        Other Direct Cost
+                                                                    </h4>
+                                                                    <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">Biaya operasional langsung lainnya seperti tiket pesawat/hotel (Travel), perizinan, sewa alat pihak ketiga, atau koordinasi lapangan.</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-100 dark:border-primary-800">
+                                                                <p class="text-[10px] text-primary-700 dark:text-primary-300 italic flex gap-2">
+                                                                    <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                                                    </svg>
+                                                                    Klasifikasi yang tepat membantu akurasi laporan margin proyek dan pemetaan akun buku besar (GL Account) secara otomatis di sistem Keuangan.
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    '))
+                                                    ->modalSubmitAction(false)
+                                                    ->modalCancelActionLabel('Tutup')
+                                            )
                                             ->helperText('Classify this item as Main or Additional Revenue.'),
                                         TextInput::make('so_reference')
                                             ->label('SO Reference')
@@ -696,7 +751,7 @@ class WorkCompletionReportForm
                                         $set('tax_amount', $taxRecord->calculateTax($baseAmount));
                                     } else {
                                         $taxPercent = (float) ($get('tax_percentage') ?? 12);
-                                        $set('tax_amount', round($baseAmount * ($taxPercent / 100)));
+                                        $set('tax_amount', floor($baseAmount * ($taxPercent / 100)));
                                     }
                                 }),
 
@@ -862,22 +917,7 @@ class WorkCompletionReportForm
                                         $baseAmount = $gross;
                                     }
 
-                                    $rate = (float) $taxModel->rate;
-                                    $taxValue = 0;
-
-                                    if ($taxModel->calculation_type === 'formula') {
-                                        $num = (float) ($taxModel->base_rate_numerator ?? 1);
-                                        $den = (float) ($taxModel->base_rate_denominator ?? 1);
-                                        $taxValue = round($baseAmount * ($num / $den) * ($rate / 100));
-                                    } elseif ($taxModel->calculation_type === 'inclusive') {
-                                        $taxValue = round($baseAmount * ($rate / (100 + $rate)));
-
-                                        // For inclusive, the gross already contains the tax, so we don't add it?
-                                        // Usually, Grand Total = Gross.
-                                        return 'IDR '.number_format($gross, 0, ',', '.');
-                                    } else {
-                                        $taxValue = round($baseAmount * ($rate / 100));
-                                    }
+                                    $taxValue = $taxModel->calculateTax($baseAmount);
 
                                     return 'IDR '.number_format($gross + $taxValue, 0, ',', '.');
                                 }),

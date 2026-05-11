@@ -41,7 +41,7 @@ class AppSettingSeeder extends Seeder
                     'corp_tax_rate' => 22.00,
                     'interest_rate' => 1.50,
                     'management_fee_rate' => 15.00,
-                    'vat_rate' => 11.00,
+                    'vat_rate' => 12.00,
                     'description' => 'Global financial parameters for profitability analysis and invoicing',
                 ],
                 'is_active' => true,

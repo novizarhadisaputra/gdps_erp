@@ -56,9 +56,9 @@ class TaxForm
                         ->native(false),
                     Select::make('calculation_type')
                         ->options([
-                            'exclusive' => 'Exclusive (DPP x Rate)',
-                            'inclusive' => 'Inclusive (Gross Up)',
-                            'formula' => 'Formula (Custom Ratio)',
+                            'exclusive' => 'Exclusive (Standard: DPP x Rate)',
+                            'inclusive' => 'Inclusive (Gross Up: Tax inside Price)',
+                            'formula' => 'Nilai Lain (CoreTax: Adj. Ratio x DPP x Rate)',
                         ])
                         ->required()
                         ->default('exclusive')

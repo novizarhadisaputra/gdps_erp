@@ -50,7 +50,17 @@ class InvoiceForm
 
     public static function recalculateTotals(Get $get, Set $set): void
     {
-        $amount = self::parseNumber($get('amount'));
+        // Dynamically calculate amount from items to avoid readonly dehydration issues
+        $items = $get('items') ?? $get('../../items') ?? [];
+        $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+        $amount = collect($activeItems)->sum(function ($item) {
+            $qty = self::parseNumber($item['quantity'] ?? 0);
+            $price = self::parseNumber($item['unit_price'] ?? 0);
+            return $qty * $price;
+        });
+
+        $set('amount', $amount);
+
         $vatAmount = self::parseNumber($get('tax_amount'));
 
         // Calculate Withholding Taxes from Repeater
@@ -65,14 +75,37 @@ class InvoiceForm
         $set('total_amount', $amount + $vatAmount - $withholdingTotal);
     }
 
-    public static function resolveBaseAmount(string $basis, Get $get): float
+    public static function resolveBaseAmount(?string $basis, Get $get): float
     {
-        $amount = self::parseNumber($get('amount'));
+        $basis = $basis ?? 'total';
+        
+        // Dynamically calculate amount from items to avoid readonly dehydration issues
+        $items = $get('items') ?? $get('../../items') ?? [];
+        $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+        $amount = collect($activeItems)->sum(function ($item) {
+            $qty = self::parseNumber($item['quantity'] ?? 0);
+            $price = self::parseNumber($item['unit_price'] ?? 0);
+            return $qty * $price;
+        });
+
+        if ($basis === 'total') {
+            return $amount;
+        }
 
         if ($basis === 'management_fee') {
-            $items = $get('items') ?? [];
-            $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
+            // Priority 1: Extract from upstream snapshot if available
+            $snapshot = $get('snapshot') ?? $get('../../snapshot');
+            if (is_array($snapshot) && isset($snapshot['summary'])) {
+                $totalPrice = (float) ($snapshot['summary']['total_price'] ?? 0);
+                $totalCost = (float) ($snapshot['summary']['total_cost'] ?? 0);
+                $fee = $totalPrice - $totalCost;
+                
+                if ($fee > 0) {
+                    return $fee;
+                }
+            }
 
+            // Priority 2: Fallback to line item analysis
             $additionalTypeIds = RevenueType::where('code', 'additional')->pluck('id')->toArray();
 
             return collect($activeItems)->filter(function ($item) use ($additionalTypeIds) {
@@ -83,7 +116,9 @@ class InvoiceForm
 
                 return str_contains($name, 'management fee') || str_contains($name, 'fee');
             })->sum(function ($item) {
-                return self::parseNumber($item['total_price'] ?? 0);
+                $qty = self::parseNumber($item['quantity'] ?? 0);
+                $price = self::parseNumber($item['unit_price'] ?? 0);
+                return $qty * $price;
             });
         }
 

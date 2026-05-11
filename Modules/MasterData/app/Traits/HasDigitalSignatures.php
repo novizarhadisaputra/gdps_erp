@@ -92,6 +92,34 @@ trait HasDigitalSignatures
                 return in_array($signature->user_id, $rule->approver_user_id ?? []);
             }
 
+            if ($rule->approver_type === 'Relationship') {
+                $path = $rule->approver_role[0] ?? null;
+                if (! $path) {
+                    return false;
+                }
+
+                $target = $this;
+                foreach (explode('.', $path) as $segment) {
+                    if ($target && method_exists($target, $segment)) {
+                        $target = $target->$segment;
+                    } else {
+                        $target = null;
+                        break;
+                    }
+                }
+
+                if (! ($target instanceof \Modules\MasterData\Models\Employee)) {
+                    return false;
+                }
+
+                $user = $signature->user;
+                if (! $user) {
+                    return false;
+                }
+
+                return ($user->employee_code === $target->code) || ($user->email === $target->email);
+            }
+
             // For simplicity, we assume signature capture at time of signing satisfies rule requirements.
             return false;
         });

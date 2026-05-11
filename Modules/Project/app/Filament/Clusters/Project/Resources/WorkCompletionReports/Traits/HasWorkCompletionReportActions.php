@@ -8,6 +8,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -25,9 +26,17 @@ trait HasWorkCompletionReportActions
     {
         return [
             ViewAction::make()
-                ->hidden(fn () => $this instanceof ViewRecord),
+                ->hidden(fn () => $this instanceof ViewRecord)
+                ->url(fn (WorkCompletionReport $record) => static::getResource()::getUrl('view', [
+                    'project' => $record->project_id,
+                    'record' => $record,
+                ])),
             EditAction::make()
-                ->hidden(fn () => $this instanceof EditRecord),
+                ->hidden(fn () => $this instanceof EditRecord)
+                ->url(fn (WorkCompletionReport $record) => static::getResource()::getUrl('edit', [
+                    'project' => $record->project_id,
+                    'record' => $record,
+                ])),
 
             ActionGroup::make([
                 // Primary Workflow Actions
@@ -36,6 +45,7 @@ trait HasWorkCompletionReportActions
                 $this->getApproveAction(),
                 $this->getSendToCustomerAction(),
                 $this->getResendEmailAction(),
+                $this->getUploadSignedAction(),
                 $this->getConfirmCustomerSignatureAction(),
                 $this->getReviseAction(),
                 $this->getRejectAction(),
@@ -45,7 +55,10 @@ trait HasWorkCompletionReportActions
                 $this->getGenerateAccrueRevenueAction(),
                 $this->getDiscussionsAction(),
                 DeleteAction::make()
-                    ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Draft),
+                    ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Draft)
+                    ->successRedirectUrl(fn (WorkCompletionReport $record) => static::getResource()::getUrl('index', [
+                        'project' => $record->project_id,
+                    ])),
             ])
                 ->color('primary')
                 ->button()
@@ -93,7 +106,10 @@ trait HasWorkCompletionReportActions
             ->label('Discussions')
             ->icon('heroicon-o-chat-bubble-left-right')
             ->color('info')
-            ->url(fn (WorkCompletionReport $record) => "/admin/projects/{$record->project_id}/work-completion-reports/{$record->id}/discussions");
+            ->url(fn (WorkCompletionReport $record) => static::getResource()::getUrl('discussions', [
+                'project' => $record->project_id,
+                'record' => $record,
+            ]));
     }
 
     protected function getGenerateAccrueRevenueAction(): Action
@@ -241,7 +257,7 @@ trait HasWorkCompletionReportActions
                 }
 
                 $required = $service->getRequiredApprovers($record);
-                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
+                $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user(), $record));
 
                 if ($eligibleRules->isEmpty()) {
                     Notification::make()
@@ -287,9 +303,9 @@ trait HasWorkCompletionReportActions
                     ->success()
                     ->send();
             })
-            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Submitted &&
+            ->visible(fn (WorkCompletionReport $record) => in_array($record->status, [WorkCompletionStatus::Submitted, WorkCompletionStatus::Sent]) &&
                 app(SignatureService::class)->getRequiredApprovers($record)->contains(fn ($rule) => ! $record->isRuleSatisfied($rule) &&
-                    app(SignatureService::class)->isEligibleApprover($rule, auth()->user())
+                    app(SignatureService::class)->isEligibleApprover($rule, auth()->user(), $record)
                 )
             );
     }
@@ -300,7 +316,9 @@ trait HasWorkCompletionReportActions
             ->label('Confirm Customer Signature')
             ->color('success')
             ->icon(Heroicon::OutlinedCheckCircle)
-            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Sent && $record->hasMedia('signed_report'))
+            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Sent)
+            ->disabled(fn (WorkCompletionReport $record) => ! $record->hasMedia('signed_report'))
+            ->tooltip(fn (WorkCompletionReport $record) => ! $record->hasMedia('signed_report') ? 'Please upload Signed BAPP (Final Scan) first.' : 'Confirm customer signature receipt')
             ->requiresConfirmation()
             ->modalHeading('Confirm BAPP Approval')
             ->modalDescription('By confirming this, you verify that the Signed BAPP (Final Scan) from the customer is valid. This will mark the BAPP as Approved.')
@@ -320,6 +338,33 @@ trait HasWorkCompletionReportActions
 
                 $record->update(['status' => WorkCompletionStatus::Approved]);
                 Notification::make()->title('BAPP Approved Successfully')->success()->send();
+            });
+    }
+
+    protected function getUploadSignedAction(): Action
+    {
+        return Action::make('uploadSigned')
+            ->label('Upload Signed BAPP')
+            ->icon(Heroicon::OutlinedCloudArrowUp)
+            ->color('info')
+            ->visible(fn (WorkCompletionReport $record) => $record->status === WorkCompletionStatus::Sent)
+            ->form([
+                FileUpload::make('signed_report')
+                    ->label('Signed BAPP (Final Scan)')
+                    ->disk('s3')
+                    ->directory('bapp/signed')
+                    ->required()
+                    ->acceptedFileTypes(['application/pdf', 'image/*']),
+            ])
+            ->action(function (WorkCompletionReport $record, array $data) {
+                $record->addMediaFromDisk($data['signed_report'], 's3')
+                    ->toMediaCollection('signed_report');
+
+                Notification::make()
+                    ->title('Signed BAPP Uploaded')
+                    ->body('You can now confirm the customer signature.')
+                    ->success()
+                    ->send();
             });
     }
 

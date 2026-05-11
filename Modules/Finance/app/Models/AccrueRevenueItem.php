@@ -24,6 +24,7 @@ class AccrueRevenueItem extends Model
     protected $fillable = [
         'accrue_revenue_id',
         'revenue_type_id',
+        'type',
         'amount_estimated',
         'amount_actual',
         'amount_expense_estimated',
@@ -32,7 +33,10 @@ class AccrueRevenueItem extends Model
         'work_completion_report_id',
         'revenue_chart_of_account_id',
         'expense_chart_of_account_id',
+        'accrual_chart_of_account_id',
+        'accrued_expense_chart_of_account_id',
         'is_reversed',
+        'description',
     ];
 
     public function workCompletionReport(): BelongsTo

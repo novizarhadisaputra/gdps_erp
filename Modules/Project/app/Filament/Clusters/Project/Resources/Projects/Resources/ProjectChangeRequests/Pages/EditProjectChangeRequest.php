@@ -20,12 +20,18 @@ class EditProjectChangeRequest extends EditRecord
         $project = $this->getParentRecord();
         $record = $this->getRecord();
 
-        return [
+        $breadcrumbs = [
             ProjectResource::getUrl('index') => 'Projects',
-            ProjectResource::getUrl('view', ['record' => $project]) => $project->name ?? 'Project',
-            ProjectChangeRequestResource::getUrl('index', ['project' => $project]) => 'Change Requests',
-            '#' => $record->number ?? 'Edit',
         ];
+
+        if ($project) {
+            $breadcrumbs[ProjectResource::getUrl('view', ['record' => $project])] = $project->name ?? 'Project';
+            $breadcrumbs[ProjectChangeRequestResource::getUrl('index', ['project' => $project])] = 'Change Requests';
+        }
+
+        $breadcrumbs['#'] = $record->number ?? 'Edit';
+
+        return $breadcrumbs;
     }
 
     protected function getHeaderActions(): array

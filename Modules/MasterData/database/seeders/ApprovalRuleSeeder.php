@@ -16,6 +16,7 @@ use Modules\Finance\Models\Invoice;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Models\ProductCluster;
+use Modules\Project\Models\WorkCompletionReport;
 
 class ApprovalRuleSeeder extends Seeder
 {
@@ -39,6 +40,7 @@ class ApprovalRuleSeeder extends Seeder
             'VP Human Capital' => Role::where('name', 'VP Human Capital')->value('id'),
             'Board of Directors' => Role::where('name', 'Board of Directors')->value('id'),
             'Account Manager & Sales' => Role::where('name', 'Account Manager & Sales')->value('id'),
+            'Project Manager' => Role::firstOrCreate(['name' => 'Project Manager'], ['guard_name' => 'web'])->id,
         ];
 
         // ApprovalRule::truncate(); // Removed to prevent wiping user-defined rules
@@ -234,6 +236,18 @@ class ApprovalRuleSeeder extends Seeder
                 'conditions' => [],
                 'approver_type' => 'Role',
                 'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+
+            // Work Completion Report (BAPP) Approvals
+            // Requirement: Assigned Project Manager (Oprep)
+            [
+                'resource_type' => WorkCompletionReport::class,
+                'conditions' => [],
+                'approver_type' => 'Relationship',
+                'approver_role' => ['project.oprep'],
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,

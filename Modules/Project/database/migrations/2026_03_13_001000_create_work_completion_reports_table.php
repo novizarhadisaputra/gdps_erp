@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports', function (Blueprint $blueprint) {
             $blueprint->uuid('id')->primary();
             $blueprint->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->onDelete('cascade');
+            $blueprint->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters')->onDelete('set null');
             $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
             $blueprint->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->onDelete('set null');
             $blueprint->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->onDelete('set null');
@@ -36,7 +37,9 @@ return new class extends Migration
             $blueprint->string('tax_basis')->default('total');
             $blueprint->decimal('tax_base_amount', 15, 2)->nullable();
             $blueprint->decimal('tax_amount', 15, 2)->default(0);
+            $blueprint->decimal('withholding_tax_amount', 15, 2)->default(0);
             $blueprint->jsonb('tax_wording')->nullable();
+            $blueprint->jsonb('tax_details')->nullable();
             $blueprint->decimal('total_amount', 15, 2)->default(0);
 
             $blueprint->string('status')->default('draft');

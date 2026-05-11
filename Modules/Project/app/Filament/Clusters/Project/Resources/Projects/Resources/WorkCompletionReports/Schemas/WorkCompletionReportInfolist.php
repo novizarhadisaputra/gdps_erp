@@ -36,7 +36,7 @@ class WorkCompletionReportInfolist
                                     ->icon(Heroicon::OutlinedCheckBadge)
                                     ->color(fn ($state) => $state === 'No Scan Uploaded' ? 'gray' : 'success'),
                             ]),
-                    ])->collapsible(),
+                    ])->columnSpanFull()->collapsible(),
 
                 Section::make('Report Details')
                     ->schema([
@@ -55,7 +55,7 @@ class WorkCompletionReportInfolist
                                 TextEntry::make('sourceable.number')
                                     ->label('Reference Document'),
                             ]),
-                    ])->collapsible(),
+                    ])->columnSpanFull()->collapsible(),
 
                 Section::make('Customer Signatory')
                     ->schema([
@@ -69,7 +69,7 @@ class WorkCompletionReportInfolist
                                 TextEntry::make('status')
                                     ->badge(),
                             ]),
-                    ])->collapsible(),
+                    ])->columnSpanFull()->collapsible(),
 
                 Section::make('Service & Progress')
                     ->schema([
@@ -87,7 +87,7 @@ class WorkCompletionReportInfolist
                                     ->color('info')
                                     ->weight(FontWeight::Bold),
                             ]),
-                    ])->collapsible(),
+                    ])->columnSpanFull()->collapsible(),
 
                 Section::make('BAPP Line Items')
                     ->schema([
@@ -111,29 +111,40 @@ class WorkCompletionReportInfolist
                                             ->weight(FontWeight::Bold),
                                     ]),
                             ]),
-                    ])->collapsible(),
+                    ])->columnSpanFull()->collapsible(),
 
                 Section::make('Total & Tax')
                     ->schema([
-                        Grid::make(2)
+                        Grid::make(3)
                             ->schema([
                                 TextEntry::make('total_amount')
-                                    ->label('Grand Total')
+                                    ->label('Subtotal')
                                     ->money('IDR')
-                                    ->weight(FontWeight::Bold)
-                                    ->size(TextSize::Large)
-                                    ->color('primary'),
-                                TextEntry::make('tax_wording')
-                                    ->label('Tax Statement')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('tax_base_amount')
+                                    ->label('Taxable Base (DPP)')
+                                    ->money('IDR')
                                     ->color('gray'),
+                                TextEntry::make('tax_amount')
+                                    ->label('VAT (PPN)')
+                                    ->money('IDR')
+                                    ->color('warning')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('grand_total')
+                                    ->label('Grand Total')
+                                    ->state(fn ($record) => (float) $record->total_amount + (float) $record->tax_amount)
+                                    ->money('IDR')
+                                    ->weight(FontWeight::Black)
+                                    ->size(TextSize::Large)
+                                    ->color('primary')
+                                    ->columnSpanFull(),
                             ]),
-                    ]),
+                    ])->columnSpanFull(),
 
                 Section::make('Digital Signatures')
                     ->schema([
-                        DigitalSignatureEntry::make('signatures')
-                            ->columnSpanFull(),
-                    ]),
+                        DigitalSignatureEntry::make('signatures')->columnSpanFull(),
+                    ])->columnSpanFull()->collapsible(),
             ]);
     }
 }

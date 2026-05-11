@@ -492,52 +492,92 @@
     </div>
 
     <div class="signature-container">
-        <div style="margin-bottom: 40px;">
+        <div style="margin-bottom: 20px;">
             Tangerang, {{ $record->document_date->translatedFormat('d F Y') }}
         </div>
 
         @php
-            // Find internal signature for BAPP
-            $internalSig = $record->signatures()
-                ->where('signature_type', \Modules\MasterData\Enums\ApprovalSignatureType::Approver)
-                ->first();
+            $internalSignatures = collect();
             
-            // If not found, try any signature from a GDPS user
-            if (!$internalSig) {
-                $internalSig = $record->signatures()->first();
+            // 1. Preparation (Initiator)
+            $creator = $record->creator ?? $record->lead?->creator;
+            if ($creator) {
+                $internalSignatures->push([
+                    'name' => $creator->name,
+                    'title' => $creator->position ?? 'Initiator',
+                    'date' => $record->created_at,
+                    'user' => $creator,
+                    'type' => 'Preparation',
+                    'label' => $labels['proposed_by'][$lang]
+                ]);
             }
+
+            // 2. All Approved/Reviewed Signatures from Rule System
+            foreach ($record->signatures()->with('user')->get() as $sig) {
+                // Find matching rule to get better label if needed
+                $rule = $requiredApprovers->first(fn($r) => $signatureService->isEligibleApprover($r, $sig->user));
+                
+                $roleLabel = 'Approver';
+                if ($rule) {
+                    if ($rule->approver_type === 'Relationship') {
+                        $path = $rule->approver_role[0] ?? '';
+                        if (str_contains($path, 'oprep')) $roleLabel = 'Project Manager';
+                        elseif (str_contains($path, 'projectManager')) $roleLabel = 'Project Manager';
+                        else $roleLabel = ucwords(str_replace(['.', '_'], ' ', $path));
+                    } else {
+                        // For Role type, we'd need to fetch the role name, but let's use a simpler fallback
+                        $roleLabel = $sig->role ?? 'Authorized Signatory';
+                    }
+                }
+
+                $internalSignatures->push([
+                    'name' => $sig->user->name,
+                    'title' => $sig->role ?? $roleLabel,
+                    'date' => $sig->signed_at,
+                    'user' => $sig->user,
+                    'type' => $sig->signature_type,
+                    'label' => $labels['proposed_by'][$lang]
+                ]);
+            }
+
+            // Ensure we don't duplicate Creator if they also signed as Approver
+            $internalSignatures = $internalSignatures->unique('user.id');
+            
+            $internalCount = $internalSignatures->count();
+            $customerBlock = [
+                'name' => $customerContactDisplay,
+                'title' => $customerContactTitle,
+                'label' => $labels['received_by'][$lang]
+            ];
         @endphp
 
-        <div class="signature-block">
-            <div class="font-bold">{{ $labels['proposed_by'][$lang] }},</div>
-            <div class="font-bold uppercase">PT Garuda Daya Pratama Sejahtera</div>
-            <div class="sig-space" style="display: flex; align-items: center; justify-content: center; height: 80px;">
-                @if ($internalSig)
-                    @php
-                        $qrUrl = $signatureService->createSignatureData(
-                            $internalSig->user,
-                            $record,
-                            $internalSig->signature_type,
-                        );
-                        $qrCode = $signatureService->generateQRCode($qrUrl);
-                    @endphp
-                    <img src="{{ $qrCode }}" style="width: 70px; height: 70px;">
-                @else
-                    <div style="height: 70px; border: 1px dashed #cbd5e1; width: 70px; margin: 0 auto;"></div>
-                @endif
-            </div>
-            <div class="font-bold">( {{ $internalSig ? $internalSig->user->name : $pmName }} )</div>
-            <div>{{ $labels['position'][$lang] }} : {{ $internalSig ? ($internalSig->user->position ?? $pmTitle) : $pmTitle }}</div>
-        </div>
+        <table style="width: 100%; border: none;">
+            <tr>
+                @foreach($internalSignatures as $sig)
+                    <td class="text-center" style="width: {{ 100 / ($internalCount + 1) }}%; vertical-align: top; border: none; padding: 10px;">
+                        <div class="font-bold">{{ $sig['label'] }},</div>
+                        <div class="font-bold uppercase">PT Garuda Daya Pratama Sejahtera</div>
+                        <div style="height: 85px; margin: 5px 0; display: flex; align-items: center; justify-content: center;">
+                            @php
+                                $qrUrl = $signatureService->createSignatureData($sig['user'], $record, $sig['type']);
+                                $qrCode = $signatureService->generateQRCode($qrUrl);
+                            @endphp
+                            <img src="{{ $qrCode }}" style="width: 65px; height: 65px;">
+                        </div>
+                        <div class="font-bold">( {{ $sig['name'] }} )</div>
+                        <div style="font-size: 9px;">{{ $labels['position'][$lang] }} : {{ $sig['title'] }}</div>
+                    </td>
+                @endforeach
 
-        <div class="signature-block">
-            <div class="font-bold">{{ $labels['received_by'][$lang] }},</div>
-            <div class="font-bold uppercase">{{ $record->customer->name ?? '-' }}</div>
-            <div class="sig-space" style="height: 80px;"></div>
-            <div class="font-bold">( {{ $customerContactDisplay }} )</div>
-            <div>{{ $labels['position'][$lang] }} : {{ $customerContactTitle }}</div>
-        </div>
-        <div style="clear: both;"></div>
+                <td class="text-center" style="width: {{ 100 / ($internalCount + 1) }}%; vertical-align: top; border: none; padding: 10px;">
+                    <div class="font-bold">{{ $customerBlock['label'] }},</div>
+                    <div class="font-bold uppercase">{{ $record->customer->name ?? '-' }}</div>
+                    <div style="height: 85px; margin: 5px 0;"></div>
+                    <div class="font-bold">( {{ $customerBlock['name'] }} )</div>
+                    <div style="font-size: 9px;">{{ $labels['position'][$lang] }} : {{ $customerBlock['title'] }}</div>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 

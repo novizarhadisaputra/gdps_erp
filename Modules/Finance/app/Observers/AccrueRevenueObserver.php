@@ -19,8 +19,8 @@ class AccrueRevenueObserver
             return;
         }
 
-        $year = date('Y');
-        $shortYear = date('y');
+        $year = $accrueRevenue->year ?? (int) date('Y');
+        $shortYear = substr((string) $year, -2);
 
         $latest = AccrueRevenue::withTrashed()
             ->where('year', $year)
@@ -29,7 +29,7 @@ class AccrueRevenueObserver
 
         $sequence = $latest ? $latest->sequence_number + 1 : 1;
 
-        $accrueRevenue->year = $accrueRevenue->year ?? (int) $year;
+        $accrueRevenue->year = $year;
         $accrueRevenue->month = $accrueRevenue->month ?? (int) date('n');
         $accrueRevenue->sequence_number = $sequence;
         $accrueRevenue->number = sprintf('GDPS/UB/ACR-%03d/%s', $sequence, $shortYear);

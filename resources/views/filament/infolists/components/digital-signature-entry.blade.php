@@ -102,13 +102,22 @@
             $approvalItems = collect();
             $approverRules = $rules->where('signature_type', \Modules\MasterData\Enums\ApprovalSignatureType::Approver);
             foreach ($approverRules as $rule) {
-                $sig = $signatures->first(fn($s) => $s->signature_type === \Modules\MasterData\Enums\ApprovalSignatureType::Approver && $service->isEligibleApprover($rule, $s->user));
+                $sig = $signatures->first(fn($s) => $s->signature_type === \Modules\MasterData\Enums\ApprovalSignatureType::Approver && $service->isEligibleApprover($rule, $s->user, $record));
+                
+                $roleLabel = 'Approver';
+                if ($rule->approver_type === 'Role') {
+                    $roleLabel = $getRoleName($rule->approver_role);
+                } elseif ($rule->approver_type === 'Relationship') {
+                    $path = $rule->approver_role[0] ?? '';
+                    if (str_contains($path, 'oprep')) $roleLabel = 'Project Manager';
+                    elseif (str_contains($path, 'projectManager')) $roleLabel = 'Project Manager';
+                    elseif (str_contains($path, 'creator')) $roleLabel = 'Initiator';
+                    else $roleLabel = ucwords(str_replace(['.', '_'], ' ', $path));
+                }
+
                 $approvalItems->push($buildItem(
                     $sig?->user,
-                    $sig?->role ??
-                        ($rule->approver_type === 'Role'
-                            ? $getRoleName($rule->approver_role)
-                            : 'Approver'),
+                    $sig?->role ?? $roleLabel,
                     'Approver',
                     (bool)$sig,
                     $sig?->signed_at
@@ -120,13 +129,10 @@
             $ackItems = collect();
             $ackRules = $rules->where('signature_type', \Modules\MasterData\Enums\ApprovalSignatureType::Acknowledger);
             foreach ($ackRules as $rule) {
-                $sig = $signatures->first(fn($s) => $s->signature_type === \Modules\MasterData\Enums\ApprovalSignatureType::Acknowledger && $service->isEligibleApprover($rule, $s->user));
+                $sig = $signatures->first(fn($s) => $s->signature_type === \Modules\MasterData\Enums\ApprovalSignatureType::Acknowledger && $service->isEligibleApprover($rule, $s->user, $record));
                 $ackItems->push($buildItem(
                     $sig?->user,
-                    $sig?->role ??
-                        ($rule->approver_type === 'Role'
-                            ? $getRoleName($rule->approver_role)
-                            : 'Acknowledger'),
+                    $sig?->role ?? ($rule->approver_type === 'Role' ? $getRoleName($rule->approver_role) : 'Acknowledger'),
                     'Acknowledger',
                     (bool)$sig,
                     $sig?->signed_at
@@ -135,71 +141,86 @@
             if ($ackItems->isNotEmpty()) $stages->push(['label' => 'Acknowledgment', 'items' => $ackItems]);
         @endphp
 
-        <div class="space-y-10">
+        <div class="space-y-12">
             @forelse ($stages as $stage)
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <span class="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-4">
+                        <span class="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.25em] whitespace-nowrap">
                             {{ $stage['label'] }}
                         </span>
-                        <div class="h-px bg-gray-100 dark:bg-gray-800 w-full"></div>
+                        <div class="h-px bg-gradient-to-r from-gray-100 via-gray-100 to-transparent dark:from-gray-800 dark:via-gray-800 w-full"></div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <div class="flex flex-wrap gap-8 items-start">
                         @foreach ($stage['items'] as $item)
-                            @php
-                                $qrCodeSvg = null;
-                                if ($item['is_signed'] && $item['user']) {
-                                    try {
-                                        $qrData = $service->createSignatureData($item['user'], $record, $item['type']);
-                                        $qrCodeSvg = $service->generateQRCode($qrData);
-                                    } catch (\Exception $e) { $qrCodeSvg = null; }
-                                }
-                            @endphp
+                            <div class="flex flex-col items-center group w-44">
+                                <div @class([
+                                    'relative flex items-center justify-center w-28 h-28 mb-4 transition-all duration-500 rounded-2xl shadow-sm border-2',
+                                    'bg-white dark:bg-gray-900 border-success-200 shadow-success-100/50 scale-100' => $item['is_signed'],
+                                    'bg-gray-50/50 dark:bg-gray-900/50 border-gray-100 border-dashed scale-95 opacity-60 group-hover:opacity-100 group-hover:scale-100' => !$item['is_signed'],
+                                ])>
+                                    @if ($item['is_signed'])
+                                        @php
+                                            $qrCode = null;
+                                            if ($item['user']) {
+                                                $qrUrl = $service->createSignatureData($item['user'], $record, $item['type']);
+                                                $qrCode = $service->generateQRCode($qrUrl);
+                                            } elseif ($item['type'] === 'Customer') {
+                                                // For customer, just show a checkmark or placeholder if we don't have a user
+                                                $qrCode = null;
+                                            }
+                                        @endphp
+                                        
+                                        @if($qrCode)
+                                            <img src="{{ $qrCode }}" alt="Signature" class="w-20 h-20 opacity-90 group-hover:opacity-100 transition-opacity mix-blend-multiply dark:mix-blend-normal">
+                                        @else
+                                            <div class="flex items-center justify-center w-20 h-20 text-success-500">
+                                                <x-filament::icon icon="heroicon-o-check-badge" class="w-12 h-12" />
+                                            </div>
+                                        @endif
 
-                            <div class="relative group border {{ $item['is_signed'] ? 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm' : 'border-gray-100 dark:border-gray-800 border-dashed bg-gray-50/30 dark:bg-gray-900/40 opacity-80' }} rounded-2xl transition-all duration-300">
-                                <div class="p-4">
-                                    <div class="mb-3">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider {{ $item['is_signed'] ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500' }}">
-                                            {{ $item['role'] }}
-                                        </span>
-                                    </div>
-
-                                    <div class="flex items-center gap-4">
-                                        <div class="shrink-0 w-16 h-16 {{ $item['is_signed'] ? 'bg-white' : 'bg-gray-50' }} rounded-lg border border-gray-100 flex items-center justify-center p-0.5 shadow-inner">
-                                            @if ($qrCodeSvg)
-                                                <img src="{{ $qrCodeSvg }}" class="w-full h-full object-contain mix-blend-multiply opacity-90" />
-                                            @else
-                                                <x-heroicon-o-pencil-square class="w-6 h-6 text-gray-200" />
-                                            @endif
+                                        <div class="absolute -bottom-2 -right-2 bg-success-500 text-white rounded-full p-1.5 shadow-lg border-2 border-white dark:border-gray-900">
+                                            <x-filament::icon icon="heroicon-m-check-badge" class="w-4 h-4" />
                                         </div>
-
-                                        <div class="min-w-0">
-                                            <h4 class="text-xs font-bold truncate {{ $item['is_signed'] ? 'text-gray-900 dark:text-white' : 'text-gray-400' }}">
-                                                {{ $item['user_name'] }}
-                                            </h4>
-                                            @if ($item['is_signed'] && $item['date'])
-                                                <div class="mt-1 flex items-center text-[10px] text-emerald-600 font-medium uppercase tracking-tight">
-                                                    <x-heroicon-m-check-badge class="w-3 h-3 mr-1" />
-                                                    <span>{{ $item['date']->format('d M Y') }}</span>
-                                                </div>
-                                            @else
-                                                <div class="mt-1 flex items-center text-[10px] text-amber-500 font-medium uppercase tracking-tight italic">
-                                                    <x-heroicon-o-clock class="w-3 h-3 mr-1" />
-                                                    <span>Pending</span>
-                                                </div>
-                                            @endif
+                                    @else
+                                        <div class="flex flex-col items-center justify-center text-gray-300">
+                                            <x-filament::icon icon="heroicon-o-pencil-square" class="w-10 h-10 mb-1 opacity-20 group-hover:opacity-40 transition-opacity" />
+                                            <span class="text-[10px] font-bold tracking-widest uppercase opacity-40">Pending</span>
                                         </div>
+                                    @endif
+                                </div>
+                                
+                                <div class="text-center w-full px-2">
+                                    <div @class([
+                                        'text-sm font-bold truncate leading-tight transition-colors duration-300',
+                                        'text-gray-900 dark:text-white' => $item['is_signed'],
+                                        'text-gray-400' => !$item['is_signed'],
+                                    ]) title="{{ $item['user_name'] }}">
+                                        {{ $item['user_name'] }}
                                     </div>
+                                    <div @class([
+                                        'text-[10px] font-semibold uppercase tracking-widest mt-1.5',
+                                        'text-primary-600 dark:text-primary-400' => $item['is_signed'],
+                                        'text-gray-400' => !$item['is_signed'],
+                                    ])>
+                                        {{ $item['role'] }}
+                                    </div>
+                                    @if ($item['date'])
+                                        <div class="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-medium bg-gray-100/80 dark:bg-gray-800/80 text-gray-500 dark:text-gray-400">
+                                            {{ \Carbon\Carbon::parse($item['date'])->translatedFormat('d M Y') }}
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
             @empty
-                <div class="border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-2xl p-8 text-center bg-gray-50/50">
-                    <x-heroicon-o-document-magnifying-glass class="w-8 h-8 text-gray-200 mx-auto mb-3" />
-                    <p class="text-xs text-gray-400 font-medium uppercase tracking-widest">No Approval Rules Defined</p>
+                <div class="flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-3xl bg-gray-50/30">
+                    <div class="w-16 h-16 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-center mb-4">
+                        <x-filament::icon icon="heroicon-o-document-magnifying-glass" class="w-8 h-8 text-gray-200" />
+                    </div>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">No signature workflow defined</p>
                 </div>
             @endforelse
         </div>

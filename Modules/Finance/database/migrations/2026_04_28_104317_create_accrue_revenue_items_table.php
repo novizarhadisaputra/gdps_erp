@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create(config('database.default') === 'sqlite' ? 'accrue_revenue_items' : 'finance.accrue_revenue_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('accrue_revenue_id')->constrained(config('database.default') === 'sqlite' ? 'accrue_revenues' : 'finance.accrue_revenues')->cascadeOnDelete();
+            $table->string('type')->default('revenue');
             $table->foreignUuid('revenue_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_types' : 'master_data.revenue_types')->nullOnDelete();
             $table->decimal('amount_estimated', 15, 2)->default(0);
             $table->decimal('amount_actual', 15, 2)->default(0);
@@ -25,6 +26,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->foreignUuid('revenue_chart_of_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts')->nullOnDelete();
             $table->foreignUuid('expense_chart_of_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts')->nullOnDelete();
+            $table->foreignUuid('accrual_chart_of_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts')->nullOnDelete();
+            $table->foreignUuid('accrued_expense_chart_of_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

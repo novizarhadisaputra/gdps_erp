@@ -35,7 +35,7 @@ class SalesOrderInfolist
                                             ->date(),
                                         TextEntry::make('type')
                                             ->badge(),
-                                        TextEntry::make('project.code')
+                                        TextEntry::make('project.number')
                                             ->label('Referenced Project')
                                             ->color('primary'),
                                         TextEntry::make('proposal.number')
@@ -93,7 +93,7 @@ class SalesOrderInfolist
                                     ->label('Grand Total (After Tax)')
                                     ->state(function (SalesOrder $record) {
                                         $subtotal = (float) $record->amount;
-                                        $taxAmount = $record->tax ? $record->tax->calculateTax($subtotal) : round($subtotal * (($record->tax_percentage ?? 11) / 100));
+                                        $taxAmount = $record->tax ? $record->tax->calculateTax($subtotal) : floor($subtotal * (($record->tax_percentage ?? 12) / 100));
 
                                         return $subtotal + $taxAmount;
                                     })

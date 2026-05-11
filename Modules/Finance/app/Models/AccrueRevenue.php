@@ -79,4 +79,14 @@ class AccrueRevenue extends Model
     {
         return $this->hasMany(AccrueRevenueItem::class);
     }
+
+    public function revenueItems(): HasMany
+    {
+        return $this->hasMany(AccrueRevenueItem::class)->where('type', 'revenue');
+    }
+
+    public function expenseItems(): HasMany
+    {
+        return $this->hasMany(AccrueRevenueItem::class)->where('type', 'expense');
+    }
 }

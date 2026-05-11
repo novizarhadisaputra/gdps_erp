@@ -32,9 +32,7 @@ class AccountMappingsTable
                         }
 
                         return '-';
-                    })
-                    ->searchable()
-                    ->sortable(),
+                    }),
                 TextColumn::make('mappable.name')
                     ->label('Project Area')
                     ->state(function (AccountMapping $record) {

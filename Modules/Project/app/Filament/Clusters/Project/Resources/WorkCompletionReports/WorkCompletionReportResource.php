@@ -49,6 +49,7 @@ class WorkCompletionReportResource extends Resource
             Pages\EditWorkCompletionReport::class,
             Pages\GenerateFinancialDocuments::class,
             Pages\SendWorkCompletionReport::class,
+            Pages\ManageWorkCompletionReportComments::class,
         ]);
     }
 
@@ -76,6 +77,7 @@ class WorkCompletionReportResource extends Resource
             'edit' => EditWorkCompletionReport::route('/{record}/edit'),
             'send' => SendWorkCompletionReport::route('/{record}/send'),
             'generate-financial-documents' => Pages\GenerateFinancialDocuments::route('/{record}/generate-financial-documents'),
+            'discussions' => Pages\ManageWorkCompletionReportComments::route('/{record}/discussions'),
         ];
     }
 }

@@ -65,52 +65,50 @@ class ViewProposal extends ViewRecord
                     return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
 
-            Action::make('signProposal')
-                ->label('Sign Proposal')
-                ->color('success')
-                ->icon(Heroicon::OutlinedCheckCircle)
-                ->requiresConfirmation()
-                ->modalHeading('Sign & Approve Proposal')
-                ->schema([
-                    TextInput::make('pin')
-                        ->label('Signature PIN')
-                        ->password()
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $service = app(SignatureService::class);
-                    if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                        Notification::make()->title('Incorrect PIN')->danger()->send();
-
-                        return;
-                    }
-
-                    // Record the signature directly
-                    $this->record->addSignature(
-                        auth()->user(),
-                        ApprovalSignatureType::Approver,
-                        'Account Manager'
-                    );
-
-                    // Directly update status to Sent
-                    $this->record->update(['status' => ProposalStatus::Sent]);
-
-                    Notification::make()
-                        ->title('Proposal Signed Internally')
-                        ->body('The proposal is now ready to be sent to the customer.')
-                        ->success()
-                        ->send();
-
-                    $this->refreshFormData(['status']);
-                })
-                ->visible(function () {
-                    $isSubmitted = $this->record->status === ProposalStatus::Submitted;
-                    $isOwner = auth()->id() == $this->record->lead?->user_id;
-
-                    return $isSubmitted && $isOwner;
-                }),
-
             ActionGroup::make([
+                Action::make('signProposal')
+                    ->label('Sign Proposal')
+                    ->color('success')
+                    ->icon(Heroicon::OutlinedCheckCircle)
+                    ->requiresConfirmation()
+                    ->modalHeading('Sign & Approve Proposal')
+                    ->schema([
+                        TextInput::make('pin')
+                            ->label('Signature PIN')
+                            ->password()
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $service = app(SignatureService::class);
+                        if (! $service->verifyPin(auth()->user(), $data['pin'])) {
+                            Notification::make()->title('Incorrect PIN')->danger()->send();
+
+                            return;
+                        }
+
+                        // Record the signature directly
+                        $this->record->addSignature(
+                            auth()->user(),
+                            ApprovalSignatureType::Approver,
+                            'Account Manager'
+                        );
+
+                        Notification::make()
+                            ->title('Proposal Signed')
+                            ->body('The signature has been successfully recorded.')
+                            ->success()
+                            ->send();
+
+                        $this->refreshFormData(['status']);
+                    })
+                    ->visible(function () {
+                        $isSubmitted = $this->record->status === ProposalStatus::Submitted;
+                        $isOwner = auth()->id() == $this->record->lead?->user_id;
+                        $alreadySigned = $this->record->signatures()->where('user_id', auth()->id())->exists();
+
+                        return $isSubmitted && $isOwner && ! $alreadySigned;
+                    }),
+
                 Action::make('incompleteWarning')
                     ->label('Submit')
                     ->color('gray')
@@ -178,7 +176,7 @@ class ViewProposal extends ViewRecord
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
                     ]))
-                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Sent, ProposalStatus::Approved]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? true)),
+                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Sent, ProposalStatus::Approved, ProposalStatus::Submitted]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? true)),
 
                 Action::make('revise')
                     ->label('Revise Proposal')

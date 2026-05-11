@@ -1,16 +1,14 @@
 <?php
 
-namespace Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\Pages;
+namespace Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\Pages;
 
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Support\Icons\Heroicon;
-use Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\WorkCompletionReportResource;
+use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource;
 
 class ManageWorkCompletionReportComments extends ManageRelatedRecords
 {
     protected static string $resource = WorkCompletionReportResource::class;
-
-    protected static ?string $relatedResource = null;
 
     protected static string $relationship = 'comments';
 

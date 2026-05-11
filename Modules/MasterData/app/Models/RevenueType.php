@@ -20,6 +20,7 @@ class RevenueType extends Model
         'code',
         'is_active',
         'is_default',
+        'applicable_to',
     ];
 
     protected function casts(): array
@@ -27,6 +28,7 @@ class RevenueType extends Model
         return [
             'is_active' => 'boolean',
             'is_default' => 'boolean',
+            'applicable_to' => 'array',
         ];
     }
 }

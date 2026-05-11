@@ -36,6 +36,14 @@ class WorkCompletionReportObserver
                 $report->project_area_id = $report->sourceable->project->project_area_id;
             }
         }
+
+        if (empty($report->product_cluster_id)) {
+            if ($report->project?->product_cluster_id) {
+                $report->product_cluster_id = $report->project->product_cluster_id;
+            } elseif ($report->sourceable?->project?->product_cluster_id) {
+                $report->product_cluster_id = $report->sourceable->project->product_cluster_id;
+            }
+        }
     }
 
     /**
@@ -43,8 +51,42 @@ class WorkCompletionReportObserver
      */
     public function saving(WorkCompletionReport $report): void
     {
-        if (is_array($report->items)) {
-            $report->total_amount = collect($report->items)->sum('total_price');
+        $itemsData = is_array($report->items) && isset($report->items['id']) ? $report->items['id'] : ($report->items ?? []);
+
+        if (! empty($itemsData)) {
+            $items = collect($itemsData);
+            $report->total_amount = $items->sum('total_price');
+
+            // Auto-calculate Tax if not manually set or to keep it in sync
+            $basis = $report->tax_basis ?? 'total';
+            $baseAmount = 0;
+
+            if ($basis === 'total') {
+                $baseAmount = $report->total_amount;
+            } elseif ($basis === 'management_fee') {
+                $mfSum = $items->sum('management_fee');
+
+                if ($mfSum <= 0) {
+                    // Fallback logic to find management fee from items (matching form logic)
+                    $mfSum = $items->filter(function ($item) {
+                        $name = strtolower($item['item_name'] ?? $item['work_measurement'] ?? '');
+
+                        return str_contains($name, 'management fee') || str_contains($name, 'fee management');
+                    })->sum('total_price');
+                }
+                $baseAmount = $mfSum;
+            } else {
+                $baseAmount = $report->tax_base_amount ?? 0;
+            }
+
+            $report->tax_base_amount = $baseAmount;
+
+            if ($report->tax_id && $report->tax) {
+                $report->tax_amount = $report->tax->calculateTax($baseAmount);
+            } else {
+                $percentage = (float) ($report->tax_percentage ?? 12);
+                $report->tax_amount = floor($baseAmount * ($percentage / 100));
+            }
         }
 
         if (empty($report->snapshot) && $report->sourceable && isset($report->sourceable->snapshot)) {

@@ -54,8 +54,12 @@ class Tax extends Model
         $denominator = (int) ($this->base_rate_denominator ?? 1);
         $rate = (float) ($this->rate ?? 0);
 
-        // Standard calculation: Amount * Ratio * (Rate / 100)
-        return round($amount * ($numerator / $denominator) * ($rate / 100));
+        return match ($this->calculation_type) {
+            'inclusive' => floor($amount * ($rate / (100 + $rate))),
+            'formula' => floor(floor($amount * ($numerator / $denominator)) * ($rate / 100)),
+            // 'exclusive' and default use the standard CoreTax approach
+            default => floor($amount * ($rate / 100)),
+        };
     }
 
     public function getTaxLabelAttribute(): string

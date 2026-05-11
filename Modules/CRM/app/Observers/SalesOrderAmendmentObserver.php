@@ -95,7 +95,7 @@ class SalesOrderAmendmentObserver
                     $taxVal = $so->tax->calculateTax($totalServiceMonth + $mgtFeeVal);
                 } else {
                     $taxRate = (float) ($so->tax_percentage ?? 11);
-                    $taxVal = round(($totalServiceMonth + $mgtFeeVal) * ($taxRate / 100), 0);
+                    $taxVal = floor(($totalServiceMonth + $mgtFeeVal) * ($taxRate / 100));
                 }
                 $newGrandTotal = round($totalServiceMonth + $mgtFeeVal + $taxVal, 0);
 
@@ -105,7 +105,7 @@ class SalesOrderAmendmentObserver
                         'manpower_details' => $allManpower,
                         'pa_revision_number' => $after['pa_revision_number'] ?? ($so->content_config['pa_revision_number'] ?? 0),
                     ]),
-                    'amount' => $newGrandTotal,
+                    'amount' => $totalServiceMonth + $mgtFeeVal,
                     'manpower_initial_qty' => collect($allManpower)->sum('quantity'),
                 ]);
             }

@@ -50,7 +50,7 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
                 'ams' => $pa->lead?->salesPlan?->ams?->name ?? $pa->ams?->name ?? $pa->lead?->ams?->name ?? '-',
                 'customer' => $pa->customer?->name ?? '-',
                 'project_name' => $pa->lead?->title ?? '-',
-                'project_code' => $pa->project?->code ?? $pa->lead?->salesPlan?->project_code ?? '-',
+                'project_code' => $pa->project?->number ?? $pa->lead?->salesPlan?->project_code ?? '-',
                 'revision' => sprintf('%02d', $pa->revision_number ?? 0),
                 'start_date' => $pa->start_date?->format('d-M-y') ?? '-',
                 'end_date' => $pa->end_date?->format('d-M-y') ?? '-',
