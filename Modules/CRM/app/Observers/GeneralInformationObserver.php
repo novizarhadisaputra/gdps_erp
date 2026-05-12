@@ -29,6 +29,7 @@ class GeneralInformationObserver
         $info->year = $year;
         $info->sequence_number = $sequence;
         $info->number = sprintf('GDPS/UB/GI-%03d/%s', $sequence, $shortYear);
+        $info->user_id = auth()->id();
     }
 
     /**

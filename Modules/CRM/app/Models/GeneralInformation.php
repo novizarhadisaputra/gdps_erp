@@ -67,6 +67,7 @@ class GeneralInformation extends Model implements HasMedia
         'sales_plan_id',
         'work_scheme_id',
         'tax_id',
+        'user_id',
     ];
 
     protected function casts(): array
@@ -141,6 +142,11 @@ class GeneralInformation extends Model implements HasMedia
     public function salesPlan(): BelongsTo
     {
         return $this->belongsTo(SalesPlan::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class);
     }
 
     /**

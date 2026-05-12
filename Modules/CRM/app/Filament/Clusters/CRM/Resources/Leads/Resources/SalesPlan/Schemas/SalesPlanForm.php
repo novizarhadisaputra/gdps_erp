@@ -288,11 +288,21 @@ class SalesPlanForm
                                             $average = $totalValue / $count;
                                             $months = [];
                                             $current = $start->copy();
+                                            $runningSum = 0;
+
                                             for ($i = 0; $i < $count; $i++) {
+                                                if ($i === $count - 1) {
+                                                    // Last month: adjustment to match total
+                                                    $amount = $totalValue - $runningSum;
+                                                } else {
+                                                    $amount = round($average, 2);
+                                                    $runningSum += $amount;
+                                                }
+
                                                 $months[] = [
                                                     'month' => $current->format('F Y'),
-                                                    'budget_amount' => round($average, 2),
-                                                    'forecast_amount' => round($average, 2),
+                                                    'budget_amount' => $amount,
+                                                    'forecast_amount' => $amount,
                                                 ];
                                                 $current->addMonth();
                                             }
@@ -350,10 +360,18 @@ class SalesPlanForm
                                             $current = $cycleEnd->copy()->addDay();
                                         }
 
-                                        // Round amounts
-                                        foreach ($distribution as &$item) {
-                                            $item['budget_amount'] = round($item['budget_amount'], 2);
-                                            $item['forecast_amount'] = round($item['forecast_amount'], 2);
+                                        // Round amounts and ensure total matches
+                                        $runningSum = 0;
+                                        $count = count($distribution);
+                                        foreach ($distribution as $index => &$item) {
+                                            if ($index === $count - 1) {
+                                                $item['budget_amount'] = round($totalValue - $runningSum, 2);
+                                                $item['forecast_amount'] = round($totalValue - $runningSum, 2);
+                                            } else {
+                                                $item['budget_amount'] = round($item['budget_amount'], 2);
+                                                $item['forecast_amount'] = round($item['forecast_amount'], 2);
+                                                $runningSum += $item['budget_amount'];
+                                            }
                                         }
 
                                         $set('revenue_distribution_planning', $distribution);
