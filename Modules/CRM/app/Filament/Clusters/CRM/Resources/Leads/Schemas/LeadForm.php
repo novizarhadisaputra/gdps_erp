@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Schemas;
 
 use App\Models\User;
+use App\Traits\ParsesCurrency;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -31,6 +32,8 @@ use Modules\MasterData\Models\RevenueSegment;
 
 class LeadForm
 {
+    use ParsesCurrency;
+
     public static function schema(): array
     {
         return [
@@ -153,7 +156,7 @@ class LeadForm
                                 ->relationship(
                                     name: 'projectArea',
                                     titleAttribute: 'name',
-                                    modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where('customers.id', $get('customer_id')))
+                                    modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where($q->qualifyColumn('id'), $get('customer_id')))
                                 )
                                 ->searchable()
                                 ->preload()
@@ -229,20 +232,5 @@ class LeadForm
         return $schema
             ->model(Lead::class)
             ->components(static::schema());
-    }
-
-    protected static function parseCurrency($value): float
-    {
-        if (! $value) {
-            return 0;
-        }
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        $clean = str_replace('.', '', $value);
-        $clean = str_replace(',', '.', $clean);
-
-        return (float) $clean;
     }
 }

@@ -53,7 +53,7 @@ class LeadResourceTest extends TestCase
             'record' => $lead->getRouteKey(),
         ])
             ->set('data.customer_id', $customer->id)
-            ->assertFormSet([
+            ->assertSchemaStateSet([
                 'title' => 'PT Testing Indonesia Lead',
             ]);
     }
@@ -137,7 +137,7 @@ class LeadResourceTest extends TestCase
             ->call('save')
             ->assertHasNoFormErrors();
 
-        $this->assertDatabaseHas('leads', [
+        $this->assertDatabaseHas(Lead::class, [
             'id' => $lead->id,
             'estimated_amount' => 1500000,
         ]);

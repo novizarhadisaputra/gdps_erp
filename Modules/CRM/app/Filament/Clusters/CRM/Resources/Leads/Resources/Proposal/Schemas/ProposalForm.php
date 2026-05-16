@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\Schemas;
 
+use App\Traits\ParsesCurrency;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
@@ -26,6 +27,8 @@ use Modules\MasterData\Enums\Gender;
 
 class ProposalForm
 {
+    use ParsesCurrency;
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -394,20 +397,5 @@ class ProposalForm
                 ])
                 ->columnSpanFull(),
         ];
-    }
-
-    protected static function parseCurrency($value): float
-    {
-        if (! $value) {
-            return 0;
-        }
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        $clean = str_replace('.', '', $value);
-        $clean = str_replace(',', '.', $clean);
-
-        return (float) $clean;
     }
 }

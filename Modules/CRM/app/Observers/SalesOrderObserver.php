@@ -3,7 +3,6 @@
 namespace Modules\CRM\Observers;
 
 use Modules\CRM\Enums\SalesOrderStatus;
-use Modules\CRM\Enums\SalesOrderType;
 use Modules\CRM\Models\SalesOrder;
 
 class SalesOrderObserver

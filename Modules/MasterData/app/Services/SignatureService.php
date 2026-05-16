@@ -10,7 +10,7 @@ use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
-use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformations\GeneralInformationResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\MinutesOfAgreements\MinutesOfAgreementResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\ProposalResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendments\AmendmentResource;

@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\SalesPlan\Schemas;
 
+use App\Traits\ParsesCurrency;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -38,6 +39,8 @@ use Modules\MasterData\Models\SkillCategory;
 
 class SalesPlanForm
 {
+    use ParsesCurrency;
+
     public static function configure(Schema $schema): Schema
     {
         return $schema
@@ -125,7 +128,7 @@ class SalesPlanForm
                                                 ? $livewire->getOwnerRecord()->customer_id
                                                 : null;
 
-                                            return $query->when($customerId, fn ($q) => $q->whereHas('customers', fn ($c) => $c->where('customers.id', $customerId)));
+                                            return $query->when($customerId, fn ($q) => $q->whereHas('customers', fn ($c) => $c->where($c->qualifyColumn('id'), $customerId)));
                                         }
                                     )
                                     ->required()
@@ -457,21 +460,5 @@ class SalesPlanForm
                     ]),
             ])->columnSpanFull()->persistStepInQueryString(),
         ];
-    }
-
-    protected static function parseCurrency($value): float
-    {
-        if (! $value) {
-            return 0;
-        }
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        // Remove dots (thousand separator) and replace comma with dot (decimal separator)
-        $clean = str_replace('.', '', $value);
-        $clean = str_replace(',', '.', $clean);
-
-        return (float) $clean;
     }
 }

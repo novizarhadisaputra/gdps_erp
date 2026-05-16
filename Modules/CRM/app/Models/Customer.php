@@ -109,6 +109,6 @@ class Customer extends Model implements HasMedia
 
     public function projectAreas(): BelongsToMany
     {
-        return $this->belongsToMany(ProjectArea::class, config('database.default') === 'sqlite' ? 'customer_project_area' : 'crm.customer_project_area');
+        return $this->belongsToMany(ProjectArea::class, config('database.default') === 'sqlite' ? 'crm_customer_project_area' : 'crm.customer_project_area');
     }
 }

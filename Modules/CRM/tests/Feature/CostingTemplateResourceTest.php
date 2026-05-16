@@ -5,6 +5,7 @@ namespace Modules\CRM\Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Modules\CRM\Models\CostingTemplate;
+use Modules\CRM\Models\CostingTemplateItem;
 use Modules\CRM\Models\Lead;
 use Modules\MasterData\Models\Item;
 use Tests\TestCase;
@@ -38,7 +39,7 @@ class CostingTemplateResourceTest extends TestCase
             )
             ->assertHasNoFormErrors();
 
-        $this->assertDatabaseHas('costing_templates', [
+        $this->assertDatabaseHas(CostingTemplate::class, [
             'lead_id' => $lead->id,
             'name' => 'Template for Lead',
         ]);
@@ -67,7 +68,7 @@ class CostingTemplateResourceTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Nested Item');
 
-        $this->assertDatabaseHas('costing_template_items', [
+        $this->assertDatabaseHas(CostingTemplateItem::class, [
             'costing_template_id' => $template->id,
             'name' => 'Nested Item',
             'quantity' => 2,

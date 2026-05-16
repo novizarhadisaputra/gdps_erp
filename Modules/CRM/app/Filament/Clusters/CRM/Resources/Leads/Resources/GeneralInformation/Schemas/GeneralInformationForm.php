@@ -77,8 +77,8 @@ class GeneralInformationForm
                                 ->relationship(
                                     name: 'projectArea',
                                     titleAttribute: 'name',
-                                    modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where('customers.id', $get('customer_id')))
-                                        ->orWhere('project_areas.id', $get('project_area_id'))
+                                    modifyQueryUsing: fn ($query, Get $get) => $query->whereHas('customers', fn ($q) => $q->where($q->qualifyColumn('id'), $get('customer_id')))
+                                        ->orWhere($query->qualifyColumn('id'), $get('project_area_id'))
                                 )
                                 ->label('Project Area')
                                 ->searchable()

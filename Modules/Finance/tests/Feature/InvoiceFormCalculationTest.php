@@ -99,7 +99,7 @@ class InvoiceFormCalculationTest extends TestCase
             'summary' => [
                 'total_price' => 1000,
                 'total_cost' => 850,
-            ]
+            ],
         ];
 
         Livewire::test(EditInvoice::class, [

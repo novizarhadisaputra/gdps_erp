@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Collection;
 use Modules\CRM\Models\Customer;
 use Modules\Finance\Models\AccountMapping;
 use Modules\MasterData\Database\Factories\ProjectAreaFactory;
@@ -47,7 +49,7 @@ class ProjectArea extends Model
 
     public function customers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Customer::class, config('database.default') === 'sqlite' ? 'customer_project_area' : 'crm.customer_project_area');
+        return $this->belongsToMany(Customer::class, config('database.default') === 'sqlite' ? 'crm_customer_project_area' : 'crm.customer_project_area');
     }
 
     public function parentable(): \Illuminate\Database\Eloquent\Relations\MorphTo
@@ -70,7 +72,7 @@ class ProjectArea extends Model
         return $this->belongsTo(Regency::class);
     }
 
-    public function accountMappings(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    public function accountMappings(): MorphMany
     {
         return $this->morphMany(AccountMapping::class, 'mappable');
     }
@@ -78,7 +80,7 @@ class ProjectArea extends Model
     /**
      * Get the root customer for this project area by traversing up the parentable hierarchy.
      */
-    public function getCustomer(): ?\Modules\CRM\Models\Customer
+    public function getCustomer(): ?Customer
     {
         if ($this->parentable_type === self::class && $this->parentable) {
             return $this->parentable->getCustomer();
@@ -90,9 +92,9 @@ class ProjectArea extends Model
     /**
      * Get all descendant project areas for a given parentable or customer.
      */
-    public static function getAllDescendantsFor(\Illuminate\Database\Eloquent\Model $parentable): \Illuminate\Support\Collection
+    public static function getAllDescendantsFor(Model $parentable): Collection
     {
-        if ($parentable instanceof \Modules\CRM\Models\Customer) {
+        if ($parentable instanceof Customer) {
             $rootAreas = $parentable->projectAreas()->get();
             $all = collect($rootAreas);
 

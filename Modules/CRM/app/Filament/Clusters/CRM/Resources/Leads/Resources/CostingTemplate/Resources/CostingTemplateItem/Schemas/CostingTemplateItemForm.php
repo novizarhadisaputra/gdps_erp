@@ -2,6 +2,7 @@
 
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Schemas;
 
+use App\Traits\ParsesCurrency;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -9,12 +10,18 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\CostingCategory;
 use Modules\CRM\Enums\DepreciationMethod;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Items\Schemas\ItemForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\UnitsOfMeasure\Schemas\UnitOfMeasureForm;
 use Modules\MasterData\Models\Item;
+use Modules\MasterData\Models\UnitOfMeasure;
 
 class CostingTemplateItemForm
 {
+    use ParsesCurrency;
+
     public static function configure(Schema $schema): Schema
     {
         return $schema->components(static::schema());
@@ -28,17 +35,17 @@ class CostingTemplateItemForm
                     Grid::make(3)
                         ->schema([
                             Select::make('category')
-                                ->options(collect(\Modules\CRM\Enums\CostingCategory::cases())
+                                ->options(collect(CostingCategory::cases())
                                     ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
                                     ->toArray())
                                 ->required()
                                 ->live(),
                             Select::make('depreciation_method')
                                 ->label('Depreciation Method')
-                                ->options(collect(\Modules\CRM\Enums\DepreciationMethod::cases())
+                                ->options(collect(DepreciationMethod::cases())
                                     ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
                                     ->toArray())
-                                ->default(\Modules\CRM\Enums\DepreciationMethod::StraightLine)
+                                ->default(DepreciationMethod::StraightLine)
                                 ->required()
                                 ->live()
                                 ->helperText(function (Get $get) {
@@ -56,7 +63,7 @@ class CostingTemplateItemForm
                                 })
                                 ->afterStateUpdated(function (Get $get, Set $set) {
                                     self::calculate($get, $set);
-                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                    CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             Select::make('item_id')
                                 ->label('Material/Asset')
@@ -86,7 +93,7 @@ class CostingTemplateItemForm
                                         }
                                         $set('depreciation_months', $depreciation ?? 1);
                                         self::calculate($get, $set);
-                                        \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                        CostingTemplateForm::updateTotals($get, $set);
                                     }
                                 }),
                         ]),
@@ -95,13 +102,7 @@ class CostingTemplateItemForm
                         ->live()
                         ->dehydrated()
                         ->maxLength(255),
-                    TextInput::make('unit')
-                        ->label('UOM')
-                        ->placeholder('e.g. Unit, Pcs, Org')
-                        ->live()
-                        ->dehydrated()
-                        ->maxLength(255),
-                    Grid::make(3)
+                    Grid::make(2)
                         ->schema([
                             TextInput::make('quantity')
                                 ->numeric()
@@ -110,8 +111,27 @@ class CostingTemplateItemForm
                                 ->live(onBlur: true)
                                 ->afterStateUpdated(function (Get $get, Set $set) {
                                     self::calculate($get, $set);
-                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                    CostingTemplateForm::updateTotals($get, $set);
                                 }),
+                            Select::make('unit')
+                                ->label('UOM')
+                                ->placeholder('Select or create UoM')
+                                ->options(function () {
+                                    return UnitOfMeasure::pluck('name', 'name')->toArray();
+                                })
+                                ->searchable()
+                                ->createOptionForm(UnitOfMeasureForm::schema())
+                                ->createOptionUsing(function (array $data): string {
+                                    $uom = UnitOfMeasure::create($data);
+
+                                    return $uom->name;
+                                })
+                                ->live()
+                                ->dehydrated(),
+                        ]),
+                    Grid::make(3)
+                        ->schema([
+
                             TextInput::make('unit_price')
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR')
@@ -119,7 +139,7 @@ class CostingTemplateItemForm
                                 ->live(onBlur: true)
                                 ->afterStateUpdated(function (Get $get, Set $set) {
                                     self::calculate($get, $set);
-                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                    CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             TextInput::make('depreciation_months')
                                 ->label('Depreciation (Months)')
@@ -129,7 +149,7 @@ class CostingTemplateItemForm
                                 ->live(onBlur: true)
                                 ->afterStateUpdated(function (Get $get, Set $set) {
                                     self::calculate($get, $set);
-                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                    CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             TextInput::make('markup_percent')
                                 ->label('Markup %')
@@ -139,7 +159,7 @@ class CostingTemplateItemForm
                                 ->live(onBlur: true)
                                 ->afterStateUpdated(function (Get $get, Set $set) {
                                     self::calculate($get, $set);
-                                    \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas\CostingTemplateForm::updateTotals($get, $set);
+                                    CostingTemplateForm::updateTotals($get, $set);
                                 }),
                         ]),
                     Grid::make(3)
@@ -173,7 +193,7 @@ class CostingTemplateItemForm
     protected static function calculate(Get $get, Set $set): void
     {
         $qty = (float) $get('quantity');
-        $price = (float) $get('unit_price');
+        $price = self::parseCurrency($get('unit_price'));
         $markupPercent = (float) $get('markup_percent');
         $deprMonths = (float) $get('depreciation_months');
         $method = $get('depreciation_method');

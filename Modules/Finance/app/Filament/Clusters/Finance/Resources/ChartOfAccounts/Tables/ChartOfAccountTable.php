@@ -2,8 +2,8 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ChartOfAccounts\Tables;
 
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 class ChartOfAccountTable

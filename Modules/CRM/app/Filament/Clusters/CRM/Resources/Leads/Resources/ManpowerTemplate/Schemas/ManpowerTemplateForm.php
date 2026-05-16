@@ -64,7 +64,7 @@ class ManpowerTemplateForm
                                         ? $livewire->getOwnerRecord()->customer_id
                                         : null;
 
-                                    return $query->when($customerId, fn ($q) => $q->whereHas('customers', fn ($c) => $c->where('customers.id', $customerId)));
+                                    return $query->when($customerId, fn ($q) => $q->whereHas('customers', fn ($c) => $c->where($c->qualifyColumn('id'), $customerId)));
                                 }
                             )
                             ->searchable()

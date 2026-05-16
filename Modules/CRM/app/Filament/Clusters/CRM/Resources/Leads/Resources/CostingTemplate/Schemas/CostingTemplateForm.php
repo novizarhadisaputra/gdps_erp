@@ -3,6 +3,7 @@
 namespace Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Schemas;
 
 use App\Models\User;
+use App\Traits\ParsesCurrency;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -20,6 +21,8 @@ use Modules\CRM\Models\Lead;
 
 class CostingTemplateForm
 {
+    use ParsesCurrency;
+
     public static function getAutoFillData(Lead $lead): array
     {
         $latestGi = $lead->generalInformations()->latest('created_at')->first();
@@ -189,20 +192,5 @@ class CostingTemplateForm
         } else {
             $set('margin_percentage', 0);
         }
-    }
-
-    protected static function parseCurrency($value): float
-    {
-        if (! $value) {
-            return 0;
-        }
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        $clean = str_replace('.', '', $value);
-        $clean = str_replace(',', '.', $clean);
-
-        return (float) $clean;
     }
 }

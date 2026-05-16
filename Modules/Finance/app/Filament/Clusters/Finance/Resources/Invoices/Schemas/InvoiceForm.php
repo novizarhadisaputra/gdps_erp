@@ -56,6 +56,7 @@ class InvoiceForm
         $amount = collect($activeItems)->sum(function ($item) {
             $qty = self::parseNumber($item['quantity'] ?? 0);
             $price = self::parseNumber($item['unit_price'] ?? 0);
+
             return $qty * $price;
         });
 
@@ -78,13 +79,14 @@ class InvoiceForm
     public static function resolveBaseAmount(?string $basis, Get $get): float
     {
         $basis = $basis ?? 'total';
-        
+
         // Dynamically calculate amount from items to avoid readonly dehydration issues
         $items = $get('items') ?? $get('../../items') ?? [];
         $activeItems = is_array($items) && isset($items['id']) ? $items['id'] : $items;
         $amount = collect($activeItems)->sum(function ($item) {
             $qty = self::parseNumber($item['quantity'] ?? 0);
             $price = self::parseNumber($item['unit_price'] ?? 0);
+
             return $qty * $price;
         });
 
@@ -99,7 +101,7 @@ class InvoiceForm
                 $totalPrice = (float) ($snapshot['summary']['total_price'] ?? 0);
                 $totalCost = (float) ($snapshot['summary']['total_cost'] ?? 0);
                 $fee = $totalPrice - $totalCost;
-                
+
                 if ($fee > 0) {
                     return $fee;
                 }
@@ -118,6 +120,7 @@ class InvoiceForm
             })->sum(function ($item) {
                 $qty = self::parseNumber($item['quantity'] ?? 0);
                 $price = self::parseNumber($item['unit_price'] ?? 0);
+
                 return $qty * $price;
             });
         }
