@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'units' : 'master_data.units', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_units' : 'master_data.units', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('external_id')->nullable()->index();
             $table->string('code')->nullable();
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'units' : 'master_data.units');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_units' : 'master_data.units');
     }
 };

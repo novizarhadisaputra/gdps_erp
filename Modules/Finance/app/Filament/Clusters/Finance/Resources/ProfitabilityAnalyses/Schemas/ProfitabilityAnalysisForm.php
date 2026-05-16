@@ -497,7 +497,7 @@ class ProfitabilityAnalysisForm
                             })
                             ->html()
                             ->visible(function (Get $get) {
-                                return (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'));
+                                return (bool) $get('analysis_details.manpower_template_id');
                             }),
 
                         TextEntry::make('manpower_preview')
@@ -507,16 +507,48 @@ class ProfitabilityAnalysisForm
                             })
                             ->html()
                             ->visible(function (Get $get) {
-                                return ! (bool) $get('is_manual_cost') && filled($get('analysis_details.manpower_template_id'));
+                                $templateId = $get('analysis_details.manpower_template_id');
+                                if (! $templateId) {
+                                    return false;
+                                }
+
+                                $templateId = $get('analysis_details.manpower_template_id');
+                                if (! $templateId) {
+                                    return false;
+                                }
+
+                                $template = self::getCachedModel(ManpowerTemplate::class, $templateId);
+
+                                return $template && $template->items()->exists();
                             }),
 
                         Repeater::make('manpowerItems')
+                            ->label('Personnel Details')
                             ->schema([
-                                TextInput::make('job_position'),
-                                TextInput::make('quantity'),
-                                TextInput::make('total_monthly_cost'),
+                                Grid::make(4)
+                                    ->schema([
+                                        Select::make('job_position_id')
+                                            ->label('Job Position')
+                                            ->options(JobPosition::pluck('name', 'id'))
+                                            ->disabled()
+                                            ->columnSpan(2),
+                                        TextInput::make('quantity')
+                                            ->label('Qty')
+                                            ->numeric()
+                                            ->disabled()
+                                            ->columnSpan(1),
+                                        TextInput::make('total_monthly_cost')
+                                            ->label('Monthly Cost')
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->disabled()
+                                            ->columnSpan(1),
+                                    ]),
                             ])
-                            ->hidden()
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && ! empty($get('manpowerItems')))
                             ->dehydrated(),
                     ]),
 
@@ -558,23 +590,61 @@ class ProfitabilityAnalysisForm
                             ->label('Operational Costing Attachment')
                             ->state(fn (Get $get) => new HtmlString(self::getTemplateAttachmentLinkHtml($get('analysis_details.costing_template_id'), 'costing')))
                             ->html()
-                            ->visible(fn (Get $get) => (bool) $get('is_manual_cost') && filled($get('analysis_details.costing_template_id'))),
+                            ->visible(function (Get $get) {
+                                return (bool) $get('analysis_details.costing_template_id');
+                            }),
 
                         TextEntry::make('operational_preview')
                             ->label('Equipment & Material Summary')
                             ->state(fn (Get $get) => new HtmlString(self::getOperationalPreviewHtml($get('analysis_details.costing_template_id'))))
                             ->html()
                             ->visible(function (Get $get) {
-                                return ! (bool) $get('is_manual_cost') && filled($get('analysis_details.costing_template_id'));
+                                $templateId = $get('analysis_details.costing_template_id');
+                                if (! $templateId) {
+                                    return false;
+                                }
+
+                                $templateId = $get('analysis_details.costing_template_id');
+                                if (! $templateId) {
+                                    return false;
+                                }
+
+                                $template = self::getCachedModel(CostingTemplate::class, $templateId);
+
+                                return $template && $template->costingTemplateItems()->exists();
                             }),
 
                         Repeater::make('operationalItems')
+                            ->label('Equipment & Material Details')
                             ->schema([
-                                TextInput::make('item_name'),
-                                TextInput::make('quantity'),
-                                TextInput::make('total_monthly_cost'),
+                                Grid::make(5)
+                                    ->schema([
+                                        Select::make('costable_id')
+                                            ->label('Item/Packet')
+                                            ->options(Item::pluck('name', 'id'))
+                                            ->disabled()
+                                            ->columnSpan(2),
+                                        TextInput::make('quantity')
+                                            ->label('Qty')
+                                            ->numeric()
+                                            ->disabled()
+                                            ->columnSpan(1),
+                                        TextInput::make('unit_of_measure')
+                                            ->label('UoM')
+                                            ->disabled()
+                                            ->columnSpan(1),
+                                        TextInput::make('total_monthly_cost')
+                                            ->label('Monthly Cost')
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->disabled()
+                                            ->columnSpan(1),
+                                    ]),
                             ])
-                            ->hidden()
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && ! empty($get('operationalItems')))
                             ->dehydrated(),
                     ]),
 
@@ -737,10 +807,10 @@ class ProfitabilityAnalysisForm
                                         Repeater::make('sub_items')
                                             ->label('Sub-component Breakdown')
                                             ->schema([
-                                                Grid::make(4)
+                                                Grid::make(3)
                                                     ->schema([
                                                         Select::make('job_position_id')
-                                                            ->label('Master Job Position')
+                                                            ->label('Position')
                                                             ->options(JobPosition::pluck('name', 'id'))
                                                             ->searchable()
                                                             ->preload()
@@ -782,9 +852,8 @@ class ProfitabilityAnalysisForm
                                                                     }
                                                                 }
                                                             })
-                                                            ->placeholder('Select job position')
-                                                            ->helperText('Select from master data to auto-fill details.')
-                                                            ->columnSpan(2),
+                                                            ->placeholder('Select position')
+                                                            ->columnSpan(1),
 
                                                         Select::make('item_id')
                                                             ->label('Master Item')
@@ -808,62 +877,47 @@ class ProfitabilityAnalysisForm
                                                                     $set('unit_amount', $item?->price);
                                                                 }
                                                             })
-                                                            ->placeholder('Select equipment/material')
-                                                            ->helperText('Select from master data to auto-fill price and UoM.')
-                                                            ->columnSpan(2),
+                                                            ->placeholder('Select item')
+                                                            ->columnSpan(1),
 
                                                         TextInput::make('name')
-                                                            ->label('Sub-item Name')
+                                                            ->label('Name')
                                                             ->required()
-                                                            ->placeholder('e.g. Salary')
-                                                            ->helperText('The descriptive name of this specific cost component.')
-                                                            ->columnSpan(2),
+                                                            ->placeholder('Description')
+                                                            ->columnSpan(1),
+
                                                         TextInput::make('quantity')
                                                             ->label('Qty')
                                                             ->numeric()
                                                             ->default(1)
                                                             ->required()
-                                                            ->placeholder('1')
-                                                            ->helperText('Number of units or personnel.')
                                                             ->live(onBlur: true)
                                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateSubItemAmount($get, $set))
                                                             ->columnSpan(1),
-                                                        Select::make('unit_of_measure')
-                                                            ->label('UoM')
-                                                            ->options(UnitOfMeasure::pluck('name', 'name'))
-                                                            ->searchable()
-                                                            ->preload()
-                                                            ->placeholder('Org, Pcs')
-                                                            ->helperText('The unit of measure.')
-                                                            ->columnSpan(1),
+
                                                         TextInput::make('unit_amount')
-                                                            ->label('Monthly Unit Cost')
+                                                            ->label('Unit Cost')
                                                             ->numeric()
-                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2)
-                                                            ->prefix('IDR ')
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->prefix('Rp')
                                                             ->required()
-                                                            ->placeholder('0')
-                                                            ->helperText('Gross cost per unit/person before margin.')
                                                             ->live(onBlur: true)
-                                                            ->afterStateUpdated(function (Get $get, Set $set) {
-                                                                return self::calculateSubItemAmount($get, $set);
-                                                            })
+                                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateSubItemAmount($get, $set))
                                                             ->columnSpan(1),
+
                                                         TextInput::make('amount')
                                                             ->label('Total')
                                                             ->numeric()
                                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->prefix('IDR ')
+                                                            ->prefix('Rp')
                                                             ->readOnly()
-                                                            ->required()
                                                             ->columnSpan(1),
-
                                                     ]),
                                             ])
                                             ->collapsible()
                                             ->defaultItems(0)
                                             ->reorderableWithButtons()
-                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateIndirectCost($get, $set)),
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateDirectCost($get, $set)),
                                     ])
                                     ->columnSpanFull()
                                     ->itemLabel(fn (array $state): ?string => filled($state['direct_cost_category_id'] ?? null) ? DirectCostCategory::find($state['direct_cost_category_id'])?->name : 'New Manual Cost')
@@ -1141,6 +1195,7 @@ class ProfitabilityAnalysisForm
                                         return true;
                                     }
                                 }
+
                                 return false;
                             })
                             ->schema(function () {
@@ -1558,6 +1613,9 @@ class ProfitabilityAnalysisForm
             })->toArray();
 
             $set('manpowerItems', $items);
+
+            // Sync to the central manual costs summary immediately
+            self::syncItemsToManualCosts($get, $set, 'manpower');
         }
 
         self::calculateDirectCost($get, $set);
@@ -1566,8 +1624,8 @@ class ProfitabilityAnalysisForm
     public static function handleCostingTemplateSelection($state, Set $set, Get $get): void
     {
         if (! $state) {
-            $set('analysis_details.manual_costs', []);
             $set('analysis_details.costing_template_id', null);
+            $set('operationalItems', []);
 
             return;
         }
@@ -1577,61 +1635,23 @@ class ProfitabilityAnalysisForm
         if ($template) {
             $set('analysis_details.costing_template_id', $state);
 
-            $manualCosts = $get('analysis_details.manual_costs') ?: [];
-            $updatedManualCosts = $manualCosts;
+            // Populate the Operational Items repeater for UI consistency
+            $operationalItems = $template->costingTemplateItems->map(function ($templateItem) {
+                /** @var \Modules\CRM\Models\CostingTemplateItem $templateItem */
+                return [
+                    'costable_id' => $templateItem->item_id,
+                    'quantity' => $templateItem->quantity,
+                    'unit_cost_price' => $templateItem->unit_price_markup,
+                    'total_monthly_cost' => $templateItem->monthly_cost,
+                    'duration_months' => $templateItem->depreciation_months,
+                    'unit_of_measure' => $templateItem->unit ?? $templateItem->item?->unitOfMeasure?->name ?? 'Unit',
+                ];
+            })->toArray();
 
-            foreach ($template->costingTemplateItems as $templateItem) {
-                $item = $templateItem->item;
-                if (! $item) {
-                    continue;
-                }
+            $set('operationalItems', $operationalItems);
 
-                $directCostCategoryId = $item->direct_cost_category_id;
-                if (! $directCostCategoryId) {
-                    continue;
-                }
-
-                $existingIndex = -1;
-                foreach ($updatedManualCosts as $index => $mc) {
-                    if (($mc['direct_cost_category_id'] ?? null) == $directCostCategoryId) {
-                        $existingIndex = $index;
-                        break;
-                    }
-                }
-
-                $subItems = $item->subItems->map(function ($si) {
-                    /** @var \Modules\MasterData\Models\ItemSubItem $si */
-                    return [
-                        'name' => $si->name,
-                        'amount' => 0,
-                    ];
-                })->toArray();
-
-                if ($existingIndex >= 0) {
-                    $updatedManualCosts[$existingIndex]['amount'] = 0;
-                    $updatedManualCosts[$existingIndex]['description'] = 'Auto-filled from template: '.$template->name;
-                    $updatedManualCosts[$existingIndex]['sub_items'] = $subItems;
-                } else {
-                    $updatedManualCosts[] = [
-                        'direct_cost_category_id' => $directCostCategoryId,
-                        'amount' => 0,
-                        'description' => 'Auto-filled from template: '.$template->name,
-                        'sub_items' => $subItems,
-                    ];
-                }
-            }
-
-            // Final Deduplication by Category ID
-            $manualCosts = collect($updatedManualCosts)
-                ->groupBy('direct_cost_category_id')
-                ->map(function ($group) {
-                    /** @var \Illuminate\Support\Collection $group */
-                    return $group->last();
-                })
-                ->values()
-                ->toArray();
-
-            $set('analysis_details.manual_costs', $manualCosts);
+            // Sync to the central manual costs summary immediately
+            self::syncItemsToManualCosts($get, $set, 'operational');
         }
 
         self::calculateDirectCost($get, $set);
@@ -1857,25 +1877,25 @@ class ProfitabilityAnalysisForm
             </tr>';
         }
 
-        return "<div style='overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb;'>
-            <table style='width: 100%; border-collapse: collapse; font-size: 13px; font-family: inherit;'>
-                <thead>
-                    <tr style='background: #f9fafb;'>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: left; font-weight: 600; color: #374151;'>Job Position</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: center; font-weight: 600; color: #374151;'>Qty</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: right; font-weight: 600; color: #374151;'>Basic Salary</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: right; font-weight: 600; color: #374151;'>BPJS + Others</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: right; font-weight: 600; color: #059669;'>Total Monthly</th>
+        return "<div class='overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm'>
+            <table class='w-full border-collapse text-left text-sm'>
+                <thead class='bg-gray-50/50 dark:bg-gray-800/50'>
+                    <tr>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800'>Job Position</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 text-center'>Qty</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 text-right'>Basic Salary</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 text-right'>BPJS + Others</th>
+                        <th class='px-4 py-3 font-semibold text-primary-600 dark:text-primary-400 border-b border-gray-200 dark:border-gray-800 text-right'>Total Monthly</th>
                     </tr>
                 </thead>
-                <tbody>{$rows}</tbody>
-                <tfoot>
-                    <tr style='background: #f3f4f6; font-weight: bold;'>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px;'>TOTAL KALKULASI</td>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px; text-align: center;'>{$totalQuantity}</td>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px; text-align: right;'>Rp ".number_format($totalBasic, 0, ',', '.')."</td>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px; text-align: right;'>Rp ".number_format($totalBpjs, 0, ',', '.')."</td>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px; text-align: right; color: #059669;'>Rp ".number_format($totalAll, 0, ',', '.').'</td>
+                <tbody class='divide-y divide-gray-100 dark:divide-gray-800'>{$rows}</tbody>
+                <tfoot class='bg-gray-50/30 dark:bg-gray-800/30 font-bold'>
+                    <tr>
+                        <td class='px-4 py-3 text-gray-900 dark:text-gray-100'>TOTAL KALKULASI</td>
+                        <td class='px-4 py-3 text-center text-gray-900 dark:text-gray-100'>{$totalQuantity}</td>
+                        <td class='px-4 py-3 text-right text-gray-900 dark:text-gray-100'>Rp ".number_format($totalBasic, 0, ',', '.')."</td>
+                        <td class='px-4 py-3 text-right text-gray-900 dark:text-gray-100'>Rp ".number_format($totalBpjs, 0, ',', '.')."</td>
+                        <td class='px-4 py-3 text-right text-primary-600 dark:text-primary-400'>Rp ".number_format($totalAll, 0, ',', '.').'</td>
                     </tr>
                 </tfoot>
             </table>
@@ -1918,25 +1938,25 @@ class ProfitabilityAnalysisForm
             </tr>';
         }
 
-        return "<div style='overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb;'>
-            <table style='width: 100%; border-collapse: collapse; font-size: 13px; font-family: inherit;'>
-                <thead>
-                    <tr style='background: #f9fafb;'>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: left; font-weight: 600; color: #374151;'>Item/Packet</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: center; font-weight: 600; color: #374151;'>Qty</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: left; font-weight: 600; color: #374151;'>UoM</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: center; font-weight: 600; color: #374151;'>Depr.</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: right; font-weight: 600; color: #374151;'>Unit Price</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: right; font-weight: 600; color: #374151;'>Investment</th>
-                        <th style='border-bottom: 2px solid #e5e7eb; padding: 12px; text-align: right; font-weight: 600; color: #059669;'>Monthly Impact</th>
+        return "<div class='overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm'>
+            <table class='w-full border-collapse text-left text-sm'>
+                <thead class='bg-gray-50/50 dark:bg-gray-800/50'>
+                    <tr>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800'>Item/Packet</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 text-center'>Qty</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800'>UoM</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 text-center'>Depr.</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 text-right'>Unit Price</th>
+                        <th class='px-4 py-3 font-semibold text-gray-900 dark:text-gray-100 border-b border-gray-200 dark:border-gray-800 text-right'>Investment</th>
+                        <th class='px-4 py-3 font-semibold text-primary-600 dark:text-primary-400 border-b border-gray-200 dark:border-gray-800 text-right'>Monthly Impact</th>
                     </tr>
                 </thead>
-                <tbody>{$rows}</tbody>
-                <tfoot>
-                    <tr style='background: #f3f4f6; font-weight: bold;'>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px;' colspan='5'>TOTAL KALKULASI</td>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px; text-align: right;'>Rp ".number_format($totalInvestment, 0, ',', '.')."</td>
-                        <td style='border-top: 2px solid #e5e7eb; padding: 12px; text-align: right; color: #059669;'>Rp ".number_format($totalMonthlyImpact, 0, ',', '.').'</td>
+                <tbody class='divide-y divide-gray-100 dark:divide-gray-800'>{$rows}</tbody>
+                <tfoot class='bg-gray-50/30 dark:bg-gray-800/30 font-bold'>
+                    <tr>
+                        <td class='px-4 py-3 text-gray-900 dark:text-gray-100' colspan='5'>TOTAL KALKULASI</td>
+                        <td class='px-4 py-3 text-right text-gray-900 dark:text-gray-100'>Rp ".number_format($totalInvestment, 0, ',', '.')."</td>
+                        <td class='px-4 py-3 text-right text-primary-600 dark:text-primary-400'>Rp ".number_format($totalMonthlyImpact, 0, ',', '.').'</td>
                     </tr>
                 </tfoot>
             </table>
@@ -1957,51 +1977,62 @@ class ProfitabilityAnalysisForm
     protected static function syncItemsToManualCosts(Get $get, Set $set, string $type): void
     {
         $categoryCode = $type === 'manpower' ? 'manpower' : 'tools_equipment';
-        $categoryId = DirectCostCategory::where('code', $categoryCode)->first()?->id;
+        $category = DirectCostCategory::where('code', $categoryCode)->first();
 
-        if (! $categoryId) {
+        if (! $category) {
             return;
         }
 
-        $items = $get("../../{$type}Items") ?? [];
-        $manualCosts = $get('../../analysis_details.manual_costs') ?? [];
+        $categoryId = $category->id;
+
+        // Determine if we are inside a repeater or at top level
+        $itemsPath = "{$type}Items";
+        $manualCostsPath = 'analysis_details.manual_costs';
+
+        $items = $get($itemsPath) ?? [];
+        $manualCosts = $get($manualCostsPath) ?? [];
 
         $categoryIndex = collect($manualCosts)->search(fn ($c) => ($c['direct_cost_category_id'] ?? null) == $categoryId);
 
-        if ($categoryIndex !== false) {
-            $subItems = collect($items)->map(function ($item) {
-                /** @var array $item */
-                // If job position, get name
-                $name = 'Item';
-                if (! empty($item['costable_id'])) {
-                    $posId = $item['costable_id'] ?? null;
-                    $name = filled($posId) ? JobPosition::find($posId)?->name : 'Job Position';
+        $subItems = collect($items)->map(function ($item) use ($type) {
+            /** @var array $item */
+            $name = $item['name'] ?? 'Item';
+
+            // Resolve name if missing or from master data
+            if (empty($item['name'])) {
+                if ($type === 'manpower' && ! empty($item['job_position_id'])) {
+                    $name = JobPosition::find($item['job_position_id'])?->name ?? 'Position';
+                } elseif ($type === 'operational' && ! empty($item['costable_id'])) {
+                    $name = Item::find($item['costable_id'])?->name ?? 'Item';
                 }
+            }
 
-                return [
-                    'name' => $name,
-                    'job_position_id' => $item['costable_id'] ?? null,
-                    'quantity' => $item['quantity'],
-                    'unit_of_measure' => $item['unit_of_measure'] ?? 'Unit',
-                    'unit_amount' => $item['unit_cost_price'],
-                    'amount' => $item['total_monthly_cost'],
-                    'duration_months' => $item['duration_months'] ?? null,
-                    'risk_level' => $item['risk_level'] ?? 'very_low',
-                    'employee_type' => $item['employee_type'] ?? 'ppu',
-                    'is_labor_intensive' => $item['is_labor_intensive'] ?? false,
-                    'bill_thr_monthly' => $item['bill_thr_monthly'] ?? true,
-                    'bill_compensation_monthly' => $item['bill_compensation_monthly'] ?? true,
-                    'include_non_fixed_in_accruals' => $item['include_non_fixed_in_accruals'] ?? false,
-                    'extra_costs' => $item['extra_costs'] ?? [],
-                    'cost_breakdown' => $item['cost_breakdown'] ?? null,
-                ];
-            })->toArray();
+            return [
+                'name' => $name,
+                'job_position_id' => $item['job_position_id'] ?? ($type === 'manpower' ? ($item['costable_id'] ?? null) : null),
+                'item_id' => $item['item_id'] ?? ($type === 'operational' ? ($item['costable_id'] ?? null) : null),
+                'quantity' => $item['quantity'] ?? 1,
+                'unit_of_measure' => $item['unit_of_measure'] ?? 'Unit',
+                'unit_amount' => $item['unit_cost_price'] ?? 0,
+                'amount' => $item['total_monthly_cost'] ?? 0,
+                'duration_months' => $item['duration_months'] ?? null,
+            ];
+        })->toArray();
 
+        if ($categoryIndex !== false) {
             $manualCosts[$categoryIndex]['sub_items'] = $subItems;
             $manualCosts[$categoryIndex]['amount'] = collect($subItems)->sum('amount');
-            $set('../../analysis_details.manual_costs', $manualCosts);
-
-            self::calculateDirectCost($get, $set, '../../');
+        } else {
+            // Create the category if it doesn't exist
+            $manualCosts[] = [
+                'direct_cost_category_id' => $categoryId,
+                'amount' => collect($subItems)->sum('amount'),
+                'description' => 'Auto-synced from '.$type.' selection',
+                'sub_items' => $subItems,
+            ];
         }
+
+        $set($manualCostsPath, $manualCosts);
+        self::calculateDirectCost($get, $set);
     }
 }

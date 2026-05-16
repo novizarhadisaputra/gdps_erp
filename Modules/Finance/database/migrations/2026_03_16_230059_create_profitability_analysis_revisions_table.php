@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'profitability_analysis_revisions' : 'finance.profitability_analysis_revisions', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'finance_profitability_analysis_revisions' : 'finance.profitability_analysis_revisions', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('profitability_analysis_id')->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')->onDelete('cascade');
+            $table->foreignUuid('profitability_analysis_id')->constrained(config('database.default') === 'sqlite' ? 'finance_profitability_analyses' : 'finance.profitability_analyses')->onDelete('cascade');
             $table->string('number');
             $table->json('snapshot')->comment('Full data snapshot of the profitability analysis at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'profitability_analysis_revisions' : 'finance.profitability_analysis_revisions');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_profitability_analysis_revisions' : 'finance.profitability_analysis_revisions');
     }
 };

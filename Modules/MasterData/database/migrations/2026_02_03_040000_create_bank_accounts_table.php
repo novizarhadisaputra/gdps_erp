@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'bank_accounts' : 'master_data.bank_accounts', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_bank_accounts' : 'master_data.bank_accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('bank_name');
             $table->string('account_number');
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'bank_accounts' : 'master_data.bank_accounts');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_bank_accounts' : 'master_data.bank_accounts');
     }
 };

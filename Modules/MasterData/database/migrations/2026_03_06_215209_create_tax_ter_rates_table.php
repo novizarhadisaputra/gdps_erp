@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'tax_ter_rates' : 'master_data.tax_ter_rates', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_tax_ter_rates' : 'master_data.tax_ter_rates', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('type')->default('monthly'); // monthly, daily
             $table->string('category')->nullable(); // A, B, C (for monthly)
@@ -25,6 +25,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'tax_ter_rates' : 'master_data.tax_ter_rates');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_tax_ter_rates' : 'master_data.tax_ter_rates');
     }
 };

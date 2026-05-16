@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'tax_schemes' : 'master_data.tax_schemes', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_tax_schemes' : 'master_data.tax_schemes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique()->after('id')->nullable();
             $table->string('name');
@@ -24,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'tax_schemes' : 'master_data.tax_schemes');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_tax_schemes' : 'master_data.tax_schemes');
     }
 };

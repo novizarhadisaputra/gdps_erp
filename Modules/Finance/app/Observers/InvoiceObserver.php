@@ -129,6 +129,11 @@ class InvoiceObserver
                 app(JournalService::class)->generateFromCashReceipt($invoice);
             }
 
+            if ($invoice->status === InvoiceStatus::Cancelled) {
+                // 1. Cancel Invoice Journal & Restore Accruals
+                app(AccrualReversalService::class)->restoreAccrualsForCancelledInvoice($invoice);
+            }
+
             // Revision Logic: Capture snapshot if status changed back to Draft from a non-Draft status
             $originalStatus = $invoice->getOriginal('status');
             if ($invoice->status === InvoiceStatus::Draft && $originalStatus !== InvoiceStatus::Draft) {

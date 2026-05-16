@@ -105,6 +105,20 @@ class ProfitabilityAnalysisResourceTest extends TestCase
             'record' => $pa->getRouteKey(),
         ])
             ->callAction('edit_manpower')
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
+    }
+
+    /** @test */
+    public function it_can_mount_the_create_action(): void
+    {
+        $this->actingAs($this->user);
+        $gi = GeneralInformation::factory()->create();
+
+        Livewire::test(\Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Pages\ListProfitabilityAnalyses::class)
+            ->mountAction('create')
+            ->fillForm([
+                'general_information_id' => $gi->id,
+            ])
+            ->assertHasNoFormErrors();
     }
 }

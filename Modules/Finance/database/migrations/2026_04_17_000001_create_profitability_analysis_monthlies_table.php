@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $schema = config('database.default') === 'sqlite' ? 'profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies';
+        $schema = config('database.default') === 'sqlite' ? 'finance_profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies';
 
         Schema::create($schema, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('profitability_analysis_id')
-                ->constrained(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses')
+                ->constrained(config('database.default') === 'sqlite' ? 'finance_profitability_analyses' : 'finance.profitability_analyses')
                 ->onDelete('cascade');
 
             // Period Identification
@@ -51,6 +51,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies');
     }
 };

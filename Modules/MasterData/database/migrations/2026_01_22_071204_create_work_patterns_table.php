@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'work_patterns' : 'master_data.work_patterns', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_work_patterns' : 'master_data.work_patterns', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique()->after('id')->nullable();
             $table->string('name');

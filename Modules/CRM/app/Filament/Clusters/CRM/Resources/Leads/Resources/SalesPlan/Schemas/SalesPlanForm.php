@@ -21,6 +21,7 @@ use Modules\CRM\Enums\ConfidenceLevel;
 use Modules\CRM\Enums\ProrationMethod;
 use Modules\CRM\Models\SalesPlan;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\IndustrialSectors\Schemas\IndustrialSectorForm;
+use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProductClusters\Schemas\ProductClusterForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectTypes\Schemas\ProjectTypeForm;
@@ -245,6 +246,11 @@ class SalesPlanForm
                                     ->required()
                                     ->searchable()
                                     ->preload()
+                                    ->createOptionForm(JobPositionForm::schema())
+                                    ->createOptionAction(fn (Action $action) => $action->slideOver())
+                                    ->createOptionUsing(fn (array $data) => JobPosition::create($data)->id)
+                                    ->editOptionForm(JobPositionForm::schema())
+                                    ->editOptionAction(fn (Action $action) => $action->slideOver())
                                     ->helperText('Select the required job positions for project headcount mapping.'),
                             ]),
                         Section::make('Revenue Distribution Planning')

@@ -457,4 +457,52 @@ class JournalService
             return $entry;
         });
     }
+
+    /**
+     * Cancel all journal entries associated with a given reference.
+     * Logic: Create a new journal with flipped Debit/Credit.
+     */
+    public function cancelJournalEntries(mixed $reference): void
+    {
+        $entries = JournalEntry::where('reference_id', $reference->id)
+            ->where('reference_type', get_class($reference))
+            ->where('status', '!=', 'cancelled')
+            ->get();
+
+        foreach ($entries as $entry) {
+            DB::transaction(function () use ($entry) {
+                $year = date('Y');
+                $shortYear = date('y');
+                $latest = JournalEntry::where('year', $year)->orderBy('sequence_number', 'desc')->first();
+                $sequence = $latest ? $latest->sequence_number + 1 : 1;
+
+                // Create Reversal/Cancellation Entry
+                $cancelEntry = JournalEntry::create([
+                    'number' => sprintf('GDPS/UB/JV-%03d/%s', $sequence, $shortYear),
+                    'sequence_number' => $sequence,
+                    'year' => (int) $year,
+                    'date' => now(),
+                    'description' => "CANCELLATION: {$entry->description}",
+                    'reference_id' => $entry->reference_id,
+                    'reference_type' => $entry->reference_type,
+                    'total_amount' => $entry->total_amount,
+                    'status' => 'posted', // Cancellation is usually immediate
+                    'created_by' => auth()->id() ?? $entry->created_by,
+                ]);
+
+                foreach ($entry->items as $item) {
+                    JournalItem::create([
+                        'journal_entry_id' => $cancelEntry->id,
+                        'chart_of_account_id' => $item->chart_of_account_id,
+                        'debit' => $item->credit, // Flip credit to debit
+                        'credit' => $item->debit, // Flip debit to credit
+                        'note' => "Cancellation of Item: {$item->note}",
+                    ]);
+                }
+
+                // Mark original as cancelled to prevent double cancellation
+                $entry->update(['status' => 'cancelled']);
+            });
+        }
+    }
 }

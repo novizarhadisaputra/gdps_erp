@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_customers' : 'crm.customers', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('legal_entity_type')->nullable();
@@ -19,10 +19,10 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
-            $table->foreignUuid('province_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'provinces' : 'master_data.provinces')->nullOnDelete();
-            $table->foreignUuid('regency_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'regencies' : 'master_data.regencies')->nullOnDelete();
-            $table->foreignUuid('district_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'districts' : 'master_data.districts')->nullOnDelete();
-            $table->foreignUuid('village_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'villages' : 'master_data.villages')->nullOnDelete();
+            $table->foreignUuid('province_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_provinces' : 'master_data.provinces')->nullOnDelete();
+            $table->foreignUuid('regency_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_regencies' : 'master_data.regencies')->nullOnDelete();
+            $table->foreignUuid('district_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_districts' : 'master_data.districts')->nullOnDelete();
+            $table->foreignUuid('village_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_villages' : 'master_data.villages')->nullOnDelete();
             $table->json('contacts')->nullable();
             $table->string('status')->default('active');
             $table->timestamps();
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_customers' : 'crm.customers');
     }
 };

@@ -15,6 +15,11 @@ class RevenueType extends Model
 {
     use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
+    protected static function newFactory()
+    {
+        return \Modules\MasterData\Database\Factories\RevenueTypeFactory::new();
+    }
+
     protected $fillable = [
         'name',
         'code',

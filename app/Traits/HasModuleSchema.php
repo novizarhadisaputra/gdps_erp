@@ -30,28 +30,59 @@ trait HasModuleSchema
      */
     public function getSchemaPrefixedTable(): string
     {
-        $table = parent::getTable();
+        static $resolvedTables = [];
+        $class = get_class($this);
+        $connection = config('database.default');
+        $cacheKey = "{$class}_{$connection}";
 
-        // If SQLite, don't use schema prefix
-        if (config('database.default') === 'sqlite') {
-            return $table;
+        if (isset($resolvedTables[$cacheKey])) {
+            return $resolvedTables[$cacheKey];
         }
 
-        // Determine schema from namespace if not already prefixed
-        if (! str_contains($table, '.')) {
-            $class = get_class($this);
-            if (str_contains($class, 'Modules\MasterData')) {
-                $table = "master_data.{$table}";
-            } elseif (str_contains($class, 'Modules\Finance')) {
-                $table = "finance.{$table}";
-            } elseif (str_contains($class, 'Modules\CRM')) {
-                $table = "crm.{$table}";
-            } elseif (str_contains($class, 'Modules\Project')) {
-                $table = "project.{$table}";
+        // Get the base table name without calling parent::getTable() to avoid recursion if overridden
+        $table = $this->table ?? \Illuminate\Support\Str::snake(\Illuminate\Support\Str::pluralStudly(class_basename($this)));
+
+        // Determine module prefix
+        $module = null;
+        if (str_contains($class, 'Modules\MasterData')) {
+            $module = 'master_data';
+        } elseif (str_contains($class, 'Modules\Finance')) {
+            $module = 'finance';
+        } elseif (str_contains($class, 'Modules\CRM')) {
+            $module = 'crm';
+        } elseif (str_contains($class, 'Modules\Project')) {
+            $module = 'project';
+        } elseif (str_contains($class, 'Modules\Logistics')) {
+            $module = 'logistics';
+        }
+
+        $result = $table;
+
+        if ($module) {
+            if ($connection === 'sqlite') {
+                // If it already has a dot (e.g. 'project.projects' in $table)
+                if (str_contains($table, '.')) {
+                    $result = str_replace('.', '_', $table);
+                } else {
+                    // Prepend module if not already present
+                    $prefix = "{$module}_";
+                    if (! str_starts_with($table, $prefix)) {
+                        $result = "{$prefix}{$table}";
+                    }
+                }
+            } else {
+                // For PostgreSQL
+                if (str_contains($table, '.')) {
+                    $result = $table;
+                } else {
+                    $result = "{$module}.{$table}";
+                }
             }
         }
 
-        return $table;
+        $resolvedTables[$cacheKey] = $result;
+
+        return $result;
     }
 
     /**
@@ -60,6 +91,10 @@ trait HasModuleSchema
      */
     public function getTable(): string
     {
+        if (config('database.default') === 'sqlite') {
+            return $this->getSchemaPrefixedTable();
+        }
+
         $table = parent::getTable();
 
         if (str_contains($table, '.')) {

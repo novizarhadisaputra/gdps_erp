@@ -10,12 +10,32 @@ use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
+use Modules\CRM\Filament\Clusters\CRM\Resources\GeneralInformations\GeneralInformationResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\MinutesOfAgreements\MinutesOfAgreementResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\Proposals\ProposalResource;
+use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendments\AmendmentResource;
 use Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\SalesOrderResource;
+use Modules\CRM\Models\GeneralInformation;
+use Modules\CRM\Models\MinutesOfAgreement;
+use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesOrder;
+use Modules\CRM\Models\SalesOrderAmendment;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalysis\ProfitabilityAnalysisResource;
+use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Logistics\Filament\Clusters\Logistics\Resources\PurchaseOrder\PurchaseOrderResource as LogisticsPurchaseOrderResource;
+use Modules\Logistics\Filament\Clusters\Logistics\Resources\PurchaseRequest\PurchaseRequestResource as LogisticsPurchaseRequestResource;
+use Modules\Logistics\Models\PurchaseOrder as LogisticsPurchaseOrder;
+use Modules\Logistics\Models\PurchaseRequest as LogisticsPurchaseRequest;
 use Modules\MasterData\Enums\ApprovalSignatureType;
 use Modules\MasterData\Models\ApprovalRule;
+use Modules\MasterData\Models\Employee;
+use Modules\MasterData\Notifications\ApprovalRejectedNotification;
 use Modules\MasterData\Notifications\ApprovalRequiredNotification;
 use Modules\MasterData\Notifications\ApprovalSignedNotification;
+use Modules\Project\Filament\Clusters\Project\Resources\ProjectInformations\ProjectInformationResource;
+use Modules\Project\Filament\Clusters\Project\Resources\WorkCompletionReports\WorkCompletionReportResource;
+use Modules\Project\Models\ProjectInformation;
+use Modules\Project\Models\WorkCompletionReport;
 
 class SignatureService
 {
@@ -119,7 +139,7 @@ class SignatureService
                 }
             }
 
-            if (! ($target instanceof \Modules\MasterData\Models\Employee)) {
+            if (! ($target instanceof Employee)) {
                 return false;
             }
 
@@ -266,7 +286,7 @@ class SignatureService
                 $message .= " Reason: {$reason}";
             }
 
-            $owner->notify(new \Modules\MasterData\Notifications\ApprovalRejectedNotification($model, $message, $url));
+            $owner->notify(new ApprovalRejectedNotification($model, $message, $url));
         }
     }
 
@@ -304,14 +324,16 @@ class SignatureService
         $class = get_class($model);
 
         $resource = match ($class) {
-            \Modules\CRM\Models\Proposal::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\Proposal\ProposalResource::class,
-            \Modules\Finance\Models\ProfitabilityAnalysis::class => \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::class,
-            \Modules\CRM\Models\MinutesOfAgreement::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\MinutesOfAgreement\MinutesOfAgreementResource::class,
-            \Modules\CRM\Models\GeneralInformation::class => \Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\GeneralInformation\GeneralInformationResource::class,
-            \Modules\Project\Models\ProjectInformation::class => \Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\ProjectInformations\ProjectInformationResource::class,
-            \Modules\Project\Models\WorkCompletionReport::class => \Modules\Project\Filament\Clusters\Project\Resources\Projects\Resources\WorkCompletionReports\WorkCompletionReportResource::class,
+            Proposal::class => ProposalResource::class,
+            ProfitabilityAnalysis::class => ProfitabilityAnalysisResource::class,
+            MinutesOfAgreement::class => MinutesOfAgreementResource::class,
+            GeneralInformation::class => GeneralInformationResource::class,
+            ProjectInformation::class => ProjectInformationResource::class,
+            WorkCompletionReport::class => WorkCompletionReportResource::class,
             SalesOrder::class => SalesOrderResource::class,
-            \Modules\CRM\Models\SalesOrderAmendment::class => \Modules\CRM\Filament\Clusters\CRM\Resources\SalesOrders\Resources\Amendment\AmendmentResource::class,
+            SalesOrderAmendment::class => AmendmentResource::class,
+            LogisticsPurchaseRequest::class => LogisticsPurchaseRequestResource::class,
+            LogisticsPurchaseOrder::class => LogisticsPurchaseOrderResource::class,
             default => null,
         };
 

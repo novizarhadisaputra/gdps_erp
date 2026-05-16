@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'manpower_templates' : 'crm.manpower_templates', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_manpower_templates' : 'crm.manpower_templates', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->nullOnDelete()->comment('Reference to the associated lead/opportunity');
-            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->nullOnDelete()->comment('Determines the applicable minimum wage (UMK) for calculations');
-            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'master_data.work_schemes')->nullOnDelete()->comment('Defines the operational schedule (e.g., 24/7, 5/2)');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_leads' : 'crm.leads')->nullOnDelete()->comment('Reference to the associated lead/opportunity');
+            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_project_areas' : 'master_data.project_areas')->nullOnDelete()->comment('Determines the applicable minimum wage (UMK) for calculations');
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_work_schemes' : 'master_data.work_schemes')->nullOnDelete()->comment('Defines the operational schedule (e.g., 24/7, 5/2)');
             $table->string('code')->nullable()->unique()->comment('Auto-generated template code');
             $table->string('name')->comment('Descriptive name for the costing sheet');
             $table->text('description')->nullable()->comment('Additional context or project details');
@@ -29,10 +29,10 @@ return new class extends Migration
             $table->index(['year', 'sequence_number']);
         });
 
-        Schema::create(config('database.default') === 'sqlite' ? 'manpower_template_clusters' : 'crm.manpower_template_clusters', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_manpower_template_clusters' : 'crm.manpower_template_clusters', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('manpower_template_id')->constrained(config('database.default') === 'sqlite' ? 'manpower_templates' : 'crm.manpower_templates')->cascadeOnDelete()->comment('Parent template reference');
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters')->nullOnDelete()->comment('Master data product cluster reference (Aviation, FM, etc.)');
+            $table->foreignUuid('manpower_template_id')->constrained(config('database.default') === 'sqlite' ? 'crm_manpower_templates' : 'crm.manpower_templates')->cascadeOnDelete()->comment('Parent template reference');
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_product_clusters' : 'master_data.product_clusters')->nullOnDelete()->comment('Master data product cluster reference (Aviation, FM, etc.)');
             $table->text('description')->nullable()->comment('Detailed information about the cluster');
 
             // Default policies for the cluster (can be overridden by items)
@@ -43,14 +43,14 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create(config('database.default') === 'sqlite' ? 'manpower_template_items' : 'crm.manpower_template_items', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_manpower_template_items' : 'crm.manpower_template_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('manpower_template_id')->constrained(config('database.default') === 'sqlite' ? 'manpower_templates' : 'crm.manpower_templates')->cascadeOnDelete()->comment('Parent template reference');
-            $table->foreignUuid('manpower_template_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'manpower_template_clusters' : 'crm.manpower_template_clusters')->cascadeOnDelete()->comment('Cluster grouping reference');
+            $table->foreignUuid('manpower_template_id')->constrained(config('database.default') === 'sqlite' ? 'crm_manpower_templates' : 'crm.manpower_templates')->cascadeOnDelete()->comment('Parent template reference');
+            $table->foreignUuid('manpower_template_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_manpower_template_clusters' : 'crm.manpower_template_clusters')->cascadeOnDelete()->comment('Cluster grouping reference');
 
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters')->nullOnDelete()->comment('Override product cluster for specific role');
-            $table->foreignUuid('job_position_id')->constrained(config('database.default') === 'sqlite' ? 'job_positions' : 'master_data.job_positions')->cascadeOnDelete()->comment('Associated job position');
-            $table->foreignUuid('work_pattern_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_patterns' : 'master_data.work_patterns')->nullOnDelete()->comment('Shift/Work pattern reference');
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_product_clusters' : 'master_data.product_clusters')->nullOnDelete()->comment('Override product cluster for specific role');
+            $table->foreignUuid('job_position_id')->constrained(config('database.default') === 'sqlite' ? 'master_data_job_positions' : 'master_data.job_positions')->cascadeOnDelete()->comment('Associated job position');
+            $table->foreignUuid('work_pattern_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_work_patterns' : 'master_data.work_patterns')->nullOnDelete()->comment('Shift/Work pattern reference');
 
             $table->decimal('basic_salary', 15, 2)->default(0)->comment('Base monthly salary for the position');
             $table->integer('quantity')->default(1)->comment('Number of personnel for this role');
@@ -62,10 +62,10 @@ return new class extends Migration
 
             // Remuneration Policy
             $table->string('thr_billing_method')->default('monthly_accrual')->comment('THR billing override');
-            $table->foreignUuid('thr_basis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'thr_basis_types' : 'master_data.thr_basis_types')->nullOnDelete()->comment('Components included in THR calculation');
+            $table->foreignUuid('thr_basis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_thr_basis_types' : 'master_data.thr_basis_types')->nullOnDelete()->comment('Components included in THR calculation');
             $table->string('compensation_billing_method')->default('monthly_accrual')->comment('Compensation billing override');
-            $table->foreignUuid('compensation_basis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'thr_basis_types' : 'master_data.thr_basis_types')->nullOnDelete()->comment('Components included in compensation calculation');
-            $table->foreignUuid('bpjs_basis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'bpjs_basis_types' : 'master_data.bpjs_basis_types')->nullOnDelete()->comment('Salary basis for BPJS calculations');
+            $table->foreignUuid('compensation_basis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_thr_basis_types' : 'master_data.thr_basis_types')->nullOnDelete()->comment('Components included in compensation calculation');
+            $table->foreignUuid('bpjs_basis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_bpjs_basis_types' : 'master_data.bpjs_basis_types')->nullOnDelete()->comment('Salary basis for BPJS calculations');
 
             $table->boolean('bill_thr_monthly')->default(true)->comment('Flag to enable monthly THR billing');
             $table->boolean('bill_compensation_monthly')->default(true)->comment('Flag to enable monthly compensation billing');
@@ -94,8 +94,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'manpower_template_items' : 'crm.manpower_template_items');
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'manpower_template_clusters' : 'crm.manpower_template_clusters');
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'manpower_templates' : 'crm.manpower_templates');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_manpower_template_items' : 'crm.manpower_template_items');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_manpower_template_clusters' : 'crm.manpower_template_clusters');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_manpower_templates' : 'crm.manpower_templates');
     }
 };

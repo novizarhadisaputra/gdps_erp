@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'units_of_measure' : 'master_data.units_of_measure', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_units_of_measure' : 'master_data.units_of_measure', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
             $table->string('code')->unique(); // e.g., pcs, ltr
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'units_of_measure' : 'master_data.units_of_measure');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_units_of_measure' : 'master_data.units_of_measure');
     }
 };

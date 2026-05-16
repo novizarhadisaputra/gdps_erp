@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'bpjs_jp_configs' : 'master_data.bpjs_jp_configs', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_bpjs_jp_configs' : 'master_data.bpjs_jp_configs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('employee_type')->default('ppu'); // ppu, pbpu, jakon
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'bpjs_jp_configs' : 'master_data.bpjs_jp_configs');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_bpjs_jp_configs' : 'master_data.bpjs_jp_configs');
     }
 };

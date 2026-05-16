@@ -8,6 +8,7 @@ enum AccrueRevenueStatus: string
     case Open = 'open';
     case Closed = 'closed';
     case Reversed = 'reversed';
+    case Cancelled = 'cancelled';
 
     public function getLabel(): string
     {
@@ -16,6 +17,7 @@ enum AccrueRevenueStatus: string
             self::Open => 'Open',
             self::Closed => 'Closed',
             self::Reversed => 'Reversed',
+            self::Cancelled => 'Cancelled',
         };
     }
 
@@ -26,6 +28,7 @@ enum AccrueRevenueStatus: string
             self::Open => 'info',
             self::Closed => 'success',
             self::Reversed => 'danger',
+            self::Cancelled => 'danger',
         };
     }
 }

@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'item_categories' : 'master_data.item_categories', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_item_categories' : 'master_data.item_categories', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
-            $table->foreignUuid('asset_group_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'asset_groups' : 'master_data.asset_groups')->nullOnDelete();
+            $table->foreignUuid('asset_group_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_asset_groups' : 'master_data.asset_groups')->nullOnDelete();
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'item_categories' : 'master_data.item_categories');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_item_categories' : 'master_data.item_categories');
     }
 };

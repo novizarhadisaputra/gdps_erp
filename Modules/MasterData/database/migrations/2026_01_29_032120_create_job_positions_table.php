@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'job_positions' : 'master_data.job_positions', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_job_positions' : 'master_data.job_positions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('name');
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'job_positions' : 'master_data.job_positions');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_job_positions' : 'master_data.job_positions');
     }
 };

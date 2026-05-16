@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'project_informations' : 'project.project_informations', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'project_project_informations' : 'project.project_informations', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_leads' : 'crm.leads')->onDelete('cascade');
             $table->uuid('project_id')->nullable();
             $table->string('document_number')->nullable()->unique();
             $table->string('status')->default('planning');
@@ -22,11 +22,11 @@ return new class extends Migration
             $table->string('pic_customer_name')->nullable();
             $table->text('description')->nullable();
             $table->json('profitability_analysis')->nullable();
-            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'master_data.payment_terms')->onDelete('set null');
-            $table->foreignUuid('project_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_types' : 'master_data.project_types')->onDelete('set null');
-            $table->foreignUuid('billing_option_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'billing_options' : 'master_data.billing_options')->onDelete('set null');
-            $table->foreignUuid('oprep_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'employees' : 'master_data.employees')->onDelete('set null');
-            $table->foreignUuid('ams_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'employees' : 'master_data.employees')->onDelete('set null');
+            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_payment_terms' : 'master_data.payment_terms')->onDelete('set null');
+            $table->foreignUuid('project_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_project_types' : 'master_data.project_types')->onDelete('set null');
+            $table->foreignUuid('billing_option_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_billing_options' : 'master_data.billing_options')->onDelete('set null');
+            $table->foreignUuid('oprep_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_employees' : 'master_data.employees')->onDelete('set null');
+            $table->foreignUuid('ams_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_employees' : 'master_data.employees')->onDelete('set null');
             $table->text('remarks')->nullable();
             $table->string('ipk_status')->nullable();
             $table->string('thr_status')->nullable();
@@ -64,6 +64,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'project_informations' : 'project.project_informations');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'project_project_informations' : 'project.project_informations');
     }
 };

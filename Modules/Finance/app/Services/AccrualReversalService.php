@@ -41,4 +41,41 @@ class AccrualReversalService
             ]);
         }
     }
+
+    /**
+     * Restore accrual amounts for a cancelled invoice.
+     */
+    public function restoreAccrualsForCancelledInvoice(Invoice $invoice): void
+    {
+        // 1. Cancel the journals
+        $this->journalService->cancelJournalEntries($invoice);
+
+        // 2. Update mappings and restore accrual item values
+        $mappings = AccrueInvoiceMapping::where('invoice_id', $invoice->id)
+            ->where('status', '!=', AccrueInvoiceMappingStatus::Cancelled)
+            ->with('accrueRevenueItem')
+            ->get();
+
+        foreach ($mappings as $mapping) {
+            $mapping->update(['status' => AccrueInvoiceMappingStatus::Cancelled]);
+
+            $item = $mapping->accrueRevenueItem;
+
+            // Recalculate total actual amount from remaining active mappings
+            $totalActual = AccrueInvoiceMapping::where('accrue_revenue_item_id', $item->id)
+                ->whereIn('status', [AccrueInvoiceMappingStatus::Active, AccrueInvoiceMappingStatus::Reversed])
+                ->sum('allocated_amount');
+
+            $item->update([
+                'amount_actual' => $totalActual,
+                'is_reversed' => $item->amount_estimated > 0 && $totalActual >= $item->amount_estimated,
+            ]);
+
+            // Re-open Accrue Revenue if it was closed
+            $accrue = $item->accrueRevenue;
+            if ($accrue && $accrue->status === \Modules\Finance\Enums\AccrueRevenueStatus::Closed) {
+                $accrue->update(['status' => \Modules\Finance\Enums\AccrueRevenueStatus::Open]);
+            }
+        }
+    }
 }

@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'daily_reports' : 'project.daily_reports', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'project_daily_reports' : 'project.daily_reports', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->cascadeOnDelete();
-            $table->foreignUuid('task_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_tasks' : 'project.project_tasks')->nullOnDelete();
-            $table->foreignUuid('reported_by_id')->constrained(config('database.default') === 'sqlite' ? 'project_members' : 'project.project_members')->cascadeOnDelete();
+            $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'project_projects' : 'project.projects')->cascadeOnDelete();
+            $table->foreignUuid('task_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_project_tasks' : 'project.project_tasks')->nullOnDelete();
+            $table->foreignUuid('reported_by_id')->constrained(config('database.default') === 'sqlite' ? 'project_project_members' : 'project.project_members')->cascadeOnDelete();
             $table->date('date');
             $table->string('status')->default('draft');
             $table->text('content');

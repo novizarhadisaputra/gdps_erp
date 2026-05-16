@@ -14,6 +14,8 @@ class ProjectMember extends Model
     use HasFactory, HasUuids;
     use HasModuleSchema;
 
+    protected $table = 'project.project_members';
+
     /**
      * The attributes that are mass assignable.
      */

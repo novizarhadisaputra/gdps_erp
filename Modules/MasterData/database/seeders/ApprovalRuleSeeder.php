@@ -14,6 +14,8 @@ use Modules\CRM\Models\SalesOrderAmendment;
 use Modules\CRM\Models\WorkOrder;
 use Modules\Finance\Models\Invoice;
 use Modules\Finance\Models\ProfitabilityAnalysis;
+use Modules\Logistics\Models\PurchaseOrder as LogisticsPurchaseOrder;
+use Modules\Logistics\Models\PurchaseRequest as LogisticsPurchaseRequest;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\Project\Models\WorkCompletionReport;
@@ -248,6 +250,26 @@ class ApprovalRuleSeeder extends Seeder
                 'conditions' => [],
                 'approver_type' => 'Relationship',
                 'approver_role' => ['project.oprep'],
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            // Logistics - Purchase Request
+            [
+                'resource_type' => LogisticsPurchaseRequest::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'signature_type' => 'Approver',
+                'order' => 1,
+                'is_active' => true,
+            ],
+            // Logistics - Purchase Order
+            [
+                'resource_type' => LogisticsPurchaseOrder::class,
+                'conditions' => [],
+                'approver_type' => 'Role',
+                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,

@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $tableName = config('database.default') === 'sqlite' ? 'account_mappings' : 'finance.account_mappings';
-        $coaTable = config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts';
+        $tableName = config('database.default') === 'sqlite' ? 'finance_account_mappings' : 'finance.account_mappings';
+        $coaTable = config('database.default') === 'sqlite' ? 'finance_chart_of_accounts' : 'finance.chart_of_accounts';
 
         Schema::create($tableName, function (Blueprint $table) use ($coaTable) {
             $table->uuid('id')->primary();
             $table->uuidMorphs('mappable');
             $table->string('type'); // accrual, revenue, receivable, expense, etc.
-            $table->foreignUuid('revenue_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_types' : 'master_data.revenue_types')->nullOnDelete();
-            $table->foreignUuid('revenue_segment_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_segments' : 'master_data.revenue_segments')->nullOnDelete();
-            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->nullOnDelete();
+            $table->foreignUuid('revenue_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_revenue_types' : 'master_data.revenue_types')->nullOnDelete();
+            $table->foreignUuid('revenue_segment_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_revenue_segments' : 'master_data.revenue_segments')->nullOnDelete();
+            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_taxes' : 'master_data.taxes')->nullOnDelete();
             $table->foreignUuid('chart_of_account_id')->constrained($coaTable)->cascadeOnDelete();
             $table->text('note')->nullable();
             $table->timestamps();
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'account_mappings' : 'finance.account_mappings');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_account_mappings' : 'finance.account_mappings');
     }
 };

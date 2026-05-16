@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'cooperation_agreements' : 'crm.cooperation_agreements', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_cooperation_agreements' : 'crm.cooperation_agreements', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('number')->unique();
             $table->date('agreement_date');
 
-            $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers');
-            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads');
-            $table->foreignUuid('proposal_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals');
+            $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'crm_customers' : 'crm.customers');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_leads' : 'crm.leads');
+            $table->foreignUuid('proposal_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_proposals' : 'crm.proposals');
 
             $table->decimal('amount', 20, 2)->default(0);
             $table->decimal('tax_percentage', 5, 2)->default(11.00);
@@ -41,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'cooperation_agreements' : 'crm.cooperation_agreements');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_cooperation_agreements' : 'crm.cooperation_agreements');
     }
 };

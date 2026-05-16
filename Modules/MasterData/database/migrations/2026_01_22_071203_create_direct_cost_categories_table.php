@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $schema = config('database.default') === 'sqlite' ? '' : 'master_data.';
+        $schema = config('database.default') === 'sqlite' ? 'master_data_' : 'master_data.';
 
         Schema::create($schema.'direct_cost_categories', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -38,7 +38,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $schema = config('database.default') === 'sqlite' ? '' : 'master_data.';
+        $schema = config('database.default') === 'sqlite' ? 'master_data_' : 'master_data.';
 
         Schema::dropIfExists($schema.'direct_cost_categories');
     }

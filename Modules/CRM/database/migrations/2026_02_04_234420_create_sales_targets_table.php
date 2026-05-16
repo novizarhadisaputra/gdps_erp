@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'sales_targets' : 'crm.sales_targets', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_sales_targets' : 'crm.sales_targets', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->integer('year');
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'sales_targets' : 'crm.sales_targets');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_sales_targets' : 'crm.sales_targets');
     }
 };

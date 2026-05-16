@@ -2,5 +2,6 @@
     "Project": true,
     "MasterData": true,
     "CRM": true,
-    "Finance": true
+    "Finance": true,
+    "Logistics": true
 }

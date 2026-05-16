@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $schema = config('database.default') === 'sqlite' ? 'profitability_analysis_monthly_logs' : 'finance.profitability_analysis_monthly_logs';
+        $schema = config('database.default') === 'sqlite' ? 'finance_profitability_analysis_monthly_logs' : 'finance.profitability_analysis_monthly_logs';
 
         Schema::create($schema, function (Blueprint $table) {
             $table->uuid('id')->primary();
 
             $table->foreignUuid('profitability_analysis_monthly_id')
-                ->constrained(config('database.default') === 'sqlite' ? 'profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies')
+                ->constrained(config('database.default') === 'sqlite' ? 'finance_profitability_analysis_monthlies' : 'finance.profitability_analysis_monthlies')
                 ->onDelete('cascade')
                 ->index('pa_monthly_log_monthly_id_foreign');
 
@@ -41,6 +41,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'profitability_analysis_monthly_logs' : 'finance.profitability_analysis_monthly_logs');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_profitability_analysis_monthly_logs' : 'finance.profitability_analysis_monthly_logs');
     }
 };

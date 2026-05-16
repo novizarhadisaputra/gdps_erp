@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $tableName = config('database.default') === 'sqlite' ? 'customer_project_area' : 'crm.customer_project_area';
+        $tableName = config('database.default') === 'sqlite' ? 'crm_customer_project_area' : 'crm.customer_project_area';
         Schema::create($tableName, function (Blueprint $table) {
-            $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->cascadeOnDelete();
-            $table->foreignUuid('project_area_id')->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->cascadeOnDelete();
+            $table->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'crm_customers' : 'crm.customers')->cascadeOnDelete();
+            $table->foreignUuid('project_area_id')->constrained(config('database.default') === 'sqlite' ? 'master_data_project_areas' : 'master_data.project_areas')->cascadeOnDelete();
             $table->timestamps();
 
             $table->primary(['customer_id', 'project_area_id']);
@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $tableName = config('database.default') === 'sqlite' ? 'customer_project_area' : 'crm.customer_project_area';
+        $tableName = config('database.default') === 'sqlite' ? 'crm_customer_project_area' : 'crm.customer_project_area';
         Schema::dropIfExists($tableName);
     }
 };

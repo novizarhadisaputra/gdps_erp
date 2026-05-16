@@ -17,6 +17,11 @@ class ChartOfAccount extends Model
     use HasModuleSchema;
     use ModelTree;
 
+    protected static function newFactory()
+    {
+        return \Modules\Finance\Database\Factories\ChartOfAccountFactory::new();
+    }
+
     protected $fillable = [
         'code',
         'name',

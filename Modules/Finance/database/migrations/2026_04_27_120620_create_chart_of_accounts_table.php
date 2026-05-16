@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $tableName = config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts';
+        $tableName = config('database.default') === 'sqlite' ? 'finance_chart_of_accounts' : 'finance.chart_of_accounts';
 
         Schema::create($tableName, function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -44,7 +44,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $tableName = config('database.default') === 'sqlite' ? 'chart_of_accounts' : 'finance.chart_of_accounts';
+        $tableName = config('database.default') === 'sqlite' ? 'finance_chart_of_accounts' : 'finance.chart_of_accounts';
         Schema::dropIfExists($tableName);
     }
 };

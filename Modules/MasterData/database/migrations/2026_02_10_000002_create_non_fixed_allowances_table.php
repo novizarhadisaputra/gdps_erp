@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'non_fixed_allowances' : 'master_data.non_fixed_allowances', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_non_fixed_allowances' : 'master_data.non_fixed_allowances', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique()->after('id')->nullable();
             $table->string('name');
@@ -24,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'non_fixed_allowances' : 'master_data.non_fixed_allowances');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_non_fixed_allowances' : 'master_data.non_fixed_allowances');
     }
 };

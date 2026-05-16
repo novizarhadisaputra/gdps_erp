@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $tableName = config('database.default') === 'sqlite' ? 'journal_entries' : 'finance.journal_entries';
+        $tableName = config('database.default') === 'sqlite' ? 'finance_journal_entries' : 'finance.journal_entries';
 
         Schema::create($tableName, function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'journal_entries' : 'finance.journal_entries');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_journal_entries' : 'finance.journal_entries');
     }
 };

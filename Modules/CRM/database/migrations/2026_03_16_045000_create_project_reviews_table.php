@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'project_reviews' : 'crm.project_reviews', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_project_reviews' : 'crm.project_reviews', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('number')->nullable();
             $table->integer('sequence_number')->nullable();

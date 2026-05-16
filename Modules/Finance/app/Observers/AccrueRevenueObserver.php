@@ -99,7 +99,12 @@ class AccrueRevenueObserver
             app(JournalService::class)->generateFromAccrueRevenue($accrueRevenue);
         }
 
-        // 5. Sync to external performance tables
+        // 5. Handle Cancellation (Write-off)
+        if ($status === AccrueRevenueStatus::Cancelled && $oldStatus !== AccrueRevenueStatus::Cancelled) {
+            app(JournalService::class)->cancelJournalEntries($accrueRevenue);
+        }
+
+        // 6. Sync to external performance tables
         $this->syncPerformance($accrueRevenue, $totalActual);
     }
 

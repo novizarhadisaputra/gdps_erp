@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'bpjs_jkk_tiers' : 'master_data.bpjs_jkk_tiers', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_bpjs_jkk_tiers' : 'master_data.bpjs_jkk_tiers', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('bpjs_jkk_config_id')->constrained(config('database.default') === 'sqlite' ? 'bpjs_jkk_configs' : 'master_data.bpjs_jkk_configs')->cascadeOnDelete();
+            $table->foreignUuid('bpjs_jkk_config_id')->constrained(config('database.default') === 'sqlite' ? 'master_data_bpjs_jkk_configs' : 'master_data.bpjs_jkk_configs')->cascadeOnDelete();
             $table->decimal('min_value', 20, 2)->default(0);
             $table->decimal('max_value', 20, 2)->nullable();
             $table->decimal('employer_nominal', 15, 2)->default(0);
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'bpjs_jkk_tiers' : 'master_data.bpjs_jkk_tiers');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_bpjs_jkk_tiers' : 'master_data.bpjs_jkk_tiers');
     }
 };

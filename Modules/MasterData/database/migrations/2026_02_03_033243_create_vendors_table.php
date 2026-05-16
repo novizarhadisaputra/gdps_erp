@@ -11,14 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'vendors' : 'master_data.vendors', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_vendors' : 'master_data.vendors', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
+            $table->string('code')->nullable()->unique();
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
             $table->string('tax_id')->nullable()->comment('NPWP or Tax Identification Number');
-            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'master_data.payment_terms')->nullOnDelete();
+            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_payment_terms' : 'master_data.payment_terms')->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'vendors' : 'master_data.vendors');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_vendors' : 'master_data.vendors');
     }
 };

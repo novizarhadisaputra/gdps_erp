@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_product_clusters' : 'master_data.product_clusters', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('name');
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_product_clusters' : 'master_data.product_clusters');
     }
 };

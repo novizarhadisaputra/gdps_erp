@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'signatures' : 'master_data.signatures', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_signatures' : 'master_data.signatures', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->uuidMorphs('signable'); // signable_type & signable_id
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'signatures' : 'master_data.signatures');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_signatures' : 'master_data.signatures');
     }
 };

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'tax_pasal17_rates' : 'master_data.tax_pasal17_rates', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_tax_pasal17_rates' : 'master_data.tax_pasal17_rates', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->decimal('min_amount', 20, 2)->default(0);
             $table->decimal('max_amount', 20, 2)->nullable(); // Null means no upper limit

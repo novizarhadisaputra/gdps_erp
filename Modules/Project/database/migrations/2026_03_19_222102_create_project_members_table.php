@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'project_members' : 'project.project_members', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'project_project_members' : 'project.project_members', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->onDelete('cascade');
+            $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'project_projects' : 'project.projects')->onDelete('cascade');
             $table->uuidMorphs('memberable');
             $table->string('role')->nullable();
             $table->timestamp('joined_at')->useCurrent();
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'project_members' : 'project.project_members');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'project_project_members' : 'project.project_members');
     }
 };

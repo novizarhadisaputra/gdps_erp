@@ -11,34 +11,35 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $schema = config('database.default') === 'sqlite' ? null : 'master_data';
+        $isSqlite = config('database.default') === 'sqlite';
+        $schema = 'master_data';
 
-        Schema::create($schema ? "$schema.provinces" : 'provinces', function (Blueprint $table) {
+        Schema::create($isSqlite ? "{$schema}_provinces" : "$schema.provinces", function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('name');
             $table->timestamps();
         });
 
-        Schema::create($schema ? "$schema.regencies" : 'regencies', function (Blueprint $table) use ($schema) {
+        Schema::create($isSqlite ? "{$schema}_regencies" : "$schema.regencies", function (Blueprint $table) use ($schema, $isSqlite) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('province_id')->constrained($schema ? "$schema.provinces" : 'provinces')->onDelete('cascade');
+            $table->foreignUuid('province_id')->constrained($isSqlite ? "{$schema}_provinces" : "$schema.provinces")->onDelete('cascade');
             $table->string('code')->unique();
             $table->string('name');
             $table->timestamps();
         });
 
-        Schema::create($schema ? "$schema.districts" : 'districts', function (Blueprint $table) use ($schema) {
+        Schema::create($isSqlite ? "{$schema}_districts" : "$schema.districts", function (Blueprint $table) use ($schema, $isSqlite) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('regency_id')->constrained($schema ? "$schema.regencies" : 'regencies')->onDelete('cascade');
+            $table->foreignUuid('regency_id')->constrained($isSqlite ? "{$schema}_regencies" : "$schema.regencies")->onDelete('cascade');
             $table->string('code')->unique();
             $table->string('name');
             $table->timestamps();
         });
 
-        Schema::create($schema ? "$schema.villages" : 'villages', function (Blueprint $table) use ($schema) {
+        Schema::create($isSqlite ? "{$schema}_villages" : "$schema.villages", function (Blueprint $table) use ($schema, $isSqlite) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('district_id')->constrained($schema ? "$schema.districts" : 'districts')->onDelete('cascade');
+            $table->foreignUuid('district_id')->constrained($isSqlite ? "{$schema}_districts" : "$schema.districts")->onDelete('cascade');
             $table->string('code')->unique();
             $table->string('name');
             $table->timestamps();
@@ -50,11 +51,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $schema = config('database.default') === 'sqlite' ? null : 'master_data';
+        $isSqlite = config('database.default') === 'sqlite';
+        $schema = 'master_data';
 
-        Schema::dropIfExists($schema ? "$schema.villages" : 'villages');
-        Schema::dropIfExists($schema ? "$schema.districts" : 'districts');
-        Schema::dropIfExists($schema ? "$schema.regencies" : 'regencies');
-        Schema::dropIfExists($schema ? "$schema.provinces" : 'provinces');
+        Schema::dropIfExists($isSqlite ? "{$schema}_villages" : "$schema.villages");
+        Schema::dropIfExists($isSqlite ? "{$schema}_districts" : "$schema.districts");
+        Schema::dropIfExists($isSqlite ? "{$schema}_regencies" : "$schema.regencies");
+        Schema::dropIfExists($isSqlite ? "{$schema}_provinces" : "$schema.provinces");
     }
 };

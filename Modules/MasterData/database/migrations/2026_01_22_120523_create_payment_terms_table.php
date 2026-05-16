@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'payment_terms' : 'master_data.payment_terms', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_payment_terms' : 'master_data.payment_terms', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique();
             $table->string('name');
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'payment_terms' : 'master_data.payment_terms');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_payment_terms' : 'master_data.payment_terms');
     }
 };

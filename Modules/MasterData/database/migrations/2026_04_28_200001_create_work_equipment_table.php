@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'work_equipment' : 'master_data.work_equipment', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_work_equipment' : 'master_data.work_equipment', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('code')->unique()->nullable();
             $table->string('name');
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'work_equipment' : 'master_data.work_equipment');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_work_equipment' : 'master_data.work_equipment');
     }
 };

@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices', function (Blueprint $blueprint) {
+        Schema::create(config('database.default') === 'sqlite' ? 'finance_invoices' : 'finance.invoices', function (Blueprint $blueprint) {
             $blueprint->uuid('id')->primary();
-            $blueprint->foreignUuid('work_completion_report_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_completion_reports' : 'project.work_completion_reports')->onDelete('set null');
-            $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('cascade');
-            $blueprint->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->onDelete('set null');
-            $blueprint->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->onDelete('set null');
-            $blueprint->foreignUuid('bank_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'bank_accounts' : 'master_data.bank_accounts')->onDelete('set null');
+            $blueprint->foreignUuid('work_completion_report_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_work_completion_reports' : 'project.work_completion_reports')->onDelete('set null');
+            $blueprint->foreignUuid('customer_id')->constrained(config('database.default') === 'sqlite' ? 'crm_customers' : 'crm.customers')->onDelete('cascade');
+            $blueprint->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_taxes' : 'master_data.taxes')->onDelete('set null');
+            $blueprint->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_project_areas' : 'master_data.project_areas')->onDelete('set null');
+            $blueprint->foreignUuid('bank_account_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_bank_accounts' : 'master_data.bank_accounts')->onDelete('set null');
             $blueprint->nullableUuidMorphs('sourceable');
 
             $blueprint->string('number')->unique();
@@ -49,9 +49,9 @@ return new class extends Migration
             $blueprint->softDeletes();
         });
 
-        Schema::create(config('database.default') === 'sqlite' ? 'invoice_revisions' : 'finance.invoice_revisions', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'finance_invoice_revisions' : 'finance.invoice_revisions', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('invoice_id')->constrained(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices')->onDelete('cascade');
+            $table->foreignUuid('invoice_id')->constrained(config('database.default') === 'sqlite' ? 'finance_invoices' : 'finance.invoices')->onDelete('cascade');
             $table->string('number')->nullable();
             $table->integer('sequence_number')->default(0);
             $table->json('snapshot')->comment('Full data snapshot of the invoice at the time of revision for auditing and restoration.');
@@ -69,7 +69,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'invoice_revisions' : 'finance.invoice_revisions');
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'invoices' : 'finance.invoices');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_invoice_revisions' : 'finance.invoice_revisions');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_invoices' : 'finance.invoices');
     }
 };

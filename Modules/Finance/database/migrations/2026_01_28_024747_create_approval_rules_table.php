@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'approval_rules' : 'master_data.approval_rules', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_approval_rules' : 'master_data.approval_rules', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('resource_type');         // e.g., 'Modules\Finance\Models\ProfitabilityAnalysis'
             $table->string('criteria_field')->nullable();        // e.g., 'revenue_per_month'
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'approval_rules' : 'master_data.approval_rules');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_approval_rules' : 'master_data.approval_rules');
     }
 };

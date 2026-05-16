@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'proposal_revisions' : 'crm.proposal_revisions', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'crm_proposal_revisions' : 'crm.proposal_revisions', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('proposal_id')->constrained(config('database.default') === 'sqlite' ? 'proposals' : 'crm.proposals')->onDelete('cascade');
+            $table->foreignUuid('proposal_id')->constrained(config('database.default') === 'sqlite' ? 'crm_proposals' : 'crm.proposals')->onDelete('cascade');
             $table->string('number');
             $table->json('snapshot')->comment('Full data snapshot of the proposal at the time of revision for auditing and restoration.');
             $table->text('reason')->nullable();
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'proposal_revisions' : 'crm.proposal_revisions');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_proposal_revisions' : 'crm.proposal_revisions');
     }
 };

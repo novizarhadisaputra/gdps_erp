@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table_name = config('database.default') === 'sqlite' ? 'project_tasks' : 'project.project_tasks';
+        $table_name = config('database.default') === 'sqlite' ? 'project_project_tasks' : 'project.project_tasks';
 
         Schema::create($table_name, function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('number')->unique();
-            $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'projects' : 'project.projects')->cascadeOnDelete();
+            $table->foreignUuid('project_id')->constrained(config('database.default') === 'sqlite' ? 'project_projects' : 'project.projects')->cascadeOnDelete();
             $table->uuid('parent_id')->nullable(); // Foreign key added below
-            $table->foreignUuid('assigned_member_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_members' : 'project.project_members')->nullOnDelete();
+            $table->foreignUuid('assigned_member_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_project_members' : 'project.project_members')->nullOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('status');
@@ -40,6 +40,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'project_tasks' : 'project.project_tasks');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'project_project_tasks' : 'project.project_tasks');
     }
 };

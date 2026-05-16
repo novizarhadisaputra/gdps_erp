@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $table = config('database.default') === 'sqlite' ? 'app_settings' : 'master_data.app_settings';
+        $table = config('database.default') === 'sqlite' ? 'master_data_app_settings' : 'master_data.app_settings';
 
         Schema::create($table, function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -28,7 +28,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $table = config('database.default') === 'sqlite' ? 'app_settings' : 'master_data.app_settings';
+        $table = config('database.default') === 'sqlite' ? 'master_data_app_settings' : 'master_data.app_settings';
         Schema::dropIfExists($table);
     }
 };

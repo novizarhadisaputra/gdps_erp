@@ -11,20 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'finance_profitability_analyses' : 'finance.profitability_analyses', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('number')->nullable()->unique();
-            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'leads' : 'crm.leads')->onDelete('cascade');
-            $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'customers' : 'crm.customers')->onDelete('set null');
-            $table->foreignUuid('general_information_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'general_informations' : 'crm.general_informations')->onDelete('set null');
+            $table->foreignUuid('lead_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_leads' : 'crm.leads')->onDelete('cascade');
+            $table->foreignUuid('customer_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_customers' : 'crm.customers')->onDelete('set null');
+            $table->foreignUuid('general_information_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_general_informations' : 'crm.general_informations')->onDelete('set null');
             $table->uuid('proposal_id')->nullable();
-            $table->foreignUuid('project_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_types' : 'master_data.project_types')->onDelete('set null');
-            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'product_clusters' : 'master_data.product_clusters')->onDelete('set null');
-            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'taxes' : 'master_data.taxes')->onDelete('set null');
-            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'project_areas' : 'master_data.project_areas')->onDelete('set null');
-            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'payment_terms' : 'master_data.payment_terms')->onDelete('set null');
-            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'work_schemes' : 'master_data.work_schemes')->nullOnDelete();
-            $table->foreignUuid('revenue_segment_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'revenue_segments' : 'master_data.revenue_segments')->onDelete('set null');
+            $table->foreignUuid('project_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_project_types' : 'master_data.project_types')->onDelete('set null');
+            $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_product_clusters' : 'master_data.product_clusters')->onDelete('set null');
+            $table->foreignUuid('tax_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_taxes' : 'master_data.taxes')->onDelete('set null');
+            $table->foreignUuid('project_area_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_project_areas' : 'master_data.project_areas')->onDelete('set null');
+            $table->foreignUuid('payment_term_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_payment_terms' : 'master_data.payment_terms')->onDelete('set null');
+            $table->foreignUuid('work_scheme_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_work_schemes' : 'master_data.work_schemes')->nullOnDelete();
+            $table->foreignUuid('revenue_segment_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_revenue_segments' : 'master_data.revenue_segments')->onDelete('set null');
 
             $table->string('asset_ownership')->default('gdps-owned');
             $table->decimal('interest_rate', 5, 2)->default(1.50);
@@ -72,6 +72,6 @@ return new class extends Migration
     public function down(): void
     {
 
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'profitability_analyses' : 'finance.profitability_analyses');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'finance_profitability_analyses' : 'finance.profitability_analyses');
     }
 };
