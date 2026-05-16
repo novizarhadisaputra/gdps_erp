@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchase_order_items');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'logistics_purchase_order_items' : 'logistics.purchase_order_items');
     }
 };
