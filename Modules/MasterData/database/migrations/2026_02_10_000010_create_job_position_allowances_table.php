@@ -8,20 +8,25 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $schema = config('database.default') === 'sqlite' ? null : 'master_data';
+        $sqlite = config('database.default') === 'sqlite';
+        $tableFixed = $sqlite ? 'master_data_job_position_fixed_allowances' : 'master_data.job_position_fixed_allowances';
+        $tableNonFixed = $sqlite ? 'master_data_job_position_non_fixed_allowances' : 'master_data.job_position_non_fixed_allowances';
+        $tablePos = $sqlite ? 'master_data_job_positions' : 'master_data.job_positions';
+        $tableFixedRef = $sqlite ? 'master_data_fixed_allowances' : 'master_data.fixed_allowances';
+        $tableNonFixedRef = $sqlite ? 'master_data_non_fixed_allowances' : 'master_data.non_fixed_allowances';
 
-        Schema::create($schema ? "{$schema}.job_position_fixed_allowances" : 'job_position_fixed_allowances', function (Blueprint $table) use ($schema) {
+        Schema::create($tableFixed, function (Blueprint $table) use ($tablePos, $tableFixedRef) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('job_position_id')->constrained($schema ? "{$schema}.job_positions" : 'job_positions')->cascadeOnDelete();
-            $table->foreignUuid('fixed_allowance_id')->constrained($schema ? "{$schema}.fixed_allowances" : 'fixed_allowances')->cascadeOnDelete();
+            $table->foreignUuid('job_position_id')->constrained($tablePos)->cascadeOnDelete();
+            $table->foreignUuid('fixed_allowance_id')->constrained($tableFixedRef)->cascadeOnDelete();
             $table->decimal('amount', 15, 2);
             $table->timestamps();
         });
 
-        Schema::create($schema ? "{$schema}.job_position_non_fixed_allowances" : 'job_position_non_fixed_allowances', function (Blueprint $table) use ($schema) {
+        Schema::create($tableNonFixed, function (Blueprint $table) use ($tablePos, $tableNonFixedRef) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('job_position_id')->constrained($schema ? "{$schema}.job_positions" : 'job_positions')->cascadeOnDelete();
-            $table->foreignUuid('non_fixed_allowance_id')->constrained($schema ? "{$schema}.non_fixed_allowances" : 'non_fixed_allowances')->cascadeOnDelete();
+            $table->foreignUuid('job_position_id')->constrained($tablePos)->cascadeOnDelete();
+            $table->foreignUuid('non_fixed_allowance_id')->constrained($tableNonFixedRef)->cascadeOnDelete();
             $table->decimal('amount', 15, 2);
             $table->timestamps();
         });
@@ -29,8 +34,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        $schema = config('database.default') === 'sqlite' ? null : 'master_data';
-        Schema::dropIfExists($schema ? "{$schema}.job_position_non_fixed_allowances" : 'job_position_non_fixed_allowances');
-        Schema::dropIfExists($schema ? "{$schema}.job_position_fixed_allowances" : 'job_position_fixed_allowances');
+        $sqlite = config('database.default') === 'sqlite';
+        Schema::dropIfExists($sqlite ? 'master_data_job_position_non_fixed_allowances' : 'master_data.job_position_non_fixed_allowances');
+        Schema::dropIfExists($sqlite ? 'master_data_job_position_fixed_allowances' : 'master_data.job_position_fixed_allowances');
     }
 };

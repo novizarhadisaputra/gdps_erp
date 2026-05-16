@@ -7,7 +7,7 @@ use Filament\Support\Icons\Heroicon;
 
 class MasterDataCluster extends Cluster
 {
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedSquares2x2;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedCircleStack;
 
     protected static ?string $navigationLabel = 'Master Data';
 

@@ -12,7 +12,7 @@ class DirectCostCategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $schema = config('database.default') === 'sqlite' ? '' : 'master_data.';
+        $schema = config('database.default') === 'sqlite' ? 'master_data_' : 'master_data.';
 
         $categories = [
             ['id' => '2d78e9a4-ea83-48dc-8772-d18751b145bc', 'code' => 'manpower', 'name' => 'Manpower', 'type' => 'direct'],

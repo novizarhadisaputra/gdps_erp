@@ -7,7 +7,7 @@ use Filament\Support\Icons\Heroicon;
 
 class LogisticsCluster extends Cluster
 {
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedCube;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedTruck;
 
     protected static ?string $navigationLabel = 'Logistics';
 

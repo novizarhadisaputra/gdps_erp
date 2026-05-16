@@ -13,7 +13,7 @@ class RevenueTypeSeeder extends Seeder
      */
     public function run(): void
     {
-        $schema = config('database.default') === 'sqlite' ? '' : 'master_data.';
+        $schema = config('database.default') === 'sqlite' ? 'master_data_' : 'master_data.';
 
         $types = [
             ['name' => 'Manpower & Management Fee', 'code' => 'manpower', 'to' => ['revenue', 'expense']],

@@ -7,7 +7,7 @@ use Filament\Support\Icons\Heroicon;
 
 class ProjectCluster extends Cluster
 {
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedSquares2x2;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBriefcase;
 
     protected static ?string $navigationLabel = 'Project';
 

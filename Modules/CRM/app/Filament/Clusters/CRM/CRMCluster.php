@@ -7,7 +7,7 @@ use Filament\Support\Icons\Heroicon;
 
 class CRMCluster extends Cluster
 {
-    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedSquares2x2;
+    protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static ?string $navigationLabel = 'CRM';
 
