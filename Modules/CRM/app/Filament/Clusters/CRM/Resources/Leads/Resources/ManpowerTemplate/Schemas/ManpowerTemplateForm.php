@@ -21,11 +21,18 @@ use Illuminate\Support\HtmlString;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Models\BufferCostType;
+use Modules\MasterData\Models\DirectCostCategory;
+use Modules\MasterData\Models\FixedAllowance;
+use Modules\MasterData\Models\Item;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\MinimumWage;
+use Modules\MasterData\Models\NonFixedAllowance;
 use Modules\MasterData\Models\ProductCluster;
 use Modules\MasterData\Models\ProjectArea;
 use Modules\MasterData\Models\TaxPtkpConfig;
+use Modules\MasterData\Models\Training;
+use Modules\MasterData\Models\WorkPattern;
 
 class ManpowerTemplateForm
 {
@@ -116,6 +123,31 @@ class ManpowerTemplateForm
                             ->default(date('Y'))
                             ->required()
                             ->live()
+                            ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                if (! $state) {
+                                    return;
+                                }
+
+                                $areaId = $get('project_area_id');
+                                if (! $areaId) {
+                                    return;
+                                }
+
+                                $clusters = $get('clusters') ?? [];
+                                foreach ($clusters as $cKey => $cluster) {
+                                    $clusterItems = $cluster['items'] ?? [];
+                                    foreach ($clusterItems as $iKey => $item) {
+                                        $umk = MinimumWage::where('project_area_id', $areaId)
+                                            ->where('year', $state)
+                                            ->where('is_active', true)
+                                            ->first();
+
+                                        if ($umk) {
+                                            $set("clusters.{$cKey}.items.{$iKey}.basic_salary", $umk->amount);
+                                        }
+                                    }
+                                }
+                            })
                             ->helperText('Determines the UMK year and tax regulations applied.'),
                         Select::make('work_scheme_id')
                             ->label('Work Scheme')
@@ -214,16 +246,26 @@ class ManpowerTemplateForm
                                                     ->searchable()
                                                     ->preload()
                                                     ->live()
-                                                    ->afterStateUpdated(function (Set $set, Get $get, $state) {
+                                                    ->afterStateUpdated(function (Set $set, Get $get, $state, $component) {
                                                         if (! $state) {
                                                             return;
                                                         }
-                                                        $areaId = $get('../../../project_area_id');
+
+                                                        // Fallback mechanism to ensure we get the root level project_area_id and year
+                                                        $livewire = $component->getLivewire();
+                                                        $areaId = $get('../../../../../project_area_id') ?? $get('../../../../project_area_id') ?? $get('../../../project_area_id') ?? $livewire->data['project_area_id'] ?? null;
+                                                        $year = $get('../../../../../year') ?? $get('../../../../year') ?? $get('../../../year') ?? $livewire->data['year'] ?? date('Y');
+
                                                         if (! $areaId) {
                                                             return;
                                                         }
+
+                                                        if (! $areaId) {
+                                                            return;
+                                                        }
+
                                                         $umk = MinimumWage::where('project_area_id', $areaId)
-                                                            ->where('year', $get('../../../year') ?? date('Y'))
+                                                            ->where('year', $year)
                                                             ->where('is_active', true)
                                                             ->first();
                                                         if ($umk) {
@@ -253,8 +295,17 @@ class ManpowerTemplateForm
                                                     ->columnSpan(1),
                                             ]),
 
-                                        Grid::make(3)
+                                        Grid::make(4)
                                             ->schema([
+                                                Select::make('contract_type_id')
+                                                    ->label('Contract Type')
+                                                    ->placeholder('Select Contract Type')
+                                                    ->relationship('contractType', 'name')
+                                                    ->preload()
+                                                    ->required()
+                                                    ->live()
+                                                    ->helperText('Employee contract classification (e.g., PKWT, PKWTT, MITRA).')
+                                                    ->columnSpan(1),
                                                 TextInput::make('future_adjustment_rate')
                                                     ->label('Salary Scaling (%)')
                                                     ->numeric()
@@ -279,6 +330,7 @@ class ManpowerTemplateForm
                                                     ->searchable()
                                                     ->preload()
                                                     ->required()
+                                                    ->default(fn () => WorkPattern::where('is_default', true)->value('id'))
                                                     ->live()
                                                     ->columnSpan(1),
                                             ]),
@@ -386,54 +438,118 @@ class ManpowerTemplateForm
                                             ->schema([
                                                 Repeater::make('allowances')
                                                     ->schema([
-                                                        Grid::make(4)
+                                                        Grid::make(3)
                                                             ->schema([
-                                                                TextInput::make('name')
-                                                                    ->placeholder('e.g., Tunjangan Makan')
-                                                                    ->required()
-                                                                    ->columnSpan(2),
-                                                                Select::make('type')
-                                                                    ->options(['nominal' => 'IDR', 'percentage' => '%'])
-                                                                    ->default('nominal')
+                                                                Select::make('category')
+                                                                    ->options([
+                                                                        'fixed' => 'Fixed Allowance',
+                                                                        'non_fixed' => 'Non-Fixed Allowance',
+                                                                    ])
                                                                     ->required()
                                                                     ->live()
-                                                                    ->columnSpan(1),
-                                                                Select::make('frequency')
-                                                                    ->options(['monthly' => 'Monthly', 'daily' => 'Daily'])
-                                                                    ->default('monthly')
-                                                                    ->required()
-                                                                    ->live()
-                                                                    ->columnSpan(1)
-                                                                    ->helperText('Daily allowances are multiplied by working days.'),
-                                                                Toggle::make('is_fixed')
-                                                                    ->label('Fixed')
-                                                                    ->default(true)
-                                                                    ->columnSpan(1)
-                                                                    ->helperText('Fixed allowances are included in THR/Compensation basis by default.'),
+                                                                    ->afterStateUpdated(fn ($state, Set $set) => $set('is_fixed', $state === 'fixed')),
+                                                                Select::make('name')
+                                                                    ->label('Allowance Name')
+                                                                    ->options(function (Get $get) {
+                                                                        $options = [];
+                                                                        if ($get('category') === 'fixed') {
+                                                                            $options = FixedAllowance::pluck('name', 'name')->toArray();
+                                                                        } elseif ($get('category') === 'non_fixed') {
+                                                                            $options = NonFixedAllowance::pluck('name', 'name')->toArray();
+                                                                        }
+
+                                                                        return collect($options)->mapWithKeys(function ($item, $key) {
+                                                                            $cleanName = str_replace([' (Tetap)', ' (Tidak Tetap)'], '', $item);
+
+                                                                            return [$key => $cleanName];
+                                                                        })->toArray();
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->required(),
                                                                 TextInput::make('value')
                                                                     ->numeric()
-                                                                    ->placeholder('0.00')
+                                                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                                    ->required(),
+                                                                Select::make('type')
+                                                                    ->options(['nominal' => 'Nominal', 'percentage' => 'Percentage (%)'])
                                                                     ->required()
-                                                                    ->live(onBlur: true)
-                                                                    ->columnSpanFull(),
+                                                                    ->live()
+                                                                    ->default('nominal'),
+                                                                Select::make('base_type')
+                                                                    ->label('Multiplier Base')
+                                                                    ->options([
+                                                                        'basic_salary' => 'Gaji Pokok',
+                                                                        'umk' => 'UMK',
+                                                                    ])
+                                                                    ->default('basic_salary')
+                                                                    ->visible(fn (Get $get) => $get('type') === 'percentage')
+                                                                    ->required(fn (Get $get) => $get('type') === 'percentage'),
+                                                                Select::make('frequency')
+                                                                    ->options(['monthly' => 'Monthly', 'daily' => 'Daily (Per Attendance)'])
+                                                                    ->required()
+                                                                    ->default('monthly'),
+                                                                Hidden::make('is_fixed'),
                                                             ]),
                                                     ])->defaultItems(0)->addActionLabel('Add Allowance'),
 
                                                 Repeater::make('extra_costs')
                                                     ->schema([
-                                                        Grid::make(2)
+                                                        Grid::make(3)
                                                             ->schema([
-                                                                TextInput::make('name')
-                                                                    ->placeholder('e.g., Seragam, Pelatihan Tahunan')
-                                                                    ->required(),
+                                                                Select::make('category')
+                                                                    ->options([
+                                                                        'equipment' => 'Equipment / Items',
+                                                                        'training' => 'Training',
+                                                                        'buffer' => 'Buffer Cost / Inval',
+                                                                        'other' => 'Other Direct Cost',
+                                                                    ])
+                                                                    ->required()
+                                                                    ->live(),
+                                                                Select::make('name')
+                                                                    ->label('Item Name')
+                                                                    ->options(function (Get $get) {
+                                                                        $cat = $get('category');
+                                                                        if ($cat === 'equipment') {
+                                                                            return Item::pluck('name', 'name');
+                                                                        }
+                                                                        if ($cat === 'training') {
+                                                                            return Training::pluck('name', 'name');
+                                                                        }
+                                                                        if ($cat === 'buffer') {
+                                                                            return BufferCostType::pluck('name', 'name');
+                                                                        }
+
+                                                                        return DirectCostCategory::pluck('name', 'name');
+                                                                    })
+                                                                    ->searchable()
+                                                                    ->required()
+                                                                    ->live()
+                                                                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                                                                        if (! $state) {
+                                                                            return;
+                                                                        }
+                                                                        $cat = $get('category');
+                                                                        $cost = 0;
+                                                                        if ($cat === 'equipment') {
+                                                                            $cost = Item::where('name', $state)->value('price') ?? 0;
+                                                                        } elseif ($cat === 'training') {
+                                                                            $cost = Training::where('name', $state)->value('base_cost') ?? 0;
+                                                                        }
+
+                                                                        if ($cost > 0) {
+                                                                            $set('annual_amount', $cost);
+                                                                            $set('amount', round((float) $cost / 12, 0));
+                                                                        }
+                                                                    }),
                                                                 TextInput::make('annual_amount')
                                                                     ->label('Annual Budget')
                                                                     ->numeric()
-                                                                    ->placeholder('0.00')
+                                                                    ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                                    ->placeholder('0')
                                                                     ->required()
                                                                     ->live(onBlur: true)
                                                                     ->afterStateUpdated(fn ($state, Set $set) => $set('amount', round((float) ($state ?? 0) / 12, 0)))
-                                                                    ->helperText('The total annual budget. This will be divided by 12 for monthly costing.'),
+                                                                    ->helperText('Divided by 12 for monthly costing.'),
                                                                 Hidden::make('amount')->dehydrated(),
                                                             ]),
                                                     ])->defaultItems(0)->addActionLabel('Add Extra Cost'),
@@ -533,7 +649,8 @@ class ManpowerTemplateForm
                                                 'jkm' => (bool) ($item['is_employee_jkm_borne_by_company'] ?? false),
                                                 'jht' => (bool) ($item['is_employee_jht_borne_by_company'] ?? false),
                                                 'jp' => (bool) ($item['is_employee_jp_borne_by_company'] ?? false),
-                                            ]
+                                            ],
+                                            contractTypeId: $item['contract_type_id'] ?? null
                                         );
 
                                         $scale = 1 + ((float) ($item['future_adjustment_rate'] ?? 0) / 100);

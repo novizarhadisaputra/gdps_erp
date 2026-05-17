@@ -27,7 +27,7 @@ class CreateManpowerTemplate extends CreateRecord
             'clusters' => [
                 [
                     'product_cluster_id' => $this->parentRecord->product_cluster_id,
-                ]
+                ],
             ],
         ]);
 

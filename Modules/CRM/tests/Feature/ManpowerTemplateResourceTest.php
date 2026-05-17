@@ -14,6 +14,7 @@ use Modules\MasterData\Models\BpjsJhtConfig;
 use Modules\MasterData\Models\BpjsJkkConfig;
 use Modules\MasterData\Models\BpjsJkmConfig;
 use Modules\MasterData\Models\BpjsJpConfig;
+use Modules\MasterData\Models\ContractType;
 use Modules\MasterData\Models\JobPosition;
 use Modules\MasterData\Models\MinimumWage;
 use Modules\MasterData\Models\ProductCluster;
@@ -259,5 +260,38 @@ class ManpowerTemplateResourceTest extends TestCase
         $taxK3 = $simulation['rows'][1]['pph21']['total'];
 
         $this->assertGreaterThan($taxK3, $taxTk0);
+    }
+
+    /** @test */
+    public function it_applies_contract_type_rules_to_calculations(): void
+    {
+        $this->actingAs($this->user);
+
+        $area = ProjectArea::factory()->create();
+        $template = ManpowerTemplate::factory()->create(['project_area_id' => $area->id]);
+        $cluster = ManpowerTemplateCluster::create([
+            'manpower_template_id' => $template->id,
+            'product_cluster_id' => ProductCluster::factory()->create()->id,
+            'name' => 'Contract Test Cluster',
+        ]);
+
+        $pkwt = ContractType::create(['code' => 'PKWT', 'name' => 'PKWT', 'is_active' => true]);
+        $pkwtt = ContractType::create(['code' => 'PKWTT', 'name' => 'PKWTT', 'is_active' => true]);
+        $mitra = ContractType::create(['code' => 'MITRA', 'name' => 'MITRA', 'is_active' => true]);
+
+        // Scenario: If MITRA contract type is chosen, compensation accruals are not billed
+        $itemMitra = ManpowerTemplateItem::create([
+            'manpower_template_id' => $template->id,
+            'manpower_template_cluster_id' => $cluster->id,
+            'job_position_id' => JobPosition::factory()->create()->id,
+            'quantity' => 1,
+            'basic_salary' => 5000000,
+            'contract_type_id' => $mitra->id,
+        ]);
+
+        $simulation = $template->getCostSimulation();
+
+        // MITRA has no compensation accruals
+        $this->assertEquals(0, $simulation['rows'][0]['accruals']['compensation']);
     }
 }

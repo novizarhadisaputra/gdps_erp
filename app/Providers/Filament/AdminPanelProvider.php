@@ -75,7 +75,8 @@ class AdminPanelProvider extends PanelProvider
                         'id' => 'Indonesian',
                         'en' => 'English',
                     ])
-                    ->defaultLocale('id'),
+                    ->defaultLocale(fn () => app()->getLocale()),
+
             ])
             ->databaseNotifications()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
@@ -100,6 +101,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+
             ])
             ->authMiddleware([
                 Authenticate::class,

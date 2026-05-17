@@ -66,7 +66,8 @@ class ManpowerCostingService
             borneByCompany: $borneByCompany,
             salaryIncreaseRate: (float) ($item->future_adjustment_rate ?? 0),
             baseYear: $item->template?->year,
-            useTerMethod: (bool) $item->use_ter_method
+            useTerMethod: (bool) $item->use_ter_method,
+            contractTypeId: $item->contract_type_id
         );
     }
 
@@ -100,7 +101,8 @@ class ManpowerCostingService
         array $borneByCompany = [], // ['jkn' => bool, 'jkk' => bool, etc]
         float $salaryIncreaseRate = 0.063, // 6.3% annual increase assumption
         ?int $baseYear = null,
-        bool $useTerMethod = true
+        bool $useTerMethod = true,
+        ?string $contractTypeId = null
     ): array {
         $baseYear = $baseYear ?? $year ?? (int) date('Y');
         $yearDelta = max(0, ($year ?? $baseYear) - $baseYear);
@@ -155,7 +157,12 @@ class ManpowerCostingService
             $isFixed = $allowance['is_fixed'] ?? true;
             $frequency = $allowance['frequency'] ?? 'monthly';
 
-            $amount = $type === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+            $amount = $val;
+            if ($type === 'percentage') {
+                $baseType = $allowance['base_type'] ?? 'basic_salary';
+                $baseMultiplier = $baseType === 'umk' ? $umk : $basicSalary;
+                $amount = $baseMultiplier * ($val / 100);
+            }
 
             if ($frequency === 'daily') {
                 $amount *= $workingDays;
@@ -172,9 +179,19 @@ class ManpowerCostingService
         $totalMonthlySalary = $upah + $nonFixedAllowances;
 
         // Determine Basis for BPJS, THR, Compensation
-        $bpjsBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $bpjsBasisId, 'bpjs', false, $workingDays);
-        $thrBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $thrBasisId, 'thr', $includeNonFixedInAccruals, $workingDays);
-        $compensationBasisAmount = $this->calculateBasisAmount($basicSalary, $allowances, $compensationBasisId, 'compensation', $includeNonFixedInAccruals, $workingDays);
+        $bpjsBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $bpjsBasisId, 'bpjs', false, $workingDays);
+        $thrBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $thrBasisId, 'thr', $includeNonFixedInAccruals, $workingDays);
+        $compensationBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $compensationBasisId, 'compensation', $includeNonFixedInAccruals, $workingDays);
+
+        $contractTypeCode = null;
+        if ($contractTypeId) {
+            $contractTypeCode = \Modules\MasterData\Models\ContractType::where('id', $contractTypeId)->value('code');
+        }
+        $contractTypeCode = $contractTypeCode ?: 'PKWT';
+
+        if ($contractTypeCode === 'MITRA') {
+            $isBpjsActive = false;
+        }
 
         // BPJS Calculation
         if ($isBpjsActive) {
@@ -186,13 +203,38 @@ class ManpowerCostingService
         }
 
         // Accrual Basis (THR/Comp may include non-fixed depending on position logic)
-        $thr = $thrBillingMethod === 'monthly_accrual' ? ($thrBasisAmount / 12) : 0;
-        $compensation = $compensationBillingMethod === 'monthly_accrual' ? ($compensationBasisAmount / 12) : 0;
+        $thr = 0.0;
+        $compensation = 0.0;
 
-        // Extra monthly costs which are flat (Equipment/Training)
-        $extraCostsTotal = array_reduce($extraCosts, function (float $carry, array $item): float {
-            return $carry + (float) ($item['amount'] ?? 0);
-        }, 0.0);
+        if ($contractTypeCode !== 'MITRA') {
+            $thr = $thrBillingMethod === 'monthly_accrual' ? ($thrBasisAmount / 12) : 0;
+            if ($contractTypeCode === 'PKWT') {
+                $compensation = $compensationBillingMethod === 'monthly_accrual' ? ($compensationBasisAmount / 12) : 0;
+            }
+        }
+
+        // Extra monthly costs by category
+        $equipmentTotal = 0.0;
+        $trainingTotal = 0.0;
+        $bufferTotal = 0.0;
+        $otherCostTotal = 0.0;
+
+        foreach ($extraCosts as $item) {
+            $cat = $item['category'] ?? 'other';
+            $amount = (float) ($item['amount'] ?? 0);
+
+            if ($cat === 'equipment') {
+                $equipmentTotal += $amount;
+            } elseif ($cat === 'training') {
+                $trainingTotal += $amount;
+            } elseif ($cat === 'buffer') {
+                $bufferTotal += $amount;
+            } else {
+                $otherCostTotal += $amount;
+            }
+        }
+
+        $extraCostsTotal = $equipmentTotal + $trainingTotal + $bufferTotal + $otherCostTotal;
 
         // PPH21 Calculation (Based on monthly salary, excluding accruals)
         if ($useTerMethod) {
@@ -231,8 +273,10 @@ class ManpowerCostingService
             'THR (Accrual)' => $thr,
             'Kompensasi (Accrual)' => $compensation,
             'PPh 21 ('.($useTerMethod ? 'TER' : 'Pasal 17').')' => $pph21['total'],
-            'Seragam & Perlengkapan' => $extraCostsTotal,
-            'Training & Sertifikasi' => 0.0,
+            'Seragam & Perlengkapan' => $equipmentTotal,
+            'Training & Sertifikasi' => $trainingTotal,
+            'Biaya Buffer/Inval' => $bufferTotal,
+            'Biaya Lainnya' => $otherCostTotal,
             'SUBTOTAL DIRECT COST' => $totalDirectCost,
             'Management Fee' => $adminFee + $managementFeeFlat,
             'TOTAL BILLING' => $totalCostToCompany,
@@ -244,7 +288,12 @@ class ManpowerCostingService
             $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
             $type = $allowance['type'] ?? 'nominal';
             $freq = $allowance['frequency'] ?? 'monthly';
-            $amount = $type === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+            $amount = $val;
+            if ($type === 'percentage') {
+                $baseType = $allowance['base_type'] ?? 'basic_salary';
+                $baseMultiplier = $baseType === 'umk' ? $umk : $basicSalary;
+                $amount = $baseMultiplier * ($val / 100);
+            }
 
             if ($freq === 'daily') {
                 $amount *= $workingDays;
@@ -288,7 +337,7 @@ class ManpowerCostingService
         ];
     }
 
-    protected function calculateBasisAmount(float $basicSalary, array $allowances, ?string $basisId, string $type, bool $legacyIncludeNonFixed = false, int $workingDays = 21): float
+    protected function calculateBasisAmount(float $basicSalary, float $umk, array $allowances, ?string $basisId, string $type, bool $legacyIncludeNonFixed = false, int $workingDays = 21): float
     {
         $basis = null;
         if ($basisId) {
@@ -303,7 +352,12 @@ class ManpowerCostingService
                 if ($allowance['is_fixed'] ?? true) {
                     $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
                     $freq = $allowance['frequency'] ?? 'monthly';
-                    $amt = ($allowance['type'] ?? 'nominal') === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+                    $amt = $val;
+                    if (($allowance['type'] ?? 'nominal') === 'percentage') {
+                        $baseType = $allowance['base_type'] ?? 'basic_salary';
+                        $baseMultiplier = $baseType === 'umk' ? $umk : $basicSalary;
+                        $amt = $baseMultiplier * ($val / 100);
+                    }
                     if ($freq === 'daily') {
                         $amt *= $workingDays;
                     }
@@ -317,7 +371,12 @@ class ManpowerCostingService
                     if (! ($allowance['is_fixed'] ?? true)) {
                         $val = (float) ($allowance['value'] ?? $allowance['amount'] ?? 0);
                         $freq = $allowance['frequency'] ?? 'monthly';
-                        $amt = ($allowance['type'] ?? 'nominal') === 'percentage' ? ($basicSalary * ($val / 100)) : $val;
+                        $amt = $val;
+                        if (($allowance['type'] ?? 'nominal') === 'percentage') {
+                            $baseType = $allowance['base_type'] ?? 'basic_salary';
+                            $baseMultiplier = $baseType === 'umk' ? $umk : $basicSalary;
+                            $amt = $baseMultiplier * ($val / 100);
+                        }
                         if ($freq === 'daily') {
                             $amt *= $workingDays;
                         }

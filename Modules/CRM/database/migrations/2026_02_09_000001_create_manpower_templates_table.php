@@ -51,6 +51,7 @@ return new class extends Migration
             $table->foreignUuid('product_cluster_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_product_clusters' : 'master_data.product_clusters')->nullOnDelete()->comment('Override product cluster for specific role');
             $table->foreignUuid('job_position_id')->constrained(config('database.default') === 'sqlite' ? 'master_data_job_positions' : 'master_data.job_positions')->cascadeOnDelete()->comment('Associated job position');
             $table->foreignUuid('work_pattern_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_work_patterns' : 'master_data.work_patterns')->nullOnDelete()->comment('Shift/Work pattern reference');
+            $table->foreignUuid('contract_type_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'master_data_contract_types' : 'master_data.contract_types')->nullOnDelete()->comment('Contract Type from Master Data (PKWT, PKWTT, MITRA)');
 
             $table->decimal('basic_salary', 15, 2)->default(0)->comment('Base monthly salary for the position');
             $table->integer('quantity')->default(1)->comment('Number of personnel for this role');

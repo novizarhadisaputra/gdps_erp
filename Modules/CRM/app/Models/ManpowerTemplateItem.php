@@ -33,6 +33,7 @@ class ManpowerTemplateItem extends Model
         'manpower_template_cluster_id',
         'product_cluster_id',
         'work_pattern_id',
+        'contract_type_id',
         'job_position_id',
         'quantity',
         'basic_salary',
@@ -124,5 +125,10 @@ class ManpowerTemplateItem extends Model
     public function jobPosition(): BelongsTo
     {
         return $this->belongsTo(JobPosition::class);
+    }
+
+    public function contractType(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\MasterData\Models\ContractType::class);
     }
 }

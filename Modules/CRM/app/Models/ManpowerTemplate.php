@@ -153,7 +153,8 @@ class ManpowerTemplate extends Model implements HasMedia
                         'jkm' => (bool) ($item->is_employee_jkm_borne_by_company ?? false),
                         'jht' => (bool) ($item->is_employee_jht_borne_by_company ?? false),
                         'jp' => (bool) ($item->is_employee_jp_borne_by_company ?? false),
-                    ]
+                    ],
+                    contractTypeId: $item->contract_type_id
                 );
 
                 // Apply Future Scaling Factor if defined
