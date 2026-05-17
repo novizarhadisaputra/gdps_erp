@@ -135,7 +135,8 @@ class ManpowerTemplateForm
                             ->label('Active Status')
                             ->helperText('Only active templates can be selected in Profitability Analysis.')
                             ->required()
-                            ->default(true),
+                            ->default(true)
+                            ->hidden(fn (string $operation): bool => $operation === 'create'),
                     ])
                     ->columns(2),
 
