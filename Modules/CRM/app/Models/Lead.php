@@ -331,8 +331,10 @@ class Lead extends Model implements HasMedia
                         'name' => $item->item?->name ?? 'Unknown',
                         'quantity' => $item->quantity ?? 1,
                         'unit_amount' => $item->unit_price ?? 0,
-                        'amount' => ($item->unit_price ?? 0) * ($item->quantity ?? 1),
+                        'amount' => $item->monthly_cost ?? 0,
+                        'total_monthly_cost' => $item->monthly_cost ?? 0,
                         'depreciation_months' => $item->depreciation_months ?? 1,
+                        'uom' => $item->item?->unitOfMeasure?->name ?? 'Unit',
                     ];
                 }
 

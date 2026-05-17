@@ -15,9 +15,11 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
+use Modules\CRM\Enums\DepreciationMethod;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\CostingTemplate\Resources\CostingTemplateItem\Schemas\CostingTemplateItemForm;
 use Modules\CRM\Livewire\CostingTemplate\ManageCostingItems;
 use Modules\CRM\Models\Lead;
+use Modules\MasterData\Models\Item;
 
 class CostingTemplateForm
 {
@@ -167,14 +169,29 @@ class CostingTemplateForm
             $markupPercent = (float) ($item['markup_percent'] ?? 0);
             $deprMonths = (float) ($item['depreciation_months'] ?? 1);
             $deprMonths = $deprMonths > 0 ? $deprMonths : 1;
+            $method = $item['depreciation_method'] ?? DepreciationMethod::StraightLine->value;
 
             // Recalculate based on cost and markup to be 100% sure
             $sellingPrice = $costPrice * (1 + ($markupPercent / 100));
             $subtotalCost = $qty * $costPrice;
             $subtotalSelling = $qty * $sellingPrice;
 
-            // Calculate monthly cost (simplified SL for summary)
-            $monthly = $subtotalSelling / $deprMonths;
+            // Calculate monthly cost based on depreciation method
+            $monthly = 0;
+            if ($method === DepreciationMethod::DecliningBalance->value) {
+                $itemId = $item['item_id'] ?? null;
+                $dbItem = $itemId ? Item::find($itemId) : null;
+                $ag = $dbItem?->category?->assetGroup;
+                $rate = (float) ($ag?->rate_declining_balance ?? 0);
+
+                if ($rate > 0) {
+                    $monthly = ($subtotalSelling * $rate / 100) / 12;
+                } else {
+                    $monthly = $subtotalSelling / $deprMonths;
+                }
+            } else {
+                $monthly = $subtotalSelling / $deprMonths;
+            }
 
             $totalCost += $subtotalCost;
             $totalAmount += $subtotalSelling;
