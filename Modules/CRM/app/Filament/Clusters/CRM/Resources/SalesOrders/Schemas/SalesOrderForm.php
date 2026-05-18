@@ -403,7 +403,7 @@ class SalesOrderForm
 
                                             return $media
                                                 ? new HtmlString("<a href='{$media->getTemporaryUrl(now()->addMinutes(60))}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-2'>
-                                                    <svg class='w-4 h-4 inline-block' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'></path></svg> 
+                                                    <svg class='w-4 h-4 inline-block shrink-0' width='16' height='16' style='width: 16px; height: 16px;' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'></path></svg> 
                                                     Download Original Manpower Costing ({$media->file_name})
                                                   </a>")
                                                 : 'No manpower attachment found.';
@@ -441,7 +441,7 @@ class SalesOrderForm
 
                                             return $media
                                                 ? new HtmlString("<a href='{$media->getTemporaryUrl(now()->addMinutes(60))}' target='_blank' class='text-primary-600 font-bold underline flex items-center gap-2'>
-                                                    <svg class='w-4 h-4 inline-block' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'></path></svg> 
+                                                    <svg class='w-4 h-4 inline-block shrink-0' width='16' height='16' style='width: 16px; height: 16px;' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4'></path></svg> 
                                                     Download Original Tools costing ({$media->file_name})
                                                   </a>")
                                                 : 'No tools/equipment attachment found.';

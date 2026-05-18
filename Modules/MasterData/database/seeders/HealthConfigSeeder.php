@@ -15,14 +15,29 @@ class HealthConfigSeeder extends Seeder
         // Clean up old config names to ensure consistency
         BpjsHealthConfig::query()->delete();
 
+        // 1. Tipe 1: 4% Perusahaan, 1% Peserta (Min. UMK, Max. 12jt)
         BpjsHealthConfig::create([
-            'name' => '4% Perusahaan, 1% Peserta (Min. UMK, Max. 12jt)',
+            'name' => 'Tipe 1: 4% Perusahaan, 1% Peserta (Min. UMK, Max. 12jt)',
             'employee_type' => 'ppu',
             'floor_type' => 'umk',
             'employer_rate' => 0.04,
             'employee_rate' => 0.01,
             'cap_nominal' => 12000000,
             'is_default' => true,
+            'is_active' => true,
+        ]);
+
+        // 2. Tipe 2: Tidak Ada Iuran
+        BpjsHealthConfig::create([
+            'name' => 'Tipe 2: Tidak Ada Iuran',
+            'employee_type' => 'ppu',
+            'floor_type' => 'nominal',
+            'employer_rate' => 0.0,
+            'employee_rate' => 0.0,
+            'employer_nominal' => 0,
+            'employee_nominal' => 0,
+            'cap_nominal' => 0,
+            'is_default' => false,
             'is_active' => true,
         ]);
 

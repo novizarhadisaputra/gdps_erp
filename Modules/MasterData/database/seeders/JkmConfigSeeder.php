@@ -27,6 +27,16 @@ class JkmConfigSeeder extends Seeder
         ]);
 
         BpjsJkmConfig::create([
+            'name' => 'Tidak Ada Iuran',
+            'employee_type' => 'ppu',
+            'employer_rate' => 0.0,
+            'employee_rate' => 0,
+            'employer_nominal' => 0,
+            'employee_nominal' => 0,
+            'is_default' => false,
+        ]);
+
+        BpjsJkmConfig::create([
             'name' => 'Lookup Tier Peserta',
             'employee_type' => 'pbpu',
             'employer_rate' => 0,

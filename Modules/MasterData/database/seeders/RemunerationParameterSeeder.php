@@ -108,8 +108,14 @@ class RemunerationParameterSeeder extends Seeder
         $thrBasisTypes = [
             ['name' => 'Adjusted Gaji Pokok', 'formula_code' => 'gaji_pokok'],
             ['name' => 'Adjusted Gaji Pokok + Tunjangan Tetap', 'formula_code' => 'gaji_plus_tetap'],
-            ['name' => 'Adjusted Gaji Pokok + Tunjangan Tetap + Sebagian Tunjangan Tidak Tetap (Makan & Transpor)', 'formula_code' => 'gaji_plus_tetap_plus_sebagian'],
+            ['name' => 'Adjusted Gaji Pokok + Tunjangan Tidak Tetap', 'formula_code' => 'gaji_plus_tunjangan_tidak_tetap'],
+            ['name' => 'Adjusted Gaji Pokok + Tunjangan Tetap + Tunjangan Tidak Tetap', 'formula_code' => 'gaji_plus_tunjangan_tetap_tidak_tetap'],
         ];
+
+        // Clean up obsolete options not in the new set
+        $newFormulaCodes = array_column($thrBasisTypes, 'formula_code');
+        ThrBasisType::whereNotIn('formula_code', $newFormulaCodes)->delete();
+
         foreach ($thrBasisTypes as $data) {
             ThrBasisType::updateOrCreate(['formula_code' => $data['formula_code']], array_merge(['is_active' => true], $data));
         }

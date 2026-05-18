@@ -22,7 +22,11 @@ use Illuminate\Support\HtmlString;
 use Modules\Finance\Services\ManpowerCostingService;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\JobPositions\Schemas\JobPositionForm;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\ProjectAreas\Schemas\ProjectAreaForm;
+use Modules\MasterData\Models\BpjsJhtConfig;
+use Modules\MasterData\Models\BpjsJkkConfig;
+use Modules\MasterData\Models\BpjsJkmConfig;
 use Modules\MasterData\Models\BpjsJknCategory;
+use Modules\MasterData\Models\BpjsJpConfig;
 use Modules\MasterData\Models\BufferCostType;
 use Modules\MasterData\Models\DirectCostCategory;
 use Modules\MasterData\Models\FixedAllowance;
@@ -216,6 +220,7 @@ class ManpowerTemplateForm
                                             ->default(1)
                                             ->required()
                                             ->live(onBlur: true)
+                                            ->minValue(1)
                                             ->helperText(__('Number of personnel for this position.'))
                                             ->columnSpan(1),
                                         TextInput::make('basic_salary')
@@ -225,6 +230,7 @@ class ManpowerTemplateForm
                                             ->prefix('IDR ')
                                             ->required()
                                             ->live(onBlur: true)
+                                            ->minValue(0)
                                             ->helperText(__('Base monthly salary (before allowances).'))
                                             ->columnSpan(1),
                                         Select::make('work_scheme_id')
@@ -270,7 +276,7 @@ class ManpowerTemplateForm
                                             ->default(fn () => TaxObject::where('is_default', true)->value('id'))
                                             ->live()
                                             ->helperText(__('Menentukan regulasi perhitungan PPh 21 yang diterapkan.'))
-                                            ->columnSpan(1),
+                                            ->columnSpan(2),
                                     ]),
 
                                 Grid::make(4)
@@ -281,6 +287,7 @@ class ManpowerTemplateForm
                                             ->placeholder(__('e.g., 5.0'))
                                             ->default(0)
                                             ->live(onBlur: true)
+                                            ->minValue(0)
                                             ->helperText(__('Percentage increase for future salary forecasts/scaling.'))
                                             ->columnSpan(1),
                                         TextEntry::make('scaling_increment_nominal')
@@ -536,17 +543,19 @@ class ManpowerTemplateForm
                                                             })
                                                             ->searchable()
                                                             ->required(),
-                                                        TextInput::make('value')
-                                                            ->label(__('Value'))
-                                                            ->numeric()
-                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                                            ->required(),
                                                         Select::make('type')
                                                             ->label(__('Type'))
                                                             ->options(['nominal' => __('Nominal'), 'percentage' => __('Percentage (%)')])
                                                             ->required()
                                                             ->live()
                                                             ->default('nominal'),
+                                                        TextInput::make('value')
+                                                            ->label(__('Value'))
+                                                            ->numeric()
+                                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
+                                                            ->live(onBlur: true)
+                                                            ->required()
+                                                            ->minValue(0),
                                                         Select::make('base_type')
                                                             ->label(__('Multiplier Base'))
                                                             ->options([
@@ -622,6 +631,7 @@ class ManpowerTemplateForm
                                                             ->placeholder(__('0'))
                                                             ->required()
                                                             ->live(onBlur: true)
+                                                            ->minValue(0)
                                                             ->afterStateUpdated(fn ($state, Set $set) => $set('amount', round((float) ($state ?? 0) / 12, 0)))
                                                             ->helperText(__('Divided by 12 for monthly costing.')),
                                                         Hidden::make('amount')->dehydrated(),
@@ -696,9 +706,18 @@ class ManpowerTemplateForm
 
                                         // Automatically resolve risk level and employee type from chosen BPJS configurations
                                         $jkkConfigId = $item['bpjs_jkk_config_id'] ?? null;
-                                        $jkkConfig = $jkkConfigId ? \Modules\MasterData\Models\BpjsJkkConfig::find($jkkConfigId) : null;
+                                        $jkkConfig = $jkkConfigId ? BpjsJkkConfig::find($jkkConfigId) : null;
                                         $riskLevel = $jkkConfig ? ($jkkConfig->risk_level ?? 'very_low') : 'very_low';
                                         $employeeType = strtolower($jknCategory);
+
+                                        $jkmConfigId = $item['bpjs_jkm_config_id'] ?? null;
+                                        $jkmConfig = $jkmConfigId ? BpjsJkmConfig::find($jkmConfigId) : null;
+
+                                        $jhtConfigId = $item['bpjs_jht_config_id'] ?? null;
+                                        $jhtConfig = $jhtConfigId ? BpjsJhtConfig::find($jhtConfigId) : null;
+
+                                        $jpConfigId = $item['bpjs_jp_config_id'] ?? null;
+                                        $jpConfig = $jpConfigId ? BpjsJpConfig::find($jpConfigId) : null;
 
                                         $res = $service->calculate(
                                             basicSalary: (float) ($item['basic_salary'] ?? 0),
@@ -751,10 +770,116 @@ class ManpowerTemplateForm
                                         $subD = $res['pph21']['total'] * $scale;
                                         $subE = $res['extra_costs_total'] * $scale;
 
+                                        // Detailed breakdown variables scaled
+                                        $scaled_gapok = ($res['upah'] - $res['allowances']['fixed']) * $scale;
+                                        $scaled_fixed = $res['allowances']['fixed'] * $scale;
+                                        $scaled_non_fixed = $res['allowances']['non_fixed'] * $scale;
+                                        $scaled_upah = $res['upah'] * $scale;
+
+                                        $jkn_base = ($res['bpjs_health']['base'] ?? 0) * $scale;
+                                        $jkn_employer = ($res['bpjs_health']['employer'] ?? 0) * $scale;
+                                        $jkn_employee = ($res['bpjs_health']['employee'] ?? 0) * $scale;
+                                        $jkn_employer_rate_pct = ($res['bpjs_health']['employer_rate'] ?? 0) * 100;
+                                        $jkn_employee_rate_pct = ($res['bpjs_health']['employee_rate'] ?? 0) * 100;
+                                        $scaled_jkn_total = ($res['bpjs_health']['employer_total'] ?? 0) * $scale;
+                                        $borne_jkn = (bool) ($item['is_employee_jkn_borne_by_company'] ?? false)
+                                            ? "<span class='text-green-600 dark:text-green-400 font-semibold'>(Ditanggung)</span>"
+                                            : "<span class='text-gray-400 dark:text-gray-500'>(Potong Gaji)</span>";
+
+                                        $jkk_base = ($res['bpjs_employment']['details']['jkk']['base'] ?? 0) * $scale;
+                                        $jkk_employer = ($res['bpjs_employment']['details']['jkk']['employer'] ?? 0) * $scale;
+                                        $jkk_employee = ($res['bpjs_employment']['details']['jkk']['employee'] ?? 0) * $scale;
+                                        $jkk_total = ($res['bpjs_employment']['details']['jkk']['line_total'] ?? 0) * $scale;
+                                        $jkk_rate_pct = $jkkConfig && $jkkConfig->has_tier ? 'Tier' : ($jkkConfig ? (float) $jkkConfig->employer_rate * 100 : 0.0);
+                                        $jkk_employee_rate_pct = $jkkConfig ? (float) $jkkConfig->employee_rate * 100 : 0.0;
+                                        $borne_jkk = (bool) ($item['is_employee_jkk_borne_by_company'] ?? false)
+                                            ? "<span class='text-green-600 dark:text-green-400 font-semibold'>(Ditanggung)</span>"
+                                            : "<span class='text-gray-400 dark:text-gray-500'>(Potong Gaji)</span>";
+
+                                        $jkm_base = ($res['bpjs_employment']['details']['jkm']['base'] ?? 0) * $scale;
+                                        $jkm_employer = ($res['bpjs_employment']['details']['jkm']['employer'] ?? 0) * $scale;
+                                        $jkm_employee = ($res['bpjs_employment']['details']['jkm']['employee'] ?? 0) * $scale;
+                                        $jkm_total = ($res['bpjs_employment']['details']['jkm']['line_total'] ?? 0) * $scale;
+                                        $jkm_rate_pct = $jkmConfig ? (float) $jkmConfig->employer_rate * 100 : 0.0;
+                                        $jkm_employee_rate_pct = $jkmConfig ? (float) $jkmConfig->employee_rate * 100 : 0.0;
+                                        $borne_jkm = (bool) ($item['is_employee_jkm_borne_by_company'] ?? false)
+                                            ? "<span class='text-green-600 dark:text-green-400 font-semibold'>(Ditanggung)</span>"
+                                            : "<span class='text-gray-400 dark:text-gray-500'>(Potong Gaji)</span>";
+
+                                        $jht_base = ($res['bpjs_employment']['details']['jht']['base'] ?? 0) * $scale;
+                                        $jht_employer = ($res['bpjs_employment']['details']['jht']['employer'] ?? 0) * $scale;
+                                        $jht_employee = ($res['bpjs_employment']['details']['jht']['employee'] ?? 0) * $scale;
+                                        $jht_total = ($res['bpjs_employment']['details']['jht']['line_total'] ?? 0) * $scale;
+                                        $jht_employer_rate_pct = $jhtConfig && $jhtConfig->has_tier ? 'Tier' : ($jhtConfig ? (float) $jhtConfig->employer_rate * 100 : 0.0);
+                                        $jht_employee_rate_pct = $jhtConfig ? (float) $jhtConfig->employee_rate * 100 : 0.0;
+                                        $borne_jht = (bool) ($item['is_employee_jht_borne_by_company'] ?? false)
+                                            ? "<span class='text-green-600 dark:text-green-400 font-semibold'>(Ditanggung)</span>"
+                                            : "<span class='text-gray-400 dark:text-gray-500'>(Potong Gaji)</span>";
+
+                                        $jp_base = ($res['bpjs_employment']['details']['jp']['base'] ?? 0) * $scale;
+                                        $jp_employer = ($res['bpjs_employment']['details']['jp']['employer'] ?? 0) * $scale;
+                                        $jp_employee = ($res['bpjs_employment']['details']['jp']['employee'] ?? 0) * $scale;
+                                        $jp_total = ($res['bpjs_employment']['details']['jp']['line_total'] ?? 0) * $scale;
+                                        $jp_employer_rate_pct = $jpConfig ? (float) $jpConfig->employer_rate * 100 : 0.0;
+                                        $jp_employee_rate_pct = $jpConfig ? (float) $jpConfig->employee_rate * 100 : 0.0;
+                                        $borne_jp = (bool) ($item['is_employee_jp_borne_by_company'] ?? false)
+                                            ? "<span class='text-green-600 dark:text-green-400 font-semibold'>(Ditanggung)</span>"
+                                            : "<span class='text-gray-400 dark:text-gray-500'>(Potong Gaji)</span>";
+
+                                        $scaled_thr_basis = $res['accruals']['basis'] * $scale;
+                                        $scaled_thr = $res['accruals']['thr'] * $scale;
+                                        $scaled_comp = $res['accruals']['compensation'] * $scale;
+
+                                        $scaled_bruto = ($res['pph21']['bruto'] ?? 0) * $scale;
+                                        $scaled_tax = ($res['pph21']['total'] ?? 0) * $scale;
+                                        $tax_rate_pct = $res['pph21']['rate'] ?? 0.0;
+                                        $tax_method = (bool) ($item['use_ter_method'] ?? true) ? 'TER' : 'Progresif Psl 17';
+                                        $borne_tax = (bool) ($item['is_tax_borne_by_company'] ?? false)
+                                            ? "<span class='text-green-600 dark:text-green-400 font-semibold'>(Ditanggung Perusahaan)</span>"
+                                            : "<span class='text-gray-400 dark:text-gray-500'>(Potong Gaji)</span>";
+
+                                        $extra_costs_rows_html = "
+                                            <tr class='bg-slate-50/30 dark:bg-slate-800/10 font-semibold text-slate-900 dark:text-white'>
+                                                <td class='py-1.5 px-3 text-center'>5</td>
+                                                <td colspan='5' class='py-1.5 px-3 font-semibold text-primary-600 dark:text-primary-400'>5. BIAYA EKSTRA (EXTRA COSTS)</td>
+                                                <td class='py-1.5 px-3 text-right font-bold'>Rp {$fmt($subE)}</td>
+                                                <td class='py-1.5 px-3 text-right font-bold text-primary-600 dark:text-primary-400'>Rp {$fmt($subE * $qty)}</td>
+                                            </tr>
+                                        ";
+                                        if (! empty($res['extra_costs'])) {
+                                            $idx = 1;
+                                            foreach ($res['extra_costs'] as $ec) {
+                                                $ecName = $ec['name'] ?? __('Unnamed Cost');
+                                                $ecVal = (float) ($ec['value'] ?? $ec['amount'] ?? 0) * $scale;
+                                                $extra_costs_rows_html .= "
+                                                    <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                        <td class='py-1.5 px-3 text-center text-slate-400'>5.{$idx}</td>
+                                                        <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>{$ecName}</td>
+                                                        <td class='py-1.5 px-3'>Input Biaya Ekstra</td>
+                                                        <td class='py-1.5 px-3'>-</td>
+                                                        <td class='py-1.5 px-3 text-right'>-</td>
+                                                        <td class='py-1.5 px-3 text-right'>-</td>
+                                                        <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($ecVal)}</td>
+                                                        <td class='py-1.5 px-3 text-right'>Rp {$fmt($ecVal * $qty)}</td>
+                                                    </tr>
+                                                ";
+                                                $idx++;
+                                            }
+                                        } else {
+                                            $extra_costs_rows_html .= "
+                                                <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                    <td class='py-1.5 px-3 text-center text-slate-400'>-</td>
+                                                    <td colspan='5' class='py-1.5 px-3 text-slate-400 italic'>Tidak ada biaya ekstra tambahan (No extra costs configured)</td>
+                                                    <td class='py-1.5 px-3 text-right text-slate-400'>Rp 0</td>
+                                                    <td class='py-1.5 px-3 text-right text-slate-400'>Rp 0</td>
+                                                </tr>
+                                            ";
+                                        }
+
                                         $tableContent .= "
-                                             <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs'>
+                                             <tr class='border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-xs align-top'>
                                                  <td class='px-2 py-3'>
-                                                     <div class='font-medium text-gray-900 dark:text-gray-100'>{$jp->name}</div>
+                                                     <div class='font-semibold text-gray-900 dark:text-gray-100'>{$jp->name}</div>
                                                      <div class='text-[9px] text-gray-400'>{$jp->code} | PTKP: ".($item['ptkp_status'] ?? 'TK/0')."</div>
                                                  </td>
                                                  <td class='px-2 py-3 text-center font-bold'>{$qty}</td>
@@ -765,7 +890,187 @@ class ManpowerTemplateForm
                                                  <td class='px-2 py-3 text-right'>Rp {$fmt($subE)}</td>
                                                  <td class='px-2 py-3 text-right font-bold text-primary-600'>Rp {$fmt($unitCost)}</td>
                                              </tr>
-                                         ";
+                                             <tr class='bg-gray-50/30 dark:bg-gray-900/10 border-b'>
+                                                 <td colspan='8' class='px-4 py-2.5'>
+                                                     <details class='group select-none'>
+                                                         <summary class='cursor-pointer text-[10px] font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 flex items-center gap-1 focus:outline-none py-1 select-none'>
+                                                             <svg class='w-3.5 h-3.5 shrink-0' width='14' height='14' style='width: 14px; height: 14px;' fill='none' stroke='currentColor' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'></path></svg>
+                                                             <span>Lihat Rincian Rumus (Spreadsheet) - {$jp->name}</span>
+                                                         </summary>
+                                                         <div class='mt-2.5 relative overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900'>
+                                                             <table class='w-full text-[10px] text-left text-slate-600 dark:text-slate-400 border-collapse'>
+                                                                 <thead>
+                                                                     <tr class='bg-slate-100 dark:bg-slate-800 text-[9px] uppercase tracking-wider text-slate-700 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800 font-bold'>
+                                                                         <th class='py-2 px-3 text-center w-10'>No.</th>
+                                                                         <th class='py-2 px-3'>Komponen Biaya (Cost Component)</th>
+                                                                         <th class='py-2 px-3'>Dasar Perhitungan (Calculation Base)</th>
+                                                                         <th class='py-2 px-3'>Formula / Rate</th>
+                                                                         <th class='py-2 px-3 text-right'>Bagian Perusahaan (Employer)</th>
+                                                                         <th class='py-2 px-3 text-right'>Bagian Karyawan (Employee)</th>
+                                                                         <th class='py-2 px-3 text-right w-32'>Subtotal / Pax</th>
+                                                                         <th class='py-2 px-3 text-right w-32'>Total Cost (Qty: {$qty})</th>
+                                                                     </tr>
+                                                                 </thead>
+                                                                 <tbody class='divide-y divide-slate-100 dark:divide-slate-800'>
+                                                                     <!-- 1. Dasar Upah -->
+                                                                     <tr class='bg-slate-50/30 dark:bg-slate-800/10 font-semibold text-slate-900 dark:text-white'>
+                                                                         <td class='py-1.5 px-3 text-center'>1</td>
+                                                                         <td colspan='5' class='py-1.5 px-3 font-semibold text-primary-600 dark:text-primary-400'>1. DASAR UPAH & TUNJANGAN (WAGES & ALLOWANCES)</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold'>Rp {$fmt($subA)}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold text-primary-600 dark:text-primary-400'>Rp {$fmt($subA * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>1.1</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>Gaji Pokok (Basic Salary)</td>
+                                                                         <td class='py-1.5 px-3'>Input Gaji Pokok</td>
+                                                                         <td class='py-1.5 px-3'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($scaled_gapok)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($scaled_gapok * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>1.2</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>Tunjangan Tetap (Fixed Allowance)</td>
+                                                                         <td class='py-1.5 px-3'>Input Tunjangan Tetap</td>
+                                                                         <td class='py-1.5 px-3'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($scaled_fixed)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($scaled_fixed * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>1.3</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>Tunjangan Tidak Tetap (Non-Fixed Allowance)</td>
+                                                                         <td class='py-1.5 px-3'>Input Tunjangan Tidak Tetap</td>
+                                                                         <td class='py-1.5 px-3'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($scaled_non_fixed)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($scaled_non_fixed * $qty)}</td>
+                                                                     </tr>
+
+                                                                     <!-- 2. Akrual Bulanan -->
+                                                                     <tr class='bg-slate-50/30 dark:bg-slate-800/10 font-semibold text-slate-900 dark:text-white'>
+                                                                         <td class='py-1.5 px-3 text-center'>2</td>
+                                                                         <td colspan='5' class='py-1.5 px-3 font-semibold text-primary-600 dark:text-primary-400'>2. AKRUAL BULANAN (MONTHLY ACCRUALS)</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold'>Rp {$fmt($subB)}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold text-primary-600 dark:text-primary-400'>Rp {$fmt($subB * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>2.1</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>Akrual THR (Religious Festive Allowance)</td>
+                                                                         <td class='py-1.5 px-3'>Dasar THR: Rp {$fmt($scaled_thr_basis)}</td>
+                                                                         <td class='py-1.5 px-3'>1 / 12</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($scaled_thr)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($scaled_thr * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>2.2</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>Akrual Kompensasi (Contract Compensation)</td>
+                                                                         <td class='py-1.5 px-3'>Dasar Komp: Rp {$fmt($scaled_thr_basis)}</td>
+                                                                         <td class='py-1.5 px-3'>1 / 12</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($scaled_comp)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($scaled_comp * $qty)}</td>
+                                                                     </tr>
+
+                                                                     <!-- 3. BPJS Contributions -->
+                                                                     <tr class='bg-slate-50/30 dark:bg-slate-800/10 font-semibold text-slate-900 dark:text-white'>
+                                                                         <td class='py-1.5 px-3 text-center'>3</td>
+                                                                         <td colspan='5' class='py-1.5 px-3 font-semibold text-primary-600 dark:text-primary-400'>3. IURAN BPJS (BPJS CONTRIBUTIONS)</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold'>Rp {$fmt($subC)}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold text-primary-600 dark:text-primary-400'>Rp {$fmt($subC * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>3.1</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>BPJS Kesehatan (JKN)</td>
+                                                                         <td class='py-1.5 px-3'>Upah Dasar: Rp {$fmt($jkn_base)}</td>
+                                                                         <td class='py-1.5 px-3'>Perusahaan: {$jkn_employer_rate_pct}%, Karyawan: {$jkn_employee_rate_pct}%</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-600 dark:text-slate-300'>Rp {$fmt($jkn_employer)}</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-400 dark:text-slate-500'>Rp {$fmt($jkn_employee)} {$borne_jkn}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($scaled_jkn_total)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($scaled_jkn_total * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>3.2</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>BPJS Ketenagakerjaan JKK</td>
+                                                                         <td class='py-1.5 px-3'>Upah Dasar: Rp {$fmt($jkk_base)}</td>
+                                                                         <td class='py-1.5 px-3'>Perusahaan: {$jkk_rate_pct}%, Karyawan: {$jkk_employee_rate_pct}%</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-600 dark:text-slate-300'>Rp {$fmt($jkk_employer)}</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-400 dark:text-slate-500'>Rp {$fmt($jkk_employee)} {$borne_jkk}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($jkk_total)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($jkk_total * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>3.3</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>BPJS Ketenagakerjaan JKM</td>
+                                                                         <td class='py-1.5 px-3'>Upah Dasar: Rp {$fmt($jkm_base)}</td>
+                                                                         <td class='py-1.5 px-3'>Perusahaan: {$jkm_rate_pct}%, Karyawan: {$jkm_employee_rate_pct}%</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-600 dark:text-slate-300'>Rp {$fmt($jkm_employer)}</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-400 dark:text-slate-500'>Rp {$fmt($jkm_employee)} {$borne_jkm}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($jkm_total)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($jkm_total * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>3.4</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>BPJS Ketenagakerjaan JHT</td>
+                                                                         <td class='py-1.5 px-3'>Upah Dasar: Rp {$fmt($jht_base)}</td>
+                                                                         <td class='py-1.5 px-3'>Perusahaan: {$jht_employer_rate_pct}%, Karyawan: {$jht_employee_rate_pct}%</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-600 dark:text-slate-300'>Rp {$fmt($jht_employer)}</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-400 dark:text-slate-500'>Rp {$fmt($jht_employee)} {$borne_jht}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($jht_total)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($jht_total * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>3.5</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>BPJS Ketenagakerjaan JP</td>
+                                                                         <td class='py-1.5 px-3'>Upah Dasar: Rp {$fmt($jp_base)}</td>
+                                                                         <td class='py-1.5 px-3'>Perusahaan: {$jp_employer_rate_pct}%, Karyawan: {$jp_employee_rate_pct}%</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-600 dark:text-slate-300'>Rp {$fmt($jp_employer)}</td>
+                                                                         <td class='py-1.5 px-3 text-right text-slate-400 dark:text-slate-500'>Rp {$fmt($jp_employee)} {$borne_jp}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($jp_total)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($jp_total * $qty)}</td>
+                                                                     </tr>
+
+                                                                     <!-- 4. Pajak PPh 21 -->
+                                                                     <tr class='bg-slate-50/30 dark:bg-slate-800/10 font-semibold text-slate-900 dark:text-white'>
+                                                                         <td class='py-1.5 px-3 text-center'>4</td>
+                                                                         <td colspan='5' class='py-1.5 px-3 font-semibold text-primary-600 dark:text-primary-400'>4. PAJAK PPH 21 (INCOME TAX)</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold'>Rp {$fmt($subD)}</td>
+                                                                         <td class='py-1.5 px-3 text-right font-bold text-primary-600 dark:text-primary-400'>Rp {$fmt($subD * $qty)}</td>
+                                                                     </tr>
+                                                                     <tr class='hover:bg-slate-50/50 dark:hover:bg-slate-800/30'>
+                                                                         <td class='py-1.5 px-3 text-center text-slate-400'>4.1</td>
+                                                                         <td class='py-1.5 px-3 font-medium text-slate-800 dark:text-slate-200'>Pajak PPh 21 Bulanan</td>
+                                                                         <td class='py-1.5 px-3'>Bruto: Rp {$fmt($scaled_bruto)} | Status: {$borne_tax}</td>
+                                                                         <td class='py-1.5 px-3'>Metode: {$tax_method} | Tarif: {$tax_rate_pct}%</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right'>-</td>
+                                                                         <td class='py-1.5 px-3 text-right font-medium'>Rp {$fmt($scaled_tax)}</td>
+                                                                         <td class='py-1.5 px-3 text-right'>Rp {$fmt($scaled_tax * $qty)}</td>
+                                                                     </tr>
+
+                                                                     <!-- 5. Biaya Ekstra -->
+                                                                     {$extra_costs_rows_html}
+
+                                                                     <!-- Grand Total -->
+                                                                     <tr class='bg-primary-50 dark:bg-primary-950/20 text-slate-900 dark:text-white border-t-2 border-primary-500 font-bold text-[11px]'>
+                                                                         <td class='py-2 px-3 text-center'>TOTAL</td>
+                                                                         <td colspan='5' class='py-2 px-3 font-bold text-primary-700 dark:text-primary-400 uppercase tracking-wider text-[10px]'>TOTAL DIRECT MANPOWER COST</td>
+                                                                         <td class='py-2 px-3 text-right text-sm text-primary-700 dark:text-primary-400'>Rp {$fmt($unitCost)}</td>
+                                                                         <td class='py-2 px-3 text-right text-sm text-primary-700 dark:text-primary-400'>Rp {$fmt($lineTotal)}</td>
+                                                                     </tr>
+                                                                 </tbody>
+                                                             </table>
+                                                         </div>
+                                                     </details>
+                                                 </td>
+                                             </tr>
+                                        ";
                                     }
                                 }
 

@@ -22,6 +22,7 @@ class JkkConfigSeeder extends Seeder
             ['name' => '0.89% Perusahaan (Sedang)', 'employee_type' => 'ppu', 'risk_level' => 'medium', 'employer_rate' => 0.0089, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
             ['name' => '1.27% Perusahaan (Tinggi)', 'employee_type' => 'ppu', 'risk_level' => 'high', 'employer_rate' => 0.0127, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
             ['name' => '1.74% Perusahaan (Sangat Tinggi)', 'employee_type' => 'ppu', 'risk_level' => 'very_high', 'employer_rate' => 0.0174, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
+            ['name' => 'Tidak Ada Iuran', 'employee_type' => 'ppu', 'risk_level' => null, 'employer_rate' => 0.0, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
         ];
 
         foreach ($configs as $config) {

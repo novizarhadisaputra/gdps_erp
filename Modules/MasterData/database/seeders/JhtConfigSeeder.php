@@ -13,8 +13,9 @@ class JhtConfigSeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Tipe 1: 3.7% Perusahaan, 2% Peserta
         BpjsJhtConfig::updateOrCreate(
-            ['name' => 'JHT PPU'],
+            ['name' => 'Tipe 1: 3.7% Perusahaan, 2% Peserta'],
             [
                 'employee_type' => 'ppu',
                 'employer_rate' => 0.037,
@@ -24,8 +25,9 @@ class JhtConfigSeeder extends Seeder
             ]
         );
 
+        // 2. Tipe 2: 2% based on tier, max. 414k
         BpjsJhtConfig::updateOrCreate(
-            ['name' => 'JHT PBPU / Mandiri'],
+            ['name' => 'Tipe 2: 2% based on tier, max. 414k'],
             [
                 'employee_type' => 'pbpu',
                 'employer_rate' => 0,
@@ -35,6 +37,21 @@ class JhtConfigSeeder extends Seeder
                 'is_default' => false,
             ]
         );
+
+        // 3. Tipe 3: Tidak Ada Iuran
+        BpjsJhtConfig::updateOrCreate(
+            ['name' => 'Tipe 3: Tidak Ada Iuran'],
+            [
+                'employee_type' => 'ppu',
+                'employer_rate' => 0.0,
+                'employee_rate' => 0.0,
+                'has_tier' => false,
+                'is_default' => false,
+            ]
+        );
+
+        // Clean up legacy names if present
+        BpjsJhtConfig::whereIn('name', ['JHT PPU', 'JHT PBPU / Mandiri', 'Tipe 2: Tidak Ada Iuran'])->delete();
 
         BpjsTier::where('category', 'jht_pbpu')->delete();
         $tiers = [

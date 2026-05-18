@@ -148,11 +148,14 @@ class ManpowerTemplate extends Model implements HasMedia
             $res['job_position_name'] = $jp->name;
             $res['job_position_code'] = $jp->code;
             $res['qty'] = $qty;
+            $res['quantity'] = $qty;
             $res['basic_salary'] = $basicSalary;
             $res['scaling_rate'] = (float) ($item->future_adjustment_rate ?? 0);
             $res['ptkp_status'] = $item->ptkp_status ?? 'TK/0';
             $res['unit_cost'] = $unitCost;
+            $res['unit_direct_cost'] = $unitCost;
             $res['line_total'] = $lineTotal;
+            $res['subtotal_direct_cost'] = $lineTotal;
 
             $rows[] = $res;
         }
