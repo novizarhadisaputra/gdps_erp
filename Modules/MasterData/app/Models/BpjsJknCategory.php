@@ -7,16 +7,15 @@ use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Modules\MasterData\Traits\HasAutoCodeAndSlug;
 
-class WorkPattern extends Model
+class BpjsJknCategory extends Model
 {
-    use HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
+    use HasAutoCodeAndSlug, HasDefaultRecord, HasFactory, HasModuleSchema, HasUuids;
 
     protected $fillable = [
+        'code',
         'name',
-        'days_per_week',
-        'hours_per_day',
-        'is_shift',
         'description',
         'is_active',
         'is_default',
@@ -25,9 +24,6 @@ class WorkPattern extends Model
     protected function casts(): array
     {
         return [
-            'days_per_week' => 'integer',
-            'hours_per_day' => 'decimal:2',
-            'is_shift' => 'boolean',
             'is_active' => 'boolean',
             'is_default' => 'boolean',
         ];

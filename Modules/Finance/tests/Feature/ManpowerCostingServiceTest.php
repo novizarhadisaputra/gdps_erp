@@ -59,7 +59,8 @@ class ManpowerCostingServiceTest extends TestCase
             'allowances' => $allowances,
             'risk_level' => 'very_low', // 0.24%
             'ptkp_status' => 'TK/0',
-            'bpjs_basis_id' => $bpjsBasis?->id,
+            'bpjs_kesehatan_basis_id' => $bpjsBasis?->id,
+            'bpjs_ketenagakerjaan_basis_id' => $bpjsBasis?->id,
             'thr_basis_id' => $thrBasis?->id,
             'is_bpjs_active' => true,
             'use_ter_method' => true,
@@ -205,5 +206,94 @@ class ManpowerCostingServiceTest extends TestCase
         );
 
         $this->assertEquals(480000, $result['bpjs_health']['employer']);
+    }
+
+    /**
+     * Skenario: Objek Pajak Non-Taxable (PPh 21 Pajak Nihil)
+     */
+    public function test_non_taxable_tax_object_sets_pph21_to_zero(): void
+    {
+        $taxObject = \Modules\MasterData\Models\TaxObject::where('code', 'NON-TAXABLE')->first();
+        $this->assertNotNull($taxObject);
+
+        $jobPosition = JobPosition::factory()->create(['name' => 'Mitra Security']);
+
+        $item = ManpowerTemplateItem::factory()->create([
+            'manpower_template_id' => $this->template->id,
+            'job_position_id' => $jobPosition->id,
+            'basic_salary' => 8000000,
+            'tax_object_id' => $taxObject->id,
+            'use_ter_method' => true,
+        ]);
+
+        $result = $this->service->calculateForTemplateItem($item);
+
+        $this->assertEquals(0.0, $result['pph21']['total']);
+        $this->assertEquals(0.0, $result['pph21']['rate']);
+    }
+
+    /**
+     * Test all BPJS calculation basis options including new ones.
+     */
+    public function test_new_bpjs_basis_options_calculation(): void
+    {
+        $basisGPP = BpjsBasisType::where('formula_code', 'gaji_pokok')->first();
+        $basisTetap = BpjsBasisType::where('formula_code', 'gaji_plus_tunjangan_tetap')->first();
+        $basisTidakTetap = BpjsBasisType::where('formula_code', 'gaji_plus_tunjangan_tidak_tetap')->first();
+        $basisSemua = BpjsBasisType::where('formula_code', 'gaji_plus_tunjangan_tetap_tidak_tetap')->first();
+
+        $this->assertNotNull($basisGPP);
+        $this->assertNotNull($basisTetap);
+        $this->assertNotNull($basisTidakTetap);
+        $this->assertNotNull($basisSemua);
+
+        $allowances = [
+            ['name' => 'Fixed Allowance', 'amount' => 1000000, 'is_fixed' => true, 'frequency' => 'monthly'],
+            ['name' => 'Non-Fixed Allowance', 'amount' => 500000, 'is_fixed' => false, 'frequency' => 'monthly'],
+        ];
+
+        // 1. Gaji Pokok only: 5.000.000
+        $resultGP = $this->service->calculate(
+            basicSalary: 5000000,
+            allowances: $allowances,
+            projectAreaId: null,
+            year: 2026,
+            bpjsKesehatanBasisId: $basisGPP->id,
+            bpjsKetenagakerjaanBasisId: $basisGPP->id
+        );
+        $this->assertEquals(5000000, $resultGP['bpjs_health']['base']);
+
+        // 2. Gaji + Tetap: 5.000.000 + 1.000.000 = 6.000.000
+        $resultTetap = $this->service->calculate(
+            basicSalary: 5000000,
+            allowances: $allowances,
+            projectAreaId: null,
+            year: 2026,
+            bpjsKesehatanBasisId: $basisTetap->id,
+            bpjsKetenagakerjaanBasisId: $basisTetap->id
+        );
+        $this->assertEquals(6000000, $resultTetap['bpjs_health']['base']);
+
+        // 3. Gaji + Tidak Tetap: 5.000.000 + 500.000 = 5.500.000
+        $resultTidakTetap = $this->service->calculate(
+            basicSalary: 5000000,
+            allowances: $allowances,
+            projectAreaId: null,
+            year: 2026,
+            bpjsKesehatanBasisId: $basisTidakTetap->id,
+            bpjsKetenagakerjaanBasisId: $basisTidakTetap->id
+        );
+        $this->assertEquals(5500000, $resultTidakTetap['bpjs_health']['base']);
+
+        // 4. Gaji + Tetap + Tidak Tetap: 5.000.000 + 1.000.000 + 500.000 = 6.500.000
+        $resultSemua = $this->service->calculate(
+            basicSalary: 5000000,
+            allowances: $allowances,
+            projectAreaId: null,
+            year: 2026,
+            bpjsKesehatanBasisId: $basisSemua->id,
+            bpjsKetenagakerjaanBasisId: $basisSemua->id
+        );
+        $this->assertEquals(6500000, $resultSemua['bpjs_health']['base']);
     }
 }

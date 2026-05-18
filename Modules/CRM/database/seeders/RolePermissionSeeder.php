@@ -171,8 +171,10 @@ class RolePermissionSeeder extends Seeder
             'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
             'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
+            'ViewAny:ItemCategory', 'View:ItemCategory',
+            'ViewAny:Item', 'View:Item',
             'View:CRMCluster', 'View:CRMAnalyticsPage', 'View:ProjectReviewDashboard',
-            'View:SummaryProfitabilityAnalysis',
+            'View:SummaryProfitabilityAnalysis', 'View:MasterDataCluster',
         ];
 
         $this->syncPermissions($role, $permissions);

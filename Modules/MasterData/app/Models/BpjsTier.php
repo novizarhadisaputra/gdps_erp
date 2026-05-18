@@ -5,14 +5,13 @@ namespace Modules\MasterData\Models;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BpjsJhtTier extends Model
+class BpjsTier extends Model
 {
     use HasModuleSchema, HasUuids;
 
     protected $fillable = [
-        'bpjs_jht_config_id',
+        'category',
         'min_value',
         'max_value',
         'employer_nominal',
@@ -31,10 +30,5 @@ class BpjsJhtTier extends Model
             'employer_rate' => 'decimal:4',
             'employee_rate' => 'decimal:4',
         ];
-    }
-
-    public function bpjsJhtConfig(): BelongsTo
-    {
-        return $this->belongsTo(BpjsJhtConfig::class, 'bpjs_jht_config_id');
     }
 }

@@ -10,11 +10,11 @@ use Modules\MasterData\Models\BpjsJkkConfig;
 use Modules\MasterData\Models\BpjsJkmConfig;
 use Modules\MasterData\Models\BpjsJpConfig;
 use Modules\MasterData\Models\MinimumWage;
+use Modules\MasterData\Models\TaxObject;
 use Modules\MasterData\Models\TaxPasal17Rate;
 use Modules\MasterData\Models\TaxPtkpConfig;
 use Modules\MasterData\Models\TaxTerRate;
 use Modules\MasterData\Models\ThrBasisType;
-use Modules\MasterData\Models\WorkPattern;
 use Modules\MasterData\Models\WorkScheme;
 
 class ManpowerCostingService
@@ -42,10 +42,9 @@ class ManpowerCostingService
         return $this->calculate(
             basicSalary: (float) $item->basic_salary,
             allowances: $allowances,
-            projectAreaId: $item->template?->project_area_id,
+            projectAreaId: $item->project_area_id,
             year: $item->template?->year,
-            workSchemeId: null, // Default
-            workPatternId: $item->work_pattern_id,
+            workSchemeId: $item->work_scheme_id,
             riskLevel: $item->risk_level ?? 'very_low',
             isLaborIntensive: (bool) $item->is_labor_intensive,
             employeeType: $item->employee_type ?? 'ppu',
@@ -54,7 +53,8 @@ class ManpowerCostingService
             compensationBillingMethod: $item->compensation_billing_method ?? 'monthly_accrual',
             thrBasisId: $item->thr_basis_id,
             compensationBasisId: $item->compensation_basis_id,
-            bpjsBasisId: $item->bpjs_basis_id,
+            bpjsKesehatanBasisId: $item->bpjs_kesehatan_basis_id,
+            bpjsKetenagakerjaanBasisId: $item->bpjs_ketenagakerjaan_basis_id,
             billThrMonthly: (bool) $item->bill_thr_monthly,
             billCompensationMonthly: (bool) $item->bill_compensation_monthly,
             includeNonFixedInAccruals: (bool) $item->include_non_fixed_in_accruals,
@@ -67,7 +67,13 @@ class ManpowerCostingService
             salaryIncreaseRate: (float) ($item->future_adjustment_rate ?? 0),
             baseYear: $item->template?->year,
             useTerMethod: (bool) $item->use_ter_method,
-            contractTypeId: $item->contract_type_id
+            contractTypeId: $item->contract_type_id,
+            taxObjectId: $item->tax_object_id,
+            bpjsHealthConfigId: $item->bpjs_health_config_id,
+            bpjsJkkConfigId: $item->bpjs_jkk_config_id,
+            bpjsJkmConfigId: $item->bpjs_jkm_config_id,
+            bpjsJhtConfigId: $item->bpjs_jht_config_id,
+            bpjsJpConfigId: $item->bpjs_jp_config_id
         );
     }
 
@@ -80,7 +86,6 @@ class ManpowerCostingService
         ?string $projectAreaId,
         ?int $year,
         ?string $workSchemeId = null,
-        ?string $workPatternId = null,
         string|RiskLevel $riskLevel = 'very_low',
         bool $isLaborIntensive = false,
         string $employeeType = 'ppu', // ppu or pbpu
@@ -90,6 +95,8 @@ class ManpowerCostingService
         ?string $thrBasisId = null,
         ?string $compensationBasisId = null,
         ?string $bpjsBasisId = null,
+        ?string $bpjsKesehatanBasisId = null,
+        ?string $bpjsKetenagakerjaanBasisId = null,
         bool $billThrMonthly = true,
         bool $billCompensationMonthly = true,
         bool $includeNonFixedInAccruals = false,
@@ -102,7 +109,13 @@ class ManpowerCostingService
         float $salaryIncreaseRate = 0.063, // 6.3% annual increase assumption
         ?int $baseYear = null,
         bool $useTerMethod = true,
-        ?string $contractTypeId = null
+        ?string $contractTypeId = null,
+        ?string $taxObjectId = null,
+        ?string $bpjsHealthConfigId = null,
+        ?string $bpjsJkkConfigId = null,
+        ?string $bpjsJkmConfigId = null,
+        ?string $bpjsJhtConfigId = null,
+        ?string $bpjsJpConfigId = null
     ): array {
         $baseYear = $baseYear ?? $year ?? (int) date('Y');
         $yearDelta = max(0, ($year ?? $baseYear) - $baseYear);
@@ -143,9 +156,8 @@ class ManpowerCostingService
         $nonFixedAllowances = 0.0;
 
         $workScheme = $workSchemeId ? WorkScheme::find($workSchemeId) : null;
-        $workPattern = $workPatternId ? WorkPattern::find($workPatternId) : null;
 
-        $workingDays = $workPattern?->days_per_week ? ($workPattern->days_per_week * 4) : ($workScheme?->working_days ?? 21);
+        $workingDays = $workScheme?->working_days ?? 21;
 
         if ($riskLevel instanceof RiskLevel) {
             $riskLevel = $riskLevel->value;
@@ -178,8 +190,12 @@ class ManpowerCostingService
         $upah = $basicSalary + $fixedAllowances;
         $totalMonthlySalary = $upah + $nonFixedAllowances;
 
+        $bpjsKesehatanBasisId = $bpjsKesehatanBasisId ?: $bpjsBasisId;
+        $bpjsKetenagakerjaanBasisId = $bpjsKetenagakerjaanBasisId ?: $bpjsBasisId;
+
         // Determine Basis for BPJS, THR, Compensation
-        $bpjsBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $bpjsBasisId, 'bpjs', false, $workingDays);
+        $bpjsKesehatanBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $bpjsKesehatanBasisId, 'bpjs', false, $workingDays);
+        $bpjsKetenagakerjaanBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $bpjsKetenagakerjaanBasisId, 'bpjs', false, $workingDays);
         $thrBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $thrBasisId, 'thr', $includeNonFixedInAccruals, $workingDays);
         $compensationBasisAmount = $this->calculateBasisAmount($basicSalary, $umk, $allowances, $compensationBasisId, 'compensation', $includeNonFixedInAccruals, $workingDays);
 
@@ -195,8 +211,25 @@ class ManpowerCostingService
 
         // BPJS Calculation
         if ($isBpjsActive) {
-            $bpjsHealth = $this->calculateBpjsHealth($bpjsBasisAmount, $umk, $employeeType, $jknCategory, $borneByCompany['jkn'] ?? false);
-            $bpjsEmployment = $this->calculateBpjsEmployment($bpjsBasisAmount, $riskLevel, $isLaborIntensive, $employeeType, $borneByCompany);
+            $bpjsHealth = $this->calculateBpjsHealth(
+                $bpjsKesehatanBasisAmount,
+                $umk,
+                $employeeType,
+                $jknCategory,
+                $borneByCompany['jkn'] ?? false,
+                $bpjsHealthConfigId
+            );
+            $bpjsEmployment = $this->calculateBpjsEmployment(
+                $bpjsKetenagakerjaanBasisAmount,
+                $riskLevel,
+                $isLaborIntensive,
+                $employeeType,
+                $borneByCompany,
+                $bpjsJkkConfigId,
+                $bpjsJkmConfigId,
+                $bpjsJhtConfigId,
+                $bpjsJpConfigId
+            );
         } else {
             $bpjsHealth = ['employer' => 0, 'employee' => 0, 'employer_total' => 0, 'base' => 0];
             $bpjsEmployment = ['employer_total' => 0, 'employee_total' => 0, 'details' => []];
@@ -236,11 +269,28 @@ class ManpowerCostingService
 
         $extraCostsTotal = $equipmentTotal + $trainingTotal + $bufferTotal + $otherCostTotal;
 
+        // Check if the chosen tax object is taxable. Default to true if not specified or not found.
+        $isTaxable = true;
+        if ($taxObjectId) {
+            $isTaxable = (bool) TaxObject::where('id', $taxObjectId)->value('is_taxable');
+        }
+
         // PPH21 Calculation (Based on monthly salary, excluding accruals)
-        if ($useTerMethod) {
-            $pph21 = $this->calculatePph21($totalMonthlySalary, $bpjsHealth, $bpjsEmployment, $ptkpCode);
+        if ($isTaxable) {
+            if ($useTerMethod) {
+                $pph21 = $this->calculatePph21($totalMonthlySalary, $bpjsHealth, $bpjsEmployment, $ptkpCode);
+            } else {
+                $pph21 = $this->calculateProgressivePph21($totalMonthlySalary, $bpjsHealth, $bpjsEmployment, $ptkpCode);
+            }
         } else {
-            $pph21 = $this->calculateProgressivePph21($totalMonthlySalary, $bpjsHealth, $bpjsEmployment, $ptkpCode);
+            $pph21 = [
+                'total' => 0.0,
+                'rate' => 0.0,
+                'bruto' => $totalMonthlySalary,
+                'category' => 'A',
+                'net_yearly' => 0.0,
+                'pkp' => 0.0,
+            ];
         }
 
         // Management Fee Calculation
@@ -405,6 +455,12 @@ class ManpowerCostingService
                 if ($isFixed) {
                     $total += $amt;
                 }
+            } elseif ($formula === 'gaji_plus_tunjangan_tidak_tetap') {
+                if (! $isFixed) {
+                    $total += $amt;
+                }
+            } elseif ($formula === 'gaji_plus_tunjangan_tetap_tidak_tetap') {
+                $total += $amt;
             } elseif ($formula === 'gaji_plus_tetap_plus_sebagian') {
                 if ($isFixed || $isBpjsBase) {
                     $total += $amt;
@@ -415,29 +471,49 @@ class ManpowerCostingService
         return $total;
     }
 
-    protected function calculateBpjsHealth(float $upah, float $umk, string $employeeType, string $jknCategory = 'PPU', bool $isBorneByCompany = false): array
-    {
+    protected function calculateBpjsHealth(
+        float $upah,
+        float $umk,
+        string $employeeType,
+        string $jknCategory = 'PPU',
+        bool $isBorneByCompany = false,
+        ?string $healthConfigId = null
+    ): array {
         /** @var BpjsHealthConfig|null $config */
-        $config = BpjsHealthConfig::where('employee_type', $employeeType)
-            ->where('is_active', true)
-            ->first();
+        $config = null;
+        if ($healthConfigId) {
+            $config = BpjsHealthConfig::find($healthConfigId);
+        }
+        if (! $config) {
+            $config = BpjsHealthConfig::where('employee_type', $employeeType)
+                ->where('is_active', true)
+                ->first();
+        }
 
         if (! $config) {
             return ['employer' => 0, 'employee' => 0, 'employer_total' => 0, 'base' => 0];
         }
 
         $base = $upah;
-        if ($employeeType === 'ppu' || $jknCategory === 'PPU') {
+        $effectiveEmployeeType = $config->employee_type ?? $employeeType;
+        if ($effectiveEmployeeType === 'ppu' || $jknCategory === 'PPU') {
             $cap = (float) ($config->cap_nominal ?? 12000000); // BPJS Health cap 2024 is 12M
             $floor = 0;
             if ($config->floor_type === 'umk') {
                 $floor = $umk;
+            } elseif ($config->floor_type === 'nominal') {
+                $floor = (float) ($config->employer_nominal ?? 0);
             }
             $base = max(min($upah, $cap), $floor);
         }
 
-        $employer = $base * (float) $config->employer_rate;
-        $employee = $base * (float) $config->employee_rate;
+        if ($config->employer_rate > 0 || $config->employee_rate > 0) {
+            $employer = $base * (float) $config->employer_rate;
+            $employee = $base * (float) $config->employee_rate;
+        } else {
+            $employer = (float) ($config->employer_nominal ?? 0);
+            $employee = (float) ($config->employee_nominal ?? 0);
+        }
 
         return [
             'employer_rate' => $config->employer_rate,
@@ -449,44 +525,65 @@ class ManpowerCostingService
         ];
     }
 
-    protected function calculateBpjsEmployment(float $upah, string $riskLevel, bool $isLaborIntensive, string $employeeType, array $borneByCompany = []): array
-    {
+    protected function calculateBpjsEmployment(
+        float $upah,
+        string $riskLevel,
+        bool $isLaborIntensive,
+        string $employeeType,
+        array $borneByCompany = [],
+        ?string $jkkConfigId = null,
+        ?string $jkmConfigId = null,
+        ?string $jhtConfigId = null,
+        ?string $jpConfigId = null
+    ): array {
         $employerTotal = 0;
         $employeeTotal = 0;
         $details = [];
 
         // --- 1. JKK --- //
         /** @var BpjsJkkConfig|null $jkkConfig */
-        $jkkConfig = BpjsJkkConfig::where('employee_type', $employeeType)
-            ->when($employeeType === 'ppu', function ($q) use ($riskLevel) {
-                /** @var \Illuminate\Database\Eloquent\Builder $q */
-                return $q->where('risk_level', $riskLevel);
-            })
-            ->where('is_active', true)
-            ->first();
+        $jkkConfig = null;
+        if ($jkkConfigId) {
+            $jkkConfig = BpjsJkkConfig::find($jkkConfigId);
+        }
+        if (! $jkkConfig) {
+            $jkkConfig = BpjsJkkConfig::where('employee_type', $employeeType)
+                ->when($employeeType === 'ppu', function ($q) use ($riskLevel) {
+                    /** @var \Illuminate\Database\Eloquent\Builder $q */
+                    return $q->where('risk_level', $riskLevel);
+                })
+                ->where('is_active', true)
+                ->first();
+        }
 
         if ($jkkConfig) {
             $employer = 0;
             $employee = 0;
             $base = $upah;
+            $effectiveEmployeeType = $jkkConfig->employee_type ?? $employeeType;
 
-            if ($employeeType === 'pbpu' && $jkkConfig->has_tier) {
+            if ($jkkConfig->has_tier) {
                 // Tier Lookup
                 $tier = $jkkConfig->tiers()
-                    ->where('min_income', '<=', $upah)
+                    ->where('min_value', '<=', $upah)
                     ->where(function ($q) use ($upah) {
-                        $q->whereNull('max_income')
-                            ->orWhere('max_income', '>=', $upah);
+                        $q->whereNull('max_value')
+                            ->orWhere('max_value', '>=', $upah);
                     })->first();
 
                 if ($tier) {
-                    $employer = (float) $tier->employer_nominal;
-                    $employee = (float) $tier->employee_nominal;
+                    if ($tier->employer_nominal > 0 || $tier->employee_nominal > 0) {
+                        $employer = (float) $tier->employer_nominal;
+                        $employee = (float) $tier->employee_nominal;
+                    } else {
+                        $employer = $base * (float) $tier->employer_rate;
+                        $employee = $base * (float) $tier->employee_rate;
+                    }
                 }
             } else {
                 // Percentage based
                 $empRate = (float) $jkkConfig->employer_rate;
-                if ($isLaborIntensive && $employeeType === 'ppu') {
+                if ($isLaborIntensive && $effectiveEmployeeType === 'ppu') {
                     $empRate = $empRate * 0.5; // Example exception
                 }
                 $employer = $base * $empRate;
@@ -501,18 +598,44 @@ class ManpowerCostingService
 
         // --- 2. JKM --- //
         /** @var BpjsJkmConfig|null $jkmConfig */
-        $jkmConfig = BpjsJkmConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        $jkmConfig = null;
+        if ($jkmConfigId) {
+            $jkmConfig = BpjsJkmConfig::find($jkmConfigId);
+        }
+        if (! $jkmConfig) {
+            $jkmConfig = BpjsJkmConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        }
         if ($jkmConfig) {
             $employer = 0;
             $employee = 0;
             $base = $upah;
+            $effectiveEmployeeType = $jkmConfig->employee_type ?? $employeeType;
 
-            if ($employeeType === 'pbpu') {
-                $employer = (float) $jkmConfig->employer_nominal;
-                $employee = (float) $jkmConfig->employee_nominal;
+            if ($jkmConfig->has_tier) {
+                $tier = $jkmConfig->tiers()
+                    ->where('min_value', '<=', $upah)
+                    ->where(function ($q) use ($upah) {
+                        $q->whereNull('max_value')
+                            ->orWhere('max_value', '>=', $upah);
+                    })->first();
+
+                if ($tier) {
+                    if ($tier->employer_nominal > 0 || $tier->employee_nominal > 0) {
+                        $employer = (float) $tier->employer_nominal;
+                        $employee = (float) $tier->employee_nominal;
+                    } else {
+                        $employer = $base * (float) $tier->employer_rate;
+                        $employee = $base * (float) $tier->employee_rate;
+                    }
+                }
             } else {
-                $employer = $base * (float) $jkmConfig->employer_rate;
-                $employee = $base * (float) $jkmConfig->employee_rate;
+                if ($jkmConfig->employer_rate > 0 || $jkmConfig->employee_rate > 0) {
+                    $employer = $base * (float) $jkmConfig->employer_rate;
+                    $employee = $base * (float) $jkmConfig->employee_rate;
+                } else {
+                    $employer = (float) $jkmConfig->employer_nominal;
+                    $employee = (float) $jkmConfig->employee_nominal;
+                }
             }
 
             $lineTotal = ($borneByCompany['jkm'] ?? false) ? ($employer + $employee) : $employer;
@@ -523,27 +646,44 @@ class ManpowerCostingService
 
         // --- 3. JHT --- //
         /** @var BpjsJhtConfig|null $jhtConfig */
-        $jhtConfig = BpjsJhtConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        $jhtConfig = null;
+        if ($jhtConfigId) {
+            $jhtConfig = BpjsJhtConfig::find($jhtConfigId);
+        }
+        if (! $jhtConfig) {
+            $jhtConfig = BpjsJhtConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        }
         if ($jhtConfig) {
             $employer = 0;
             $employee = 0;
             $base = $upah;
+            $effectiveEmployeeType = $jhtConfig->employee_type ?? $employeeType;
 
-            if ($employeeType === 'pbpu' && $jhtConfig->has_tier) {
+            if ($jhtConfig->has_tier) {
                 $tier = $jhtConfig->tiers()
-                    ->where('min_income', '<=', $upah)
+                    ->where('min_value', '<=', $upah)
                     ->where(function ($q) use ($upah) {
-                        $q->whereNull('max_income')
-                            ->orWhere('max_income', '>=', $upah);
+                        $q->whereNull('max_value')
+                            ->orWhere('max_value', '>=', $upah);
                     })->first();
 
                 if ($tier) {
-                    $employer = (float) $tier->employer_nominal;
-                    $employee = (float) $tier->employee_nominal;
+                    if ($tier->employer_nominal > 0 || $tier->employee_nominal > 0) {
+                        $employer = (float) $tier->employer_nominal;
+                        $employee = (float) $tier->employee_nominal;
+                    } else {
+                        $employer = $base * (float) $tier->employer_rate;
+                        $employee = $base * (float) $tier->employee_rate;
+                    }
                 }
             } else {
-                $employer = $base * (float) $jhtConfig->employer_rate;
-                $employee = $base * (float) $jhtConfig->employee_rate;
+                if ($jhtConfig->employer_rate > 0 || $jhtConfig->employee_rate > 0) {
+                    $employer = $base * (float) $jhtConfig->employer_rate;
+                    $employee = $base * (float) $jhtConfig->employee_rate;
+                } else {
+                    $employer = (float) $jhtConfig->employer_nominal;
+                    $employee = (float) $jhtConfig->employee_nominal;
+                }
             }
 
             $lineTotal = ($borneByCompany['jht'] ?? false) ? ($employer + $employee) : $employer;
@@ -554,7 +694,13 @@ class ManpowerCostingService
 
         // --- 4. JP --- //
         /** @var BpjsJpConfig|null $jpConfig */
-        $jpConfig = BpjsJpConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        $jpConfig = null;
+        if ($jpConfigId) {
+            $jpConfig = BpjsJpConfig::find($jpConfigId);
+        }
+        if (! $jpConfig) {
+            $jpConfig = BpjsJpConfig::where('employee_type', $employeeType)->where('is_active', true)->first();
+        }
         if ($jpConfig) {
             $base = min($upah, (float) ($jpConfig->cap_nominal ?? 11086300)); // Updated to 2025 Cap
             $employer = $base * (float) $jpConfig->employer_rate;

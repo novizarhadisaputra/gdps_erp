@@ -48,7 +48,7 @@ class RegencyMinimumWageSeeder extends Seeder
             // Banten
             ['Tangerang', 4910000, 'Banten', RegencyMinimumWageType::City],
             ['Tangerang Selatan', 4670791, 'Banten', RegencyMinimumWageType::City],
-            ['Cilegon', 4813988, 'Banten', RegencyMinimumWageType::City],
+            ['Cilegon', 4960997, 'Banten', RegencyMinimumWageType::City],
             ['Serang', 4500000, 'Banten', RegencyMinimumWageType::City],
             ['Pandeglang', 3000000, 'Banten', RegencyMinimumWageType::Regency],
             ['Lebak', 3000000, 'Banten', RegencyMinimumWageType::Regency],
@@ -97,7 +97,7 @@ class RegencyMinimumWageSeeder extends Seeder
             ['Medan', 3769000, 'Sumatera Utara', RegencyMinimumWageType::City],
             ['Padang', 2811449, 'Sumatera Barat', RegencyMinimumWageType::City],
             ['Pekanbaru', 3400000, 'Riau', RegencyMinimumWageType::City],
-            ['Batam', 4685000, 'Kepulauan Riau', RegencyMinimumWageType::City],
+            ['Batam', 4685050, 'Kepulauan Riau', RegencyMinimumWageType::City],
             ['Jambi', 3200000, 'Jambi', RegencyMinimumWageType::City],
             ['Palembang', 3600000, 'Sumatera Selatan', RegencyMinimumWageType::City],
             ['Bengkulu', 2800000, 'Bengkulu', RegencyMinimumWageType::City],

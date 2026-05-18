@@ -3,25 +3,31 @@
 namespace Modules\CRM\Models;
 
 use App\Traits\HasModuleSchema;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CRM\Observers\ManpowerTemplateItemObserver;
+use Modules\MasterData\Models\BpjsBasisType;
+use Modules\MasterData\Models\BpjsHealthConfig;
+use Modules\MasterData\Models\BpjsJhtConfig;
+use Modules\MasterData\Models\BpjsJkkConfig;
+use Modules\MasterData\Models\BpjsJkmConfig;
+use Modules\MasterData\Models\BpjsJpConfig;
+use Modules\MasterData\Models\ContractType;
 use Modules\MasterData\Models\JobPosition;
+use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\ProjectArea;
+use Modules\MasterData\Models\TaxObject;
+use Modules\MasterData\Models\ThrBasisType;
+use Modules\MasterData\Models\WorkScheme;
 
+#[ObservedBy(ManpowerTemplateItemObserver::class)]
 class ManpowerTemplateItem extends Model
 {
     use HasFactory, HasUuids;
     use HasModuleSchema;
-
-    protected static function booted(): void
-    {
-        static::creating(function (ManpowerTemplateItem $item) {
-            if (! $item->manpower_template_id && $item->manpower_template_cluster_id) {
-                $item->manpower_template_id = $item->cluster?->manpower_template_id;
-            }
-        });
-    }
 
     protected static function newFactory(): \Modules\CRM\Database\Factories\ManpowerTemplateItemFactory
     {
@@ -30,11 +36,12 @@ class ManpowerTemplateItem extends Model
 
     protected $fillable = [
         'manpower_template_id',
-        'manpower_template_cluster_id',
         'product_cluster_id',
-        'work_pattern_id',
+        'project_area_id',
+        'work_scheme_id',
         'contract_type_id',
         'job_position_id',
+        'tax_object_id',
         'quantity',
         'basic_salary',
         'notes',
@@ -61,7 +68,13 @@ class ManpowerTemplateItem extends Model
         'compensation_billing_method',
         'thr_basis_id',
         'compensation_basis_id',
-        'bpjs_basis_id',
+        'bpjs_kesehatan_basis_id',
+        'bpjs_ketenagakerjaan_basis_id',
+        'bpjs_health_config_id',
+        'bpjs_jkk_config_id',
+        'bpjs_jkm_config_id',
+        'bpjs_jht_config_id',
+        'bpjs_jp_config_id',
     ];
 
     protected function casts(): array
@@ -87,34 +100,39 @@ class ManpowerTemplateItem extends Model
         ];
     }
 
-    public function cluster(): BelongsTo
-    {
-        return $this->belongsTo(ManpowerTemplateCluster::class, 'manpower_template_cluster_id');
-    }
-
     public function productCluster(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ProductCluster::class);
+        return $this->belongsTo(ProductCluster::class);
     }
 
-    public function workPattern(): BelongsTo
+    public function workScheme(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\WorkPattern::class);
+        return $this->belongsTo(WorkScheme::class);
+    }
+
+    public function projectArea(): BelongsTo
+    {
+        return $this->belongsTo(ProjectArea::class);
     }
 
     public function thrBasis(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ThrBasisType::class, 'thr_basis_id');
+        return $this->belongsTo(ThrBasisType::class, 'thr_basis_id');
     }
 
     public function compensationBasis(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ThrBasisType::class, 'compensation_basis_id');
+        return $this->belongsTo(ThrBasisType::class, 'compensation_basis_id');
     }
 
-    public function bpjsBasis(): BelongsTo
+    public function bpjsKesehatanBasis(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\BpjsBasisType::class, 'bpjs_basis_id');
+        return $this->belongsTo(BpjsBasisType::class, 'bpjs_kesehatan_basis_id');
+    }
+
+    public function bpjsKetenagakerjaanBasis(): BelongsTo
+    {
+        return $this->belongsTo(BpjsBasisType::class, 'bpjs_ketenagakerjaan_basis_id');
     }
 
     public function template(): BelongsTo
@@ -129,6 +147,36 @@ class ManpowerTemplateItem extends Model
 
     public function contractType(): BelongsTo
     {
-        return $this->belongsTo(\Modules\MasterData\Models\ContractType::class);
+        return $this->belongsTo(ContractType::class);
+    }
+
+    public function taxObject(): BelongsTo
+    {
+        return $this->belongsTo(TaxObject::class);
+    }
+
+    public function bpjsHealthConfig(): BelongsTo
+    {
+        return $this->belongsTo(BpjsHealthConfig::class, 'bpjs_health_config_id');
+    }
+
+    public function bpjsJkkConfig(): BelongsTo
+    {
+        return $this->belongsTo(BpjsJkkConfig::class, 'bpjs_jkk_config_id');
+    }
+
+    public function bpjsJkmConfig(): BelongsTo
+    {
+        return $this->belongsTo(BpjsJkmConfig::class, 'bpjs_jkm_config_id');
+    }
+
+    public function bpjsJhtConfig(): BelongsTo
+    {
+        return $this->belongsTo(BpjsJhtConfig::class, 'bpjs_jht_config_id');
+    }
+
+    public function bpjsJpConfig(): BelongsTo
+    {
+        return $this->belongsTo(BpjsJpConfig::class, 'bpjs_jp_config_id');
     }
 }

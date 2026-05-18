@@ -5,6 +5,7 @@ namespace Modules\MasterData\Database\Seeders;
 use Illuminate\Database\Seeder;
 use Modules\MasterData\Models\BenefitType;
 use Modules\MasterData\Models\BpjsBasisType;
+use Modules\MasterData\Models\BpjsJknCategory;
 use Modules\MasterData\Models\BufferCostType;
 use Modules\MasterData\Models\ContractType;
 use Modules\MasterData\Models\FixedAllowance;
@@ -117,6 +118,8 @@ class RemunerationParameterSeeder extends Seeder
         $bpjsBasisTypes = [
             ['name' => 'Adjusted Gaji Pokok', 'formula_code' => 'gaji_pokok'],
             ['name' => 'Adjusted Gaji Pokok + Tunjangan Tetap', 'formula_code' => 'gaji_plus_tunjangan_tetap'],
+            ['name' => 'Adjusted Gaji Pokok + Tunjangan Tidak Tetap', 'formula_code' => 'gaji_plus_tunjangan_tidak_tetap'],
+            ['name' => 'Adjusted Gaji Pokok + Tunjangan Tetap + Tunjangan Tidak Tetap', 'formula_code' => 'gaji_plus_tunjangan_tetap_tidak_tetap'],
         ];
         foreach ($bpjsBasisTypes as $data) {
             BpjsBasisType::updateOrCreate(['formula_code' => $data['formula_code']], array_merge(['is_active' => true], $data));
@@ -150,6 +153,18 @@ class RemunerationParameterSeeder extends Seeder
         ];
         foreach ($ptkpConfigs as $data) {
             TaxPtkpConfig::updateOrCreate(['code' => $data['code']], array_merge(['is_active' => true], $data));
+        }
+
+        // Kategori BPJS JKN (Master Data)
+        $jknCategories = [
+            ['code' => 'PPU', 'name' => 'PPU (Pekerja Penerima Upah)', 'description' => 'Pekerja Penerima Upah, contoh: karyawan swasta, BUMN, PNS, TNI, Polri.', 'is_default' => true],
+            ['code' => 'PBPU', 'name' => 'PBPU (Pekerja Bukan Penerima Upah) / Mandiri', 'description' => 'Pekerja Mandiri, membayar iuran sendiri secara berkala.', 'is_default' => false],
+            ['code' => 'PBI', 'name' => 'PBI (Penerima Bantuan Iuran)', 'description' => 'Fakir miskin dan orang tidak mampu, iuran dibayarkan oleh Pemerintah Pusat.', 'is_default' => false],
+            ['code' => 'PD_PEMDA', 'name' => 'PD Pemda (Pekerja Didaftarkan Pemda)', 'description' => 'Peserta yang didaftarkan oleh Pemerintah Daerah.', 'is_default' => false],
+            ['code' => 'BP', 'name' => 'Bukan Pekerja (BP)', 'description' => 'Investor, pemberi kerja, penerima pensiun, veteran, perintis kemerdekaan.', 'is_default' => false],
+        ];
+        foreach ($jknCategories as $data) {
+            BpjsJknCategory::updateOrCreate(['code' => $data['code']], array_merge(['is_active' => true], $data));
         }
     }
 }

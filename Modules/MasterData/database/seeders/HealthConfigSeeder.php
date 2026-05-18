@@ -12,36 +12,58 @@ class HealthConfigSeeder extends Seeder
      */
     public function run(): void
     {
-        BpjsHealthConfig::updateOrCreate(
-            ['name' => 'Kesehatan PPU'],
-            [
-                'employee_type' => 'ppu',
-                'floor_type' => 'umk', // UMK limit
-                'employer_rate' => 0.04,
-                'employee_rate' => 0.01,
-                'cap_nominal' => 12000000,
-                'is_default' => true,
-            ]
-        );
+        // Clean up old config names to ensure consistency
+        BpjsHealthConfig::query()->delete();
 
-        BpjsHealthConfig::updateOrCreate(
-            ['name' => 'Kesehatan PBPU / Mandiri (Kelas 1)'],
-            [
-                'employee_type' => 'pbpu',
-                'employer_nominal' => 0,
-                'employee_nominal' => 150000,
-                'is_default' => false,
-            ]
-        );
+        BpjsHealthConfig::create([
+            'name' => '4% Perusahaan, 1% Peserta (Min. UMK, Max. 12jt)',
+            'employee_type' => 'ppu',
+            'floor_type' => 'umk',
+            'employer_rate' => 0.04,
+            'employee_rate' => 0.01,
+            'cap_nominal' => 12000000,
+            'is_default' => true,
+            'is_active' => true,
+        ]);
 
-        BpjsHealthConfig::updateOrCreate(
-            ['name' => 'Kesehatan PBI'],
-            [
-                'employee_type' => 'pbi',
-                'employer_nominal' => 0,
-                'employee_nominal' => 0,
-                'is_default' => false,
-            ]
-        );
+        BpjsHealthConfig::create([
+            'name' => 'Kelas I',
+            'employee_type' => 'pbpu',
+            'floor_type' => 'nominal',
+            'employer_nominal' => 0,
+            'employee_nominal' => 150000,
+            'is_default' => false,
+            'is_active' => true,
+        ]);
+
+        BpjsHealthConfig::create([
+            'name' => 'Kelas II',
+            'employee_type' => 'pbpu',
+            'floor_type' => 'nominal',
+            'employer_nominal' => 0,
+            'employee_nominal' => 100000,
+            'is_default' => false,
+            'is_active' => true,
+        ]);
+
+        BpjsHealthConfig::create([
+            'name' => 'Kelas III',
+            'employee_type' => 'pbpu',
+            'floor_type' => 'nominal',
+            'employer_nominal' => 0,
+            'employee_nominal' => 35000,
+            'is_default' => false,
+            'is_active' => true,
+        ]);
+
+        BpjsHealthConfig::create([
+            'name' => 'Penerima Bantuan Iuran (PBI)',
+            'employee_type' => 'pbi',
+            'floor_type' => 'nominal',
+            'employer_nominal' => 0,
+            'employee_nominal' => 0,
+            'is_default' => false,
+            'is_active' => true,
+        ]);
     }
 }

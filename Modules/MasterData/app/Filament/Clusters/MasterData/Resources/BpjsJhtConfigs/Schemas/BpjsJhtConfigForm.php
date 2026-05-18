@@ -64,6 +64,15 @@ class BpjsJhtConfigForm
                         ->visible(fn (Get $get) => $get('employee_type') === 'pbpu')
                         ->live()
                         ->helperText('Enable this if contributions follow a specific income tier table for BPU.'),
+                    Select::make('tier_category')
+                        ->label('Tier Category')
+                        ->options([
+                            'jht_pbpu' => 'JHT PBPU',
+                        ])
+                        ->visible(fn (Get $get) => $get('employee_type') === 'pbpu' && $get('has_tier'))
+                        ->required(fn (Get $get) => $get('employee_type') === 'pbpu' && $get('has_tier'))
+                        ->live()
+                        ->helperText('Select the lookup category for this nominal tier table.'),
                 ])->columns(2),
 
             Section::make('Income Tier Table')

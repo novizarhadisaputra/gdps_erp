@@ -16,6 +16,7 @@ class BpjsJkmConfig extends Model
         'employee_type',
         'calculation_method',
         'has_tier',
+        'tier_category',
         'employer_rate',
         'employee_rate',
         'employer_nominal',
@@ -35,6 +36,6 @@ class BpjsJkmConfig extends Model
 
     public function tiers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(BpjsJkmTier::class, 'bpjs_jkm_config_id');
+        return $this->hasMany(BpjsTier::class, 'category', 'tier_category');
     }
 }

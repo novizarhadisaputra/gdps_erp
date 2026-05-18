@@ -35,7 +35,8 @@ class MasterDataDatabaseSeeder extends Seeder
             AppSettingSeeder::class,
             RevenueTypeSeeder::class,
             BankAccountSeeder::class,
-            WorkPatternSeeder::class,
+            TrainingSeeder::class,
+            TaxObjectSeeder::class,
         ]);
     }
 }

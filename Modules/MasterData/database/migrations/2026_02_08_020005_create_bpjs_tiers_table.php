@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'master_data_bpjs_jht_tiers' : 'master_data.bpjs_jht_tiers', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_bpjs_tiers' : 'master_data.bpjs_tiers', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('bpjs_jht_config_id')->constrained(config('database.default') === 'sqlite' ? 'master_data_bpjs_jht_configs' : 'master_data.bpjs_jht_configs')->cascadeOnDelete();
+            $table->string('category')->index();
             $table->decimal('min_value', 20, 2)->default(0);
             $table->decimal('max_value', 20, 2)->nullable();
             $table->decimal('employer_nominal', 15, 2)->default(0);
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_bpjs_jht_tiers' : 'master_data.bpjs_jht_tiers');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_bpjs_tiers' : 'master_data.bpjs_tiers');
     }
 };

@@ -18,7 +18,7 @@ class JpConfigSeeder extends Seeder
                 'employee_type' => 'ppu',
                 'employer_rate' => 0.02,
                 'employee_rate' => 0.01,
-                'cap_nominal' => 10547400, // standard JP cap 2024
+                'cap_nominal' => 11086300, // standard JP cap updated to match COSTING MP R1
                 'is_default' => true,
             ]
         );

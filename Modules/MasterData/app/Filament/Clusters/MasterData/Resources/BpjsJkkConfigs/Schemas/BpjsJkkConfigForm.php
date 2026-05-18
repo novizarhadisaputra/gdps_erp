@@ -63,6 +63,16 @@ class BpjsJkkConfigForm
                         ->label('Use Nominal Tier Table')
                         ->live()
                         ->helperText('Enable this if contributions follow a specific income tier table (e.g. BPU or Jakon).'),
+                    Select::make('tier_category')
+                        ->label('Tier Category')
+                        ->options([
+                            'jkk_bpu' => 'JKK PBPU/BPU',
+                            'jkk_jakon' => 'JKK Jakon (Construction)',
+                        ])
+                        ->visible(fn (Get $get) => $get('has_tier'))
+                        ->required(fn (Get $get) => $get('has_tier'))
+                        ->live()
+                        ->helperText('Select the lookup category for this nominal tier table.'),
                 ])->columns(2),
 
             Section::make('Income/Contract Tier Table')

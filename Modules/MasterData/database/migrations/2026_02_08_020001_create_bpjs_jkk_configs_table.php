@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create(config('database.default') === 'sqlite' ? 'master_data_bpjs_jkm_configs' : 'master_data.bpjs_jkm_configs', function (Blueprint $table) {
+        Schema::create(config('database.default') === 'sqlite' ? 'master_data_bpjs_jkk_configs' : 'master_data.bpjs_jkk_configs', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('employee_type')->default('ppu'); // ppu, pbpu, jakon
-            $table->string('calculation_method')->default('salary_based'); // salary_based, contract_value_based
-            $table->boolean('has_tier')->default(false);
-            $table->decimal('employer_rate', 8, 4)->default(0);
+            $table->string('calculation_method')->default('salary_based'); // salary_based, contract_value_based (for Jakon)
+            $table->string('risk_level')->nullable(); // very_low, low, medium, high, very_high
+            $table->boolean('has_tier')->default(false); // Does it use tiers?
+            $table->string('tier_category')->nullable()->index();
+            $table->decimal('employer_rate', 8, 4)->default(0); // For PPU
             $table->decimal('employee_rate', 8, 4)->default(0);
-            $table->decimal('employer_nominal', 15, 2)->default(0); // For PBPU e.g. 6800
-            $table->decimal('employee_nominal', 15, 2)->default(0);
             $table->boolean('is_active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->timestamps();
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_bpjs_jkm_configs' : 'master_data.bpjs_jkm_configs');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'master_data_bpjs_jkk_configs' : 'master_data.bpjs_jkk_configs');
     }
 };

@@ -75,8 +75,10 @@ class GeneralInformationObserver
                 }
 
                 if ($info->wasChanged(['project_area_id', 'status'])) {
-                    // CostingTemplate does not have project_area_id
-                    $lead->manpowerTemplates()->update(['project_area_id' => $info->project_area_id]);
+                    // CostingTemplate does not have project_area_id; sync to manpower template items instead
+                    foreach ($lead->manpowerTemplates as $template) {
+                        $template->items()->update(['project_area_id' => $info->project_area_id]);
+                    }
                 }
             }
         }

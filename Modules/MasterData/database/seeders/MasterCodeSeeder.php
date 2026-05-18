@@ -259,6 +259,8 @@ class MasterCodeSeeder extends Seeder
             ['code' => 'BNJ', 'name' => 'KOTA BINJAI'],
             ['code' => 'SIN', 'name' => 'Singapura'],
             ['code' => 'ROK', 'name' => 'Korea Selatan'],
+            ['code' => 'SAB', 'name' => 'KOTA SABANG'],
+            ['code' => 'CLG', 'name' => 'KOTA CILEGON'],
         ];
 
         foreach ($areas as $data) {
@@ -322,7 +324,7 @@ class MasterCodeSeeder extends Seeder
 
         // Units of Measure
         $uoms = [
-            ['code' => 'PRS', 'name' => 'Person'],
+            ['code' => 'PRS', 'name' => 'Persons'],
             ['code' => 'LOT', 'name' => 'Lot'],
             ['code' => 'PCS', 'name' => 'Pieces'],
             ['code' => 'SET', 'name' => 'Set'],

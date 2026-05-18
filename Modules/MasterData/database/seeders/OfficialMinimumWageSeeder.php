@@ -113,6 +113,30 @@ class OfficialMinimumWageSeeder extends Seeder
             }
         }
 
+        // Apply spreadsheet overrides for specific areas to match COSTING MP R1 exactly
+        $overrides = [
+            'Kota Sabang' => 3430113.00,
+            'Kota Batam' => 4685050.00,
+            'Kota Cilegon' => 4960997.00,
+        ];
+        foreach ($overrides as $name => $amount) {
+            $area = ProjectArea::where('name', $name)->first();
+            if ($area) {
+                MinimumWage::updateOrCreate(
+                    ['project_area_id' => $area->id, 'year' => $year],
+                    [
+                        'amount' => $amount,
+                        'province' => $area->province?->name ?? '',
+                        'type' => MinimumWageType::City,
+                        'is_active' => true,
+                    ]
+                );
+                $this->command->info("Applied override UMK to {$name}: {$amount}");
+            } else {
+                $this->command->warn("Could not find ProjectArea for {$name} to apply override!");
+            }
+        }
+
         $this->command->info('Official Minimum Wage seeding completed consistently.');
     }
 }

@@ -14,6 +14,8 @@ class ManpowerTemplateItemFactory extends Factory
         return [
             'quantity' => $this->faker->numberBetween(1, 10),
             'basic_salary' => $this->faker->numberBetween(5000000, 15000000),
+            'project_area_id' => \Modules\MasterData\Models\ProjectArea::factory(),
+            'work_scheme_id' => \Modules\MasterData\Models\WorkScheme::factory(),
             'notes' => $this->faker->sentence(),
         ];
     }

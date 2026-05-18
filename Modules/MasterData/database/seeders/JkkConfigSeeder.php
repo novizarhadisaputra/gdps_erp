@@ -4,6 +4,7 @@ namespace Modules\MasterData\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Modules\MasterData\Models\BpjsJkkConfig;
+use Modules\MasterData\Models\BpjsTier;
 
 class JkkConfigSeeder extends Seeder
 {
@@ -12,60 +13,67 @@ class JkkConfigSeeder extends Seeder
      */
     public function run(): void
     {
+        // Clean up existing records to prevent duplicates and orphans with obsolete names
+        BpjsJkkConfig::query()->delete();
+
         $configs = [
-            ['name' => 'JKK PPU - Very Low', 'employee_type' => 'ppu', 'risk_level' => 'very_low', 'employer_rate' => 0.0024, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => true],
-            ['name' => 'JKK PPU - Low', 'employee_type' => 'ppu', 'risk_level' => 'low', 'employer_rate' => 0.0054, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
-            ['name' => 'JKK PPU - Medium', 'employee_type' => 'ppu', 'risk_level' => 'medium', 'employer_rate' => 0.0089, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
-            ['name' => 'JKK PPU - High', 'employee_type' => 'ppu', 'risk_level' => 'high', 'employer_rate' => 0.0127, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
-            ['name' => 'JKK PPU - Very High', 'employee_type' => 'ppu', 'risk_level' => 'very_high', 'employer_rate' => 0.0174, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
+            ['name' => '0.24% Perusahaan (Sangat Rendah)', 'employee_type' => 'ppu', 'risk_level' => 'very_low', 'employer_rate' => 0.0024, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => true],
+            ['name' => '0.54% Perusahaan (Rendah)', 'employee_type' => 'ppu', 'risk_level' => 'low', 'employer_rate' => 0.0054, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
+            ['name' => '0.89% Perusahaan (Sedang)', 'employee_type' => 'ppu', 'risk_level' => 'medium', 'employer_rate' => 0.0089, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
+            ['name' => '1.27% Perusahaan (Tinggi)', 'employee_type' => 'ppu', 'risk_level' => 'high', 'employer_rate' => 0.0127, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
+            ['name' => '1.74% Perusahaan (Sangat Tinggi)', 'employee_type' => 'ppu', 'risk_level' => 'very_high', 'employer_rate' => 0.0174, 'employee_rate' => 0, 'has_tier' => false, 'is_default' => false],
         ];
 
         foreach ($configs as $config) {
-            BpjsJkkConfig::updateOrCreate(['name' => $config['name']], $config);
+            BpjsJkkConfig::create($config);
         }
 
-        // BPU/PBPU configuration with Tiers
-        $jkkBpu = BpjsJkkConfig::updateOrCreate(
-            ['name' => 'JKK BPU / Mandiri (Tiered)'],
-            [
-                'employee_type' => 'pbpu',
-                'risk_level' => null,
-                'employer_rate' => 0,
-                'employee_rate' => 0,
-                'has_tier' => true,
-                'is_default' => false,
-            ]
-        );
+        // BPU/PBPU configuration with Tiers (Lookup Tier Peserta)
+        BpjsJkkConfig::create([
+            'name' => 'Lookup Tier Peserta',
+            'employee_type' => 'pbpu',
+            'risk_level' => null,
+            'employer_rate' => 0,
+            'employee_rate' => 0,
+            'has_tier' => true,
+            'tier_category' => 'jkk_bpu',
+            'is_default' => false,
+        ]);
 
-        if ($jkkBpu->tiers()->count() === 0) {
-            $jkkBpu->tiers()->createMany([
-                ['min_value' => 0, 'max_value' => 1000000, 'employer_nominal' => 0, 'employee_nominal' => 10000],
-                ['min_value' => 1000001, 'max_value' => 2000000, 'employer_nominal' => 0, 'employee_nominal' => 20000],
-                ['min_value' => 2000001, 'max_value' => null, 'employer_nominal' => 0, 'employee_nominal' => 30000],
-            ]);
+        BpjsTier::where('category', 'jkk_bpu')->delete();
+        $bpuTiers = [
+            ['category' => 'jkk_bpu', 'min_value' => 0, 'max_value' => 1000000, 'employer_nominal' => 0, 'employee_nominal' => 10000],
+            ['category' => 'jkk_bpu', 'min_value' => 1000001, 'max_value' => 2000000, 'employer_nominal' => 0, 'employee_nominal' => 20000],
+            ['category' => 'jkk_bpu', 'min_value' => 2000001, 'max_value' => null, 'employer_nominal' => 0, 'employee_nominal' => 30000],
+        ];
+
+        foreach ($bpuTiers as $tier) {
+            BpjsTier::create($tier);
         }
 
-        // Jakon (Construction) configuration
-        $jkkJakon = BpjsJkkConfig::updateOrCreate(
-            ['name' => 'JKK Jakon (Konstruksi)'],
-            [
-                'employee_type' => 'ppu',
-                'risk_level' => null,
-                'employer_rate' => 0,
-                'employee_rate' => 0,
-                'has_tier' => true,
-                'is_default' => false,
-            ]
-        );
+        // Jakon (Construction) configuration (Lookup Kontrak Perusahaan)
+        BpjsJkkConfig::create([
+            'name' => 'Lookup Kontrak Perusahaan',
+            'employee_type' => 'ppu',
+            'risk_level' => null,
+            'employer_rate' => 0,
+            'employee_rate' => 0,
+            'has_tier' => true,
+            'tier_category' => 'jkk_jakon',
+            'is_default' => false,
+        ]);
 
-        if ($jkkJakon->tiers()->count() === 0) {
-            $jkkJakon->tiers()->createMany([
-                ['min_value' => 0, 'max_value' => 100000000, 'employer_rate' => 0.0021],
-                ['min_value' => 100000001, 'max_value' => 500000000, 'employer_rate' => 0.0017],
-                ['min_value' => 500000001, 'max_value' => 1000000000, 'employer_rate' => 0.0013],
-                ['min_value' => 1000000001, 'max_value' => 5000000000, 'employer_rate' => 0.0011],
-                ['min_value' => 5000000001, 'max_value' => null, 'employer_rate' => 0.0009],
-            ]);
+        BpjsTier::where('category', 'jkk_jakon')->delete();
+        $jakonTiers = [
+            ['category' => 'jkk_jakon', 'min_value' => 0, 'max_value' => 100000000, 'employer_rate' => 0.0021],
+            ['category' => 'jkk_jakon', 'min_value' => 100000001, 'max_value' => 500000000, 'employer_rate' => 0.0017],
+            ['category' => 'jkk_jakon', 'min_value' => 500000001, 'max_value' => 1000000000, 'employer_rate' => 0.0013],
+            ['category' => 'jkk_jakon', 'min_value' => 1000000001, 'max_value' => 5000000000, 'employer_rate' => 0.0011],
+            ['category' => 'jkk_jakon', 'min_value' => 5000000001, 'max_value' => null, 'employer_rate' => 0.0009],
+        ];
+
+        foreach ($jakonTiers as $tier) {
+            BpjsTier::create($tier);
         }
     }
 }

@@ -6,7 +6,6 @@ use App\Traits\HasDefaultRecord;
 use App\Traits\HasModuleSchema;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BpjsJhtConfig extends Model
 {
@@ -17,6 +16,7 @@ class BpjsJhtConfig extends Model
         'employee_type',
         'calculation_method',
         'has_tier',
+        'tier_category',
         'employer_rate',
         'employee_rate',
         'is_active',
@@ -32,8 +32,8 @@ class BpjsJhtConfig extends Model
         ];
     }
 
-    public function tiers(): HasMany
+    public function tiers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(BpjsJhtTier::class, 'bpjs_jht_config_id');
+        return $this->hasMany(BpjsTier::class, 'category', 'tier_category');
     }
 }

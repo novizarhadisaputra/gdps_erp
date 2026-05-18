@@ -7,8 +7,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\CRM\Filament\Clusters\CRM\Resources\Leads\Resources\ManpowerTemplate\ManpowerTemplateResource;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\ManpowerTemplate;
-use Modules\CRM\Models\ManpowerTemplateCluster;
 use Modules\CRM\Models\ManpowerTemplateItem;
+use Modules\MasterData\Models\BpjsBasisType;
 use Modules\MasterData\Models\BpjsHealthConfig;
 use Modules\MasterData\Models\BpjsJhtConfig;
 use Modules\MasterData\Models\BpjsJkkConfig;
@@ -85,15 +85,7 @@ class ManpowerTemplateResourceTest extends TestCase
         $workScheme = WorkScheme::factory()->create();
 
         $template = ManpowerTemplate::factory()->create([
-            'project_area_id' => $area->id,
-            'work_scheme_id' => $workScheme->id,
             'year' => (int) date('Y'),
-        ]);
-
-        $cluster = ManpowerTemplateCluster::create([
-            'manpower_template_id' => $template->id,
-            'product_cluster_id' => $productCluster->id,
-            'name' => 'Test Cluster',
         ]);
 
         // Scenario 1: Basic salary = 5,000,000 (UMK)
@@ -108,10 +100,12 @@ class ManpowerTemplateResourceTest extends TestCase
 
         ManpowerTemplateItem::create([
             'manpower_template_id' => $template->id,
-            'manpower_template_cluster_id' => $cluster->id,
+            'product_cluster_id' => $productCluster->id,
             'job_position_id' => $jobPosition->id,
             'quantity' => 1,
             'basic_salary' => 5000000,
+            'project_area_id' => $area->id,
+            'work_scheme_id' => $workScheme->id,
             'ptkp_status' => 'TK/0',
             'is_bpjs_active' => true,
             'risk_level' => 'very_low',
@@ -131,12 +125,8 @@ class ManpowerTemplateResourceTest extends TestCase
         $this->actingAs($this->user);
 
         $area = ProjectArea::factory()->create();
-        $template = ManpowerTemplate::factory()->create(['project_area_id' => $area->id]);
-        $cluster = ManpowerTemplateCluster::create([
-            'manpower_template_id' => $template->id,
-            'product_cluster_id' => ProductCluster::factory()->create()->id,
-            'name' => 'High Salary Cluster',
-        ]);
+        $template = ManpowerTemplate::factory()->create();
+        $productCluster = ProductCluster::factory()->create();
 
         // Salary 20,000,000 (Above caps)
         // Health Cap: 12,000,000 -> ER: 4% of 12M = 480,000
@@ -146,10 +136,12 @@ class ManpowerTemplateResourceTest extends TestCase
 
         ManpowerTemplateItem::create([
             'manpower_template_id' => $template->id,
-            'manpower_template_cluster_id' => $cluster->id,
+            'product_cluster_id' => $productCluster->id,
             'job_position_id' => JobPosition::factory()->create()->id,
             'quantity' => 1,
             'basic_salary' => 20000000,
+            'project_area_id' => $area->id,
+            'work_scheme_id' => WorkScheme::factory()->create()->id,
             'ptkp_status' => 'TK/0',
             'is_bpjs_active' => true,
             'risk_level' => 'very_low',
@@ -166,20 +158,18 @@ class ManpowerTemplateResourceTest extends TestCase
         $this->actingAs($this->user);
 
         $area = ProjectArea::factory()->create();
-        $template = ManpowerTemplate::factory()->create(['project_area_id' => $area->id]);
-        $cluster = ManpowerTemplateCluster::create([
-            'manpower_template_id' => $template->id,
-            'product_cluster_id' => ProductCluster::factory()->create()->id,
-            'name' => 'Scaling Cluster',
-        ]);
+        $template = ManpowerTemplate::factory()->create();
+        $productCluster = ProductCluster::factory()->create();
 
         // Salary 10,000,000, Scaling 10%
         ManpowerTemplateItem::create([
             'manpower_template_id' => $template->id,
-            'manpower_template_cluster_id' => $cluster->id,
+            'product_cluster_id' => $productCluster->id,
             'job_position_id' => JobPosition::factory()->create()->id,
             'quantity' => 1,
             'basic_salary' => 10000000,
+            'project_area_id' => $area->id,
+            'work_scheme_id' => WorkScheme::factory()->create()->id,
             'future_adjustment_rate' => 10, // 10%
         ]);
 
@@ -220,12 +210,8 @@ class ManpowerTemplateResourceTest extends TestCase
         $this->actingAs($this->user);
 
         $area = ProjectArea::factory()->create();
-        $template = ManpowerTemplate::factory()->create(['project_area_id' => $area->id]);
-        $cluster = ManpowerTemplateCluster::create([
-            'manpower_template_id' => $template->id,
-            'product_cluster_id' => ProductCluster::factory()->create()->id,
-            'name' => 'Tax Test Cluster',
-        ]);
+        $template = ManpowerTemplate::factory()->create();
+        $productCluster = ProductCluster::factory()->create();
 
         // K/3 has higher relief, but in TER method (2024), it uses different categories (C instead of A)
         // Gross: 9,000,000
@@ -236,20 +222,24 @@ class ManpowerTemplateResourceTest extends TestCase
 
         $itemTk0 = ManpowerTemplateItem::create([
             'manpower_template_id' => $template->id,
-            'manpower_template_cluster_id' => $cluster->id,
+            'product_cluster_id' => $productCluster->id,
             'job_position_id' => JobPosition::factory()->create()->id,
             'quantity' => 1,
             'basic_salary' => 9000000,
+            'project_area_id' => $area->id,
+            'work_scheme_id' => WorkScheme::factory()->create()->id,
             'ptkp_status' => 'TK/0',
             'use_ter_method' => true,
         ]);
 
         $itemK3 = ManpowerTemplateItem::create([
             'manpower_template_id' => $template->id,
-            'manpower_template_cluster_id' => $cluster->id,
+            'product_cluster_id' => $productCluster->id,
             'job_position_id' => JobPosition::factory()->create()->id,
             'quantity' => 1,
             'basic_salary' => 9000000,
+            'project_area_id' => $area->id,
+            'work_scheme_id' => WorkScheme::factory()->create()->id,
             'ptkp_status' => 'K/3',
             'use_ter_method' => true,
         ]);
@@ -268,12 +258,8 @@ class ManpowerTemplateResourceTest extends TestCase
         $this->actingAs($this->user);
 
         $area = ProjectArea::factory()->create();
-        $template = ManpowerTemplate::factory()->create(['project_area_id' => $area->id]);
-        $cluster = ManpowerTemplateCluster::create([
-            'manpower_template_id' => $template->id,
-            'product_cluster_id' => ProductCluster::factory()->create()->id,
-            'name' => 'Contract Test Cluster',
-        ]);
+        $template = ManpowerTemplate::factory()->create();
+        $productCluster = ProductCluster::factory()->create();
 
         $pkwt = ContractType::create(['code' => 'PKWT', 'name' => 'PKWT', 'is_active' => true]);
         $pkwtt = ContractType::create(['code' => 'PKWTT', 'name' => 'PKWTT', 'is_active' => true]);
@@ -282,10 +268,12 @@ class ManpowerTemplateResourceTest extends TestCase
         // Scenario: If MITRA contract type is chosen, compensation accruals are not billed
         $itemMitra = ManpowerTemplateItem::create([
             'manpower_template_id' => $template->id,
-            'manpower_template_cluster_id' => $cluster->id,
+            'product_cluster_id' => $productCluster->id,
             'job_position_id' => JobPosition::factory()->create()->id,
             'quantity' => 1,
             'basic_salary' => 5000000,
+            'project_area_id' => $area->id,
+            'work_scheme_id' => WorkScheme::factory()->create()->id,
             'contract_type_id' => $mitra->id,
         ]);
 
@@ -293,5 +281,163 @@ class ManpowerTemplateResourceTest extends TestCase
 
         // MITRA has no compensation accruals
         $this->assertEquals(0, $simulation['rows'][0]['accruals']['compensation']);
+    }
+
+    /** @test */
+    public function it_supports_split_bpjs_kesehatan_and_ketenagakerjaan_basis_types(): void
+    {
+        $this->actingAs($this->user);
+
+        $area = ProjectArea::factory()->create();
+        MinimumWage::create([
+            'project_area_id' => $area->id,
+            'year' => (int) date('Y'),
+            'amount' => 5000000,
+            'province' => 'Test Province',
+            'is_active' => true,
+        ]);
+
+        $template = ManpowerTemplate::factory()->create([
+            'year' => (int) date('Y'),
+        ]);
+
+        $productCluster = ProductCluster::factory()->create();
+
+        // Seed split BPJS Basis Types
+        $basisGP = BpjsBasisType::create([
+            'code' => 'GP',
+            'name' => 'Gaji Pokok',
+            'formula_code' => 'gaji_pokok',
+            'is_active' => true,
+        ]);
+
+        $basisGPF = BpjsBasisType::create([
+            'code' => 'GPF',
+            'name' => 'Gaji + Tunjangan Tetap',
+            'formula_code' => 'gaji_plus_tunjangan_tetap',
+            'is_active' => true,
+        ]);
+
+        // Scenario: GP = 5M, Fixed Allowance = 1M
+        // bpjs_kesehatan_basis_id = GP (5M basis)
+        // bpjs_ketenagakerjaan_basis_id = GPF (6M basis)
+        $item = ManpowerTemplateItem::create([
+            'manpower_template_id' => $template->id,
+            'product_cluster_id' => $productCluster->id,
+            'job_position_id' => JobPosition::factory()->create()->id,
+            'quantity' => 1,
+            'basic_salary' => 5000000,
+            'allowances' => [
+                ['name' => 'Fixed Allowance', 'amount' => 1000000, 'type' => 'fixed', 'is_active' => true],
+            ],
+            'project_area_id' => $area->id,
+            'work_scheme_id' => WorkScheme::factory()->create()->id,
+            'bpjs_kesehatan_basis_id' => $basisGP->id,
+            'bpjs_ketenagakerjaan_basis_id' => $basisGPF->id,
+            'is_bpjs_active' => true,
+            'risk_level' => 'very_low',
+            'employee_type' => 'ppu',
+        ]);
+
+        $simulation = $template->getCostSimulation();
+
+        // BPJS Health ER: 4% of 5M = 200,000
+        // BPJS Employment ER: 6.24% of 6M (5M GP + 1M Fixed) = 374,400
+        // Total BPJS ER = 574,400
+        $this->assertEquals(200000, $simulation['rows'][0]['bpjs_health']['employer']);
+        $this->assertEquals(374400, $simulation['rows'][0]['bpjs_employment']['employer_total']);
+        $this->assertEquals(574400, $simulation['rows'][0]['bpjs_total']);
+    }
+
+    /** @test */
+    public function it_applies_custom_bpjs_configs_if_specified(): void
+    {
+        $this->actingAs($this->user);
+
+        $area = ProjectArea::factory()->create();
+        MinimumWage::create([
+            'project_area_id' => $area->id,
+            'year' => (int) date('Y'),
+            'amount' => 5000000,
+            'province' => 'Test Province',
+            'is_active' => true,
+        ]);
+
+        $template = ManpowerTemplate::factory()->create([
+            'year' => (int) date('Y'),
+        ]);
+
+        $productCluster = ProductCluster::factory()->create();
+
+        // Create custom BPJS configs
+        $customHealth = BpjsHealthConfig::create([
+            'name' => 'Custom Health Rate',
+            'employee_type' => 'ppu',
+            'employer_rate' => 0.05, // 5% instead of 4%
+            'employee_rate' => 0.02,
+            'cap_nominal' => 15000000,
+            'is_active' => true,
+        ]);
+
+        $customJkk = BpjsJkkConfig::create([
+            'name' => 'Custom JKK Rate',
+            'employee_type' => 'ppu',
+            'risk_level' => 'very_low',
+            'employer_rate' => 0.01, // 1% instead of 0.24%
+            'employee_rate' => 0,
+            'is_active' => true,
+        ]);
+
+        $customJkm = BpjsJkmConfig::create([
+            'name' => 'Custom JKM Rate',
+            'employee_type' => 'ppu',
+            'employer_rate' => 0.005, // 0.5% instead of 0.3%
+            'employee_rate' => 0,
+            'is_active' => true,
+        ]);
+
+        $customJht = BpjsJhtConfig::create([
+            'name' => 'Custom JHT Rate',
+            'employee_type' => 'ppu',
+            'employer_rate' => 0.04, // 4% instead of 3.7%
+            'employee_rate' => 0.02,
+            'is_active' => true,
+        ]);
+
+        $customJp = BpjsJpConfig::create([
+            'name' => 'Custom JP Rate',
+            'employee_type' => 'ppu',
+            'employer_rate' => 0.03, // 3% instead of 2%
+            'employee_rate' => 0.01,
+            'cap_nominal' => 12000000,
+            'is_active' => true,
+        ]);
+
+        $item = ManpowerTemplateItem::create([
+            'manpower_template_id' => $template->id,
+            'product_cluster_id' => $productCluster->id,
+            'job_position_id' => JobPosition::factory()->create()->id,
+            'quantity' => 1,
+            'basic_salary' => 5000000,
+            'project_area_id' => $area->id,
+            'work_scheme_id' => WorkScheme::factory()->create()->id,
+            'bpjs_health_config_id' => $customHealth->id,
+            'bpjs_jkk_config_id' => $customJkk->id,
+            'bpjs_jkm_config_id' => $customJkm->id,
+            'bpjs_jht_config_id' => $customJht->id,
+            'bpjs_jp_config_id' => $customJp->id,
+            'is_bpjs_active' => true,
+        ]);
+
+        $simulation = $template->getCostSimulation();
+
+        // BPJS Health Custom ER: 5% of 5M = 250,000
+        // BPJS JKK Custom ER: 1% of 5M = 50,000
+        // BPJS JKM Custom ER: 0.5% of 5M = 25,000
+        // BPJS JHT Custom ER: 4% of 5M = 200,000
+        // BPJS JP Custom ER: 3% of 5M = 150,000
+        $this->assertEquals(250000, $simulation['rows'][0]['bpjs_health']['employer']);
+        $this->assertEquals(425000, $simulation['rows'][0]['bpjs_employment']['employer_total']);
+        $this->assertEquals(675000, $simulation['rows'][0]['bpjs_total']);
     }
 }

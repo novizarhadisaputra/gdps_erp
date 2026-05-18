@@ -4,8 +4,6 @@ namespace Modules\CRM\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\CRM\Models\ManpowerTemplate;
-use Modules\MasterData\Models\ProjectArea;
-use Modules\MasterData\Models\WorkScheme;
 
 class ManpowerTemplateFactory extends Factory
 {
@@ -23,8 +21,6 @@ class ManpowerTemplateFactory extends Factory
             'name' => $this->faker->words(3, true),
             'description' => $this->faker->sentence(),
             'is_active' => true,
-            'project_area_id' => ProjectArea::factory(),
-            'work_scheme_id' => WorkScheme::factory(),
         ];
     }
 
@@ -32,8 +28,6 @@ class ManpowerTemplateFactory extends Factory
     {
         return $this->state([
             'lead_id' => $lead->id,
-            'project_area_id' => $lead->project_area_id,
-            'work_scheme_id' => $lead->work_scheme_id,
         ]);
     }
 }
