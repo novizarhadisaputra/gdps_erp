@@ -46,4 +46,24 @@ class AssetGroupResource extends Resource
             'index' => ListAssetGroups::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Asset Group');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Asset Groups');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Asset Groups');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Finance & Accounting');
+    }
 }

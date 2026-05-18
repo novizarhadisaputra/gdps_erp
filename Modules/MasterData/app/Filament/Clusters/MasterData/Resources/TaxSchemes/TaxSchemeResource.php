@@ -53,4 +53,24 @@ class TaxSchemeResource extends Resource
             'edit' => EditTaxScheme::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Tax Scheme');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Tax Schemes');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Tax Schemes');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Taxation');
+    }
 }

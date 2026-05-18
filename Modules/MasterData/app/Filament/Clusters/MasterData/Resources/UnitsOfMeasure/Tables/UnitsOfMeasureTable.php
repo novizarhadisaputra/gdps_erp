@@ -27,10 +27,10 @@ class UnitsOfMeasureTable
                     ->searchable()
                     ->sortable(),
                 ToggleColumn::make('is_active')
-                    ->label('Aktif'),
+                    ->label(__('Aktif')),
                 IconColumn::make('is_default')
                     ->boolean()
-                    ->label('Default'),
+                    ->label(__('Default')),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

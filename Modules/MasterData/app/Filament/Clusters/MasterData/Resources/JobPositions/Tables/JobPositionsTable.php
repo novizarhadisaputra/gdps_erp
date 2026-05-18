@@ -37,10 +37,10 @@ class JobPositionsTable
                         default => 'gray',
                     }),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('Active'))
                     ->boolean(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->icon(fn ($state) => $state ? 'heroicon-o-star' : null)
                     ->color('warning'),

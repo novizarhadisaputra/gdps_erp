@@ -29,7 +29,7 @@ class IndustrialSectorsTable
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label(__('Active')),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

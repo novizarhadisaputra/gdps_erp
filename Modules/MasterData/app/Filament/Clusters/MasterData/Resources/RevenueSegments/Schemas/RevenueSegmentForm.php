@@ -20,34 +20,34 @@ class RevenueSegmentForm
     public static function schema(): array
     {
         return [
-            Section::make('Revenue Segment Definition')
-                ->description('Define revenue segments for financial reporting and business unit alignment.')
+            Section::make(__('Revenue Segment Definition'))
+                ->description(__('Define revenue segments for financial reporting and business unit alignment.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Segment Name')
-                        ->placeholder('e.g. Aviation, Logistics, Ground Handling')
-                        ->helperText('The descriptive name of the revenue segment.')
+                        ->label(__('Segment Name'))
+                        ->placeholder(__('e.g. Aviation, Logistics, Ground Handling'))
+                        ->helperText(__('The descriptive name of the revenue segment.'))
                         ->required()
                         ->maxLength(255),
                     TextInput::make('code')
-                        ->label('Segment Code')
+                        ->label(__('Segment Code'))
                         ->unique(RevenueSegment::class, 'code', ignoreRecord: true)
-                        ->placeholder('Auto-generated')
+                        ->placeholder(__('Auto-generated'))
                         ->readOnly()
-                        ->helperText('Unique identification code for this revenue segment.'),
+                        ->helperText(__('Unique identification code for this revenue segment.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this revenue segment.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this revenue segment.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Enable or disable this segment for financial entries.'),
+                        ->helperText(__('Enable or disable this segment for financial entries.')),
                     Toggle::make('is_default')
-                        ->label('Default Segment')
+                        ->label(__('Default Segment'))
                         ->default(false)
-                        ->helperText('Set as the default segment for new revenue configurations.'),
+                        ->helperText(__('Set as the default segment for new revenue configurations.')),
                 ])->columns(2),
         ];
     }

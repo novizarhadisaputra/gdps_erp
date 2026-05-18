@@ -28,19 +28,19 @@ class ApiClientsTable
                     ->sortable(),
 
                 TextColumn::make('client_id')
-                    ->label('Client ID')
+                    ->label(__('Client ID'))
                     ->searchable()
                     ->copyable()
                     ->fontFamily('mono'),
 
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label(__('Active')),
 
                 TextColumn::make('last_used_at')
                     ->dateTime()
                     ->sortable()
-                    ->placeholder('Never used'),
+                    ->placeholder(__('Never used')),
 
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -53,7 +53,7 @@ class ApiClientsTable
                     EditAction::make(),
                     DeleteAction::make(),
                     Action::make('regenerate_secret')
-                        ->label('Regenerate Secret')
+                        ->label(__('Regenerate Secret'))
                         ->icon(Heroicon::ArrowPath)
                         ->color('warning')
                         ->requiresConfirmation()

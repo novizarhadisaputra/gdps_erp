@@ -11,8 +11,8 @@ class ProvinceForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Province Details')
-                ->description('Specify the official code and name for this province.')
+            Section::make(__('Province Details'))
+                ->description(__('Specify the official code and name for this province.'))
                 ->icon('heroicon-o-map')
                 ->columns(2)
                 ->schema([
@@ -20,13 +20,13 @@ class ProvinceForm
                         ->required()
                         ->unique(ignoreRecord: true)
                         ->maxLength(10)
-                        ->placeholder('e.g. 32')
-                        ->helperText('Standardized regional code (BPS/Kemendagri).'),
+                        ->placeholder(__('e.g. 32'))
+                        ->helperText(__('Standardized regional code (BPS/Kemendagri).')),
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('e.g. Jawa Barat')
-                        ->helperText('Official name of the province.'),
+                        ->placeholder(__('e.g. Jawa Barat'))
+                        ->helperText(__('Official name of the province.')),
                 ]),
         ]);
     }

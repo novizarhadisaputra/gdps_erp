@@ -25,10 +25,10 @@ class ItemCategoriesTable
                 TextColumn::make('description')
                     ->limit(50),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('Active'))
                     ->boolean(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()

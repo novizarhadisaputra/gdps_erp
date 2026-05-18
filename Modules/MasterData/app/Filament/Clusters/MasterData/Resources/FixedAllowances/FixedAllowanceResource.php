@@ -53,4 +53,24 @@ class FixedAllowanceResource extends Resource
             'edit' => EditFixedAllowance::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Fixed Allowance');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Fixed Allowances');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Fixed Allowances');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Payroll & Benefits');
+    }
 }

@@ -20,33 +20,33 @@ class RevenueTypeForm
     public static function schema(): array
     {
         return [
-            Section::make('Revenue Type Definition')
-                ->description('Define categories for revenue streams to enable granular financial mapping and analysis.')
+            Section::make(__('Revenue Type Definition'))
+                ->description(__('Define categories for revenue streams to enable granular financial mapping and analysis.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Type Name')
+                        ->label(__('Type Name'))
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('e.g. Manpower, Material, Overtime')
-                        ->helperText('The descriptive name of the revenue category.'),
+                        ->placeholder(__('e.g. Manpower, Material, Overtime'))
+                        ->helperText(__('The descriptive name of the revenue category.')),
                     TextInput::make('code')
-                        ->label('Type Code')
+                        ->label(__('Type Code'))
                         ->maxLength(50)
-                        ->placeholder('e.g. MANPOWER, MAT, OVT')
-                        ->helperText('A unique code identifier for system-wide mapping.'),
+                        ->placeholder(__('e.g. MANPOWER, MAT, OVT'))
+                        ->helperText(__('A unique code identifier for system-wide mapping.')),
                 ])->columns(2),
 
-            Section::make('Configuration')
-                ->description('Manage the behavior and status of this revenue type.')
+            Section::make(__('Configuration'))
+                ->description(__('Manage the behavior and status of this revenue type.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Enable or disable this type for new project configurations.'),
+                        ->helperText(__('Enable or disable this type for new project configurations.')),
                     Toggle::make('is_default')
-                        ->label('Default Type')
+                        ->label(__('Default Type'))
                         ->default(false)
-                        ->helperText('Automatically select this type when creating new items.'),
+                        ->helperText(__('Automatically select this type when creating new items.')),
                 ])->columns(2),
         ];
     }

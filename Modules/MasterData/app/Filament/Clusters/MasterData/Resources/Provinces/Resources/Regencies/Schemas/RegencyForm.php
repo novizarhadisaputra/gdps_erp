@@ -12,8 +12,8 @@ class RegencyForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Regency Details')
-                ->description('Link this regency to its parent province and specify official identification details.')
+            Section::make(__('Regency Details'))
+                ->description(__('Link this regency to its parent province and specify official identification details.'))
                 ->icon('heroicon-o-building-office-2')
                 ->columns(2)
                 ->schema([
@@ -22,21 +22,21 @@ class RegencyForm
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->placeholder('Select province...')
-                        ->helperText('The parent province for this regency.')
+                        ->placeholder(__('Select province...'))
+                        ->helperText(__('The parent province for this regency.'))
                         ->disabled(fn (?string $operation) => $operation === 'edit' || request()->routeIs('*.provinces.*')),
                     TextInput::make('code')
                         ->required()
                         ->unique(ignoreRecord: true)
                         ->maxLength(10)
-                        ->placeholder('e.g. 3273')
-                        ->helperText('Official regional code for this regency.'),
+                        ->placeholder(__('e.g. 3273'))
+                        ->helperText(__('Official regional code for this regency.')),
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
                         ->columnSpanFull()
-                        ->placeholder('e.g. Kota Bandung')
-                        ->helperText('Identification name (City or Regency).'),
+                        ->placeholder(__('e.g. Kota Bandung'))
+                        ->helperText(__('Identification name (City or Regency).')),
                 ]),
         ]);
     }

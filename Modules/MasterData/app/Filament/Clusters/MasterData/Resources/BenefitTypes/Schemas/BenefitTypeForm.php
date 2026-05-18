@@ -15,45 +15,45 @@ class BenefitTypeForm
     {
         return $schema
             ->components([
-                Section::make('Benefit Configuration')
-                    ->description('Define the types of benefits available to employees and their accrual behavior.')
+                Section::make(__('Benefit Configuration'))
+                    ->description(__('Define the types of benefits available to employees and their accrual behavior.'))
                     ->schema([
                         TextInput::make('name')
-                            ->label('Benefit Name')
-                            ->placeholder('e.g. Health Insurance, Meal Allowance')
-                            ->helperText('The descriptive name of the benefit type.')
+                            ->label(__('Benefit Name'))
+                            ->placeholder(__('e.g. Health Insurance, Meal Allowance'))
+                            ->helperText(__('The descriptive name of the benefit type.'))
                             ->required()
                             ->maxLength(255),
                         TextInput::make('code')
-                            ->label('Benefit Code')
-                            ->placeholder('e.g. BEN-HEALTH, BEN-MEAL')
+                            ->label(__('Benefit Code'))
+                            ->placeholder(__('e.g. BEN-HEALTH, BEN-MEAL'))
                             ->required()
                             ->unique(BenefitType::class, 'code', ignoreRecord: true)
-                            ->helperText('Unique short code identifying this benefit.'),
+                            ->helperText(__('Unique short code identifying this benefit.')),
                         Select::make('accrual_method')
-                            ->label('Accrual Method')
+                            ->label(__('Accrual Method'))
                             ->options([
-                                'monthly' => 'Monthly',
-                                'one_time' => 'One Time',
-                                'yearly' => 'Yearly',
+                                'monthly' => __('Monthly'),
+                                'one_time' => __('One Time'),
+                                'yearly' => __('Yearly'),
                             ])
                             ->default('monthly')
-                            ->placeholder('Select method')
-                            ->helperText('Specifies how frequently this benefit is accrued or distributed.')
+                            ->placeholder(__('Select method'))
+                            ->helperText(__('Specifies how frequently this benefit is accrued or distributed.'))
                             ->required(),
                     ])->columns(2),
 
-                Section::make('Status & Defaults')
-                    ->description('Manage the availability and default status of this benefit type.')
+                Section::make(__('Status & Defaults'))
+                    ->description(__('Manage the availability and default status of this benefit type.'))
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
-                            ->helperText('Determines if this benefit can be assigned to employee groups.'),
+                            ->helperText(__('Determines if this benefit can be assigned to employee groups.')),
                         Toggle::make('is_default')
-                            ->label('Default Benefit')
+                            ->label(__('Default Benefit'))
                             ->default(false)
-                            ->helperText('Sets this as the pre-selected option for new benefit assignments.'),
+                            ->helperText(__('Sets this as the pre-selected option for new benefit assignments.')),
                     ])->columns(2),
             ]);
     }

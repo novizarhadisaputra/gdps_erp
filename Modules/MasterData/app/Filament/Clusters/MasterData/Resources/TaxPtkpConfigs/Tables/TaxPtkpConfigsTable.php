@@ -18,31 +18,31 @@ class TaxPtkpConfigsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->description('List of Non-Taxable Income (PTKP) limits used for calculating PPh 21.')
+            ->description(__('List of Non-Taxable Income (PTKP) limits used for calculating PPh 21.'))
             ->columns([
                 TextColumn::make('code')
-                    ->label('Code')
+                    ->label(__('Code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
-                    ->label('Description')
+                    ->label(__('Description'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('tax_category')
-                    ->label('Category')
+                    ->label(__('Category'))
                     ->badge()
                     ->color('info')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('annual_amount')
-                    ->label('Annual Amount')
+                    ->label(__('Annual Amount'))
                     ->money('IDR')
                     ->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active Status')
+                    ->label(__('Active Status'))
                     ->boolean(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->icon(fn ($state) => $state ? 'heroicon-o-star' : null)
                     ->color('warning'),

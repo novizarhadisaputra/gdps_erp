@@ -53,4 +53,24 @@ class ProductClusterResource extends Resource
             'edit' => EditProductCluster::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Product Cluster');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Product Clusters');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Product Clusters');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Products & Inventory');
+    }
 }

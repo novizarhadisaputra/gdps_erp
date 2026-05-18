@@ -53,4 +53,24 @@ class ContractTypeResource extends Resource
             'edit' => EditContractType::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Contract Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Contract Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Contract Types');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('HR & Organization');
+    }
 }

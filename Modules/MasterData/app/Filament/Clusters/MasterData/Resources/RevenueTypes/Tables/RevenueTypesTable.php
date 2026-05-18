@@ -22,21 +22,21 @@ class RevenueTypesTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Type Name')
+                    ->label(__('Type Name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('code')
-                    ->label('Type Code')
+                    ->label(__('Type Code'))
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active Status')
+                    ->label(__('Active Status'))
                     ->boolean(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean(),
                 TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label(__('Created At'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

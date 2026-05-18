@@ -31,7 +31,7 @@ class RegenciesTable
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('districts_count')
-                    ->label('Districts')
+                    ->label(__('Districts'))
                     ->counts('districts')
                     ->sortable()
                     ->toggleable(),

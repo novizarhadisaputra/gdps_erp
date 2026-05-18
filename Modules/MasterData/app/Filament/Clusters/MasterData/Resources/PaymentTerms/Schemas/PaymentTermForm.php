@@ -19,41 +19,41 @@ class PaymentTermForm
     public static function schema(): array
     {
         return [
-            Section::make('Payment Term Details')
-                ->description('Configure credit and payment terms for customers and vendors.')
+            Section::make(__('Payment Term Details'))
+                ->description(__('Configure credit and payment terms for customers and vendors.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Term Name')
-                        ->placeholder('e.g. Net 30 Days, COD, Due on Receipt')
-                        ->helperText('The descriptive name of the payment term.')
+                        ->label(__('Term Name'))
+                        ->placeholder(__('e.g. Net 30 Days, COD, Due on Receipt'))
+                        ->helperText(__('The descriptive name of the payment term.'))
                         ->required()
                         ->maxLength(255),
                     TextInput::make('code')
-                        ->label('Term Code')
-                        ->placeholder('Auto-generated')
+                        ->label(__('Term Code'))
+                        ->placeholder(__('Auto-generated'))
                         ->readOnly()
                         ->unique(PaymentTerm::class, 'code', ignoreRecord: true)
-                        ->helperText('A unique identification code for this payment term.'),
+                        ->helperText(__('A unique identification code for this payment term.')),
                     TextInput::make('days')
-                        ->label('Credit Days')
+                        ->label(__('Credit Days'))
                         ->numeric()
                         ->required()
                         ->prefix('Days')
-                        ->placeholder('30')
-                        ->helperText('The number of days allowed for payment.'),
+                        ->placeholder(__('30'))
+                        ->helperText(__('The number of days allowed for payment.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this payment term.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this payment term.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Enable or disable this term for transactions.'),
+                        ->helperText(__('Enable or disable this term for transactions.')),
                     Toggle::make('is_default')
-                        ->label('Default Term')
+                        ->label(__('Default Term'))
                         ->default(false)
-                        ->helperText('Set as the default payment term for new partners.'),
+                        ->helperText(__('Set as the default payment term for new partners.')),
                 ])->columns(2),
         ];
     }

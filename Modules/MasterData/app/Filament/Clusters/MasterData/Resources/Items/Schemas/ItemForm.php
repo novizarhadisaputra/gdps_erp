@@ -31,30 +31,30 @@ class ItemForm
     public static function schema(): array
     {
         return [
-            Section::make('Item Details')
-                ->description('Specify the core information for this inventory or asset item, including its classification and pricing.')
+            Section::make(__('Item Details'))
+                ->description(__('Specify the core information for this inventory or asset item, including its classification and pricing.'))
                 ->schema([
                     TextInput::make('code')
-                        ->label('Item Code')
+                        ->label(__('Item Code'))
                         ->required()
                         ->unique(Item::class, 'code', ignoreRecord: true)
                         ->maxLength(255)
-                        ->placeholder('e.g. ITM-001')
-                        ->helperText('Unique identification code for this item.'),
+                        ->placeholder(__('e.g. ITM-001'))
+                        ->helperText(__('Unique identification code for this item.')),
                     TextInput::make('name')
-                        ->label('Item Name')
+                        ->label(__('Item Name'))
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('e.g. Laptop Dell XPS')
-                        ->helperText('The descriptive name of the item.'),
+                        ->placeholder(__('e.g. Laptop Dell XPS'))
+                        ->helperText(__('The descriptive name of the item.')),
                     Select::make('item_category_id')
-                        ->label('Category')
+                        ->label(__('Category'))
                         ->relationship('category', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->placeholder('Select category')
-                        ->helperText('The primary classification for this item.')
+                        ->placeholder(__('Select category'))
+                        ->helperText(__('The primary classification for this item.'))
                         ->createOptionForm(ItemCategoryForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->live()
@@ -69,12 +69,12 @@ class ItemForm
                             }
                         }),
                     Select::make('asset_group_id')
-                        ->label('Asset Group (Default)')
+                        ->label(__('Asset Group (Default)'))
                         ->relationship('assetGroup', 'name')
                         ->searchable()
                         ->preload()
-                        ->placeholder('Select asset group')
-                        ->helperText('Override the asset group if this item follows a different depreciation schedule.')
+                        ->placeholder(__('Select asset group'))
+                        ->helperText(__('Override the asset group if this item follows a different depreciation schedule.'))
                         ->live()
                         ->afterStateUpdated(function ($state, Set $set) {
                             if (! $state) {
@@ -86,61 +86,61 @@ class ItemForm
                             }
                         }),
                     Select::make('unit_of_measure_id')
-                        ->label('Unit of Measure')
+                        ->label(__('Unit of Measure'))
                         ->relationship('unitOfMeasure', 'name')
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->placeholder('Select unit')
-                        ->helperText('The standard unit used for quantity (e.g., Pcs, Unit).')
+                        ->placeholder(__('Select unit'))
+                        ->helperText(__('The standard unit used for quantity (e.g., Pcs, Unit).'))
                         ->createOptionForm(UnitOfMeasureForm::schema())
                         ->createOptionAction(fn (Action $action) => $action->slideOver()),
                     Textarea::make('description')
-                        ->label('Description')
-                        ->placeholder('Detailed specifications or notes about the item...')
+                        ->label(__('Description'))
+                        ->placeholder(__('Detailed specifications or notes about the item...'))
                         ->maxLength(65535)
                         ->columnSpanFull(),
                     TextInput::make('price')
-                        ->label('Standard Price')
+                        ->label(__('Standard Price'))
                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                         ->prefix('IDR')
-                        ->placeholder('0')
-                        ->helperText('The default purchase or market price for this item.'),
+                        ->placeholder(__('0'))
+                        ->helperText(__('The default purchase or market price for this item.')),
                     TextInput::make('depreciation_months')
-                        ->label('Depreciation (Months)')
+                        ->label(__('Depreciation (Months)'))
                         ->numeric()
-                        ->placeholder('e.g. 48')
-                        ->helperText('The standard useful life period in months as per accounting standards.'),
+                        ->placeholder(__('e.g. 48'))
+                        ->helperText(__('The standard useful life period in months as per accounting standards.')),
                     DatePicker::make('price_valid_at')
-                        ->label('Price Effective Date')
-                        ->placeholder('Select date')
+                        ->label(__('Price Effective Date'))
+                        ->placeholder(__('Select date'))
                         ->default(now())
-                        ->helperText('The date from which the standard price is applicable.')
+                        ->helperText(__('The date from which the standard price is applicable.'))
                         ->required(),
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->required()
                         ->default(true)
-                        ->helperText('Turn off to hide this item from selection lists.'),
+                        ->helperText(__('Turn off to hide this item from selection lists.')),
                     SpatieMediaLibraryFileUpload::make('image')
                         ->collection('image')
-                        ->label('Item Photo')
-                        ->placeholder('Upload item image')
+                        ->label(__('Item Photo'))
+                        ->placeholder(__('Upload item image'))
                         ->image()
                         ->visibility('private')
                         ->columnSpanFull()
-                        ->helperText('A visual representation of the item (JPG/PNG).'),
+                        ->helperText(__('A visual representation of the item (JPG/PNG).')),
                 ])
                 ->columns(2)
                 ->columnSpanFull(),
-            Section::make('Regional Pricing Overrides')
-                ->description('Specify different prices for specific project areas or locations.')
+            Section::make(__('Regional Pricing Overrides'))
+                ->description(__('Specify different prices for specific project areas or locations.'))
                 ->schema([
                     Repeater::make('itemPrices')
-                        ->label('')
+                        ->label(__(''))
                         ->schema([
                             Select::make('project_area_id')
-                                ->label('Project Area')
+                                ->label(__('Project Area'))
                                 ->relationship('projectArea', 'name')
                                 ->createOptionForm(ProjectAreaForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())

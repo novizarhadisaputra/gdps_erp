@@ -40,4 +40,24 @@ class TaxPasal17RateResource extends Resource
             'index' => ListTaxPasal17Rates::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Tax Pasal17 Rate');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Tax Pasal17 Rates');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Tax Pasal17 Rates');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Taxation');
+    }
 }

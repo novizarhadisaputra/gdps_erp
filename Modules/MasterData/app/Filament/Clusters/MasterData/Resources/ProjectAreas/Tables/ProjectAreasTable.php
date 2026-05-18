@@ -24,39 +24,39 @@ class ProjectAreasTable
         return $table
             ->columns([
                 TextColumn::make('code')
-                    ->label('Code')
+                    ->label(__('Code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('api_code')
-                    ->label('Code (Official)')
+                    ->label(__('Code (Official)'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('province.name')
-                    ->label('Province')
+                    ->label(__('Province'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('province.code')
-                    ->label('Province Code')
+                    ->label(__('Province Code'))
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('regency.name')
-                    ->label('Regency / City')
+                    ->label(__('Regency / City'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('regency.code')
-                    ->label('Regency Code')
+                    ->label(__('Regency Code'))
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
-                    ->label('Area Name')
+                    ->label(__('Area Name'))
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active Status'),
+                    ->label(__('Active Status')),
                 IconColumn::make('is_default')
                     ->boolean()
-                    ->label('Default'),
+                    ->label(__('Default')),
                 TextColumn::make('created_at')
-                    ->label('Created At')
+                    ->label(__('Created At'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -70,7 +70,7 @@ class ProjectAreasTable
                     EditAction::make(),
                     DeleteAction::make(),
                     Action::make('syncSubRegions')
-                        ->label('Sync Regencies')
+                        ->label(__('Sync Regencies'))
                         ->icon('heroicon-o-arrow-path')
                         ->color('info')
                         ->visible(fn (ProjectArea $record) => $record->province_id && ! $record->regency_id)

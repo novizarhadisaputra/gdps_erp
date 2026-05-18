@@ -43,4 +43,24 @@ class BpjsJkmConfigResource extends Resource
             'edit' => Pages\EditBpjsJkmConfig::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Bpjs Jkm Config');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Bpjs Jkm Configs');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Bpjs Jkm Configs');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('BPJS & Insurance');
+    }
 }

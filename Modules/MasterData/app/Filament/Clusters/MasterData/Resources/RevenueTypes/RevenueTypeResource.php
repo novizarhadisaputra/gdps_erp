@@ -51,4 +51,24 @@ class RevenueTypeResource extends Resource
             'edit' => EditRevenueType::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Revenue Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Revenue Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Revenue Types');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Project Setup');
+    }
 }

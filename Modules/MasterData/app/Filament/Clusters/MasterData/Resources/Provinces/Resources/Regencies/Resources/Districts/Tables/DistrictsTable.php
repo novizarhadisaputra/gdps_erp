@@ -31,7 +31,7 @@ class DistrictsTable
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('villages_count')
-                    ->label('Villages')
+                    ->label(__('Villages'))
                     ->counts('villages')
                     ->sortable()
                     ->toggleable(),

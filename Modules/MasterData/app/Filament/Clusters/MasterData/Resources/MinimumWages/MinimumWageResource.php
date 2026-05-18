@@ -59,4 +59,24 @@ class MinimumWageResource extends Resource
             'edit' => EditMinimumWage::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Minimum Wage');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Minimum Wages');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Minimum Wages');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Payroll & Benefits');
+    }
 }

@@ -40,4 +40,24 @@ class UnitOfMeasureResource extends Resource
             'index' => ListUnitsOfMeasure::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Unit Of Measure');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Unit Of Measures');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Unit Of Measures');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Products & Inventory');
+    }
 }

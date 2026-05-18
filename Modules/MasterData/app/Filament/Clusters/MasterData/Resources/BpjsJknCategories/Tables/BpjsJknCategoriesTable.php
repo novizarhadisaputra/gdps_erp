@@ -20,23 +20,23 @@ class BpjsJknCategoriesTable
         return $table
             ->columns([
                 TextColumn::make('code')
-                    ->label('Code')
+                    ->label(__('Code'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('name')
-                    ->label('Category Name')
+                    ->label(__('Category Name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('description')
-                    ->label('Description')
+                    ->label(__('Description'))
                     ->limit(60)
                     ->searchable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label(__('Active')),
                 IconColumn::make('is_default')
                     ->boolean()
-                    ->label('Default'),
+                    ->label(__('Default')),
             ])
             ->filters([
                 //

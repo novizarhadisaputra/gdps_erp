@@ -53,4 +53,24 @@ class TaxPtkpConfigResource extends Resource
             'edit' => EditTaxPtkpConfig::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Tax Ptkp Config');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Tax Ptkp Configs');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Tax Ptkp Configs');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Taxation');
+    }
 }

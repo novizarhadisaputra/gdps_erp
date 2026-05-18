@@ -53,4 +53,24 @@ class ThrBasisTypeResource extends Resource
             'edit' => EditThrBasisType::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Thr Basis Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Thr Basis Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Thr Basis Types');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Payroll & Benefits');
+    }
 }

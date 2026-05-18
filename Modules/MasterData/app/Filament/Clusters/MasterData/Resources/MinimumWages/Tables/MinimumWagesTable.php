@@ -34,21 +34,21 @@ class MinimumWagesTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('projectArea.name')
-                    ->label('Project Area')
+                    ->label(__('Project Area'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('year')
                     ->sortable(),
                 TextColumn::make('amount')
-                    ->label('Monthly Wage (UMK)')
+                    ->label(__('Monthly Wage (UMK)'))
                     ->money('IDR', locale: 'id')
                     ->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active Status')
+                    ->label(__('Active Status'))
                     ->boolean()
                     ->sortable(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->icon(fn ($state) => $state ? 'heroicon-o-star' : null)
                     ->color('warning'),

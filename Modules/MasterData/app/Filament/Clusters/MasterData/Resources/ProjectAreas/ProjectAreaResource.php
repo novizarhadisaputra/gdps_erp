@@ -53,4 +53,24 @@ class ProjectAreaResource extends Resource
             'edit' => EditProjectArea::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Project Area');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Project Areas');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Project Areas');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Projects');
+    }
 }

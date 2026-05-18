@@ -64,4 +64,24 @@ class EmployeeResource extends Resource
             'edit' => EditEmployee::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Employee');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Employees');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Employees');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('HR & Organization');
+    }
 }

@@ -27,7 +27,7 @@ class ProvincesTable
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('regencies_count')
-                    ->label('Regencies')
+                    ->label(__('Regencies'))
                     ->counts('regencies')
                     ->sortable()
                     ->toggleable(),

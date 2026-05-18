@@ -12,8 +12,8 @@ class VillageForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Village Details')
-                ->description('Link this village or ward to its parent district and specify official identification details.')
+            Section::make(__('Village Details'))
+                ->description(__('Link this village or ward to its parent district and specify official identification details.'))
                 ->icon('heroicon-o-home')
                 ->columns(2)
                 ->schema([
@@ -22,21 +22,21 @@ class VillageForm
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->placeholder('Select district...')
-                        ->helperText('The parent district for this village.')
+                        ->placeholder(__('Select district...'))
+                        ->helperText(__('The parent district for this village.'))
                         ->disabled(fn (?string $operation) => $operation === 'edit' || request()->routeIs('*.districts.*')),
                     TextInput::make('code')
                         ->required()
                         ->unique(ignoreRecord: true)
                         ->maxLength(10)
-                        ->placeholder('e.g. 3273010001')
-                        ->helperText('Official regional code for this village.'),
+                        ->placeholder(__('e.g. 3273010001'))
+                        ->helperText(__('Official regional code for this village.')),
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
                         ->columnSpanFull()
-                        ->placeholder('e.g. Lebak Siliwangi')
-                        ->helperText('Official name of the village/ward.'),
+                        ->placeholder(__('e.g. Lebak Siliwangi'))
+                        ->helperText(__('Official name of the village/ward.')),
                 ]),
         ]);
     }

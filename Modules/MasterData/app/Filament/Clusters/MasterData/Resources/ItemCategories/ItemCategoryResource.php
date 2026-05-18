@@ -40,4 +40,24 @@ class ItemCategoryResource extends Resource
             'index' => ListItemCategories::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Item Category');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Item Categories');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Item Categories');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Products & Inventory');
+    }
 }

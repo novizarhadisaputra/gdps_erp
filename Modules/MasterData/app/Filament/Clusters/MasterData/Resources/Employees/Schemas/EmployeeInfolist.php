@@ -15,47 +15,47 @@ class EmployeeInfolist
     {
         return $schema
             ->components([
-                Section::make('Personal & Job Details')
+                Section::make(__('Personal & Job Details'))
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('code')
-                                    ->label('Employee ID')
+                                    ->label(__('Employee ID'))
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('name')
-                                    ->label('Full Name'),
+                                    ->label(__('Full Name')),
                                 TextEntry::make('email')
-                                    ->label('Email'),
+                                    ->label(__('Email')),
                             ]),
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('position')
-                                    ->label('Position'),
+                                    ->label(__('Position')),
                                 TextEntry::make('department')
-                                    ->label('Department'),
+                                    ->label(__('Department')),
                                 TextEntry::make('status')
                                     ->badge()
                                     ->color(fn ($state): string => $state === 'active' ? 'success' : 'gray'),
                             ]),
                     ])->columnSpanFull(),
-                Section::make('Documents')
+                Section::make(__('Documents'))
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('identity_card_doc')
-                                    ->label('Identity Card')
+                                    ->label(__('Identity Card'))
                                     ->state(fn ($record) => $record->getFirstMedia('identity_card')?->file_name ?? 'No ID Card')
                                     ->url(fn ($record) => $record->getFirstMediaUrl('identity_card'), true)
                                     ->icon(Heroicon::OutlinedIdentification)
                                     ->color(fn ($state) => $state === 'No ID Card' ? 'gray' : 'primary'),
                                 TextEntry::make('resume_doc')
-                                    ->label('Resume/CV')
+                                    ->label(__('Resume/CV'))
                                     ->state(fn ($record) => $record->getFirstMedia('resume')?->file_name ?? 'No Resume')
                                     ->url(fn ($record) => $record->getFirstMediaUrl('resume'), true)
                                     ->icon(Heroicon::OutlinedDocumentText)
                                     ->color(fn ($state) => $state === 'No Resume' ? 'gray' : 'primary'),
                                 TextEntry::make('employment_contract_doc')
-                                    ->label('Employment Contract')
+                                    ->label(__('Employment Contract'))
                                     ->state(fn ($record) => $record->getFirstMedia('employment_contract')?->file_name ?? 'No Contract')
                                     ->url(fn ($record) => $record->getFirstMediaUrl('employment_contract'), true)
                                     ->icon(Heroicon::OutlinedBriefcase)

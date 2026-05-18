@@ -47,4 +47,24 @@ class ProjectTypeResource extends Resource
             'index' => ListProjectTypes::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Project Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Project Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Project Types');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Sales Master');
+    }
 }

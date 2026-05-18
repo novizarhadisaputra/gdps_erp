@@ -14,90 +14,90 @@ class BpjsJkmConfigForm
     public static function schema(): array
     {
         return [
-            Section::make('General Information')
-                ->description('Life Insurance (JKM) configuration. Manages contribution percentages and limits.')
+            Section::make(__('General Information'))
+                ->description(__('Life Insurance (JKM) configuration. Manages contribution percentages and limits.'))
                 ->schema([
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
-                        ->helperText('Clear configuration name, e.g., JKM PPU Standard'),
+                        ->helperText(__('Clear configuration name, e.g., JKM PPU Standard')),
                     Select::make('employee_type')
-                        ->label('Membership Type')
+                        ->label(__('Membership Type'))
                         ->options([
-                            'ppu' => 'Wage Earner (PPU)',
-                            'pbpu' => 'Non-Wage Earner (BPU/Independent)',
-                            'pbi' => 'Contribution Assistance Recipient (PBI)',
+                            'ppu' => __('Wage Earner (PPU)'),
+                            'pbpu' => __('Non-Wage Earner (BPU/Independent)'),
+                            'pbi' => __('Contribution Assistance Recipient (PBI)'),
                         ])
                         ->required()
                         ->live()
-                        ->helperText('Select the membership category that determines how contributions are calculated.'),
+                        ->helperText(__('Select the membership category that determines how contributions are calculated.')),
                 ])->columns(2),
 
-            Section::make('Rate & Tier Configuration')
-                ->description('Determine the deduction percentage for PPU and nominal range for PBPU/Independent.')
+            Section::make(__('Rate & Tier Configuration'))
+                ->description(__('Determine the deduction percentage for PPU and nominal range for PBPU/Independent.'))
                 ->schema([
                     TextInput::make('employer_rate')
-                        ->label('Employer Rate (%)')
+                        ->label(__('Employer Rate (%)'))
                         ->numeric()
                         ->default(0)
                         ->suffix('%')
                         ->visible(fn (Get $get) => $get('employee_type') === 'ppu')
-                        ->helperText('Usually 0.30% for PPU'),
+                        ->helperText(__('Usually 0.30% for PPU')),
                     TextInput::make('employee_rate')
-                        ->label('Employee Rate (%)')
+                        ->label(__('Employee Rate (%)'))
                         ->numeric()
                         ->default(0)
                         ->suffix('%')
                         ->visible(fn (Get $get) => $get('employee_type') === 'ppu'),
                     Toggle::make('has_tier')
-                        ->label('Use Nominal Tier Table')
+                        ->label(__('Use Nominal Tier Table'))
                         ->live()
-                        ->helperText('Enable this if contributions follow a specific income tier table (e.g. BPU or Jakon).'),
+                        ->helperText(__('Enable this if contributions follow a specific income tier table (e.g. BPU or Jakon).')),
                     Select::make('tier_category')
-                        ->label('Tier Category')
+                        ->label(__('Tier Category'))
                         ->options([
-                            'jkm_jakon' => 'JKM Jakon (Construction)',
+                            'jkm_jakon' => __('JKM Jakon (Construction)'),
                         ])
                         ->visible(fn (Get $get) => $get('has_tier'))
                         ->required(fn (Get $get) => $get('has_tier'))
                         ->live()
-                        ->helperText('Select the lookup category for this nominal tier table.'),
+                        ->helperText(__('Select the lookup category for this nominal tier table.')),
                 ])->columns(2),
 
-            Section::make('Income/Contract Tier Table')
-                ->description('Manage the list of income/contract ranges and contributions.')
+            Section::make(__('Income/Contract Tier Table'))
+                ->description(__('Manage the list of income/contract ranges and contributions.'))
                 ->visible(fn (Get $get) => $get('has_tier'))
                 ->schema([
                     Repeater::make('tiers')
                         ->relationship()
                         ->schema([
                             TextInput::make('min_value')
-                                ->label('Min Value')
+                                ->label(__('Min Value'))
                                 ->numeric()
                                 ->required()
                                 ->prefix('Rp'),
                             TextInput::make('max_value')
-                                ->label('Max Value')
+                                ->label(__('Max Value'))
                                 ->numeric()
                                 ->prefix('Rp')
-                                ->helperText('Leave empty for infinite limit.'),
+                                ->helperText(__('Leave empty for infinite limit.')),
                             TextInput::make('employer_nominal')
-                                ->label('Employer Nominal')
+                                ->label(__('Employer Nominal'))
                                 ->numeric()
                                 ->default(0)
                                 ->prefix('Rp'),
                             TextInput::make('employee_nominal')
-                                ->label('Employee Nominal')
+                                ->label(__('Employee Nominal'))
                                 ->numeric()
                                 ->default(0)
                                 ->prefix('Rp'),
                             TextInput::make('employer_rate')
-                                ->label('Employer Rate (%)')
+                                ->label(__('Employer Rate (%)'))
                                 ->numeric()
                                 ->default(0)
                                 ->suffix('%'),
                             TextInput::make('employee_rate')
-                                ->label('Employee Rate (%)')
+                                ->label(__('Employee Rate (%)'))
                                 ->numeric()
                                 ->default(0)
                                 ->suffix('%'),
@@ -106,17 +106,17 @@ class BpjsJkmConfigForm
                         ->addActionLabel('Add Income Tier'),
                 ]),
 
-            Section::make('Configuration Status')
-                ->description('Enable or disable this configuration in the system.')
+            Section::make(__('Configuration Status'))
+                ->description(__('Enable or disable this configuration in the system.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Determines if this configuration is currently available for use.'),
+                        ->helperText(__('Determines if this configuration is currently available for use.')),
                     Toggle::make('is_default')
-                        ->label('Set as Default')
+                        ->label(__('Set as Default'))
                         ->default(false)
-                        ->helperText('If enabled, this will be the default configuration for its category. Only one can be default.'),
+                        ->helperText(__('If enabled, this will be the default configuration for its category. Only one can be default.')),
                 ]),
         ];
     }

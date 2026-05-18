@@ -23,8 +23,8 @@ class TaxSchemesTable
                 TextColumn::make('scheme_code')->searchable()->sortable(),
                 TextColumn::make('rate_percentage')->searchable()->sortable(),
                 TextColumn::make('notes')->limit(50),
-                IconColumn::make('is_active')->boolean()->label('Active'),
-                IconColumn::make('is_default')->boolean()->label('Default'),
+                IconColumn::make('is_active')->boolean()->label(__('Active')),
+                IconColumn::make('is_default')->boolean()->label(__('Default')),
             ])
             ->filters([
                 //

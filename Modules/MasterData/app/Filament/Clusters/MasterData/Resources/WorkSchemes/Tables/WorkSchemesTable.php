@@ -29,10 +29,10 @@ class WorkSchemesTable
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label(__('Active')),
                 IconColumn::make('is_default')
                     ->boolean()
-                    ->label('Default'),
+                    ->label(__('Default')),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

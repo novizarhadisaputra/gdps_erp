@@ -40,4 +40,24 @@ class ApiClientResource extends Resource
             'index' => ListApiClients::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Api Client');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Api Clients');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Api Clients');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('System & Configuration');
+    }
 }

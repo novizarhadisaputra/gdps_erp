@@ -59,4 +59,24 @@ class BpjsJknCategoryResource extends Resource
             'edit' => EditBpjsJknCategory::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Bpjs Jkn Category');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Bpjs Jkn Categories');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Bpjs Jkn Categories');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Payroll & Benefits');
+    }
 }

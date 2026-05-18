@@ -53,4 +53,24 @@ class WorkSchemeResource extends Resource
             'edit' => EditWorkScheme::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Work Scheme');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Work Schemes');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Work Schemes');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('HR & Organization');
+    }
 }

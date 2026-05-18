@@ -30,7 +30,7 @@ class TaxesTable
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label(__('Active')),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

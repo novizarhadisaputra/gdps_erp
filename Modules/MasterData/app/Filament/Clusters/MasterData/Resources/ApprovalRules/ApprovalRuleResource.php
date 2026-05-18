@@ -47,4 +47,24 @@ class ApprovalRuleResource extends Resource
             'index' => ListApprovalRules::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Approval Rule');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Approval Rules');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Approval Rules');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('System & Configuration');
+    }
 }

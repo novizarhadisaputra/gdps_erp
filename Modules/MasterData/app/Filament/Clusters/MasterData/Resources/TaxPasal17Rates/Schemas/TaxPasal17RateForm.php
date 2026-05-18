@@ -15,26 +15,26 @@ class TaxPasal17RateForm
             Grid::make(2)
                 ->schema([
                     TextInput::make('min_amount')
-                        ->label('Min Taxable Income')
+                        ->label(__('Min Taxable Income'))
                         ->numeric()
                         ->prefix('IDR')
                         ->required(),
                     TextInput::make('max_amount')
-                        ->label('Max Taxable Income')
+                        ->label(__('Max Taxable Income'))
                         ->numeric()
                         ->prefix('IDR')
-                        ->placeholder('Leave empty for no upper limit'),
+                        ->placeholder(__('Leave empty for no upper limit')),
                 ]),
             Grid::make(2)
                 ->schema([
                     TextInput::make('rate')
-                        ->label('Tax Rate (%)')
+                        ->label(__('Tax Rate (%)'))
                         ->numeric()
                         ->step(0.01)
                         ->required()
                         ->prefix('%'),
                     Toggle::make('is_active')
-                        ->label('Active')
+                        ->label(__('Active'))
                         ->default(true),
                 ]),
         ]);

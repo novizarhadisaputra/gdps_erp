@@ -13,79 +13,79 @@ class BpjsHealthConfigForm
     public static function schema(): array
     {
         return [
-            Section::make('General Information')
-                ->description('Health Insurance (BPJS Kesehatan) configuration. Manages contribution calculation for PPU, PBPU/Independent, and PBI.')
+            Section::make(__('General Information'))
+                ->description(__('Health Insurance (BPJS Kesehatan) configuration. Manages contribution calculation for PPU, PBPU/Independent, and PBI.'))
                 ->schema([
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
-                        ->helperText('Clear configuration name, e.g., BPJS Kes PPU Standard'),
+                        ->helperText(__('Clear configuration name, e.g., BPJS Kes PPU Standard')),
                     Select::make('employee_type')
-                        ->label('Membership Type')
+                        ->label(__('Membership Type'))
                         ->options([
-                            'ppu' => 'Wage Earner (PPU)',
-                            'pbpu' => 'Non-Wage Earner (BPU/Independent)',
-                            'pbi' => 'Contribution Assistance Recipient (PBI)',
+                            'ppu' => __('Wage Earner (PPU)'),
+                            'pbpu' => __('Non-Wage Earner (BPU/Independent)'),
+                            'pbi' => __('Contribution Assistance Recipient (PBI)'),
                         ])
                         ->required()
                         ->live()
-                        ->helperText('Select the membership category that determines how contributions are calculated.'),
+                        ->helperText(__('Select the membership category that determines how contributions are calculated.')),
                 ])->columns(2),
 
-            Section::make('Rate & Tier Configuration')
-                ->description('Determine the deduction percentage for PPU and nominal range for PBPU/Independent.')
+            Section::make(__('Rate & Tier Configuration'))
+                ->description(__('Determine the deduction percentage for PPU and nominal range for PBPU/Independent.'))
                 ->schema([
                     TextInput::make('employer_rate')
-                        ->label('Employer Rate (%)')
+                        ->label(__('Employer Rate (%)'))
                         ->numeric()
                         ->default(0)
                         ->suffix('%')
                         ->visible(fn (Get $get) => $get('employee_type') === 'ppu')
-                        ->helperText('Usually 4.0% for PPU'),
+                        ->helperText(__('Usually 4.0% for PPU')),
                     TextInput::make('employee_rate')
-                        ->label('Employee Rate (%)')
+                        ->label(__('Employee Rate (%)'))
                         ->numeric()
                         ->default(0)
                         ->suffix('%')
                         ->visible(fn (Get $get) => $get('employee_type') === 'ppu')
-                        ->helperText('Usually 1.0% for PPU'),
+                        ->helperText(__('Usually 1.0% for PPU')),
                     Select::make('floor_type')
-                        ->label('Calculation Basis (Lower Limit)')
+                        ->label(__('Calculation Basis (Lower Limit)'))
                         ->options([
-                            'none' => 'No Lower Limit',
-                            'umk' => 'Regional Minimum Wage (UMK/UMR)',
+                            'none' => __('No Lower Limit'),
+                            'umk' => __('Regional Minimum Wage (UMK/UMR)'),
                         ])
                         ->default('none')
                         ->visible(fn (Get $get) => $get('employee_type') === 'ppu')
-                        ->helperText('If UMK is selected, UMP value is used when wage < UMP.'),
+                        ->helperText(__('If UMK is selected, UMP value is used when wage < UMP.')),
                     TextInput::make('cap_nominal')
-                        ->label('Maximum Wage Limit (Cap)')
+                        ->label(__('Maximum Wage Limit (Cap)'))
                         ->numeric()
                         ->prefix('Rp')
                         ->visible(fn (Get $get) => $get('employee_type') === 'ppu')
-                        ->helperText('Example: Rp 12,000,000. Leave empty if no limit.'),
+                        ->helperText(__('Example: Rp 12,000,000. Leave empty if no limit.')),
                     TextInput::make('employer_nominal')
-                        ->label('Fixed Employer Nominal')
+                        ->label(__('Fixed Employer Nominal'))
                         ->numeric()
                         ->default(0)
                         ->prefix('Rp')
                         ->visible(fn (Get $get) => in_array($get('employee_type'), ['pbpu', 'pbi']))
-                        ->helperText('Used for specific classes that are fully covered.'),
+                        ->helperText(__('Used for specific classes that are fully covered.')),
                     TextInput::make('employee_nominal')
-                        ->label('Fixed Employee Nominal')
+                        ->label(__('Fixed Employee Nominal'))
                         ->numeric()
                         ->default(0)
                         ->prefix('Rp')
                         ->visible(fn (Get $get) => in_array($get('employee_type'), ['pbpu', 'pbi']))
-                        ->helperText('Used for Independent Class 1, 2, or 3. E.g., Class 1: 150,000'),
+                        ->helperText(__('Used for Independent Class 1, 2, or 3. E.g., Class 1: 150,000')),
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Determines if this configuration is currently available for use.'),
+                        ->helperText(__('Determines if this configuration is currently available for use.')),
                     Toggle::make('is_default')
-                        ->label('Set as Default')
+                        ->label(__('Set as Default'))
                         ->default(false)
-                        ->helperText('If enabled, this will be the default configuration for its category. Only one can be default.'),
+                        ->helperText(__('If enabled, this will be the default configuration for its category. Only one can be default.')),
                 ])->columns(2),
         ];
     }

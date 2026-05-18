@@ -40,4 +40,24 @@ class TrainingResource extends Resource
             'index' => ListTrainings::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Training');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Trainings');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Trainings');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Human Resources');
+    }
 }

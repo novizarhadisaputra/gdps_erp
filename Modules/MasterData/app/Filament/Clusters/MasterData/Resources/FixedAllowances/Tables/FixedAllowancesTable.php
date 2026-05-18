@@ -20,10 +20,10 @@ class FixedAllowancesTable
         return $table
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
-                IconColumn::make('is_bpjs_base')->boolean()->label('BPJS Base')->sortable(),
-                IconColumn::make('is_taxable')->boolean()->label('Taxable')->sortable(),
+                IconColumn::make('is_bpjs_base')->boolean()->label(__('BPJS Base'))->sortable(),
+                IconColumn::make('is_taxable')->boolean()->label(__('Taxable'))->sortable(),
                 TextColumn::make('default_amount')->money('IDR')->sortable(),
-                IconColumn::make('is_active')->boolean()->label('Active'),
+                IconColumn::make('is_active')->boolean()->label(__('Active')),
             ])
             ->filters([
                 //

@@ -14,44 +14,44 @@ class UnitForm
     {
         return $schema
             ->components([
-                Section::make('General Details')
-                    ->description('Fill in the necessary configuration properties below.')
+                Section::make(__('General Details'))
+                    ->description(__('Fill in the necessary configuration properties below.'))
                     ->schema([
                         Select::make('external_id')
                             ->relationship('external', 'name')
                             ->searchable()
                             ->preload()
-                            ->label('External')
-                            ->placeholder('Select specific External')
-                            ->helperText('Choose the relevant External for this record.')
+                            ->label(__('External'))
+                            ->placeholder(__('Select specific External'))
+                            ->helperText(__('Choose the relevant External for this record.'))
                             ->required(),
                         TextInput::make('code')
-                            ->label('Code Identifier')
-                            ->placeholder('e.g., KODE-01 (Auto-generated if empty)')
-                            ->helperText('Unique 3-10 character code. Leave empty to auto-generate from Name.'),
+                            ->label(__('Code Identifier'))
+                            ->placeholder(__('e.g., KODE-01 (Auto-generated if empty)'))
+                            ->helperText(__('Unique 3-10 character code. Leave empty to auto-generate from Name.')),
                         TextInput::make('name')
-                            ->label('Name')
-                            ->placeholder('Enter Name...')
-                            ->helperText('Brief and clear Name for this record.')
+                            ->label(__('Name'))
+                            ->placeholder(__('Enter Name...'))
+                            ->helperText(__('Brief and clear Name for this record.'))
                             ->required(),
                         TextInput::make('superior_unit')
-                            ->label('Superior Unit')
-                            ->placeholder('Enter Superior Unit...')
-                            ->helperText('Brief and clear Superior Unit for this record.')
+                            ->label(__('Superior Unit'))
+                            ->placeholder(__('Enter Superior Unit...'))
+                            ->helperText(__('Brief and clear Superior Unit for this record.'))
                             ->required(),
                     ])->columns(2),
 
-                Section::make('Status')
-                    ->description('Manage active status and default settings.')
+                Section::make(__('Status'))
+                    ->description(__('Manage active status and default settings.'))
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
-                            ->helperText('Determines if this unit is currently active.'),
+                            ->helperText(__('Determines if this unit is currently active.')),
                         Toggle::make('is_default')
-                            ->label('Set as Default')
+                            ->label(__('Set as Default'))
                             ->default(false)
-                            ->helperText('If enabled, this will be the default unit for its category.'),
+                            ->helperText(__('If enabled, this will be the default unit for its category.')),
                     ]),
             ]);
     }

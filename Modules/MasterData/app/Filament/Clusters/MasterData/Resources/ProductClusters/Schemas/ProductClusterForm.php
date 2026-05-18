@@ -20,47 +20,47 @@ class ProductClusterForm
     public static function schema(): array
     {
         return [
-            Section::make('Product Cluster Identification')
-                ->description('Define clusters to group products and services for organizational clarity.')
+            Section::make(__('Product Cluster Identification'))
+                ->description(__('Define clusters to group products and services for organizational clarity.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Cluster Name')
-                        ->placeholder('e.g. Software Development, Security Services')
-                        ->helperText('The descriptive name of the product cluster.')
+                        ->label(__('Cluster Name'))
+                        ->placeholder(__('e.g. Software Development, Security Services'))
+                        ->helperText(__('The descriptive name of the product cluster.'))
                         ->required()
                         ->maxLength(255),
                     TextInput::make('code')
-                        ->label('Cluster Code')
-                        ->placeholder('Auto-generated')
+                        ->label(__('Cluster Code'))
+                        ->placeholder(__('Auto-generated'))
                         ->readOnly()
                         ->unique(ProductCluster::class, 'code', ignoreRecord: true)
-                        ->helperText('A unique identification code for this cluster.'),
+                        ->helperText(__('A unique identification code for this cluster.')),
                 ])->columns(2),
 
-            Section::make('Visual Branding')
-                ->description('Upload a logo or icon to visually represent this product cluster.')
+            Section::make(__('Visual Branding'))
+                ->description(__('Upload a logo or icon to visually represent this product cluster.'))
                 ->schema([
                     SpatieMediaLibraryFileUpload::make('logo')
                         ->collection('logo')
-                        ->label('Cluster Logo')
+                        ->label(__('Cluster Logo'))
                         ->image()
                         ->imageEditor()
                         ->multiple(false)
                         ->columnSpanFull()
-                        ->helperText('Recommended size: 512x512px. Supported formats: PNG, JPG, SVG.'),
+                        ->helperText(__('Recommended size: 512x512px. Supported formats: PNG, JPG, SVG.')),
                 ]),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this product cluster.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this product cluster.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Enable or disable this cluster for new product entries.'),
+                        ->helperText(__('Enable or disable this cluster for new product entries.')),
                     Toggle::make('is_default')
-                        ->label('Default Cluster')
+                        ->label(__('Default Cluster'))
                         ->default(false)
-                        ->helperText('Set as the default cluster for new item registrations.'),
+                        ->helperText(__('Set as the default cluster for new item registrations.')),
                 ])->columns(2),
         ];
     }

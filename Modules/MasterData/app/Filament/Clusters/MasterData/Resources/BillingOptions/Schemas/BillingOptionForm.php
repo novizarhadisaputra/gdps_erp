@@ -19,34 +19,34 @@ class BillingOptionForm
     public static function schema(): array
     {
         return [
-            Section::make('Billing Configuration')
-                ->description('Configure the available billing frequency or method options.')
+            Section::make(__('Billing Configuration'))
+                ->description(__('Configure the available billing frequency or method options.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Billing Option Name')
-                        ->placeholder('e.g. Monthly, Quarterly, One-time')
+                        ->label(__('Billing Option Name'))
+                        ->placeholder(__('e.g. Monthly, Quarterly, One-time'))
                         ->required()
                         ->maxLength(255)
-                        ->helperText('The descriptive name of the billing option.'),
+                        ->helperText(__('The descriptive name of the billing option.')),
                     TextInput::make('code')
-                        ->label('Billing Code')
-                        ->placeholder('Auto-generated')
+                        ->label(__('Billing Code'))
+                        ->placeholder(__('Auto-generated'))
                         ->readOnly()
                         ->unique(BillingOption::class, 'code', ignoreRecord: true)
-                        ->helperText('Unique identifier for this billing frequency.'),
+                        ->helperText(__('Unique identifier for this billing frequency.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this billing option.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this billing option.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Inactive options will not be visible during contract creation.'),
+                        ->helperText(__('Inactive options will not be visible during contract creation.')),
                     Toggle::make('is_default')
-                        ->label('Default Option')
+                        ->label(__('Default Option'))
                         ->default(false)
-                        ->helperText('Set as the default billing selection for new projects.'),
+                        ->helperText(__('Set as the default billing selection for new projects.')),
                 ])->columns(2),
         ];
     }

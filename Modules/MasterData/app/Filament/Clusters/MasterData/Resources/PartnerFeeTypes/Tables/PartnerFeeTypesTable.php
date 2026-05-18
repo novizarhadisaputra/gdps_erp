@@ -27,14 +27,14 @@ class PartnerFeeTypesTable
                     ->sortable(),
                 IconColumn::make('is_taxable')
                     ->boolean()
-                    ->label('Taxable')
+                    ->label(__('Taxable'))
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label(__('Active')),
                 IconColumn::make('is_default')
                     ->boolean()
-                    ->label('Default'),
+                    ->label(__('Default')),
             ])
             ->filters([
                 //

@@ -53,4 +53,24 @@ class IndustrialSectorResource extends Resource
             'edit' => EditIndustrialSector::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Industrial Sector');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Industrial Sectors');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Industrial Sectors');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Sales Master');
+    }
 }

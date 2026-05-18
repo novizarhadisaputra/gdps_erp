@@ -20,8 +20,8 @@ class BufferCostTypesTable
         return $table
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
-                IconColumn::make('is_active')->boolean()->label('Active'),
-                IconColumn::make('is_default')->boolean()->label('Default'),
+                IconColumn::make('is_active')->boolean()->label(__('Active')),
+                IconColumn::make('is_default')->boolean()->label(__('Default')),
             ])
             ->filters([
                 //

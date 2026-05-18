@@ -14,43 +14,43 @@ class BankAccountForm
         return $schema
             ->columns(2)
             ->components([
-                Section::make('General Details')
-                    ->description('Provide the banking information required for financial transactions.')
+                Section::make(__('General Details'))
+                    ->description(__('Provide the banking information required for financial transactions.'))
                     ->schema([
                         TextInput::make('bank_name')
-                            ->label('Bank Name')
-                            ->placeholder('e.g. Bank Mandiri')
-                            ->helperText('The full official name of the banking institution.')
+                            ->label(__('Bank Name'))
+                            ->placeholder(__('e.g. Bank Mandiri'))
+                            ->helperText(__('The full official name of the banking institution.'))
                             ->required(),
                         TextInput::make('account_number')
-                            ->label('Account Number')
-                            ->placeholder('e.g. 1234567890')
-                            ->helperText('The unique number assigned to the bank account.')
+                            ->label(__('Account Number'))
+                            ->placeholder(__('e.g. 1234567890'))
+                            ->helperText(__('The unique number assigned to the bank account.'))
                             ->required(),
                         TextInput::make('account_name')
-                            ->label('Account Name')
-                            ->placeholder('e.g. PT. Global Daya Profesional Solusi')
-                            ->helperText('The name of the entity or individual who owns the account.')
+                            ->label(__('Account Name'))
+                            ->placeholder(__('e.g. PT. Global Daya Profesional Solusi'))
+                            ->helperText(__('The name of the entity or individual who owns the account.'))
                             ->required(),
                         TextInput::make('swift_code')
-                            ->label('Swift Code / BIC')
-                            ->placeholder('e.g. BMRIIDJA')
-                            ->helperText('The international standard code for identifying banks globally.')
+                            ->label(__('Swift Code / BIC'))
+                            ->placeholder(__('e.g. BMRIIDJA'))
+                            ->helperText(__('The international standard code for identifying banks globally.'))
                             ->required(),
                         TextInput::make('currency')
-                            ->label('Currency Code')
-                            ->placeholder('e.g. IDR, USD')
-                            ->helperText('The ISO currency code used for this account (e.g., IDR).')
+                            ->label(__('Currency Code'))
+                            ->placeholder(__('e.g. IDR, USD'))
+                            ->helperText(__('The ISO currency code used for this account (e.g., IDR).'))
                             ->required(),
                         TextInput::make('account_code')
-                            ->label('General Ledger Code')
-                            ->placeholder('e.g. 110101')
-                            ->helperText('The COA/GL account code associated with this bank account for accounting purposes.')
+                            ->label(__('General Ledger Code'))
+                            ->placeholder(__('e.g. 110101'))
+                            ->helperText(__('The COA/GL account code associated with this bank account for accounting purposes.'))
                             ->required(),
                         Toggle::make('is_active')
                             ->default(true)
-                            ->label('Active Status')
-                            ->helperText('Enable this to allow this account to be selected in payments and invoices.'),
+                            ->label(__('Active Status'))
+                            ->helperText(__('Enable this to allow this account to be selected in payments and invoices.')),
                     ])->columns(2),
             ]);
     }

@@ -26,23 +26,23 @@ class AssetGroupsTable
                     ->badge()
                     ->sortable(),
                 TextColumn::make('useful_life_years')
-                    ->label('Life (Years)')
+                    ->label(__('Life (Years)'))
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('rate_straight_line')
-                    ->label('Rate GL')
+                    ->label(__('Rate GL'))
                     ->suffix('%')
                     ->numeric(),
                 TextColumn::make('rate_declining_balance')
-                    ->label('Rate SM')
+                    ->label(__('Rate SM'))
                     ->suffix('%')
                     ->numeric(),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('Active'))
                     ->boolean()
                     ->sortable(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->trueIcon(Heroicon::Star)
                     ->falseIcon(null)

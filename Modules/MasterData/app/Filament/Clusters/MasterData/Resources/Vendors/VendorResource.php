@@ -53,4 +53,24 @@ class VendorResource extends Resource
             'edit' => EditVendor::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Vendor');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Vendors');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Vendors');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Partners & Relations');
+    }
 }

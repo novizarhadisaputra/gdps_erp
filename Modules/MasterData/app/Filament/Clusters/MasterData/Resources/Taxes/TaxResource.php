@@ -53,4 +53,24 @@ class TaxResource extends Resource
             'edit' => EditTax::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Tax');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Taxes');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Taxes');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Finance & Accounting');
+    }
 }

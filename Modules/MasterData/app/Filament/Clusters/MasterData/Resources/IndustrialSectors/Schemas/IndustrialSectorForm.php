@@ -20,34 +20,34 @@ class IndustrialSectorForm
     public static function schema(): array
     {
         return [
-            Section::make('Sector Identification')
-                ->description('Classify the industrial background of clients or projects.')
+            Section::make(__('Sector Identification'))
+                ->description(__('Classify the industrial background of clients or projects.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Sector Name')
-                        ->placeholder('e.g. Oil & Gas, Aviation, Healthcare')
+                        ->label(__('Sector Name'))
+                        ->placeholder(__('e.g. Oil & Gas, Aviation, Healthcare'))
                         ->required()
                         ->maxLength(255)
-                        ->helperText('The descriptive name of the industrial sector.'),
+                        ->helperText(__('The descriptive name of the industrial sector.')),
                     TextInput::make('code')
-                        ->label('Sector Code')
-                        ->placeholder('e.g. SEC-OIL, SEC-AV')
+                        ->label(__('Sector Code'))
+                        ->placeholder(__('e.g. SEC-OIL, SEC-AV'))
                         ->required()
                         ->unique(IndustrialSector::class, 'code', ignoreRecord: true)
-                        ->helperText('Unique short code identifying this sector.'),
+                        ->helperText(__('Unique short code identifying this sector.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this sector.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this sector.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Inactive sectors will not appear in selection menus.'),
+                        ->helperText(__('Inactive sectors will not appear in selection menus.')),
                     Toggle::make('is_default')
-                        ->label('Default Sector')
+                        ->label(__('Default Sector'))
                         ->default(false)
-                        ->helperText('Set as the default sector for new client records.'),
+                        ->helperText(__('Set as the default sector for new client records.')),
                 ])->columns(2),
         ];
     }

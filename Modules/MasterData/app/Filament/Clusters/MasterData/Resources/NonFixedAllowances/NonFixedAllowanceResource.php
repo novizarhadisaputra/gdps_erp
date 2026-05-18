@@ -53,4 +53,24 @@ class NonFixedAllowanceResource extends Resource
             'edit' => EditNonFixedAllowance::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Non Fixed Allowance');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Non Fixed Allowances');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Non Fixed Allowances');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Payroll & Benefits');
+    }
 }

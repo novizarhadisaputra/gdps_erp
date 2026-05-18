@@ -46,4 +46,24 @@ class ItemResource extends Resource
             'edit' => EditItem::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Item');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Items');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Items');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Products & Inventory');
+    }
 }

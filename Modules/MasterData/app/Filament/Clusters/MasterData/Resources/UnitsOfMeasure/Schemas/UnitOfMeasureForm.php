@@ -19,35 +19,35 @@ class UnitOfMeasureForm
     public static function schema(): array
     {
         return [
-            Section::make('UOM Information')
-                ->description('Define the units of measure used for inventory and service quantification.')
+            Section::make(__('UOM Information'))
+                ->description(__('Define the units of measure used for inventory and service quantification.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Unit Name')
+                        ->label(__('Unit Name'))
                         ->required()
                         ->unique(UnitOfMeasure::class, 'name', ignoreRecord: true)
                         ->maxLength(255)
-                        ->placeholder('e.g. Kilogram, Piece, Hour')
-                        ->helperText('The full descriptive name of the measurement unit.'),
+                        ->placeholder(__('e.g. Kilogram, Piece, Hour'))
+                        ->helperText(__('The full descriptive name of the measurement unit.')),
                     TextInput::make('code')
-                        ->label('Unit Code')
-                        ->placeholder('Auto-generated')
+                        ->label(__('Unit Code'))
+                        ->placeholder(__('Auto-generated'))
                         ->readOnly()
                         ->unique(UnitOfMeasure::class, 'code', ignoreRecord: true)
-                        ->helperText('A short abbreviation for the unit.'),
+                        ->helperText(__('A short abbreviation for the unit.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this unit of measure.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this unit of measure.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Enable or disable this unit for use in the system.'),
+                        ->helperText(__('Enable or disable this unit for use in the system.')),
                     Toggle::make('is_default')
-                        ->label('Default Unit')
+                        ->label(__('Default Unit'))
                         ->default(false)
-                        ->helperText('Set as the default unit for new item entries.'),
+                        ->helperText(__('Set as the default unit for new item entries.')),
                 ])->columns(2),
         ];
     }

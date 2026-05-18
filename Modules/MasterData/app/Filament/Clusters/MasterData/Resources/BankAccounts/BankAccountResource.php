@@ -53,4 +53,24 @@ class BankAccountResource extends Resource
             'edit' => EditBankAccount::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Bank Account');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Bank Accounts');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Bank Accounts');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Finance & Accounting');
+    }
 }

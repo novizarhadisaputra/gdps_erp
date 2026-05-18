@@ -13,34 +13,34 @@ class BufferCostTypeForm
     {
         return $schema
             ->components([
-                Section::make('Buffer Cost Definition')
-                    ->description('Define types of buffer costs used for contingency and risk management.')
+                Section::make(__('Buffer Cost Definition'))
+                    ->description(__('Define types of buffer costs used for contingency and risk management.'))
                     ->schema([
                         TextInput::make('name')
-                            ->label('Buffer Cost Name')
-                            ->placeholder('e.g. Project Buffer, Operational Risk')
+                            ->label(__('Buffer Cost Name'))
+                            ->placeholder(__('e.g. Project Buffer, Operational Risk'))
                             ->required()
                             ->maxLength(255)
-                            ->helperText('The descriptive name of the buffer cost type.'),
+                            ->helperText(__('The descriptive name of the buffer cost type.')),
                         TextInput::make('code')
-                            ->label('Buffer Cost Code')
-                            ->placeholder('e.g. BUF-PROJ, BUF-OPS')
+                            ->label(__('Buffer Cost Code'))
+                            ->placeholder(__('e.g. BUF-PROJ, BUF-OPS'))
                             ->required()
                             ->unique(\Modules\MasterData\Models\BufferCostType::class, 'code', ignoreRecord: true)
-                            ->helperText('Unique short code for this buffer cost.'),
+                            ->helperText(__('Unique short code for this buffer cost.')),
                     ])->columns(2),
 
-                Section::make('Status & Defaults')
-                    ->description('Manage the availability and default status of this buffer cost type.')
+                Section::make(__('Status & Defaults'))
+                    ->description(__('Manage the availability and default status of this buffer cost type.'))
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
-                            ->helperText('Determines if this buffer cost type can be applied to new projects.'),
+                            ->helperText(__('Determines if this buffer cost type can be applied to new projects.')),
                         Toggle::make('is_default')
-                            ->label('Default Buffer')
+                            ->label(__('Default Buffer'))
                             ->default(false)
-                            ->helperText('Sets this as the pre-selected option for new buffer assignments.'),
+                            ->helperText(__('Sets this as the pre-selected option for new buffer assignments.')),
                     ])->columns(2),
             ]);
     }

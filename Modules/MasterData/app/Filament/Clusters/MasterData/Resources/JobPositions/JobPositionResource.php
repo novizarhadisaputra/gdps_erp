@@ -53,4 +53,24 @@ class JobPositionResource extends Resource
             'edit' => EditJobPosition::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Job Position');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Job Positions');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Job Positions');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('HR & Organization');
+    }
 }

@@ -18,20 +18,20 @@ class TaxPasal17RatesTable
         return $table
             ->columns([
                 TextColumn::make('min_amount')
-                    ->label('Min Amount')
+                    ->label(__('Min Amount'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('max_amount')
-                    ->label('Max Amount')
+                    ->label(__('Max Amount'))
                     ->money('IDR')
-                    ->placeholder('Unlimited')
+                    ->placeholder(__('Unlimited'))
                     ->sortable(),
                 TextColumn::make('rate')
-                    ->label('Tax Rate')
+                    ->label(__('Tax Rate'))
                     ->formatStateUsing(fn ($state) => $state.'%')
                     ->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('Active'))
                     ->boolean(),
             ])
             ->defaultSort('min_amount')

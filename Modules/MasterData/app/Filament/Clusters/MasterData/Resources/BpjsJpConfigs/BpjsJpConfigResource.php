@@ -43,4 +43,24 @@ class BpjsJpConfigResource extends Resource
             'edit' => Pages\EditBpjsJpConfig::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Bpjs Jp Config');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Bpjs Jp Configs');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Bpjs Jp Configs');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('BPJS & Insurance');
+    }
 }

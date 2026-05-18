@@ -20,53 +20,53 @@ class TrainingForm
     public static function schema(): array
     {
         return [
-            Section::make('Training Definition')
-                ->description('Define technical or safety training required for personnel.')
+            Section::make(__('Training Definition'))
+                ->description(__('Define technical or safety training required for personnel.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Training Name')
-                        ->placeholder('e.g. K3 Sertifikasi, Security Guard Training')
+                        ->label(__('Training Name'))
+                        ->placeholder(__('e.g. K3 Sertifikasi, Security Guard Training'))
                         ->required()
                         ->maxLength(255),
                     TextInput::make('code')
-                        ->label('Training Code')
-                        ->placeholder('e.g. TRN-K3, TRN-SEC')
+                        ->label(__('Training Code'))
+                        ->placeholder(__('e.g. TRN-K3, TRN-SEC'))
                         ->unique(Training::class, 'code', ignoreRecord: true)
-                        ->helperText('Unique identifier for this training type.'),
+                        ->helperText(__('Unique identifier for this training type.')),
                 ])->columns(2),
 
-            Section::make('Costing & Validity')
-                ->description('Set the standard cost and expiration duration for this training.')
+            Section::make(__('Costing & Validity'))
+                ->description(__('Set the standard cost and expiration duration for this training.'))
                 ->schema([
                     TextInput::make('base_cost')
-                        ->label('Standard Cost')
+                        ->label(__('Standard Cost'))
                         ->numeric()
                         ->prefix('IDR')
-                        ->placeholder('0.00')
+                        ->placeholder(__('0.00'))
                         ->default(0)
-                        ->helperText('Default training fee per person.'),
+                        ->helperText(__('Default training fee per person.')),
                     TextInput::make('validity_period')
-                        ->label('Validity Period (Months)')
+                        ->label(__('Validity Period (Months)'))
                         ->numeric()
-                        ->placeholder('e.g. 24')
-                        ->helperText('Duration before re-certification is required (leave empty if non-expiring).'),
+                        ->placeholder(__('e.g. 24'))
+                        ->helperText(__('Duration before re-certification is required (leave empty if non-expiring).')),
                 ])->columns(2),
 
-            Section::make('Additional Information')
-                ->description('Provide extra details and manage the availability of this training.')
+            Section::make(__('Additional Information'))
+                ->description(__('Provide extra details and manage the availability of this training.'))
                 ->schema([
                     Textarea::make('description')
-                        ->label('Detailed Description')
-                        ->placeholder('Explain the training objectives and scope...')
+                        ->label(__('Detailed Description'))
+                        ->placeholder(__('Explain the training objectives and scope...'))
                         ->columnSpanFull(),
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Inactive training cannot be assigned to new templates.'),
+                        ->helperText(__('Inactive training cannot be assigned to new templates.')),
                     Toggle::make('is_default')
-                        ->label('Default Training')
+                        ->label(__('Default Training'))
                         ->default(false)
-                        ->helperText('Sets this as a default training for standard manpower costing.'),
+                        ->helperText(__('Sets this as a default training for standard manpower costing.')),
                 ])->columns(2),
         ];
     }

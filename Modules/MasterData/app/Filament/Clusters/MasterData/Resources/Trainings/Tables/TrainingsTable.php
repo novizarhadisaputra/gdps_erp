@@ -20,29 +20,29 @@ class TrainingsTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Training Name')
+                    ->label(__('Training Name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('code')
-                    ->label('Code')
+                    ->label(__('Code'))
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('base_cost')
-                    ->label('Base Cost')
+                    ->label(__('Base Cost'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('validity_period')
-                    ->label('Validity')
+                    ->label(__('Validity'))
                     ->suffix(' Months')
-                    ->placeholder('Permanent')
+                    ->placeholder(__('Permanent'))
                     ->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('Active'))
                     ->boolean()
                     ->sortable(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->sortable(),
                 TextColumn::make('created_at')

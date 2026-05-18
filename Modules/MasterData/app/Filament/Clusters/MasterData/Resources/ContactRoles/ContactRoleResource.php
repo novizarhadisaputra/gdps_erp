@@ -39,4 +39,24 @@ class ContactRoleResource extends Resource
             'index' => Pages\ManageContactRoles::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Contact Role');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Contact Roles');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Contact Roles');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Partners & Relations');
+    }
 }

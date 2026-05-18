@@ -15,42 +15,42 @@ class BpjsJknCategoryForm
     {
         return $schema
             ->components([
-                Section::make('BPJS JKN Category Definition')
-                    ->description('Define standard BPJS Health / JKN participation categories.')
+                Section::make(__('BPJS JKN Category Definition'))
+                    ->description(__('Define standard BPJS Health / JKN participation categories.'))
                     ->schema([
                         TextInput::make('name')
-                            ->label('Category Name')
-                            ->placeholder('e.g. Pekerja Penerima Upah (PPU)')
+                            ->label(__('Category Name'))
+                            ->placeholder(__('e.g. Pekerja Penerima Upah (PPU)'))
                             ->required()
                             ->maxLength(255)
-                            ->helperText('The descriptive name of the JKN participation category.'),
+                            ->helperText(__('The descriptive name of the JKN participation category.')),
                         TextInput::make('code')
-                            ->label('Category Code')
-                            ->placeholder('e.g. PPU, PBPU, PBI')
+                            ->label(__('Category Code'))
+                            ->placeholder(__('e.g. PPU, PBPU, PBI'))
                             ->required()
                             ->unique(BpjsJknCategory::class, 'code', ignoreRecord: true)
                             ->maxLength(50)
-                            ->helperText('Unique short code identifier (e.g., PPU, PBPU, PBI).'),
+                            ->helperText(__('Unique short code identifier (e.g., PPU, PBPU, PBI).')),
                         Textarea::make('description')
-                            ->label('Description')
-                            ->placeholder('Detailed explanation of this JKN participation category...')
+                            ->label(__('Description'))
+                            ->placeholder(__('Detailed explanation of this JKN participation category...'))
                             ->rows(3)
                             ->columnSpanFull()
                             ->maxLength(1000)
-                            ->helperText('Brief description or regulatory context for this category.'),
+                            ->helperText(__('Brief description or regulatory context for this category.')),
                     ])->columns(2),
 
-                Section::make('Status & Defaults')
-                    ->description('Manage the availability and default status of this category.')
+                Section::make(__('Status & Defaults'))
+                    ->description(__('Manage the availability and default status of this category.'))
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
-                            ->helperText('Determines if this category can be selected in manpower templates.'),
+                            ->helperText(__('Determines if this category can be selected in manpower templates.')),
                         Toggle::make('is_default')
-                            ->label('Default Category')
+                            ->label(__('Default Category'))
                             ->default(false)
-                            ->helperText('Sets this as the default JKN category for new setups.'),
+                            ->helperText(__('Sets this as the default JKN category for new setups.')),
                     ])->columns(2),
             ]);
     }

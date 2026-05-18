@@ -14,51 +14,51 @@ class TaxSchemeForm
     {
         return $schema
             ->components([
-                Section::make('Tax Scheme Definition')
-                    ->description('Define standard tax schemes and rates used for financial accounting.')
+                Section::make(__('Tax Scheme Definition'))
+                    ->description(__('Define standard tax schemes and rates used for financial accounting.'))
                     ->schema([
                         TextInput::make('name')
-                            ->label('Scheme Name')
-                            ->placeholder('e.g. PPh 21 Ter A, PPN Standar')
+                            ->label(__('Scheme Name'))
+                            ->placeholder(__('e.g. PPh 21 Ter A, PPN Standar'))
                             ->required()
                             ->maxLength(255)
-                            ->helperText('The descriptive name of the tax scheme.'),
+                            ->helperText(__('The descriptive name of the tax scheme.')),
                         TextInput::make('code')
-                            ->label('Scheme Code')
-                            ->placeholder('e.g. TAX-PPH21A, TAX-PPN')
+                            ->label(__('Scheme Code'))
+                            ->placeholder(__('e.g. TAX-PPH21A, TAX-PPN'))
                             ->required()
                             ->unique(\Modules\MasterData\Models\TaxScheme::class, 'code', ignoreRecord: true)
-                            ->helperText('Unique short code for this tax scheme.'),
+                            ->helperText(__('Unique short code for this tax scheme.')),
                         TextInput::make('scheme_code')
-                            ->label('Scheme Identifier')
-                            ->placeholder('e.g. skema_1, skema_2a')
+                            ->label(__('Scheme Identifier'))
+                            ->placeholder(__('e.g. skema_1, skema_2a'))
                             ->required()
-                            ->helperText('Internal identifier used for calculation logic mapping.'),
+                            ->helperText(__('Internal identifier used for calculation logic mapping.')),
                         TextInput::make('rate_percentage')
-                            ->label('Tax Rate (%)')
+                            ->label(__('Tax Rate (%)'))
                             ->numeric()
-                            ->placeholder('0.00')
+                            ->placeholder(__('0.00'))
                             ->default(0)
                             ->required()
-                            ->helperText('The percentage rate to be applied for this scheme.'),
+                            ->helperText(__('The percentage rate to be applied for this scheme.')),
                         Textarea::make('notes')
-                            ->label('Scheme Details')
-                            ->placeholder('Enter specific conditions or legal references...')
-                            ->helperText('Optional contextual information regarding this tax scheme.')
+                            ->label(__('Scheme Details'))
+                            ->placeholder(__('Enter specific conditions or legal references...'))
+                            ->helperText(__('Optional contextual information regarding this tax scheme.'))
                             ->columnSpanFull(),
                     ])->columns(2),
 
-                Section::make('Status & Defaults')
-                    ->description('Manage the availability and default status of this tax scheme.')
+                Section::make(__('Status & Defaults'))
+                    ->description(__('Manage the availability and default status of this tax scheme.'))
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
-                            ->helperText('Determines if this tax scheme can be assigned to tax objects.'),
+                            ->helperText(__('Determines if this tax scheme can be assigned to tax objects.')),
                         Toggle::make('is_default')
-                            ->label('Default Scheme')
+                            ->label(__('Default Scheme'))
                             ->default(false)
-                            ->helperText('Sets this as the pre-selected option for new tax configurations.'),
+                            ->helperText(__('Sets this as the pre-selected option for new tax configurations.')),
                     ])->columns(2),
             ]);
     }

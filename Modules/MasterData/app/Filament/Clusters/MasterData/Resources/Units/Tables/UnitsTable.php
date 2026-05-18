@@ -25,18 +25,18 @@ class UnitsTable
         return $table
             ->headerActions([
                 Action::make('sync')
-                    ->label('Sync from API')
+                    ->label(__('Sync from API'))
                     ->icon(Heroicon::OutlinedArrowPath)
                     ->color('gray')
                     ->modalHeading('Sync Units from SSO')
                     ->modalDescription('This will fetch and update unit records from the SSO API.')
                     ->schema([
                         TextInput::make('password')
-                            ->label('SSO Password')
+                            ->label(__('SSO Password'))
                             ->password()
                             ->required()
                             ->visible(fn () => auth()->user()->isTokenExpired())
-                            ->helperText('Your SSO session has expired. Please enter your password to re-authenticate and proceed with the sync.'),
+                            ->helperText(__('Your SSO session has expired. Please enter your password to re-authenticate and proceed with the sync.')),
                     ])
                     ->action(function (array $data) {
                         $user = auth()->user();
@@ -96,7 +96,7 @@ class UnitsTable
             ])
             ->columns([
                 TextColumn::make('external_id')
-                    ->label('SSO ID')
+                    ->label(__('SSO ID'))
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -107,15 +107,15 @@ class UnitsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('superior_unit')
-                    ->label('Superior Unit')
+                    ->label(__('Superior Unit'))
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('Active'))
                     ->boolean()
                     ->sortable(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->trueIcon(Heroicon::Star)
                     ->falseIcon(null)
@@ -134,7 +134,7 @@ class UnitsTable
                     ViewAction::make(),
                     EditAction::make(),
                     Action::make('permissions')
-                        ->label('Manage Permissions')
+                        ->label(__('Manage Permissions'))
                         ->icon(Heroicon::OutlinedShieldCheck)
                         ->color('primary')
                         ->url(fn (Unit $record): string => UnitResource::getUrl('permissions', ['record' => $record])),

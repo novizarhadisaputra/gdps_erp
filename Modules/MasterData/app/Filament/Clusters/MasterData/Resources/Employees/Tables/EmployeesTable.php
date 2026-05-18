@@ -47,8 +47,8 @@ class EmployeesTable
             ->filters([
                 SelectFilter::make('status')
                     ->options([
-                        'active' => 'Active',
-                        'inactive' => 'Inactive',
+                        'active' => __('Active'),
+                        'inactive' => __('Inactive'),
                     ]),
             ])
             ->recordActions([

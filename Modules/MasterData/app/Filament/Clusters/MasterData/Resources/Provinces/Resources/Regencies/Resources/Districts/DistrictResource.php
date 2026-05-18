@@ -59,4 +59,19 @@ class DistrictResource extends Resource
             'villages' => ManageVillages::route('/{record}/villages'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('District');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Districts');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Districts');
+    }
 }

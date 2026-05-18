@@ -27,10 +27,10 @@ class VendorsTable
                 TextColumn::make('phone')
                     ->searchable(),
                 TextColumn::make('tax_id')
-                    ->label('Tax ID')
+                    ->label(__('Tax ID'))
                     ->searchable(),
                 TextColumn::make('paymentTerm.name')
-                    ->label('Payment Term')
+                    ->label(__('Payment Term'))
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean(),

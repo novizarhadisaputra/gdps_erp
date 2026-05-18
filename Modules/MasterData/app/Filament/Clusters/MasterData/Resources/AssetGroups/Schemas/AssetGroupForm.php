@@ -22,47 +22,47 @@ class AssetGroupForm
     public static function schema(): array
     {
         return [
-            Section::make('Asset Group Details')
+            Section::make(__('Asset Group Details'))
                 ->schema([
                     TextInput::make('name')
                         ->required()
                         ->unique(AssetGroup::class, 'name', ignoreRecord: true)
                         ->maxLength(255)
-                        ->placeholder('Group I (Non-Building)'),
+                        ->placeholder(__('Group I (Non-Building)')),
                     Select::make('type')
                         ->options(AssetGroupType::class)
                         ->required()
                         ->searchable(),
                     TextInput::make('useful_life_years')
-                        ->label('Useful Life (Years)')
+                        ->label(__('Useful Life (Years)'))
                         ->required()
                         ->numeric()
                         ->minValue(0)
                         ->maxValue(100),
                     TextInput::make('rate_straight_line')
-                        ->label('Rate Straight Line (%)')
+                        ->label(__('Rate Straight Line (%)'))
                         ->numeric()
                         ->suffix('%')
                         ->maxValue(100)
-                        ->placeholder('25.00')
-                        ->helperText('Tarif Garis Lurus'),
+                        ->placeholder(__('25.00'))
+                        ->helperText(__('Tarif Garis Lurus')),
                     TextInput::make('rate_declining_balance')
-                        ->label('Rate Double Declining (%)')
+                        ->label(__('Rate Double Declining (%)'))
                         ->numeric()
                         ->suffix('%')
                         ->maxValue(100)
-                        ->placeholder('50.00')
-                        ->helperText('Tarif Saldo Menurun Ganda'),
+                        ->placeholder(__('50.00'))
+                        ->helperText(__('Tarif Saldo Menurun Ganda')),
                     Textarea::make('description')
                         ->maxLength(65535)
                         ->columnSpanFull(),
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
                         ->required(),
                     Toggle::make('is_default')
-                        ->label('Default Record')
-                        ->helperText('Hanya satu record yang dapat menjadi default.')
+                        ->label(__('Default Record'))
+                        ->helperText(__('Hanya satu record yang dapat menjadi default.'))
                         ->default(false),
                 ])
                 ->columns(2)

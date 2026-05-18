@@ -20,11 +20,11 @@ class NonFixedAllowancesTable
         return $table
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
-                IconColumn::make('is_taxable')->boolean()->label('Taxable')->sortable(),
+                IconColumn::make('is_taxable')->boolean()->label(__('Taxable'))->sortable(),
                 TextColumn::make('calculation_basis')->searchable()->sortable(),
                 TextColumn::make('default_amount')->money('IDR')->sortable(),
-                IconColumn::make('is_active')->boolean()->label('Active'),
-                IconColumn::make('is_default')->boolean()->label('Default'),
+                IconColumn::make('is_active')->boolean()->label(__('Active')),
+                IconColumn::make('is_default')->boolean()->label(__('Default')),
             ])
             ->filters([
                 //

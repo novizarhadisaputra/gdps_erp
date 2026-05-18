@@ -15,36 +15,36 @@ class ApiClientForm
     {
         return $schema
             ->components([
-                Section::make('Client Identity')
-                    ->description('External system identification details.')
+                Section::make(__('Client Identity'))
+                    ->description(__('External system identification details.'))
                     ->schema([
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255)
-                            ->placeholder('e.g. HR System')
-                            ->helperText('A descriptive name for identifying this external system or integration.'),
+                            ->placeholder(__('e.g. HR System'))
+                            ->helperText(__('A descriptive name for identifying this external system or integration.')),
 
                         TextInput::make('client_id')
-                            ->label('Client ID')
+                            ->label(__('Client ID'))
                             ->default(fn () => 'client_'.Str::random(16))
                             ->readonly()
                             ->required()
                             ->unique(ApiClient::class, 'client_id', ignoreRecord: true)
-                            ->helperText('The unique identifier for this client. This is automatically generated.'),
+                            ->helperText(__('The unique identifier for this client. This is automatically generated.')),
 
                         TextInput::make('client_secret')
-                            ->label('Client Secret')
+                            ->label(__('Client Secret'))
                             ->password()
                             ->required()
                             ->copyable()
                             ->visibleOn('create')
                             ->default(fn () => Str::random(32))
-                            ->helperText('Copy this secret now. It will not be shown again.'),
+                            ->helperText(__('Copy this secret now. It will not be shown again.')),
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
                             ->required()
-                            ->helperText('Enable or disable this client\'s access to the API.'),
+                            ->helperText(__('Enable or disable this client\'s access to the API.')),
                     ]),
             ]);
     }

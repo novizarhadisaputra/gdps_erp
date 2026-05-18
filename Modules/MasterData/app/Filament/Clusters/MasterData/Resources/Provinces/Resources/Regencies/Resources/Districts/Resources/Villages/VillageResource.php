@@ -56,4 +56,19 @@ class VillageResource extends Resource
             'edit' => EditVillage::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Village');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Villages');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Villages');
+    }
 }

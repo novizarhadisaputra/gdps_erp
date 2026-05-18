@@ -25,12 +25,12 @@ class ProjectAreaForm
     public static function schema(bool $includeParent = true): array
     {
         return [
-            Section::make('Location Details')
-                ->description('Specify the geographic location and official regional data for this project area.')
+            Section::make(__('Location Details'))
+                ->description(__('Specify the geographic location and official regional data for this project area.'))
                 ->schema([
                     Select::make('name')
-                        ->label('Area Name')
-                        ->placeholder('Start typing to find location (e.g. Jakarta, Bali)...')
+                        ->label(__('Area Name'))
+                        ->placeholder(__('Start typing to find location (e.g. Jakarta, Bali)...'))
                         ->required()
                         ->searchable()
                         ->options(function () {
@@ -101,55 +101,55 @@ class ProjectAreaForm
                     Hidden::make('province_id'),
                     Hidden::make('regency_id'),
                     TextInput::make('province_name')
-                        ->label('Province')
+                        ->label(__('Province'))
                         ->readOnly()
-                        ->placeholder('Auto-filled')
+                        ->placeholder(__('Auto-filled'))
                         ->dehydrated(false)
                         ->formatStateUsing(fn ($record) => $record?->province?->name),
                     TextInput::make('regency_name')
-                        ->label('Regency / City')
+                        ->label(__('Regency / City'))
                         ->readOnly()
-                        ->placeholder('Auto-filled')
+                        ->placeholder(__('Auto-filled'))
                         ->dehydrated(false)
                         ->formatStateUsing(fn ($record) => $record?->regency?->name),
                     TextInput::make('api_code')
-                        ->label('Official Region Code')
+                        ->label(__('Official Region Code'))
                         ->readOnly()
-                        ->placeholder('Auto-filled')
+                        ->placeholder(__('Auto-filled'))
                         ->dehydrated()
-                        ->helperText('BPS/Official geographic code.'),
+                        ->helperText(__('BPS/Official geographic code.')),
                 ]),
 
-            Section::make('Internal Identification')
-                ->description('Provide internal coding and status for this project area.')
+            Section::make(__('Internal Identification'))
+                ->description(__('Provide internal coding and status for this project area.'))
                 ->schema(array_filter([
                     TextInput::make('code')
-                        ->label('Internal Area Code')
+                        ->label(__('Internal Area Code'))
                         ->unique(ProjectArea::class, 'code', ignoreRecord: true)
                         ->nullable()
-                        ->placeholder('e.g. AREA-001')
-                        ->helperText('Internal identifier for project mapping.'),
+                        ->placeholder(__('e.g. AREA-001'))
+                        ->helperText(__('Internal identifier for project mapping.')),
                     $includeParent ? MorphToSelect::make('parentable')
-                        ->label('Parent Area')
+                        ->label(__('Parent Area'))
                         ->types([
                             MorphToSelect\Type::make(ProjectArea::class)
                                 ->titleAttribute('name')
-                                ->label('Project Area'),
+                                ->label(__('Project Area')),
                         ])
                         ->searchable()
                         ->preload() : null,
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Determines if this area is currently available for project assignment.'),
+                        ->helperText(__('Determines if this area is currently available for project assignment.')),
                     Toggle::make('has_branches')
-                        ->label('Has Branches')
+                        ->label(__('Has Branches'))
                         ->default(false)
-                        ->helperText('Enable if this area contains sub-areas (nested structure).'),
+                        ->helperText(__('Enable if this area contains sub-areas (nested structure).')),
                     Toggle::make('is_default')
-                        ->label('Default Area')
+                        ->label(__('Default Area'))
                         ->default(false)
-                        ->helperText('Sets this as the primary default area for new projects.'),
+                        ->helperText(__('Sets this as the primary default area for new projects.')),
                 ])),
 
         ];

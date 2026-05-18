@@ -53,4 +53,24 @@ class SkillCategoryResource extends Resource
             'edit' => EditSkillCategory::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Skill Category');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Skill Categories');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Skill Categories');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('HR & Organization');
+    }
 }

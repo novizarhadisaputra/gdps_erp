@@ -22,9 +22,9 @@ class ApprovalRulesTable
             ->columns([
                 TextColumn::make('resource_type')
                     ->formatStateUsing(fn (string $state) => class_basename($state))
-                    ->label('Resource'),
+                    ->label(__('Resource')),
                 // TextColumn::make('conditions')
-                //     ->label('Rules / Conditions')
+                //     ->label(__('Rules / Conditions'))
                 //     ->formatStateUsing(function ($state, $record) {
                 //         if (empty($state)) {
                 //             // Fallback to legacy base columns if conditions empty
@@ -64,7 +64,7 @@ class ApprovalRulesTable
                 //     ->wrap()
                 //     ->size('xs'),
                 TextColumn::make('approver_role')
-                    ->label('Approvers')
+                    ->label(__('Approvers'))
                     ->badge()
                     ->formatStateUsing(function ($state) {
                         if (empty($state)) {

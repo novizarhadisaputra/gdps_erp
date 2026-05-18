@@ -19,14 +19,14 @@ class BpjsHealthConfigsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->description('Health Insurance (BPJS Kesehatan) configurations. Manages calculations for PPU, PBPU, and PBI.')
+            ->description(__('Health Insurance (BPJS Kesehatan) configurations. Manages calculations for PPU, PBPU, and PBI.'))
             ->columns([
                 TextColumn::make('name')
-                    ->label('Config Name')
+                    ->label(__('Config Name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('employee_type')
-                    ->label('Type')
+                    ->label(__('Type'))
                     ->badge()
                     ->color(fn ($state): string => match ($state instanceof BackedEnum ? $state->value : $state) {
                         'ppu' => 'primary',
@@ -36,29 +36,29 @@ class BpjsHealthConfigsTable
                     })
                     ->formatStateUsing(fn ($state) => strtoupper($state)),
                 TextColumn::make('employer_rate')
-                    ->label('Employer Rate (%)')
+                    ->label(__('Employer Rate (%)'))
                     ->numeric(4)
                     ->suffix('%'),
                 TextColumn::make('employee_rate')
-                    ->label('Employee Rate (%)')
+                    ->label(__('Employee Rate (%)'))
                     ->numeric(4)
                     ->suffix('%'),
                 IconColumn::make('is_active')
-                    ->label('Active Status')
+                    ->label(__('Active Status'))
                     ->boolean(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->icon(fn ($state) => $state ? 'heroicon-o-star' : null)
                     ->color('warning'),
             ])
             ->filters([
                 SelectFilter::make('employee_type')
-                    ->label('Membership Type')
+                    ->label(__('Membership Type'))
                     ->options([
-                        'ppu' => 'PPU',
-                        'pbpu' => 'PBPU',
-                        'pbi' => 'PBI',
+                        'ppu' => __('PPU'),
+                        'pbpu' => __('PBPU'),
+                        'pbi' => __('PBI'),
                     ]),
             ])
             ->recordActions([

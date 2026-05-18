@@ -20,34 +20,34 @@ class SkillCategoryForm
     public static function schema(): array
     {
         return [
-            Section::make('Skill Category Definition')
-                ->description('Categorize employee skills for better resource matching and training planning.')
+            Section::make(__('Skill Category Definition'))
+                ->description(__('Categorize employee skills for better resource matching and training planning.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Category Name')
-                        ->placeholder('e.g. Technician, Security, Admin, Pilot')
-                        ->helperText('The descriptive name of the skill category.')
+                        ->label(__('Category Name'))
+                        ->placeholder(__('e.g. Technician, Security, Admin, Pilot'))
+                        ->helperText(__('The descriptive name of the skill category.'))
                         ->required()
                         ->maxLength(255),
                     TextInput::make('code')
-                        ->label('Category Code')
-                        ->placeholder('e.g. SKILL-TECH, SKILL-SEC')
-                        ->helperText('A unique short code identifying the skill category.')
+                        ->label(__('Category Code'))
+                        ->placeholder(__('e.g. SKILL-TECH, SKILL-SEC'))
+                        ->helperText(__('A unique short code identifying the skill category.'))
                         ->required()
                         ->unique(SkillCategory::class, 'code', ignoreRecord: true),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this skill category.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this skill category.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Enable or disable this category for use in employee profiles.'),
+                        ->helperText(__('Enable or disable this category for use in employee profiles.')),
                     Toggle::make('is_default')
-                        ->label('Default Category')
+                        ->label(__('Default Category'))
                         ->default(false)
-                        ->helperText('Set as the default category for new skill entries.'),
+                        ->helperText(__('Set as the default category for new skill entries.')),
                 ])->columns(2),
         ];
     }

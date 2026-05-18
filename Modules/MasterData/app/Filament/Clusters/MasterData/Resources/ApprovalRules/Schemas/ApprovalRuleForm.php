@@ -36,10 +36,10 @@ class ApprovalRuleForm
     {
         return $schema
             ->components([
-                Section::make('Rule Details')
+                Section::make(__('Rule Details'))
                     ->schema([
                         Select::make('resource_type')
-                            ->label('Resource Type')
+                            ->label(__('Resource Type'))
                             ->options([
                                 ProfitabilityAnalysis::class => 'Profitability Analysis',
                                 Project::class => 'Project',
@@ -54,28 +54,28 @@ class ApprovalRuleForm
                             ->live(),
 
                         Repeater::make('conditions')
-                            ->label('Conditions (ALL must be met - AND logic)')
+                            ->label(__('Conditions (ALL must be met - AND logic)'))
                             ->schema([
                                 Select::make('field')
-                                    ->label('Criteria Field')
+                                    ->label(__('Criteria Field'))
                                     ->options(function (Get $get) {
                                         $resourceType = $get('../../resource_type');
 
                                         return match ($resourceType) {
                                             ProfitabilityAnalysis::class => [
-                                                'revenue_per_month' => 'Revenue',
-                                                'margin_percentage' => 'Margin (%)',
-                                                'net_profit' => 'Net Profit',
-                                                'product_cluster_id' => 'Product Cluster',
+                                                'revenue_per_month' => __('Revenue'),
+                                                'margin_percentage' => __('Margin (%)'),
+                                                'net_profit' => __('Net Profit'),
+                                                'product_cluster_id' => __('Product Cluster'),
                                             ],
                                             PurchaseOrder::class, WorkOrder::class, CooperationAgreement::class, Project::class, Proposal::class => [
-                                                'amount' => 'Amount / Value',
+                                                'amount' => __('Amount / Value'),
                                             ],
                                             MinutesOfAgreement::class => [
-                                                'amount' => 'Amount / Value',
+                                                'amount' => __('Amount / Value'),
                                             ],
                                             GeneralInformation::class => [
-                                                'sequence_number' => 'Sequence Number',
+                                                'sequence_number' => __('Sequence Number'),
                                             ],
                                             default => [],
                                         };
@@ -85,13 +85,13 @@ class ApprovalRuleForm
                                     ->columnSpan(2),
                                 Select::make('operator')
                                     ->options([
-                                        '>' => 'Greater Than (>)',
-                                        '>=' => 'Greater Than or Equal (>=)',
-                                        '<' => 'Less Than (<)',
-                                        '<=' => 'Less Than or Equal (<=)',
-                                        '=' => 'Equal (=)',
-                                        'in' => 'In (Comma Separated)',
-                                        'between' => 'Between',
+                                        '>' => __('Greater Than (>)'),
+                                        '>=' => __('Greater Than or Equal (>=)'),
+                                        '<' => __('Less Than (<)'),
+                                        '<=' => __('Less Than or Equal (<=)'),
+                                        '=' => __('Equal (=)'),
+                                        'in' => __('In (Comma Separated)'),
+                                        'between' => __('Between'),
                                     ])
                                     ->live()
                                     ->required()
@@ -99,7 +99,7 @@ class ApprovalRuleForm
                                 Hidden::make('value'),
 
                                 TextInput::make('value_text')
-                                    ->label('Value')
+                                    ->label(__('Value'))
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix(fn (Get $get) => in_array($get('field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
                                     ->suffix(fn (Get $get) => $get('field') === 'margin_percentage' ? '%' : null)
@@ -123,7 +123,7 @@ class ApprovalRuleForm
                                     ->columnSpan(2),
 
                                 Select::make('value_select')
-                                    ->label('Value')
+                                    ->label(__('Value'))
                                     ->options(function (Get $get) {
                                         $field = $get('field');
                                         $mapping = static::getRelationshipFields()[$field] ?? null;
@@ -167,7 +167,7 @@ class ApprovalRuleForm
                                     ->columnSpan(2),
 
                                 TextInput::make('max_value')
-                                    ->label('To (Max Value)')
+                                    ->label(__('To (Max Value)'))
                                     ->numeric()
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix(fn (Get $get) => in_array($get('field'), ['revenue_per_month', 'net_profit', 'amount']) ? 'IDR' : null)
@@ -181,21 +181,21 @@ class ApprovalRuleForm
                             ->defaultItems(1),
                     ])->columns(2)->columnSpanFull(),
 
-                Section::make('Approval Config')
+                Section::make(__('Approval Config'))
                     ->schema([
                         Select::make('approver_type')
                             ->options([
-                                'Role' => 'Role',
-                                'User' => 'User',
-                                'Unit' => 'Unit',
-                                'Position' => 'Position',
+                                'Role' => __('Role'),
+                                'User' => __('User'),
+                                'Unit' => __('Unit'),
+                                'Position' => __('Position'),
                             ])
                             ->disabled()
                             ->dehydrated()
                             ->default('Role'),
 
                         Select::make('approver_role')
-                            ->label('Role(s)')
+                            ->label(__('Role(s)'))
                             ->options(fn () => Role::pluck('name', 'id'))
                             ->searchable()
                             ->multiple()
@@ -210,7 +210,7 @@ class ApprovalRuleForm
                             }),
 
                         Select::make('approver_user_id')
-                            ->label('User(s)')
+                            ->label(__('User(s)'))
                             ->options(User::pluck('name', 'id'))
                             ->searchable()
                             ->multiple()
@@ -225,7 +225,7 @@ class ApprovalRuleForm
                             }),
 
                         Select::make('approver_unit_id')
-                            ->label('Unit(s)')
+                            ->label(__('Unit(s)'))
                             ->options(fn () => app(UnitService::class)->getAllUnits()->pluck('name', 'id'))
                             ->searchable()
                             ->multiple()
@@ -240,7 +240,7 @@ class ApprovalRuleForm
                             }),
 
                         Select::make('approver_position')
-                            ->label('Job Position(s)')
+                            ->label(__('Job Position(s)'))
                             ->options(User::distinct()->whereNotNull('position')->pluck('position', 'position'))
                             ->searchable()
                             ->multiple()

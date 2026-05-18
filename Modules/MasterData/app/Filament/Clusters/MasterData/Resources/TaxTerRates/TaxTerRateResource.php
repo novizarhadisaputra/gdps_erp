@@ -40,4 +40,24 @@ class TaxTerRateResource extends Resource
             'index' => ListTaxTerRates::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Tax Ter Rate');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Tax Ter Rates');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Tax Ter Rates');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Taxation');
+    }
 }

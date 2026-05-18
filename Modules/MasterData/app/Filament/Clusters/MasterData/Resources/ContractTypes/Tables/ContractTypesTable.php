@@ -22,10 +22,10 @@ class ContractTypesTable
                 TextColumn::make('code')->searchable()->sortable(),
                 TextColumn::make('name')->searchable()->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active Status')
+                    ->label(__('Active Status'))
                     ->boolean(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean()
                     ->icon(fn ($state) => $state ? 'heroicon-o-star' : null)
                     ->color('warning'),

@@ -12,8 +12,8 @@ class DistrictForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('District Details')
-                ->description('Link this district to its parent regency and specify official identification details.')
+            Section::make(__('District Details'))
+                ->description(__('Link this district to its parent regency and specify official identification details.'))
                 ->icon('heroicon-o-home-modern')
                 ->columns(2)
                 ->schema([
@@ -22,21 +22,21 @@ class DistrictForm
                         ->required()
                         ->searchable()
                         ->preload()
-                        ->placeholder('Select regency...')
-                        ->helperText('The parent regency for this district.')
+                        ->placeholder(__('Select regency...'))
+                        ->helperText(__('The parent regency for this district.'))
                         ->disabled(fn (?string $operation) => $operation === 'edit' || request()->routeIs('*.regencies.*')),
                     TextInput::make('code')
                         ->required()
                         ->unique(ignoreRecord: true)
                         ->maxLength(10)
-                        ->placeholder('e.g. 3273010')
-                        ->helperText('Official regional code for this district.'),
+                        ->placeholder(__('e.g. 3273010'))
+                        ->helperText(__('Official regional code for this district.')),
                     TextInput::make('name')
                         ->required()
                         ->maxLength(255)
                         ->columnSpanFull()
-                        ->placeholder('e.g. Coblong')
-                        ->helperText('Identification name of the district.'),
+                        ->placeholder(__('e.g. Coblong'))
+                        ->helperText(__('Identification name of the district.')),
                 ]),
         ]);
     }

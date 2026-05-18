@@ -49,4 +49,19 @@ class DirectCostCategoryResource extends Resource
             'edit' => EditDirectCostCategory::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Direct Cost Category');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Direct Cost Categories');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Direct Cost Categories');
+    }
 }

@@ -20,34 +20,34 @@ class ProjectTypeForm
     public static function schema(): array
     {
         return [
-            Section::make('Project Type Definition')
-                ->description('Classify projects into different types for reporting and process management.')
+            Section::make(__('Project Type Definition'))
+                ->description(__('Classify projects into different types for reporting and process management.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Type Name')
-                        ->placeholder('e.g. Outsourcing, Consulting, Internal')
-                        ->helperText('The descriptive name of the project type.')
+                        ->label(__('Type Name'))
+                        ->placeholder(__('e.g. Outsourcing, Consulting, Internal'))
+                        ->helperText(__('The descriptive name of the project type.'))
                         ->required()
                         ->maxLength(255),
                     TextInput::make('code')
-                        ->label('Type Code')
-                        ->placeholder('Auto-generated')
+                        ->label(__('Type Code'))
+                        ->placeholder(__('Auto-generated'))
                         ->readOnly()
                         ->unique(ProjectType::class, 'code', ignoreRecord: true)
-                        ->helperText('A unique identification code for this project type.'),
+                        ->helperText(__('A unique identification code for this project type.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this project type.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this project type.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Enable or disable this type for new projects.'),
+                        ->helperText(__('Enable or disable this type for new projects.')),
                     Toggle::make('is_default')
-                        ->label('Default Type')
+                        ->label(__('Default Type'))
                         ->default(false)
-                        ->helperText('Set as the default type for new project entries.'),
+                        ->helperText(__('Set as the default type for new project entries.')),
                 ])->columns(2),
         ];
     }

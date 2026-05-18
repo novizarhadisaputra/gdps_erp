@@ -13,39 +13,39 @@ class BpjsBasisTypeForm
     {
         return $schema
             ->components([
-                Section::make('BPJS Basis Definition')
-                    ->description('Define the calculation basis and formulas used for BPJS contributions.')
+                Section::make(__('BPJS Basis Definition'))
+                    ->description(__('Define the calculation basis and formulas used for BPJS contributions.'))
                     ->schema([
                         TextInput::make('name')
-                            ->label('Basis Name')
-                            ->placeholder('e.g. UMK + Allowances, Fixed Salary')
+                            ->label(__('Basis Name'))
+                            ->placeholder(__('e.g. UMK + Allowances, Fixed Salary'))
                             ->required()
                             ->maxLength(255)
-                            ->helperText('The descriptive name of the BPJS calculation basis.'),
+                            ->helperText(__('The descriptive name of the BPJS calculation basis.')),
                         TextInput::make('code')
-                            ->label('Basis Code')
-                            ->placeholder('e.g. BPJS-UMK, BPJS-FIXED')
+                            ->label(__('Basis Code'))
+                            ->placeholder(__('e.g. BPJS-UMK, BPJS-FIXED'))
                             ->required()
                             ->unique(\Modules\MasterData\Models\BpjsBasisType::class, 'code', ignoreRecord: true)
-                            ->helperText('Unique short code for this basis type.'),
+                            ->helperText(__('Unique short code for this basis type.')),
                         TextInput::make('formula_code')
-                            ->label('Formula Identifier')
-                            ->placeholder('e.g. gaji_pokok, basic_plus_fixed')
+                            ->label(__('Formula Identifier'))
+                            ->placeholder(__('e.g. gaji_pokok, basic_plus_fixed'))
                             ->required()
-                            ->helperText('A unique identifier used in the internal calculation logic.'),
+                            ->helperText(__('A unique identifier used in the internal calculation logic.')),
                     ])->columns(2),
 
-                Section::make('Status & Defaults')
-                    ->description('Manage the availability and default status of this BPJS basis type.')
+                Section::make(__('Status & Defaults'))
+                    ->description(__('Manage the availability and default status of this BPJS basis type.'))
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
-                            ->helperText('Determines if this basis type can be used for BPJS configurations.'),
+                            ->helperText(__('Determines if this basis type can be used for BPJS configurations.')),
                         Toggle::make('is_default')
-                            ->label('Default Basis')
+                            ->label(__('Default Basis'))
                             ->default(false)
-                            ->helperText('Sets this as the pre-selected option for new BPJS setups.'),
+                            ->helperText(__('Sets this as the pre-selected option for new BPJS setups.')),
                     ])->columns(2),
             ]);
     }

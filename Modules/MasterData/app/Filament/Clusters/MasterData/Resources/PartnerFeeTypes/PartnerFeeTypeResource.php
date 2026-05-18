@@ -49,4 +49,19 @@ class PartnerFeeTypeResource extends Resource
             'edit' => EditPartnerFeeType::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Partner Fee Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Partner Fee Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Partner Fee Types');
+    }
 }

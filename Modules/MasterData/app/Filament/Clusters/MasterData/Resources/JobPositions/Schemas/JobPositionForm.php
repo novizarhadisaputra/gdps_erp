@@ -20,45 +20,45 @@ class JobPositionForm
     public static function schema(): array
     {
         return [
-            Section::make('Job Position Information')
-                ->description('Define the job roles available for project staffing, including their risk levels and labor intensity.')
+            Section::make(__('Job Position Information'))
+                ->description(__('Define the job roles available for project staffing, including their risk levels and labor intensity.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Position Name')
+                        ->label(__('Position Name'))
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('e.g. Lead Cleaner, Security Officer')
-                        ->helperText('The official title for this job position.'),
+                        ->placeholder(__('e.g. Lead Cleaner, Security Officer'))
+                        ->helperText(__('The official title for this job position.')),
                     TextInput::make('code')
-                        ->label('Position Code')
-                        ->placeholder('Auto-generated')
+                        ->label(__('Position Code'))
+                        ->placeholder(__('Auto-generated'))
                         ->readOnly()
                         ->hiddenOn('create')
-                        ->helperText('The unique identifier for this role.'),
+                        ->helperText(__('The unique identifier for this role.')),
                     Select::make('risk_level')
-                        ->label('Risk Level')
+                        ->label(__('Risk Level'))
                         ->options(RiskLevel::class)
                         ->default(RiskLevel::VeryLow)
                         ->required()
-                        ->placeholder('Select risk level')
-                        ->helperText('The workplace safety risk associated with this role.'),
+                        ->placeholder(__('Select risk level'))
+                        ->helperText(__('The workplace safety risk associated with this role.')),
                     Toggle::make('is_labor_intensive')
-                        ->label('Labor Intensive')
+                        ->label(__('Labor Intensive'))
                         ->default(false)
-                        ->helperText('Enable if this role primarily involves physical labor.'),
+                        ->helperText(__('Enable if this role primarily involves physical labor.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this job position.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this job position.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Determines if this position can be assigned to manpower records.'),
+                        ->helperText(__('Determines if this position can be assigned to manpower records.')),
                     Toggle::make('is_default')
-                        ->label('Default Position')
+                        ->label(__('Default Position'))
                         ->default(false)
-                        ->helperText('Set as the default choice for new manpower assignments.'),
+                        ->helperText(__('Set as the default choice for new manpower assignments.')),
                 ])->columns(2),
         ];
     }

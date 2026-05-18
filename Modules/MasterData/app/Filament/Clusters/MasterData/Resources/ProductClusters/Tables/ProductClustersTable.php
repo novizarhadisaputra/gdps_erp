@@ -21,7 +21,7 @@ class ProductClustersTable
         return $table
             ->columns([
                 ImageColumn::make('logo_url')
-                    ->label('Logo')
+                    ->label(__('Logo'))
                     ->circular(),
                 TextColumn::make('code')
                     ->searchable()
@@ -31,10 +31,10 @@ class ProductClustersTable
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->boolean()
-                    ->label('Active'),
+                    ->label(__('Active')),
                 IconColumn::make('is_default')
                     ->boolean()
-                    ->label('Default'),
+                    ->label(__('Default')),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

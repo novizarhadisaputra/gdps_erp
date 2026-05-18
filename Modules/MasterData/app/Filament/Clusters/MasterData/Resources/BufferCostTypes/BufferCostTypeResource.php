@@ -49,4 +49,19 @@ class BufferCostTypeResource extends Resource
             'edit' => EditBufferCostType::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Buffer Cost Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Buffer Cost Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Buffer Cost Types');
+    }
 }

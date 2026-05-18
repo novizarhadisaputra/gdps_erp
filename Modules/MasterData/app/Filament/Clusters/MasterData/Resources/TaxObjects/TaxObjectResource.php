@@ -52,4 +52,24 @@ class TaxObjectResource extends Resource
             'edit' => EditTaxObject::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Tax Object');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Tax Objects');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Tax Objects');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Taxation');
+    }
 }

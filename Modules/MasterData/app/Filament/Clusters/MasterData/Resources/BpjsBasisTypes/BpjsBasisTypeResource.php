@@ -53,4 +53,24 @@ class BpjsBasisTypeResource extends Resource
             'edit' => EditBpjsBasisType::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Bpjs Basis Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Bpjs Basis Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Bpjs Basis Types');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Payroll & Benefits');
+    }
 }

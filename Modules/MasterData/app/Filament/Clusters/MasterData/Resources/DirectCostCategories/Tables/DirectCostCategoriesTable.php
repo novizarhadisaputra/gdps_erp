@@ -26,15 +26,15 @@ class DirectCostCategoriesTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('parent.name')
-                    ->label('Parent Category')
+                    ->label(__('Parent Category'))
                     ->sortable(),
                 TextColumn::make('description')
                     ->limit(50),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('Active'))
                     ->boolean(),
                 IconColumn::make('is_default')
-                    ->label('Default')
+                    ->label(__('Default'))
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()

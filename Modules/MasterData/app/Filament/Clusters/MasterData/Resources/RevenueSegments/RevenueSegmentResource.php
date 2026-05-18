@@ -47,4 +47,24 @@ class RevenueSegmentResource extends Resource
             'index' => ListRevenueSegments::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Revenue Segment');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Revenue Segments');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Revenue Segments');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Sales Master');
+    }
 }

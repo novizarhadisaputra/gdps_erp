@@ -59,4 +59,19 @@ class RegencyResource extends Resource
             'districts' => ManageDistricts::route('/{record}/districts'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Regency');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Regencies');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Regencies');
+    }
 }

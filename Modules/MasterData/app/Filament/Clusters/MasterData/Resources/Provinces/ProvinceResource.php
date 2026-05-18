@@ -64,4 +64,24 @@ class ProvinceResource extends Resource
             'regencies' => ManageRegencies::route('/{record}/regencies'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Province');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Provinces');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Provinces');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Geography');
+    }
 }

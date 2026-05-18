@@ -13,31 +13,31 @@ class ContractTypeForm
     {
         return $schema
             ->components([
-                Section::make('Contract Classification')
-                    ->description('Define the various types of employment contracts supported by the organization.')
+                Section::make(__('Contract Classification'))
+                    ->description(__('Define the various types of employment contracts supported by the organization.'))
                     ->schema([
                         TextInput::make('name')
-                            ->label('Contract Name')
-                            ->placeholder('e.g. PKWT, PKWTT, Freelance')
-                            ->helperText('The descriptive name of the contract type.')
+                            ->label(__('Contract Name'))
+                            ->placeholder(__('e.g. PKWT, PKWTT, Freelance'))
+                            ->helperText(__('The descriptive name of the contract type.'))
                             ->required(),
                         TextInput::make('code')
-                            ->label('Contract Code')
-                            ->placeholder('e.g. C01, PKWT-01')
-                            ->helperText('A unique short identifier for this contract type.'),
+                            ->label(__('Contract Code'))
+                            ->placeholder(__('e.g. C01, PKWT-01'))
+                            ->helperText(__('A unique short identifier for this contract type.')),
                     ])->columns(2),
 
-                Section::make('Status & Defaults')
-                    ->description('Manage the availability and default status of this contract type.')
+                Section::make(__('Status & Defaults'))
+                    ->description(__('Manage the availability and default status of this contract type.'))
                     ->schema([
                         Toggle::make('is_active')
-                            ->label('Active Status')
+                            ->label(__('Active Status'))
                             ->default(true)
-                            ->helperText('Determines if this contract type can be used for new employee contracts.'),
+                            ->helperText(__('Determines if this contract type can be used for new employee contracts.')),
                         Toggle::make('is_default')
-                            ->label('Default Contract')
+                            ->label(__('Default Contract'))
                             ->default(false)
-                            ->helperText('Sets this as the pre-selected option for new contract entries.'),
+                            ->helperText(__('Sets this as the pre-selected option for new contract entries.')),
                     ])->columns(2),
             ]);
     }

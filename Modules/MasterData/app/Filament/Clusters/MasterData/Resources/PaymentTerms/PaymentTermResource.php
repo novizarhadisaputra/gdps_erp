@@ -53,4 +53,24 @@ class PaymentTermResource extends Resource
             'edit' => EditPaymentTerm::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Payment Term');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Payment Terms');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Payment Terms');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Sales Master');
+    }
 }

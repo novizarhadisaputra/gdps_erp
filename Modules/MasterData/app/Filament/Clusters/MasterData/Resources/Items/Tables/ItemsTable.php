@@ -29,7 +29,7 @@ class ItemsTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('unitOfMeasure.code')
-                    ->label('UoM')
+                    ->label(__('UoM'))
                     ->searchable()
                     ->sortable(),
                 IconColumn::make('is_active')

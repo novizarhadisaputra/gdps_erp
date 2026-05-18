@@ -17,36 +17,36 @@ class TaxTerRatesTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->description('Average Effective Tax Rates (TER) for monthly income calculation.')
+            ->description(__('Average Effective Tax Rates (TER) for monthly income calculation.'))
             ->columns([
                 TextColumn::make('category')
-                    ->label('Category')
+                    ->label(__('Category'))
                     ->badge()
                     ->color('info')
                     ->sortable(),
                 TextColumn::make('min_gross')
-                    ->label('Min Gross Income')
+                    ->label(__('Min Gross Income'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('max_gross')
-                    ->label('Max Gross Income')
+                    ->label(__('Max Gross Income'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('rate')
-                    ->label('Rate')
+                    ->label(__('Rate'))
                     ->numeric(2)
                     ->suffix('%')
                     ->sortable(),
                 IconColumn::make('is_active')
-                    ->label('Active Status')
+                    ->label(__('Active Status'))
                     ->boolean(),
             ])
             ->filters([
                 SelectFilter::make('category')
                     ->options([
-                        'A' => 'Category A',
-                        'B' => 'Category B',
-                        'C' => 'Category C',
+                        'A' => __('Category A'),
+                        'B' => __('Category B'),
+                        'C' => __('Category C'),
                     ]),
             ])
             ->defaultSort('category')

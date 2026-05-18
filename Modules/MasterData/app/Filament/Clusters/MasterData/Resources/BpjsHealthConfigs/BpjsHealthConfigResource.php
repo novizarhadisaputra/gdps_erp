@@ -43,4 +43,24 @@ class BpjsHealthConfigResource extends Resource
             'edit' => Pages\EditBpjsHealthConfig::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Bpjs Health Config');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Bpjs Health Configs');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Bpjs Health Configs');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('BPJS & Insurance');
+    }
 }

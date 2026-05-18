@@ -20,41 +20,41 @@ class ContactRoleForm
     public static function schema(): array
     {
         return [
-            Section::make('Role Identification')
-                ->description('Define the roles that contacts can hold within an organization or project.')
+            Section::make(__('Role Identification'))
+                ->description(__('Define the roles that contacts can hold within an organization or project.'))
                 ->schema([
                     TextInput::make('name')
-                        ->label('Role Name')
-                        ->placeholder('e.g. Project Manager, Decision Maker, Technical Contact')
+                        ->label(__('Role Name'))
+                        ->placeholder(__('e.g. Project Manager, Decision Maker, Technical Contact'))
                         ->required()
                         ->maxLength(255)
                         ->unique(ContactRole::class, 'name', ignoreRecord: true)
-                        ->helperText('The descriptive name of the contact role.'),
+                        ->helperText(__('The descriptive name of the contact role.')),
                     TextInput::make('code')
-                        ->label('Role Code')
-                        ->placeholder('e.g. ROLE-PM, ROLE-DM')
+                        ->label(__('Role Code'))
+                        ->placeholder(__('e.g. ROLE-PM, ROLE-DM'))
                         ->required()
                         ->unique(ContactRole::class, 'code', ignoreRecord: true)
-                        ->helperText('Unique short code identifying this role.'),
+                        ->helperText(__('Unique short code identifying this role.')),
                     Textarea::make('description')
-                        ->label('Role Description')
-                        ->placeholder('Describe the responsibilities or context of this role...')
+                        ->label(__('Role Description'))
+                        ->placeholder(__('Describe the responsibilities or context of this role...'))
                         ->maxLength(65535)
                         ->columnSpanFull()
-                        ->helperText('Additional details about this contact role.'),
+                        ->helperText(__('Additional details about this contact role.')),
                 ])->columns(2),
 
-            Section::make('Status & Defaults')
-                ->description('Manage the availability and default status of this contact role.')
+            Section::make(__('Status & Defaults'))
+                ->description(__('Manage the availability and default status of this contact role.'))
                 ->schema([
                     Toggle::make('is_active')
-                        ->label('Active Status')
+                        ->label(__('Active Status'))
                         ->default(true)
-                        ->helperText('Inactive roles will not be available for new contacts.'),
+                        ->helperText(__('Inactive roles will not be available for new contacts.')),
                     Toggle::make('is_default')
-                        ->label('Default Role')
+                        ->label(__('Default Role'))
                         ->default(false)
-                        ->helperText('Set as the default role for primary contact persons.'),
+                        ->helperText(__('Set as the default role for primary contact persons.')),
                 ])->columns(2),
         ];
     }

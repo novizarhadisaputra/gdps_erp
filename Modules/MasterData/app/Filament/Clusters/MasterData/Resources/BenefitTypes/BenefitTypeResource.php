@@ -53,4 +53,24 @@ class BenefitTypeResource extends Resource
             'edit' => EditBenefitType::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Benefit Type');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Benefit Types');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Benefit Types');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Payroll & Benefits');
+    }
 }

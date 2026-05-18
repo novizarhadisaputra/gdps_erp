@@ -47,4 +47,24 @@ class BillingOptionResource extends Resource
             'index' => ListBillingOptions::route('/'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return __('Billing Option');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Billing Options');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Billing Options');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Sales Master');
+    }
 }
