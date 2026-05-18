@@ -78,7 +78,7 @@ class CostingTemplateInfolist
                                         ->label('Monthly Impact')
                                         ->money('IDR'),
                                 ])
-                                ->visible(fn ($record) => $record->unit_price > 0),
+                                ->visible(fn ($record) => $record?->unit_price > 0),
                         ])
                         ->columnSpanFull()
                         ->grid(1), // Force single column for better readability if needed

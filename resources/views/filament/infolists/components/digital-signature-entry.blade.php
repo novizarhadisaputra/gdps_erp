@@ -5,7 +5,7 @@
             $signatures = $getSignatures();
             $service = app(\Modules\MasterData\Services\SignatureService::class);
             $record = $getRecord();
-            $rules = $service->getRequiredApprovers($record);
+            $rules = $record ? $service->getRequiredApprovers($record) : collect();
             
             // Helper to resolve role name
             $getRoleName = function ($roleIdentifiers) {
@@ -47,8 +47,8 @@
             $stages = collect();
 
             // 1. Preparation
-            $creator = $record->creator ?? $record->lead?->creator;
-            if ($creator) {
+            $creator = $record ? ($record->creator ?? $record->lead?->creator) : null;
+            if ($creator && $record) {
                 $stages->push([
                     'label' => 'Preparation',
                     'items' => collect([

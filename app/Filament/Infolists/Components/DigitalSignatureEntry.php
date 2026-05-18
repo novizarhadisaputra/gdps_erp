@@ -11,6 +11,12 @@ class DigitalSignatureEntry extends Entry
 
     public function getSignatures(): Collection
     {
-        return $this->getRecord()->signatures()->get();
+        $record = $this->getRecord();
+
+        if (! $record) {
+            return collect();
+        }
+
+        return $record->signatures()->get();
     }
 }

@@ -45,7 +45,7 @@ class ProjectReviewInfolist
                     ->headerActions([
                         static::getApprovalAction('generalInformation'),
                     ])
-                    ->visible(fn ($record) => filled($record->general_information_id)),
+                    ->visible(fn ($record) => filled($record?->general_information_id)),
 
                 Section::make('Profitability Analysis')
                     ->description('Financial analysis and margin calculations.')
@@ -74,7 +74,7 @@ class ProjectReviewInfolist
                         static::getApproveMarginAction(),
                         static::getApprovalAction('profitabilityAnalysis'),
                     ])
-                    ->visible(fn ($record) => filled($record->profitability_analysis_id)),
+                    ->visible(fn ($record) => filled($record?->profitability_analysis_id)),
 
                 Section::make('Proposal')
                     ->description('Final proposal document and submission details.')
@@ -102,7 +102,7 @@ class ProjectReviewInfolist
                     ->headerActions([
                         static::getApprovalAction('proposal'),
                     ])
-                    ->visible(fn ($record) => filled($record->proposal_id)),
+                    ->visible(fn ($record) => filled($record?->proposal_id)),
             ]);
     }
 
@@ -173,6 +173,9 @@ class ProjectReviewInfolist
                 }
             })
             ->visible(function ($record) use ($relation) {
+                if (! $record) {
+                    return false;
+                }
                 $subRecord = $record->{$relation};
                 if (! $subRecord) {
                     return false;
@@ -233,6 +236,9 @@ class ProjectReviewInfolist
                 Notification::make()->title('Margin Approved')->success()->send();
             })
             ->visible(function ($record) {
+                if (! $record) {
+                    return false;
+                }
                 $pa = $record->profitabilityAnalysis;
 
                 return $pa &&

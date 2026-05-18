@@ -16,10 +16,10 @@ return new class extends Migration
             $table->string('number')->nullable();
             $table->integer('sequence_number')->nullable();
             $table->integer('year')->nullable();
-            $table->foreignUuid('lead_id')->constrained()->cascadeOnDelete();
-            $table->foreignUuid('general_information_id')->nullable()->constrained('general_informations')->nullOnDelete();
-            $table->foreignUuid('profitability_analysis_id')->nullable()->constrained('profitability_analyses')->nullOnDelete();
-            $table->foreignUuid('proposal_id')->nullable()->constrained('proposals')->nullOnDelete();
+            $table->foreignUuid('lead_id')->constrained(config('database.default') === 'sqlite' ? 'crm_leads' : 'crm.leads')->cascadeOnDelete();
+            $table->foreignUuid('general_information_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_general_informations' : 'crm.general_informations')->nullOnDelete();
+            $table->foreignUuid('profitability_analysis_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'finance_profitability_analyses' : 'finance.profitability_analyses')->nullOnDelete();
+            $table->foreignUuid('proposal_id')->nullable()->constrained(config('database.default') === 'sqlite' ? 'crm_proposals' : 'crm.proposals')->nullOnDelete();
 
             $table->string('status')->default('draft');
             $table->integer('revision_number')->default(0);
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('project_reviews');
+        Schema::dropIfExists(config('database.default') === 'sqlite' ? 'crm_project_reviews' : 'crm.project_reviews');
     }
 };

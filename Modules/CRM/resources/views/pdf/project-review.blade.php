@@ -371,7 +371,11 @@
                 if ($record->proposal) {
                     $allSignatures = $allSignatures->merge($record->proposal->signatures->map(fn($s) => ['type' => 'Proposal', 'sig' => $s]));
                 }
-                $uniqueSignatures = $allSignatures->groupBy(fn($item) => $item['sig']->user_id . '_' . $item['sig']->signature_type);
+                $uniqueSignatures = $allSignatures->groupBy(function ($item) {
+                    $sig = $item['sig'];
+                    $typeStr = $sig->signature_type instanceof \BackedEnum ? $sig->signature_type->value : $sig->signature_type;
+                    return $sig->user_id . '_' . $typeStr;
+                });
             @endphp
 
             @if($uniqueSignatures->isNotEmpty())
@@ -384,9 +388,10 @@
                                     $sig = $first['sig'];
                                     $qrUrl = $signatureService->createSignatureData($sig->user, $sig->signable, $sig->signature_type ?: 'approved');
                                     $qrCodeUri = $signatureService->generateQRCode($qrUrl);
+                                    $roleLabel = $sig->role ?? ($sig->signature_type instanceof \BackedEnum ? $sig->signature_type->getLabel() : ($sig->signature_type ?: 'Manual Approval'));
                                 @endphp
                                 <td class="signature-box" style="border: none;">
-                                    <div class="signature-role">{{ $sig->signature_type ?: 'Manual Approval' }}</div>
+                                    <div class="signature-role">{{ $roleLabel }}</div>
                                     <div class="qr-code">
                                         <img src="{{ $qrCodeUri }}" />
                                     </div>

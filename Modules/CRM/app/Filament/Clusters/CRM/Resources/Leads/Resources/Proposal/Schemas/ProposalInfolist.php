@@ -36,7 +36,7 @@ class ProposalInfolist
                                     ->label('Profitability Analysis (PA)')
                                     ->color('primary')
                                     ->weight(FontWeight::Bold)
-                                    ->url(fn ($record) => $record->profitability_analysis_id ? \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::getUrl('view', ['record' => $record->profitability_analysis_id]) : null),
+                                    ->url(fn ($record) => $record?->profitability_analysis_id ? \Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource::getUrl('view', ['record' => $record->profitability_analysis_id]) : null),
                                 TextEntry::make('workScheme.name')
                                     ->label('Work Scheme'),
                                 TextEntry::make('product_cluster_id')
