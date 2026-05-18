@@ -290,19 +290,20 @@
                             </td>
                             <td class="text-center">
                                 @if (($item->calculation_type ?? 'fixed') === 'percentage')
-                                    {{ (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0) }}% of {{ $item->percentage_basis ?? 'rev' }}
+                                    {{ (float) ($item->unit_cost_price ?? 0) }}% of {{ $item->percentage_basis ?? 'rev' }}
                                 @else
                                     Fixed
                                 @endif
                             </td>
                             <td class="text-right">
                                 @php
-                                    $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
-                                    $finalVal = $val;
                                     if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                                        $val = (float) ($item->unit_cost_price ?? 0);
                                         $basis = $item->percentage_basis ?? 'revenue';
                                         $basisValue = $basis === 'revenue' ? (float) $record->revenue_per_month : (float) $record->direct_cost;
                                         $finalVal = $basisValue * ($val / 100);
+                                    } else {
+                                        $finalVal = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
                                     }
                                 @endphp
                                 {{ $formatMoney($finalVal) }}

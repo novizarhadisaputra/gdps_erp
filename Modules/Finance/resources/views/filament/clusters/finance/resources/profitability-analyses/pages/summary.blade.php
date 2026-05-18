@@ -103,7 +103,7 @@
                                 -</td>
                             <td
                                 class="px-8 py-5 text-right font-black text-slate-950 dark:text-white tabular-nums text-lg">
-                                @money($record->revenue_per_month, 'IDR', true)
+                                @money($record->revenue_per_month, 'IDR', false)
                             </td>
                         </tr>
                         <tr>
@@ -112,7 +112,7 @@
                                 Base Project Fee / Price</td>
                             <td class="px-8 py-3 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-6 py-2 text-right text-xs text-gray-400 tabular-nums">
-                                @money($record->revenue_per_month - $record->management_fee, 'IDR', true)
+                                @money($record->revenue_per_month - $record->management_fee, 'IDR', false)
                             </td>
                         </tr>
                         @if ($record->management_fee > 0)
@@ -124,7 +124,7 @@
                                     class="px-6 py-2 text-center text-[10px] font-black text-primary-600 border-r border-gray-200 dark:border-gray-700 tabular-nums">
                                     {{ number_format($record->management_fee_rate, 2, ',', '.') }}%</td>
                                 <td class="px-6 py-2 text-right text-xs text-gray-600 tabular-nums">
-                                    @money($record->management_fee, 'IDR', true)
+                                    @money($record->management_fee, 'IDR', false)
                                 </td>
                             </tr>
                         @endif
@@ -139,7 +139,7 @@
                                 class="px-8 py-5 text-center border-r border-slate-200 dark:border-slate-700 text-slate-400">
                                 -</td>
                             <td class="px-8 py-5 text-right font-black text-slate-900 dark:text-slate-100 tabular-nums">
-                                @money($record->direct_cost, 'IDR', true)
+                                @money($record->direct_cost, 'IDR', false)
                             </td>
                         </tr>
 
@@ -158,7 +158,7 @@
                                     {{ $category?->name === 'Manpower' ? (int) $items->sum('quantity') . ' Headcount' : '-' }}
                                 </td>
                                 <td class="px-8 py-3 text-right text-xs text-gray-600 tabular-nums">
-                                    @money($items->sum(fn($i) => (float)($i->monthly_contribution ?? 0)), 'IDR', true)
+                                    @money($items->sum(fn($i) => (float)($i->monthly_contribution ?? 0)), 'IDR', false)
                                 </td>
                             </tr>
                         @endforeach
@@ -178,7 +178,7 @@
                             </td>
                             <td
                                 class="px-8 py-6 text-right font-black text-emerald-700 dark:text-emerald-400 text-xl tabular-nums">
-                                @money($record->revenue_per_month - $record->direct_cost, 'IDR', true)
+                                @money($record->revenue_per_month - $record->direct_cost, 'IDR', false)
                             </td>
                         </tr>
 
@@ -193,7 +193,7 @@
                                 class="px-8 py-5 text-center border-r border-slate-200 dark:border-slate-700 text-slate-400">
                                 -</td>
                             <td class="px-8 py-5 text-right font-black text-slate-800 dark:text-slate-200 tabular-nums">
-                                @money($record->getTotalIndirectCost(), 'IDR', true)</td>
+                                @money($record->getTotalIndirectCost(), 'IDR', false)</td>
                         </tr>
 
                         @php
@@ -208,22 +208,23 @@
                                 <td
                                     class="px-8 py-3 text-center text-[9px] font-mono text-gray-300 border-r border-gray-200 dark:border-gray-700 tabular-nums">
                                     @if (($item->calculation_type ?? 'fixed') === 'percentage')
-                                        {{ number_format((float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0), 2) }}% of {{ $item->percentage_basis ?? 'rev' }}
+                                        {{ number_format((float) ($item->unit_cost_price ?? 0), 2) }}% of {{ $item->percentage_basis ?? 'rev' }}
                                     @else
                                         Fixed
                                     @endif
                                 </td>
                                 <td class="px-8 py-3 text-right text-xs text-gray-500 tabular-nums">
                                     @php
-                                        $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
-                                        $finalVal = $val;
                                         if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                                            $val = (float) ($item->unit_cost_price ?? 0);
                                             $basis = $item->percentage_basis ?? 'revenue';
                                             $basisValue = $basis === 'revenue' ? (float) $record->revenue_per_month : (float) $record->direct_cost;
                                             $finalVal = $basisValue * ($val / 100);
+                                        } else {
+                                            $finalVal = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
                                         }
                                     @endphp
-                                    @money($finalVal, 'IDR', true)
+                                    @money($finalVal, 'IDR', false)
                                 </td>
                             </tr>
                         @endforeach
@@ -236,7 +237,7 @@
                             </td>
                             <td class="px-8 py-5 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-5 text-right font-black text-amber-600 dark:text-amber-400 tabular-nums">
-                                @money($record->ebitda, 'IDR', true)
+                                @money($record->ebitda, 'IDR', false)
                             </td>
                         </tr>
                         <tr>
@@ -245,7 +246,7 @@
                                 Depreciation & Amortization</td>
                             <td class="px-8 py-3 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-3 text-right text-xs text-gray-400 tabular-nums">
-                                (@money($record->depreciation + $record->manual_depreciation, 'IDR', true))
+                                (@money($record->depreciation + $record->manual_depreciation, 'IDR', false))
                             </td>
                         </tr>
 
@@ -256,7 +257,7 @@
                                 EBIT (Earnings Before Interest & Tax)</td>
                             <td class="px-8 py-4 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-4 text-right font-bold text-gray-700 dark:text-gray-300 tabular-nums">
-                                @money($record->ebit, 'IDR', true)
+                                @money($record->ebit, 'IDR', false)
                             </td>
                         </tr>
                         <tr>
@@ -267,7 +268,7 @@
                                 class="px-8 py-3 text-center text-[10px] font-black text-amber-600 border-r border-gray-200 dark:border-gray-700 tabular-nums">
                                 {{ number_format($record->interest_rate, 2, ',', '.') }}%</td>
                             <td class="px-8 py-3 text-right text-xs text-gray-400 tabular-nums">
-                                (@money($record->ebit - $record->ebt, 'IDR', true))
+                                (@money($record->ebit - $record->ebt, 'IDR', false))
                             </td>
                         </tr>
                         <tr class="bg-gray-50/30 dark:bg-gray-900/20 font-black">
@@ -276,7 +277,7 @@
                                 (Earnings Before Tax)</td>
                             <td class="px-8 py-4 text-center border-r border-gray-200 dark:border-gray-700">-</td>
                             <td class="px-8 py-4 text-right tabular-nums">
-                                @money($record->ebt, 'IDR', true)
+                                @money($record->ebt, 'IDR', false)
                             </td>
                         </tr>
                         <tr>
@@ -288,7 +289,7 @@
                                 {{ number_format($record->tax_rate, 2, ',', '.') }}%</td>
                             <td class="px-8 py-3 text-right text-xs text-slate-500 tabular-nums">
                                 (
-                                @money($record->ebt - $record->net_profit, 'IDR', true)
+                                @money($record->ebt - $record->net_profit, 'IDR', false)
                                 )
                             </td>
                         </tr>
@@ -305,7 +306,7 @@
                                     {{ number_format($record->net_profit_margin, 2, ',', '.') }}%</div>
                             </td>
                             <td class="px-8 py-6 text-right text-4xl font-black tabular-nums shadow-inner">
-                                @money($record->net_profit, 'IDR', true)
+                                @money($record->net_profit, 'IDR', false)
                             </td>
                         </tr>
                     </tbody>

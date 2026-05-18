@@ -148,12 +148,13 @@ class ProfitabilityAnalysisExport implements FromView, ShouldAutoSize, WithColum
         foreach ($indirectItems as $item) {
             $catName = $item->category?->name ?? 'Others';
 
-            $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
-            $finalVal = $val;
             if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                $val = (float) ($item->unit_cost_price ?? 0);
                 $basis = $item->percentage_basis ?? 'revenue';
                 $basisValue = $basis === 'revenue' ? (float) $pa->revenue_per_month : (float) $pa->direct_cost;
                 $finalVal = $basisValue * ($val / 100);
+            } else {
+                $finalVal = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
             }
             $amount = $finalVal;
 

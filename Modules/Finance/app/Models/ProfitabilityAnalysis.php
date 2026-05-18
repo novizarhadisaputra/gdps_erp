@@ -4,6 +4,7 @@ namespace Modules\Finance\Models;
 
 use App\Models\Comment;
 use App\Traits\HasModuleSchema;
+use App\Traits\ParsesCurrency;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -42,7 +43,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class ProfitabilityAnalysis extends Model implements HasMedia
 {
     use HasDigitalSignatures, HasFactory, HasUuids, InteractsWithMedia, SoftDeletes;
-    use HasModuleSchema;
+    use HasModuleSchema, ParsesCurrency;
 
     public ?string $revision_reason = null;
 
@@ -312,13 +313,13 @@ class ProfitabilityAnalysis extends Model implements HasMedia
 
         $total = 0;
         foreach ($items as $item) {
-            $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
-
             if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                $val = (float) ($item->unit_cost_price ?? 0);
                 $basis = $item->percentage_basis ?? 'revenue';
                 $basisValue = $basis === 'revenue' ? $revenue : $directCost;
                 $total += $basisValue * ($val / 100);
             } else {
+                $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
                 $total += $val;
             }
         }
@@ -381,50 +382,7 @@ class ProfitabilityAnalysis extends Model implements HasMedia
 
     protected static function parseNumericValue(mixed $value): float
     {
-        if (is_numeric($value)) {
-            return (float) $value;
-        }
-
-        if (! is_string($value) || empty($value)) {
-            return 0.0;
-        }
-
-        // Remove any non-numeric/separator characters (except minus sign)
-        $value = preg_replace('/[^\d\.,-]/', '', $value);
-
-        if (empty($value)) {
-            return 0.0;
-        }
-
-        // Determine if it's Indonesian format (1.234,56) or US format (1,234.56)
-        $dots = substr_count($value, '.');
-        $commas = substr_count($value, ',');
-
-        if ($dots > 0 && $commas > 0) {
-            // Mixed separators - usually the last one is the decimal
-            $lastDot = strrpos($value, '.');
-            $lastComma = strrpos($value, ',');
-
-            if ($lastDot > $lastComma) {
-                // US Format: 1,234.56 -> remove commas
-                $value = str_replace(',', '', $value);
-            } else {
-                // ID Format: 1.234,56 -> remove dots, replace comma with dot
-                $value = str_replace('.', '', $value);
-                $value = str_replace(',', '.', $value);
-            }
-        } elseif ($commas > 0 && $dots === 0) {
-            // Only commas - could be 1,234 (US thousands) or 1234,56 (ID decimal)
-            // In most ERP contexts here, a single comma in a string without dots is treated as decimal
-            // unless it's clearly a thousand separator (e.g. 1,000).
-            // However, to be safe for ID context:
-            $value = str_replace(',', '.', $value);
-        } elseif ($dots > 1) {
-            // Multiple dots - must be thousand separators (ID: 1.000.000)
-            $value = str_replace('.', '', $value);
-        }
-
-        return (float) $value;
+        return self::parseCurrency($value);
     }
 
     public function getManpowerRequirementsAttribute(): array

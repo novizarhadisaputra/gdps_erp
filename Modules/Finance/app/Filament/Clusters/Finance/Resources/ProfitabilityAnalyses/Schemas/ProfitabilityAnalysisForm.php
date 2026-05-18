@@ -2,6 +2,7 @@
 
 namespace Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\Schemas;
 
+use App\Traits\ParsesCurrency;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -46,6 +47,8 @@ use Modules\MasterData\Models\UnitOfMeasure;
 
 class ProfitabilityAnalysisForm
 {
+    use ParsesCurrency;
+
     protected static array $modelCache = [];
 
     protected static function getCachedModel(string $modelClass, mixed $id): ?object
@@ -63,50 +66,7 @@ class ProfitabilityAnalysisForm
 
     protected static function parseNumericValue(mixed $value): float
     {
-        if (empty($value)) {
-            return 0.0;
-        }
-
-        if (is_float($value) || is_int($value)) {
-            return (float) $value;
-        }
-
-        // Convert to string and sanitize
-        $value = (string) $value;
-
-        // Remove any IDR / Currency symbols and spaces
-        $value = preg_replace('/[^\d\.,-]/', '', $value);
-
-        // Detect format: If multiple dots exist, period is thousand separator (ID)
-        // If comma exists and period exists, and comma is later, period is thousand
-        $dots = substr_count($value, '.');
-        $commas = substr_count($value, ',');
-
-        if ($dots > 1 || ($dots === 1 && $commas === 1 && strpos($value, '.') < strpos($value, ','))) {
-            // ID Format: 1.000.000,50
-            $value = str_replace('.', '', $value);
-            $value = str_replace(',', '.', $value);
-        } elseif ($dots === 1 && $commas === 0) {
-            // Ambiguous Case: 1.000 or 1.23
-            // In ID financial context, we usually use thousand separator with 3 digits
-            $afterDot = substr($value, strpos($value, '.') + 1);
-            if (strlen($afterDot) === 3) {
-                // Likely thousand: 1.000
-                $value = str_replace('.', '', $value);
-            }
-            // If not 3 digits, we leave it as decimal (e.g. 1.23 or 1.5)
-        } elseif ($commas > 0) {
-            // US/Mixed Format: 1,000,000.50 or 1,000.00 or 1,5
-            // If only commas, it's likely ID decimal or US thousand.
-            // But if it's followed by 2 digits, it's likely decimal in ID.
-            if ($commas === 1 && $dots === 0) {
-                $value = str_replace(',', '.', $value);
-            } else {
-                $value = str_replace(',', '', $value);
-            }
-        }
-
-        return (float) $value;
+        return self::parseCurrency($value);
     }
 
     public static function configure(Schema $schema, int|Closure $startStep = 1): Schema
@@ -367,7 +327,7 @@ class ProfitabilityAnalysisForm
 
                         Grid::make(3)
                             ->schema([
-                                Toggle::make('require_manpower_costing')
+                                Toggle::make('analysis_details.require_manpower_costing')
                                     ->label('Require Manpower Costing')
                                     ->default(true)
                                     ->hidden(function (Get $get) {
@@ -375,7 +335,7 @@ class ProfitabilityAnalysisForm
                                     })
                                     ->live()
                                     ->dehydrated(),
-                                Toggle::make('require_operational_costing')
+                                Toggle::make('analysis_details.require_operational_costing')
                                     ->label('Require Operational Costing')
                                     ->default(true)
                                     ->hidden(function (Get $get) {
@@ -391,12 +351,12 @@ class ProfitabilityAnalysisForm
                                     ->dehydrated()
                                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                                         if ($state) {
-                                            $set('require_manpower_costing', false);
-                                            $set('require_operational_costing', false);
+                                            $set('analysis_details.require_manpower_costing', false);
+                                            $set('analysis_details.require_operational_costing', false);
                                         } else {
                                             // Auto-enable detail costing when manual mode is turned off
-                                            $set('require_manpower_costing', true);
-                                            $set('require_operational_costing', true);
+                                            $set('analysis_details.require_manpower_costing', true);
+                                            $set('analysis_details.require_operational_costing', true);
                                         }
                                         self::calculateDirectCost($get, $set);
                                     }),
@@ -463,7 +423,7 @@ class ProfitabilityAnalysisForm
                         return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
                     })
                     ->visible(function (Get $get) {
-                        return (bool) $get('is_manual_cost') || (bool) $get('require_manpower_costing');
+                        return (bool) $get('is_manual_cost') || (bool) $get('analysis_details.require_manpower_costing');
                     })
                     ->schema([
                         Select::make('analysis_details.manpower_template_id')
@@ -503,16 +463,18 @@ class ProfitabilityAnalysisForm
                         TextEntry::make('manpower_preview')
                             ->label('Personnel Summary')
                             ->state(function (Get $get) {
-                                return new HtmlString(self::getManpowerPreviewHtml($get('analysis_details.manpower_template_id')));
+                                return new HtmlString(self::getManpowerPreviewHtml(
+                                    $get('analysis_details.manpower_template_id'),
+                                    $get('analysis_details.manpower_snapshot')
+                                ));
                             })
                             ->html()
                             ->visible(function (Get $get) {
                                 $templateId = $get('analysis_details.manpower_template_id');
-                                if (! $templateId) {
-                                    return false;
+                                $snapshot = $get('analysis_details.manpower_snapshot');
+                                if (! empty($snapshot)) {
+                                    return true;
                                 }
-
-                                $templateId = $get('analysis_details.manpower_template_id');
                                 if (! $templateId) {
                                     return false;
                                 }
@@ -522,33 +484,10 @@ class ProfitabilityAnalysisForm
                                 return $template && $template->items()->exists();
                             }),
 
-                        Repeater::make('manpowerItems')
-                            ->label('Personnel Details')
-                            ->schema([
-                                Grid::make(4)
-                                    ->schema([
-                                        Select::make('job_position_id')
-                                            ->label('Job Position')
-                                            ->options(JobPosition::pluck('name', 'id'))
-                                            ->disabled()
-                                            ->columnSpan(2),
-                                        TextInput::make('quantity')
-                                            ->label('Qty')
-                                            ->numeric()
-                                            ->disabled()
-                                            ->columnSpan(1),
-                                        TextInput::make('total_monthly_cost')
-                                            ->label('Monthly Cost')
-                                            ->numeric()
-                                            ->prefix('Rp')
-                                            ->disabled()
-                                            ->columnSpan(1),
-                                    ]),
-                            ])
-                            ->addable(false)
-                            ->deletable(false)
-                            ->reorderable(false)
-                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && ! empty($get('manpowerItems')))
+                        Hidden::make('manpowerItems')
+                            ->dehydrated(),
+
+                        Hidden::make('analysis_details.manpower_snapshot')
                             ->dehydrated(),
                     ]),
 
@@ -559,7 +498,7 @@ class ProfitabilityAnalysisForm
                     ->icon(Heroicon::ShoppingCart)
                     ->disabled(fn ($record) => $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]))
                     ->visible(function (Get $get) {
-                        return (bool) $get('is_manual_cost') || (bool) $get('require_operational_costing');
+                        return (bool) $get('is_manual_cost') || (bool) $get('analysis_details.require_operational_costing');
                     })
                     ->schema([
                         Select::make('analysis_details.costing_template_id')
@@ -613,39 +552,6 @@ class ProfitabilityAnalysisForm
 
                                 return $template && $template->costingTemplateItems()->exists();
                             }),
-
-                        Repeater::make('operationalItems')
-                            ->label('Equipment & Material Details')
-                            ->schema([
-                                Grid::make(5)
-                                    ->schema([
-                                        Select::make('costable_id')
-                                            ->label('Item/Packet')
-                                            ->options(Item::pluck('name', 'id'))
-                                            ->disabled()
-                                            ->columnSpan(2),
-                                        TextInput::make('quantity')
-                                            ->label('Qty')
-                                            ->numeric()
-                                            ->disabled()
-                                            ->columnSpan(1),
-                                        TextInput::make('unit_of_measure')
-                                            ->label('UoM')
-                                            ->disabled()
-                                            ->columnSpan(1),
-                                        TextInput::make('total_monthly_cost')
-                                            ->label('Monthly Cost')
-                                            ->numeric()
-                                            ->prefix('Rp')
-                                            ->disabled()
-                                            ->columnSpan(1),
-                                    ]),
-                            ])
-                            ->addable(false)
-                            ->deletable(false)
-                            ->reorderable(false)
-                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost') && ! empty($get('operationalItems')))
-                            ->dehydrated(),
                     ]),
 
                 Step::make('Manual Costing')
@@ -1081,42 +987,6 @@ class ProfitabilityAnalysisForm
                         return $record && ! in_array($record->status?->value ?? $record->status, [ProfitabilityAnalysisStatus::Draft->value, ProfitabilityAnalysisStatus::Rejected->value]);
                     })
                     ->schema([
-                        Section::make('Automated Cost Review')
-                            ->description('Aggregated monthly costs calculated from personnel, tools, and indirect inputs.')
-                            ->visible(fn (Get $get) => ! (bool) $get('is_manual_cost'))
-                            ->icon(Heroicon::MagnifyingGlassCircle)
-                            ->collapsible()
-                            ->schema([
-                                Grid::make(4)
-                                    ->schema([
-                                        TextInput::make('direct_cost_manpower')
-                                            ->label('Personnel (Monthly)')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->readOnly()
-                                            ->helperText('Otomatis dari tab Manpower.'),
-                                        TextInput::make('direct_cost_tools')
-                                            ->label('Tools & Eq (Monthly)')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->readOnly()
-                                            ->helperText('Otomatis dari tab Operational.'),
-                                        TextInput::make('direct_cost_material')
-                                            ->label('Materials (Monthly)')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->readOnly()
-                                            ->helperText('Otomatis dari tab Operational.'),
-                                        TextInput::make('avg_monthly_indirect_cost')
-                                            ->label('Indirect (Monthly)')
-                                            ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
-                                            ->prefix('IDR ')
-                                            ->readOnly()
-                                            ->dehydrated(false)
-                                            ->helperText('Otomatis dari tab Indirect.'),
-                                    ]),
-                            ]),
-
                         Section::make('Monthly Performance Metrics')
                             ->description('Monthly average revenue, cost, and profit.')
                             ->schema([
@@ -1191,7 +1061,7 @@ class ProfitabilityAnalysisForm
                                 // Cek apakah ada salah satu kategori yang > 0
                                 $categories = DirectCostCategory::where('type', 'direct')->whereNull('parent_id')->pluck('id');
                                 foreach ($categories as $id) {
-                                    if ((float) $get("cost_breakdown_{$id}") > 0) {
+                                    if ((float) $get("analysis_details.cost_breakdown_{$id}") > 0) {
                                         return true;
                                     }
                                 }
@@ -1205,12 +1075,12 @@ class ProfitabilityAnalysisForm
                                     Grid::make(3)
                                         ->schema(
                                             $categories->map(function ($cat) {
-                                                return TextInput::make("cost_breakdown_{$cat->id}")
+                                                return TextInput::make("analysis_details.cost_breakdown_{$cat->id}")
                                                     ->label($cat->name)
                                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                                     ->prefix('IDR ')
                                                     ->readOnly()
-                                                    ->visible(fn (Get $get) => (float) $get("cost_breakdown_{$cat->id}") > 0)
+                                                    ->visible(fn (Get $get) => (float) $get("analysis_details.cost_breakdown_{$cat->id}") > 0)
                                                     ->dehydrated();
                                             })->toArray()
                                         ),
@@ -1242,6 +1112,16 @@ class ProfitabilityAnalysisForm
                                             ->readOnly()
                                             ->dehydrated()
                                             ->extraAttributes(['class' => 'font-bold text-primary-600']),
+                                        Hidden::make('revenue_per_month'),
+                                        Hidden::make('direct_cost'),
+                                        Hidden::make('depreciation'),
+                                        Hidden::make('management_fee'),
+                                        Hidden::make('gross_profit'),
+                                        Hidden::make('ebitda'),
+                                        Hidden::make('ebit'),
+                                        Hidden::make('ebt'),
+                                        Hidden::make('net_profit'),
+                                        Hidden::make('net_profit_margin'),
                                     ]),
                             ]),
                     ]),
@@ -1478,7 +1358,7 @@ class ProfitabilityAnalysisForm
 
         // Set dynamic breakdown fields
         foreach ($categoryTotals as $catId => $total) {
-            $set($root."cost_breakdown_{$catId}", $total);
+            $set($root."analysis_details.cost_breakdown_{$catId}", $total);
         }
 
         $set($root.'total_project_cost_direct', $totalProjectCost);
@@ -1591,6 +1471,7 @@ class ProfitabilityAnalysisForm
         if (! $state) {
             $set('manpowerItems', []);
             $set('analysis_details.manpower_template_id', null);
+            $set('analysis_details.manpower_snapshot', null);
 
             return;
         }
@@ -1600,19 +1481,40 @@ class ProfitabilityAnalysisForm
         if ($template) {
             $set('analysis_details.manpower_template_id', $state);
 
-            $items = $template->items->map(function ($item) {
+            $service = app(ManpowerCostingService::class);
+            $snapshotItems = [];
+
+            $items = $template->items->map(function ($item) use ($service, &$snapshotItems) {
                 /** @var \Modules\CRM\Models\ManpowerTemplateItem $item */
+                $calc = $service->calculateForTemplateItem($item);
+                $unitDirectCost = (float) ($calc['total_direct_cost'] ?? 0);
+                $qty = (int) ($item->quantity ?? 0);
+                $totalCost = $unitDirectCost * $qty;
+
+                $snapshotItems[] = [
+                    'job_position_id' => $item->job_position_id,
+                    'job_position_name' => $item->jobPosition?->name,
+                    'quantity' => $qty,
+                    'basic_salary' => (float) $item->basic_salary,
+                    'allowances' => $item->allowances,
+                    'extra_costs' => $item->extra_costs,
+                    'bpjs_active' => (bool) $item->is_bpjs_active,
+                    'unit_cost' => $unitDirectCost,
+                    'total_cost' => $totalCost,
+                ];
+
                 return [
                     'job_position_id' => $item->job_position_id,
-                    'quantity' => $item->count,
-                    'unit_cost_price' => $item->salary,
-                    'total_monthly_cost' => $item->total_salary,
+                    'quantity' => $qty,
+                    'unit_cost_price' => $unitDirectCost,
+                    'total_monthly_cost' => $totalCost,
                     'is_manpower' => true,
-                    'is_bpjs_active' => true,
+                    'is_bpjs_active' => (bool) $item->is_bpjs_active,
                 ];
             })->toArray();
 
             $set('manpowerItems', $items);
+            $set('analysis_details.manpower_snapshot', $snapshotItems);
 
             // Sync to the central manual costs summary immediately
             self::syncItemsToManualCosts($get, $set, 'manpower');
@@ -1841,14 +1743,10 @@ class ProfitabilityAnalysisForm
         $set($root.'avg_monthly_indirect_cost', $indirectCost);
     }
 
-    protected static function getManpowerPreviewHtml($templateId): string
+    protected static function getManpowerPreviewHtml($templateId, ?array $snapshot = null): string
     {
-        if (! $templateId) {
+        if (empty($snapshot) && ! $templateId) {
             return 'No template selected.';
-        }
-        $record = ManpowerTemplate::with(['items.jobPosition'])->find($templateId);
-        if (! $record) {
-            return 'Template not found.';
         }
 
         $rows = '';
@@ -1857,24 +1755,62 @@ class ProfitabilityAnalysisForm
         $totalBpjs = 0;
         $totalAll = 0;
 
-        foreach ($record->items as $item) {
-            $totalMonthly = (float) ($item->total_monthly_cost ?? 0);
-            $basic = (float) ($item->basic_salary ?? 0);
-            $bpjs = $totalMonthly - $basic;
-            $qty = (int) ($item->quantity ?? 0);
+        if (! empty($snapshot)) {
+            foreach ($snapshot as $item) {
+                $qty = (int) ($item['quantity'] ?? 0);
+                $unitBasic = (float) ($item['basic_salary'] ?? 0);
+                $unitTotal = (float) ($item['unit_cost'] ?? 0);
 
-            $totalQuantity += $qty;
-            $totalBasic += $basic;
-            $totalBpjs += $bpjs;
-            $totalAll += $totalMonthly;
+                $rowBasic = $unitBasic * $qty;
+                $rowTotal = $unitTotal * $qty;
+                $rowBpjs = $rowTotal - $rowBasic;
 
-            $rows .= "<tr>
-                <td style='border: 1px solid #ddd; padding: 12px; text-align: left; background: white;'>{$item->jobPosition?->name}</td>
-                <td style='border: 1px solid #ddd; padding: 12px; text-align: center; background: white;'>{$qty}</td>
-                <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($basic, 0, ',', '.')."</td>
-                <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($bpjs, 0, ',', '.')."</td>
-                <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white; font-weight: bold; color: #059669;'>Rp ".number_format($totalMonthly, 0, ',', '.').'</td>
-            </tr>';
+                $totalQuantity += $qty;
+                $totalBasic += $rowBasic;
+                $totalBpjs += $rowBpjs;
+                $totalAll += $rowTotal;
+
+                $jobPositionName = $item['job_position_name'] ?? 'Unknown Position';
+
+                $rows .= "<tr>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: left; background: white;'>{$jobPositionName}</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: center; background: white;'>{$qty}</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($rowBasic, 0, ',', '.')."</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($rowBpjs, 0, ',', '.')."</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white; font-weight: bold; color: #059669;'>Rp ".number_format($rowTotal, 0, ',', '.').'</td>
+                </tr>';
+            }
+        } else {
+            $record = ManpowerTemplate::with(['items.jobPosition'])->find($templateId);
+            if (! $record) {
+                return 'Template not found.';
+            }
+
+            $service = app(ManpowerCostingService::class);
+            foreach ($record->items as $item) {
+                $calc = $service->calculateForTemplateItem($item);
+
+                $qty = (int) ($item->quantity ?? 0);
+                $unitBasic = (float) ($item->basic_salary ?? 0);
+                $unitDirectCost = (float) ($calc['total_direct_cost'] ?? 0);
+
+                $rowBasic = $unitBasic * $qty;
+                $rowTotal = $unitDirectCost * $qty;
+                $rowBpjs = $rowTotal - $rowBasic;
+
+                $totalQuantity += $qty;
+                $totalBasic += $rowBasic;
+                $totalBpjs += $rowBpjs;
+                $totalAll += $rowTotal;
+
+                $rows .= "<tr>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: left; background: white;'>{$item->jobPosition?->name}</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: center; background: white;'>{$qty}</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($rowBasic, 0, ',', '.')."</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white;'>Rp ".number_format($rowBpjs, 0, ',', '.')."</td>
+                    <td style='border: 1px solid #ddd; padding: 12px; text-align: right; background: white; font-weight: bold; color: #059669;'>Rp ".number_format($rowTotal, 0, ',', '.').'</td>
+                </tr>';
+            }
         }
 
         return "<div class='overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm'>

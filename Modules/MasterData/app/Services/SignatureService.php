@@ -20,7 +20,7 @@ use Modules\CRM\Models\MinutesOfAgreement;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesOrder;
 use Modules\CRM\Models\SalesOrderAmendment;
-use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalysis\ProfitabilityAnalysisResource;
+use Modules\Finance\Filament\Clusters\Finance\Resources\ProfitabilityAnalyses\ProfitabilityAnalysisResource;
 use Modules\Finance\Models\ProfitabilityAnalysis;
 use Modules\Logistics\Filament\Clusters\Logistics\Resources\PurchaseOrder\PurchaseOrderResource as LogisticsPurchaseOrderResource;
 use Modules\Logistics\Filament\Clusters\Logistics\Resources\PurchaseRequest\PurchaseRequestResource as LogisticsPurchaseRequestResource;

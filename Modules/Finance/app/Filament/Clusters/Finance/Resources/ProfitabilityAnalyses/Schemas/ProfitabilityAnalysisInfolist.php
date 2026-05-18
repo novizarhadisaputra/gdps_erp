@@ -202,16 +202,17 @@ class ProfitabilityAnalysisInfolist
                                         return $items->map(function (object $item) use ($record) {
                                             /** @var object $item */
                                             $name = $item->category->name ?? 'Miscellaneous';
-                                            $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
-                                            $formattedVal = number_format($val, 0, ',', '.');
-
                                             if (($item->calculation_type ?? 'fixed') === 'percentage') {
+                                                $val = (float) ($item->unit_cost_price ?? 0);
                                                 $basis = $item->percentage_basis ?? 'revenue';
                                                 $basisValue = $basis === 'revenue' ? (float) $record->revenue_per_month : (float) $record->direct_cost;
                                                 $calc = number_format($basisValue * ($val / 100), 0, ',', '.');
 
                                                 return "• {$name}: {$val}% of {$basis} (IDR {$calc})";
                                             }
+
+                                            $val = (float) ($item->total_monthly_cost ?? $item->unit_cost_price ?? 0);
+                                            $formattedVal = number_format($val, 0, ',', '.');
 
                                             return "• {$name}: IDR {$formattedVal}";
                                         })->join("\n");
