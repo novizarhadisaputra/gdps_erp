@@ -57,9 +57,9 @@ class ApiClientsTable
                         ->icon(Heroicon::ArrowPath)
                         ->color('warning')
                         ->requiresConfirmation()
-                        ->modalHeading('Regenerate Client Secret')
-                        ->modalDescription('Are you sure you want to regenerate the secret? The old secret will stop working immediately.')
-                        ->modalSubmitActionLabel('Regenerate')
+                        ->modalHeading(__('Regenerate Client Secret'))
+                        ->modalDescription(__('Are you sure you want to regenerate the secret? The old secret will stop working immediately.'))
+                        ->modalSubmitActionLabel(__('Regenerate'))
                         ->action(function (ApiClient $record) {
                             $newSecret = Str::random(32);
                             $record->update([
@@ -67,8 +67,8 @@ class ApiClientsTable
                             ]);
 
                             Notification::make()
-                                ->title('Secret Regenerated')
-                                ->body("New Secret: **$newSecret**\n\nPlease copy this now.")
+                                ->title(__('Secret Regenerated'))
+                                ->body(__('New Secret: **:secret**\n\nPlease copy this now.', ['secret' => $newSecret]))
                                 ->warning()
                                 ->persistent()
                                 ->send();

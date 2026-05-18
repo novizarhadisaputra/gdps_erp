@@ -24,8 +24,8 @@ class ProposalActionVisibilityTest extends TestCase
 
     public function test_send_email_button_visibility(): void
     {
-        $lead = Lead::factory()->create();
         $user = User::factory()->create();
+        $lead = Lead::factory()->create(['user_id' => $user->id]);
         $this->actingAs($user);
 
         // Case 1: Draft - Should not see Send Email or Approve
@@ -40,7 +40,7 @@ class ProposalActionVisibilityTest extends TestCase
             'parentRecord' => $lead,
         ])
             ->assertActionHidden('sendEmail')
-            ->assertActionHidden('Approve');
+            ->assertActionHidden('signProposal');
 
         // Case 2: Submitted (Not Signed) - Should not see Send Email or Approve
         // We'll mock isFullyApproved to return false for this case
@@ -56,7 +56,7 @@ class ProposalActionVisibilityTest extends TestCase
             'record' => $proposalSubmitted->id,
             'parentRecord' => $lead,
         ])
-            ->assertActionHidden('sendEmail');
+            ->assertActionVisible('sendEmail'); // Visible from Submitted onwards
 
         // Case 3: Approved - Should see Send Email, but NOT Approve (already approved)
         $proposalApproved = Proposal::factory()->create([
@@ -70,7 +70,7 @@ class ProposalActionVisibilityTest extends TestCase
             'parentRecord' => $lead,
         ])
             ->assertActionVisible('sendEmail')
-            ->assertActionHidden('Approve');
+            ->assertActionHidden('signProposal');
 
         // Case 4: Sent - Should see Send Email (Resend)
         $proposalSent = Proposal::factory()->create([
@@ -84,15 +84,15 @@ class ProposalActionVisibilityTest extends TestCase
             'parentRecord' => $lead,
         ])
             ->assertActionVisible('sendEmail')
-            ->assertActionHidden('Approve');
+            ->assertActionHidden('signProposal');
     }
 
     public function test_manual_approval_action(): void
     {
-        $lead = Lead::factory()->create();
         $user = User::factory()->create([
             'signature_pin' => \Illuminate\Support\Facades\Hash::make('123456'),
         ]);
+        $lead = Lead::factory()->create(['user_id' => $user->id]);
         $this->actingAs($user);
 
         // Create a proposal in Submitted status
@@ -101,41 +101,32 @@ class ProposalActionVisibilityTest extends TestCase
             'status' => ProposalStatus::Submitted,
         ]);
 
-        // Add an approval rule so that isFullyApproved returns false and the action is visible
-        \Modules\MasterData\Models\ApprovalRule::create([
-            'resource_type' => Proposal::class,
-            'approver_type' => 'User',
-            'approver_user_id' => [$user->id],
-            'signature_type' => 'Approver',
-            'is_active' => true,
-        ]);
+        // No approval rules exist for Proposal; creator signs directly via signProposal action.
+        // The action is visible while Submitted and user has not yet signed.
+        $this->assertFalse($proposal->signatures()->where('user_id', $user->id)->exists());
 
-        $this->assertFalse($proposal->isFullyApproved());
-
-        // Test visibility of Approve action
         Livewire::test(ViewProposal::class, [
             'lead' => $lead->id,
             'record' => $proposal->id,
             'parentRecord' => $lead,
         ])
-            ->assertActionVisible('Approve')
-            ->assertActionHidden('sendEmail') // Not approved yet
-            ->callAction('Approve', ['pin' => '123456'])
-            ->assertHasNoActionErrors()
+            ->assertActionVisible('signProposal')
+            ->assertActionVisible('sendEmail') // Visible from Submitted onwards
+            ->callAction('signProposal', ['pin' => '123456'])
+            ->assertHasNoFormErrors()
             ->assertNotified();
 
         $this->assertCount(1, $proposal->refresh()->signatures);
 
-        // Verify status change
-        $this->assertEquals(ProposalStatus::Approved, $proposal->refresh()->status);
+        // Status remains Submitted — Approved is triggered by signed file upload, not by this action
+        $this->assertEquals(ProposalStatus::Submitted, $proposal->refresh()->status);
 
-        // Verify sendEmail is now visible
+        // signProposal is now hidden since the user already signed
         Livewire::test(ViewProposal::class, [
             'lead' => $lead->id,
             'record' => $proposal->id,
             'parentRecord' => $lead,
         ])
-            ->assertActionVisible('sendEmail')
-            ->assertActionHidden('Approve');
+            ->assertActionHidden('signProposal');
     }
 }

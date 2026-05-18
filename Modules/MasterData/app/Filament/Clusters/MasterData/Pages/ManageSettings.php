@@ -23,17 +23,26 @@ class ManageSettings extends Page implements HasForms
 
     protected static ?string $cluster = null;
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Settings';
-
     protected static ?int $navigationSort = 0;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Cog6Tooth;
 
     protected string $view = 'masterdata::filament.pages.manage-settings';
 
-    protected static ?string $title = 'App Settings';
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Settings');
+    }
 
-    protected static ?string $navigationLabel = 'Settings';
+    public static function getNavigationLabel(): string
+    {
+        return __('Settings');
+    }
+
+    public function getTitle(): string
+    {
+        return __('App Settings');
+    }
 
     public ?array $data = [];
 
@@ -58,14 +67,14 @@ class ManageSettings extends Page implements HasForms
     {
         return $form
             ->schema([
-                Section::make('Global Configuration')
-                    ->description('Manage dynamic application settings using JSON-based payloads.')
+                Section::make(__('Global Configuration'))
+                    ->description(__('Manage dynamic application settings using JSON-based payloads.'))
                     ->schema([
                         Tabs::make('Groups')
                             ->tabs([
-                                $this->getGroupTab('general', 'General'),
-                                $this->getGroupTab('integration', 'Integrations'),
-                                $this->getGroupTab('custom', 'Custom'),
+                                $this->getGroupTab('general', __('General')),
+                                $this->getGroupTab('integration', __('Integrations')),
+                                $this->getGroupTab('custom', __('Custom')),
                             ])
                             ->persistTabInQueryString(),
                     ]),
@@ -84,20 +93,20 @@ class ManageSettings extends Page implements HasForms
                             ->required()
                             ->distinct()
                             ->disableLabel()
-                            ->placeholder('Setting Key (e.g. google_analytics_id)')
+                            ->placeholder(__('Setting Key (e.g. google_analytics_id)'))
                             ->columnSpan(2),
                         Toggle::make('is_active')
-                            ->label('Active')
+                            ->label(__('Active'))
                             ->default(true)
                             ->columnSpan(1),
                         KeyValue::make('payload')
-                            ->label('JSON Payload')
-                            ->keyLabel('Property')
-                            ->valueLabel('Value')
+                            ->label(__('JSON Payload'))
+                            ->keyLabel(__('Property'))
+                            ->valueLabel(__('Value'))
                             ->columnSpanFull(),
                     ])
                     ->columns(3)
-                    ->addActionLabel('Add New Setting')
+                    ->addActionLabel(__('Add New Setting'))
                     ->collapsible()
                     ->collapsed(fn ($state) => ! empty($state['key']))
                     ->itemLabel(fn (array $state): ?string => $state['key'] ?? null),
@@ -128,7 +137,7 @@ class ManageSettings extends Page implements HasForms
         AppSetting::whereNotIn('id', $existingIds)->delete();
 
         Notification::make()
-            ->title('Settings saved successfully')
+            ->title(__('Settings saved successfully'))
             ->success()
             ->send();
     }

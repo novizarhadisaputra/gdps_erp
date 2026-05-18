@@ -79,7 +79,7 @@ class PurchaseRequestResourceTest extends TestCase
 
         Livewire::test(ViewPurchaseRequest::class, ['record' => $pr->getRouteKey()])
             ->callAction('submit_for_approval')
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertEquals(PurchaseRequestStatus::Submitted, $pr->refresh()->status);
     }
@@ -106,7 +106,7 @@ class PurchaseRequestResourceTest extends TestCase
             ->callAction('approve_request', [
                 'pin' => '123456',
             ])
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertEquals(PurchaseRequestStatus::Approved, $pr->refresh()->status);
         $this->assertDatabaseHas((new Signature)->getTable(), [
@@ -138,7 +138,7 @@ class PurchaseRequestResourceTest extends TestCase
             ->callAction('reject_request', [
                 'reason' => 'Invalid budget',
             ])
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertEquals(PurchaseRequestStatus::Rejected, $pr->refresh()->status);
     }

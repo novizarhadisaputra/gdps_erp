@@ -47,28 +47,13 @@ class ApprovalRuleSeeder extends Seeder
 
         // ApprovalRule::truncate(); // Removed to prevent wiping user-defined rules
 
-        $rules = [
-            // General Information Rules - Always applies
-            [
-                'resource_type' => GeneralInformation::class,
-                'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
-                'signature_type' => 'Approver',
-                'order' => 1,
-                'is_active' => true,
-            ],
+        // Remove General Information rules as they are no longer approved by VP Business Support
+        ApprovalRule::where('resource_type', GeneralInformation::class)->delete();
 
-            // Proposal Rules - Only AMS signs the proposal after PA is approved
-            [
-                'resource_type' => Proposal::class,
-                'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['Account Manager & Sales']])),
-                'signature_type' => 'Approver',
-                'order' => 1,
-                'is_active' => true,
-            ],
+        // Remove Proposal rules as they are no longer approved by role — creator signs directly
+        ApprovalRule::where('resource_type', Proposal::class)->delete();
+
+        $rules = [
             // Minutes of Agreement Rules
             [
                 'resource_type' => MinutesOfAgreement::class,

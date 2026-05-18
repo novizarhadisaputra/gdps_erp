@@ -47,7 +47,7 @@
             $stages = collect();
 
             // 1. Preparation
-            $creator = $record ? ($record->creator ?? $record->lead?->creator) : null;
+            $creator = $record ? ($record->creator ?? $record->lead?->creator ?? $record->user ?? $record->lead?->user) : null;
             if ($creator && $record) {
                 $stages->push([
                     'label' => 'Preparation',
@@ -123,6 +123,36 @@
                     $sig?->signed_at
                 ));
             }
+
+            // Fallback: If no approver rules are defined, but there are actual signatures of type Approver, display them.
+            $actualApproverSignatures = $signatures->where('signature_type', \Modules\MasterData\Enums\ApprovalSignatureType::Approver);
+            foreach ($actualApproverSignatures as $sig) {
+                if (!$approvalItems->contains(fn($item) => $item['user']?->id === $sig->user_id)) {
+                    $approvalItems->push($buildItem(
+                        $sig->user,
+                        $sig->role,
+                        'Approver',
+                        true,
+                        $sig->signed_at
+                    ));
+                }
+            }
+
+            // For General Information: if there are no approver signatures yet, show a pending signature card for the creator
+            if ($record instanceof \Modules\CRM\Models\GeneralInformation && $approvalItems->isEmpty()) {
+                $creator = $record->user;
+                if ($creator) {
+                    $approvalItems->push($buildItem(
+                        null,
+                        'Account Manager',
+                        'Approver',
+                        false,
+                        null,
+                        $creator->name
+                    ));
+                }
+            }
+
             if ($approvalItems->isNotEmpty()) $stages->push(['label' => 'Final Approval', 'items' => $approvalItems]);
 
             // 5. Acknowledgment

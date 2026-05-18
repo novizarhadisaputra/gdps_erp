@@ -176,7 +176,7 @@ class ViewProposal extends ViewRecord
                         'lead' => $this->record->lead_id,
                         'record' => $this->record->id,
                     ]))
-                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Sent, ProposalStatus::Approved, ProposalStatus::Submitted]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? true)),
+                    ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Sent, ProposalStatus::Approved]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? true)),
 
                 Action::make('revise')
                     ->label('Revise Proposal')

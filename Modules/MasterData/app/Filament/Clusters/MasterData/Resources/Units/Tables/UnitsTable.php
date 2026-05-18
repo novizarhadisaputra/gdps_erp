@@ -28,8 +28,8 @@ class UnitsTable
                     ->label(__('Sync from API'))
                     ->icon(Heroicon::OutlinedArrowPath)
                     ->color('gray')
-                    ->modalHeading('Sync Units from SSO')
-                    ->modalDescription('This will fetch and update unit records from the SSO API.')
+                    ->modalHeading(__('Sync Units from SSO'))
+                    ->modalDescription(__('This will fetch and update unit records from the SSO API.'))
                     ->schema([
                         TextInput::make('password')
                             ->label(__('SSO Password'))
@@ -54,12 +54,12 @@ class UnitsTable
                                 ]);
 
                                 Notification::make()
-                                    ->title('Re-authentication Successful')
+                                    ->title(__('Re-authentication Successful'))
                                     ->success()
                                     ->send();
                             } catch (\Exception $e) {
                                 Notification::make()
-                                    ->title('Re-authentication Failed')
+                                    ->title(__('Re-authentication Failed'))
                                     ->body($e->getMessage())
                                     ->danger()
                                     ->send();
@@ -75,11 +75,11 @@ class UnitsTable
 
                         if ($synced->isEmpty()) {
                             $reason = (! $user || ! $user->access_token)
-                                ? 'Your SSO session is invalid. If you just re-authenticated, please try again.'
-                                : 'No data was returned from the API.';
+                                ? __('Your SSO session is invalid. If you just re-authenticated, please try again.')
+                                : __('No data was returned from the API.');
 
                             Notification::make()
-                                ->title('Sync Failed')
+                                ->title(__('Sync Failed'))
                                 ->body($reason)
                                 ->warning()
                                 ->send();
@@ -88,8 +88,8 @@ class UnitsTable
                         }
 
                         Notification::make()
-                            ->title('Sync Completed')
-                            ->body("Successfully synced {$synced->count()} units.")
+                            ->title(__('Sync Completed'))
+                            ->body(__('Successfully synced :count units.', ['count' => $synced->count()]))
                             ->success()
                             ->send();
                     }),

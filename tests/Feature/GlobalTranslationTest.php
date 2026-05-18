@@ -83,6 +83,45 @@ class GlobalTranslationTest extends TestCase
         $this->assertEquals('Detail Umum', $section->getHeading());
         $this->assertEquals('Berikan informasi perbankan yang diperlukan untuk transaksi keuangan.', $section->getDescription());
 
+        // Helper text translations check
+        $this->assertEquals(
+            'Kode standar internasional untuk mengidentifikasi bank secara global.',
+            __('The international standard code for identifying banks globally.')
+        );
+
+        $this->assertEquals(
+            'Autentikasi Ulang Berhasil',
+            __('Re-authentication Successful')
+        );
+
+        $this->assertEquals(
+            'Pengaturan berhasil disimpan',
+            __('Settings saved successfully')
+        );
+
+        $this->assertEquals(
+            'Sinkronkan Unit dari SSO',
+            __('Sync Units from SSO')
+        );
+
+        // Notification translations check
+        $this->assertEquals(
+            'Persetujuan Diperlukan',
+            __('Approval Required')
+        );
+        $this->assertEquals(
+            'Dokumen Ditandatangani',
+            __('Document Signed')
+        );
+        $this->assertEquals(
+            'Dokumen Ditolak',
+            __('Document Rejected')
+        );
+        $this->assertEquals(
+            'Lihat Dokumen',
+            __('View Document')
+        );
+
         // Standalone Field translations check
         $bankNameField = \Filament\Forms\Components\TextInput::make('bank_name')
             ->label(__('Bank Name'));
@@ -98,6 +137,44 @@ class GlobalTranslationTest extends TestCase
 
         $this->assertEquals('General Details', $section->getHeading());
         $this->assertEquals('Provide the banking information required for financial transactions.', $section->getDescription());
+
+        $this->assertEquals(
+            'The international standard code for identifying banks globally.',
+            __('The international standard code for identifying banks globally.')
+        );
+
+        $this->assertEquals(
+            'Re-authentication Successful',
+            __('Re-authentication Successful')
+        );
+
+        $this->assertEquals(
+            'Settings saved successfully',
+            __('Settings saved successfully')
+        );
+
+        $this->assertEquals(
+            'Sync Units from SSO',
+            __('Sync Units from SSO')
+        );
+
+        // Notification translations check
+        $this->assertEquals(
+            'Approval Required',
+            __('Approval Required')
+        );
+        $this->assertEquals(
+            'Document Signed',
+            __('Document Signed')
+        );
+        $this->assertEquals(
+            'Document Rejected',
+            __('Document Rejected')
+        );
+        $this->assertEquals(
+            'View Document',
+            __('View Document')
+        );
 
         $bankNameField = \Filament\Forms\Components\TextInput::make('bank_name')
             ->label(__('Bank Name'));

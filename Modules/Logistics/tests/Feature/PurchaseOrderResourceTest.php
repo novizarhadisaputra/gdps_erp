@@ -80,7 +80,7 @@ class PurchaseOrderResourceTest extends TestCase
 
         Livewire::test(ViewPurchaseOrder::class, ['record' => $po->getRouteKey()])
             ->callAction('submit_for_approval')
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertEquals(PurchaseOrderStatus::Submitted, $po->refresh()->status);
     }
@@ -107,7 +107,7 @@ class PurchaseOrderResourceTest extends TestCase
             ->callAction('approve_order', [
                 'pin' => '123456',
             ])
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertEquals(PurchaseOrderStatus::Approved, $po->refresh()->status);
     }
@@ -122,7 +122,7 @@ class PurchaseOrderResourceTest extends TestCase
 
         Livewire::test(ViewPurchaseOrder::class, ['record' => $po->getRouteKey()])
             ->callAction('mark_as_sent')
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertEquals(PurchaseOrderStatus::Sent, $po->refresh()->status);
     }
@@ -137,7 +137,7 @@ class PurchaseOrderResourceTest extends TestCase
 
         Livewire::test(ViewPurchaseOrder::class, ['record' => $po->getRouteKey()])
             ->callAction('mark_as_completed')
-            ->assertHasNoActionErrors();
+            ->assertHasNoFormErrors();
 
         $this->assertEquals(PurchaseOrderStatus::Completed, $po->refresh()->status);
     }

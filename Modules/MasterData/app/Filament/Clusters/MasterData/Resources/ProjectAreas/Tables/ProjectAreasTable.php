@@ -79,14 +79,14 @@ class ProjectAreasTable
                                 if ($record->province) {
                                     $service->syncRegencies($record->province);
                                     Notification::make()
-                                        ->title('Success')
-                                        ->body("Regencies in {$record->province->name} have been updated.")
+                                        ->title(__('Success'))
+                                        ->body(__('Regencies in :province have been updated.', ['province' => $record->province->name]))
                                         ->success()
                                         ->send();
                                 }
                             } catch (\Exception $e) {
                                 Notification::make()
-                                    ->title('Failed')
+                                    ->title(__('Failed'))
                                     ->body($e->getMessage())
                                     ->danger()
                                     ->send();

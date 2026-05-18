@@ -27,13 +27,13 @@ class ApprovalRequiredNotification extends Notification implements ShouldQueue
     public function toDatabase($notifiable): array
     {
         $notification = \Filament\Notifications\Notification::make()
-            ->title($this->title)
+            ->title(__($this->title))
             ->body($this->message)
             ->icon(Heroicon::OutlinedPencilSquare)
             ->color('info')
             ->actions([
                 \Filament\Actions\Action::make('view')
-                    ->label('View Document')
+                    ->label(__('View Document'))
                     ->url($this->url)
                     ->markAsRead(),
             ]);
