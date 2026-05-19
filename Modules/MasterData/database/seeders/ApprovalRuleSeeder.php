@@ -3,7 +3,9 @@
 namespace Modules\MasterData\Database\Seeders;
 
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Modules\CRM\Models\CooperationAgreement;
 use Modules\CRM\Models\GeneralInformation;
 use Modules\CRM\Models\MinutesOfAgreement;
@@ -18,6 +20,7 @@ use Modules\Logistics\Models\PurchaseOrder as LogisticsPurchaseOrder;
 use Modules\Logistics\Models\PurchaseRequest as LogisticsPurchaseRequest;
 use Modules\MasterData\Models\ApprovalRule;
 use Modules\MasterData\Models\ProductCluster;
+use Modules\MasterData\Models\Unit;
 use Modules\Project\Models\WorkCompletionReport;
 
 class ApprovalRuleSeeder extends Seeder
@@ -36,18 +39,49 @@ class ApprovalRuleSeeder extends Seeder
         // Role UUID Lookups
         $roleIds = [
             'super_admin' => Role::where('name', 'super_admin')->value('id'),
-            'VP Finance' => Role::where('name', 'VP Finance')->value('id'),
-            'VP Business Support' => Role::where('name', 'VP Business Support')->value('id'),
-            'VP Operations' => Role::where('name', 'VP Operations')->value('id'),
-            'VP Human Capital' => Role::where('name', 'VP Human Capital')->value('id'),
-            'Board of Directors' => Role::where('name', 'Board of Directors')->value('id'),
             'Account Manager & Sales' => Role::where('name', 'Account Manager & Sales')->value('id'),
             'Project Manager' => Role::firstOrCreate(['name' => 'Project Manager'], ['guard_name' => 'web'])->id,
         ];
 
-        // ApprovalRule::truncate(); // Removed to prevent wiping user-defined rules
+        // Unit UUID Lookups with robust fallbacks
+        $unitIds = [
+            'DU' => Unit::where('code', 'DU')->value('id') ?? Unit::where('name', 'like', '%Director%')->value('id'),
+            'UF' => Unit::where('code', 'UF')->value('id') ?? Unit::where('name', 'like', '%Finance%')->value('id'),
+            'UB' => Unit::where('code', 'UB')->value('id') ?? Unit::where('name', 'like', '%Business Support%')->value('id'),
+            'UO' => Unit::where('code', 'UO')->value('id') ?? Unit::where('name', 'like', '%Operation%')->value('id'),
+            'UH' => Unit::where('code', 'UH')->where('name', 'Human Capital Management')->value('id') ?? Unit::where('name', 'like', '%Human Capital%')->value('id'),
+        ];
 
-        // Remove General Information rules as they are no longer approved by VP Business Support
+        // Specific Group Head User Lookups with fallback to firstOrCreate to guarantee UUIDs exist
+        $userIds = [
+            'UB' => User::where('email', 'a.syifa@garudapratama.com')->value('id') ?? User::firstOrCreate(['email' => 'a.syifa@garudapratama.com'], [
+                'name' => 'Achmad Syifa',
+                'employee_code' => '9500159',
+                'password' => Hash::make('gdps2019!'),
+            ])->id,
+            'UF' => User::where('email', 'theresia@garudapratama.com')->value('id') ?? User::firstOrCreate(['email' => 'theresia@garudapratama.com'], [
+                'name' => 'Theresia',
+                'employee_code' => '9500232',
+                'password' => Hash::make('gdps2019!'),
+            ])->id,
+            'UO' => User::where('email', 'd.anton@garudapratama.com')->value('id') ?? User::firstOrCreate(['email' => 'd.anton@garudapratama.com'], [
+                'name' => 'Dartin Anton',
+                'employee_code' => '9500060',
+                'password' => Hash::make('gdps2019!'),
+            ])->id,
+            'UH' => User::where('email', 'wiwied@garudapratama.com')->value('id') ?? User::firstOrCreate(['email' => 'wiwied@garudapratama.com'], [
+                'name' => 'Wiwied Widyasmara Adi',
+                'employee_code' => '9500184',
+                'password' => Hash::make('gdps2019!'),
+            ])->id,
+            'DU' => User::where('email', 'cornelis@garudapratama.com')->value('id') ?? User::firstOrCreate(['email' => 'cornelis@garudapratama.com'], [
+                'name' => 'Cornelis Radjawane',
+                'employee_code' => '9500001',
+                'password' => Hash::make('gdps2019!'),
+            ])->id,
+        ];
+
+        // Remove General Information rules as they are no longer approved by UB — creator signs directly
         ApprovalRule::where('resource_type', GeneralInformation::class)->delete();
 
         // Remove Proposal rules as they are no longer approved by role — creator signs directly
@@ -68,8 +102,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => CooperationAgreement::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -78,8 +112,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => PurchaseOrder::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -88,8 +122,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => WorkOrder::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -101,8 +135,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UF']])),
                 'signature_type' => 'MarginApproval',
                 'order' => 1,
                 'is_active' => true,
@@ -110,34 +144,34 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UB']])),
                 'signature_type' => 'MarginApproval',
                 'order' => 2,
                 'is_active' => true,
             ],
-            // Beyond Care -> VP HC (Margin)
+            // Beyond Care -> User HC (Margin)
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
                 ],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Human Capital']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UH']])),
                 'signature_type' => 'MarginApproval',
                 'order' => 3,
                 'is_active' => true,
             ],
-            // Other Beyond -> VP Operations (Margin)
+            // Other Beyond -> User Operations (Margin)
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
                 ],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Operations']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UO']])),
                 'signature_type' => 'MarginApproval',
-                'order' => 4, // Changed order to prevent collision if needed, but truncate fixes it
+                'order' => 4,
                 'is_active' => true,
             ],
 
@@ -147,8 +181,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UF']])),
                 'signature_type' => 'Approver',
                 'order' => 10,
                 'is_active' => true,
@@ -156,32 +190,32 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 11,
                 'is_active' => true,
             ],
-            // Beyond Care -> VP HC (PA)
+            // Beyond Care -> User HC (PA)
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => '=', 'value' => (string) $beyondCareId],
                 ],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Human Capital']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UH']])),
                 'signature_type' => 'Approver',
                 'order' => 12,
                 'is_active' => true,
             ],
-            // Other Beyond -> VP Operations (PA)
+            // Other Beyond -> User Operations (PA)
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [
                     ['field' => 'product_cluster_id', 'operator' => 'in', 'value' => $beyondOpsIds],
                 ],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Operations']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['UO']])),
                 'signature_type' => 'Approver',
                 'order' => 13,
                 'is_active' => true,
@@ -189,8 +223,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => ProfitabilityAnalysis::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['Board of Directors']])),
+                'approver_type' => 'User',
+                'approver_user_id' => array_values(array_filter([$userIds['DU']])),
                 'signature_type' => 'Approver',
                 'order' => 14,
                 'is_active' => true,
@@ -199,8 +233,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => SalesOrder::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -210,8 +244,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => SalesOrderAmendment::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -221,8 +255,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => Invoice::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Finance']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UF']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -243,8 +277,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => LogisticsPurchaseRequest::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -253,8 +287,8 @@ class ApprovalRuleSeeder extends Seeder
             [
                 'resource_type' => LogisticsPurchaseOrder::class,
                 'conditions' => [],
-                'approver_type' => 'Role',
-                'approver_role' => array_values(array_filter([$roleIds['VP Business Support']])),
+                'approver_type' => 'Unit',
+                'approver_unit_id' => array_values(array_filter([$unitIds['UB']])),
                 'signature_type' => 'Approver',
                 'order' => 1,
                 'is_active' => true,
@@ -271,7 +305,10 @@ class ApprovalRuleSeeder extends Seeder
                 [
                     'conditions' => $rule['conditions'],
                     'approver_type' => $rule['approver_type'],
-                    'approver_role' => $rule['approver_role'],
+                    'approver_role' => $rule['approver_role'] ?? null,
+                    'approver_unit_id' => $rule['approver_unit_id'] ?? null,
+                    'approver_user_id' => $rule['approver_user_id'] ?? null,
+                    'approver_position' => $rule['approver_position'] ?? null,
                     'is_active' => $rule['is_active'],
                 ]
             );

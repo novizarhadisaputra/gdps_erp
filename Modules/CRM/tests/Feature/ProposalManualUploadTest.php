@@ -43,7 +43,7 @@ class ProposalManualUploadTest extends TestCase
             )
             ->assertHasNoFormErrors();
 
-        $this->assertDatabaseHas('proposals', [
+        $this->assertDatabaseHas(Proposal::class, [
             'lead_id' => $lead->id,
             'amount' => 1000000,
             'status' => ProposalStatus::Draft->value,

@@ -30,14 +30,14 @@ class LeadSalesPlanSyncTest extends TestCase
             'estimated_amount' => 1000000,
         ]);
 
-        $this->assertDatabaseMissing('sales_plans', [
+        $this->assertDatabaseMissing(SalesPlan::class, [
             'lead_id' => $lead->id,
         ]);
 
         // Move to Approach
         $lead->update(['status' => LeadStatus::Approach]);
 
-        $this->assertDatabaseHas('sales_plans', [
+        $this->assertDatabaseHas(SalesPlan::class, [
             'lead_id' => $lead->id,
             'revenue_segment_id' => $revenueSegment->id,
             'estimated_value' => 1000000,

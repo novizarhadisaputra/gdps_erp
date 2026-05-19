@@ -162,7 +162,20 @@ class SignatureService
                 return false;
             }
 
-            return in_array($userUnitId, $rule->approver_unit_id ?? []);
+            $unitIds = $rule->approver_unit_id ?? [];
+
+            // Direct match (in case it contains external_id or user's unit_id is internal ID)
+            if (in_array($userUnitId, $unitIds)) {
+                return true;
+            }
+
+            // Look up User's unit model to compare internal UUID
+            $unitModel = $user->unit_model();
+            if ($unitModel && in_array($unitModel->id, $unitIds)) {
+                return true;
+            }
+
+            return false;
         }
 
         return false;
@@ -217,7 +230,17 @@ class SignatureService
             if (empty($unitIds)) {
                 return collect();
             }
-            $query->whereIn('unit_id', $unitIds);
+
+            // Resolve the external_ids for the matching unit UUIDs
+            $externalIds = \Modules\MasterData\Models\Unit::whereIn('id', $unitIds)
+                ->pluck('external_id')
+                ->filter()
+                ->toArray();
+
+            $query->where(function ($q) use ($unitIds, $externalIds) {
+                $q->whereIn('unit_id', $externalIds)
+                    ->orWhereIn('unit_id', $unitIds);
+            });
         } else {
             return collect();
         }

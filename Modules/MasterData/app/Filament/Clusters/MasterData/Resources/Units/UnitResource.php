@@ -2,13 +2,10 @@
 
 namespace Modules\MasterData\Filament\Clusters\MasterData\Resources\Units;
 
-use Filament\Pages\Enums\SubNavigationPosition;
-use Filament\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Modules\MasterData\Filament\Clusters\MasterData\MasterDataCluster;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages\CreateUnit;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages\EditUnit;
 use Modules\MasterData\Filament\Clusters\MasterData\Resources\Units\Pages\ListUnits;
@@ -20,25 +17,11 @@ use Modules\MasterData\Models\Unit;
 
 class UnitResource extends Resource
 {
-    protected static ?string $cluster = MasterDataCluster::class;
-
     protected static ?string $model = Unit::class;
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'HR & Organization';
-
-    public static function getSubNavigationPosition(): SubNavigationPosition
-    {
-        return SubNavigationPosition::Start;
-    }
-
-    public static function getRecordSubNavigation(Page $page): array
-    {
-        return $page->generateNavigationItems([
-            ManageUnitPermissions::class,
-        ]);
-    }
+    protected static string|\UnitEnum|null $navigationGroup = 'Filament Shield';
 
     public static function form(Schema $schema): Schema
     {
@@ -85,6 +68,6 @@ class UnitResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return __('HR & Organization');
+        return __('filament-shield::filament-shield.nav.group');
     }
 }

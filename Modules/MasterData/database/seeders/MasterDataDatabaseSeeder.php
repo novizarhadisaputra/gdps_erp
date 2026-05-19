@@ -16,11 +16,12 @@ class MasterDataDatabaseSeeder extends Seeder
             MasterCodeSeeder::class, // Manual codes now check against synced data
             OfficialMinimumWageSeeder::class, // Layer wage data
             RemunerationParameterSeeder::class,
+            UnitSyncSeeder::class,
             ApprovalRuleSeeder::class,
             ContactRoleSeeder::class,
             AssetGroupSeeder::class,
             JobPositionSeeder::class,
-            UnitSyncSeeder::class,
+            UnitPermissionSeeder::class,
             ItemSeeder::class,
             JkkConfigSeeder::class,
             JkmConfigSeeder::class,

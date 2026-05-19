@@ -7,6 +7,7 @@ use Modules\CRM\Models\Customer;
 use Modules\CRM\Models\Lead;
 use Modules\CRM\Models\Proposal;
 use Modules\CRM\Models\SalesPlan;
+use Modules\CRM\Models\SalesPlanMonthly;
 use Modules\CRM\Models\WorkOrder;
 use Modules\MasterData\Models\IndustrialSector;
 use Modules\MasterData\Models\ProjectType;
@@ -78,7 +79,7 @@ class SalesPlanTest extends TestCase
             ],
         ]);
 
-        $this->assertDatabaseCount('sales_plan_monthlies', 12);
+        $this->assertDatabaseCount(SalesPlanMonthly::class, 12);
         $this->assertEquals(1000000, $salesPlan->monthlyBreakdowns()->first()->budget_amount);
         $this->assertEquals(1000000, $salesPlan->monthlyBreakdowns()->first()->forecast_amount);
     }
@@ -176,19 +177,19 @@ class SalesPlanTest extends TestCase
         $this->assertEquals(16000000.0, (float) $distribution[2]['budget_amount']);
 
         // Verify monthly breakdowns table
-        $this->assertDatabaseHas('sales_plan_monthlies', [
+        $this->assertDatabaseHas(SalesPlanMonthly::class, [
             'sales_plan_id' => $salesPlan->id,
             'year' => 2026,
             'month' => 2,
             'budget_amount' => 16000000,
         ]);
-        $this->assertDatabaseHas('sales_plan_monthlies', [
+        $this->assertDatabaseHas(SalesPlanMonthly::class, [
             'sales_plan_id' => $salesPlan->id,
             'year' => 2026,
             'month' => 3,
             'budget_amount' => 28000000,
         ]);
-        $this->assertDatabaseHas('sales_plan_monthlies', [
+        $this->assertDatabaseHas(SalesPlanMonthly::class, [
             'sales_plan_id' => $salesPlan->id,
             'year' => 2026,
             'month' => 4,
