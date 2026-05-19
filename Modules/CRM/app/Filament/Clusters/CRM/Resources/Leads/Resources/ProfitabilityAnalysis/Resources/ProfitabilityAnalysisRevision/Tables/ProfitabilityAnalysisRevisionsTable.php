@@ -14,19 +14,19 @@ class ProfitabilityAnalysisRevisionsTable
         return $table
             ->columns([
                 TextColumn::make('revision_number')
-                    ->label('Revision #')
+                    ->label(__('Revision #'))
                     ->sortable(),
                 TextColumn::make('sequence_number')
-                    ->label('Sequence #')
+                    ->label(__('Sequence #'))
                     ->sortable(),
                 TextColumn::make('year')
                     ->sortable(),
                 TextColumn::make('reason')
                     ->limit(50),
                 TextColumn::make('user.name')
-                    ->label('Revised By'),
+                    ->label(__('Revised By')),
                 TextColumn::make('created_at')
-                    ->label('Revision Date')
+                    ->label(__('Revision Date'))
                     ->dateTime()
                     ->sortable(),
             ])

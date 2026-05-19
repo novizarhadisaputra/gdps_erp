@@ -33,28 +33,28 @@ class PerformanceOverviewWidget extends BaseWidget
 
         return [
             Stat::make('Total Target RoFo (YTD)', 'Rp '.number_format($metrics['target'], 0, ',', '.'))
-                ->description('Aggregated target from Sales Plans')
+                ->description(__('Aggregated target from Sales Plans'))
                 ->descriptionIcon(Heroicon::Flag)
                 ->color('primary'),
 
             Stat::make('Actual Revenue (YTD)', 'Rp '.number_format($metrics['actual'], 0, ',', '.'))
-                ->description('Realized revenue collected')
+                ->description(__('Realized revenue collected'))
                 ->descriptionIcon(Heroicon::CurrencyDollar)
                 ->color($metrics['realization_rate'] >= 90 ? 'success' : ($metrics['realization_rate'] >= 70 ? 'warning' : 'danger')),
 
             Stat::make('Realization Rate', $metrics['realization_rate'].'%')
-                ->description('Target accomplishment rate')
+                ->description(__('Target accomplishment rate'))
                 ->descriptionIcon($metrics['realization_rate'] >= 100 ? Heroicon::CheckBadge : Heroicon::ArrowPath)
                 ->color($metrics['realization_rate'] >= 90 ? 'success' : ($metrics['realization_rate'] >= 70 ? 'warning' : 'danger'))
                 ->chart($this->getRealizationTrendData()),
 
             Stat::make('Realized Gross Profit', 'Rp '.number_format($metrics['gross_profit'], 0, ',', '.'))
-                ->description('Revenue - Direct Costs')
+                ->description(__('Revenue - Direct Costs'))
                 ->descriptionIcon(Heroicon::Banknotes)
                 ->color('success'),
 
             Stat::make('Total EBIT (YTD)', 'Rp '.number_format($metrics['ebit'], 0, ',', '.'))
-                ->description('Earnings Before Interest & Taxes')
+                ->description(__('Earnings Before Interest & Taxes'))
                 ->descriptionIcon(Heroicon::ChartBar)
                 ->color('info'),
         ];

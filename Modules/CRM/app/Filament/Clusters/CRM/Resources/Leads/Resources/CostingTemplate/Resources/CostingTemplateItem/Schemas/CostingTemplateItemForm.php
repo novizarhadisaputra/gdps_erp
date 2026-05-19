@@ -30,7 +30,7 @@ class CostingTemplateItemForm
     public static function schema(): array
     {
         return [
-            Section::make('Item Details')
+            Section::make(__('Item Details'))
                 ->schema([
                     Grid::make(3)
                         ->schema([
@@ -41,7 +41,7 @@ class CostingTemplateItemForm
                                 ->required()
                                 ->live(),
                             Select::make('depreciation_method')
-                                ->label('Depreciation Method')
+                                ->label(__('Depreciation Method'))
                                 ->options(collect(DepreciationMethod::cases())
                                     ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
                                     ->toArray())
@@ -66,7 +66,7 @@ class CostingTemplateItemForm
                                     CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             Select::make('item_id')
-                                ->label('Material/Asset')
+                                ->label(__('Material/Asset'))
                                 ->relationship('item', 'name')
                                 ->createOptionForm(ItemForm::schema())
                                 ->editOptionForm(ItemForm::schema())
@@ -114,8 +114,8 @@ class CostingTemplateItemForm
                                     CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             Select::make('unit')
-                                ->label('UOM')
-                                ->placeholder('Select or create UoM')
+                                ->label(__('UOM'))
+                                ->placeholder(__('Select or create UoM'))
                                 ->options(function () {
                                     return UnitOfMeasure::pluck('name', 'name')->toArray();
                                 })
@@ -142,7 +142,7 @@ class CostingTemplateItemForm
                                     CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             TextInput::make('depreciation_months')
-                                ->label('Depreciation (Months)')
+                                ->label(__('Depreciation (Months)'))
                                 ->numeric()
                                 ->default(1)
                                 ->required()
@@ -152,7 +152,7 @@ class CostingTemplateItemForm
                                     CostingTemplateForm::updateTotals($get, $set);
                                 }),
                             TextInput::make('markup_percent')
-                                ->label('Markup %')
+                                ->label(__('Markup %'))
                                 ->numeric()
                                 ->default(0)
                                 ->required()
@@ -165,21 +165,21 @@ class CostingTemplateItemForm
                     Grid::make(3)
                         ->schema([
                             TextInput::make('unit_price_markup')
-                                ->label('Price (Markup)')
+                                ->label(__('Price (Markup)'))
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR')
                                 ->readOnly()
                                 ->dehydrated()
                                 ->extraAttributes(['class' => 'bg-gray-50']),
                             TextInput::make('total_price')
-                                ->label('Subtotal Investment')
+                                ->label(__('Subtotal Investment'))
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR')
                                 ->readOnly()
                                 ->dehydrated()
                                 ->extraAttributes(['class' => 'bg-gray-50']),
                             TextInput::make('monthly_cost')
-                                ->label('Monthly Cost')
+                                ->label(__('Monthly Cost'))
                                 ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                 ->prefix('IDR')
                                 ->readOnly()

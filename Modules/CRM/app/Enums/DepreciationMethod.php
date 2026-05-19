@@ -12,8 +12,8 @@ enum DepreciationMethod: string implements HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::StraightLine => 'Straight Line (Linear)',
-            self::DecliningBalance => 'Declining Balance (Accelerated)',
+            self::StraightLine => __('Straight Line (Linear)'),
+            self::DecliningBalance => __('Declining Balance (Accelerated)'),
         };
     }
 }

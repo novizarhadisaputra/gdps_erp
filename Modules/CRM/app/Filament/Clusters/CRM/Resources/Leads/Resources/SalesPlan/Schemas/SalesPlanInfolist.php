@@ -19,32 +19,32 @@ class SalesPlanInfolist
     {
         return $schema
             ->components([
-                Section::make('Core Information')
+                Section::make(__('Core Information'))
                     ->icon(Heroicon::OutlinedIdentification)
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('lead.title')
-                                    ->label('Lead Title')
+                                    ->label(__('Lead Title'))
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('ams.name')
-                                    ->label('Account Manager (AMS)')
+                                    ->label(__('Account Manager (AMS)'))
                                     ->icon(Heroicon::OutlinedUser),
                                 TextEntry::make('project_code')
-                                    ->label('Project Code')
+                                    ->label(__('Project Code'))
                                     ->copyable()
-                                    ->placeholder('Pending...'),
+                                    ->placeholder(__('Pending...')),
                             ]),
                     ]),
 
-                Section::make('Profitability Analysis Status')
-                    ->description('Overview of financial feasibility as calculated by the Finance team.')
+                Section::make(__('Profitability Analysis Status'))
+                    ->description(__('Overview of financial feasibility as calculated by the Finance team.'))
                     ->icon(Heroicon::OutlinedPresentationChartBar)
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('pa_status')
-                                    ->label('PA Hub Status')
+                                    ->label(__('PA Hub Status'))
                                     ->badge()
                                     ->state(fn (Model $record) => $record->lead?->profitabilityAnalyses()->latest()->first()?->status)
                                     ->formatStateUsing(fn ($state) => $state instanceof HasLabel ? $state->getLabel() : ($state ?? 'No Analysis Linked'))
@@ -52,87 +52,87 @@ class SalesPlanInfolist
                                     ->icon(fn ($state) => $state instanceof ProfitabilityAnalysisStatus ? $state->getIcon() : Heroicon::OutlinedQuestionMarkCircle),
 
                                 TextEntry::make('npm_percentage')
-                                    ->label('Net Profit Margin (NPM)')
+                                    ->label(__('Net Profit Margin (NPM)'))
                                     ->suffix('%')
                                     ->weight(FontWeight::Bold)
                                     ->color('success')
-                                    ->helperText('Approved NPM target.'),
+                                    ->helperText(__('Approved NPM target.')),
 
                                 TextEntry::make('management_fee_percentage')
-                                    ->label('Management Fee')
+                                    ->label(__('Management Fee'))
                                     ->suffix('%')
                                     ->color('info')
-                                    ->helperText('Agreed management fee.'),
+                                    ->helperText(__('Agreed management fee.')),
                             ]),
                     ]),
 
-                Section::make('Service Categorization')
+                Section::make(__('Service Categorization'))
                     ->icon(Heroicon::OutlinedSquares2x2)
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('revenueSegment.name')
-                                    ->label('Revenue Segment'),
+                                    ->label(__('Revenue Segment')),
                                 TextEntry::make('productCluster.name')
-                                    ->label('Product Cluster'),
+                                    ->label(__('Product Cluster')),
                                 TextEntry::make('projectType.name')
-                                    ->label('Project Type'),
+                                    ->label(__('Project Type')),
                                 TextEntry::make('skillCategory.name')
-                                    ->label('Skill Category'),
+                                    ->label(__('Skill Category')),
                                 TextEntry::make('industrialSector.name')
-                                    ->label('Industrial Sector'),
+                                    ->label(__('Industrial Sector')),
                                 TextEntry::make('projectArea.name')
-                                    ->label('Project Area'),
+                                    ->label(__('Project Area')),
                             ]),
                     ]),
 
-                Section::make('Financials & Timeline')
+                Section::make(__('Financials & Timeline'))
                     ->icon(Heroicon::OutlinedBanknotes)
                     ->schema([
                         Grid::make(4)
                             ->schema([
                                 TextEntry::make('start_date')
                                     ->date()
-                                    ->label('Start Date'),
+                                    ->label(__('Start Date')),
                                 TextEntry::make('end_date')
                                     ->date()
-                                    ->label('End Date'),
+                                    ->label(__('End Date')),
                                 TextEntry::make('cutoff_day')
-                                    ->label('Cut-off Day')
+                                    ->label(__('Cut-off Day'))
                                     ->suffix('th of month'),
                                 TextEntry::make('proration_method')
                                     ->badge()
-                                    ->label('Proration Method'),
+                                    ->label(__('Proration Method')),
                             ]),
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('estimated_value')
                                     ->money('IDR')
-                                    ->label('Estimated Value')
+                                    ->label(__('Estimated Value'))
                                     ->weight(FontWeight::Bold)
                                     ->color('primary'),
                                 TextEntry::make('management_fee_percentage')
-                                    ->label('Management Fee')
+                                    ->label(__('Management Fee'))
                                     ->suffix('%'),
                                 TextEntry::make('npm_percentage')
-                                    ->label('Net Profit Margin (NPM)')
+                                    ->label(__('Net Profit Margin (NPM)'))
                                     ->suffix('%'),
                             ]),
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('paymentTerm.name')
-                                    ->label('Payment Term'),
+                                    ->label(__('Payment Term')),
                                 TextEntry::make('top_days')
-                                    ->label('ToP (Days)')
+                                    ->label(__('ToP (Days)'))
                                     ->suffix(' Days'),
                             ]),
                     ]),
 
-                Section::make('Resources & Distribution')
+                Section::make(__('Resources & Distribution'))
                     ->icon(Heroicon::OutlinedUsers)
                     ->schema([
                         TextEntry::make('job_positions')
-                            ->label('Required Job Positions')
+                            ->label(__('Required Job Positions'))
                             ->listWithLineBreaks()
                             ->bulleted()
                             ->state(function (Model $record) {
@@ -144,7 +144,7 @@ class SalesPlanInfolist
                         Grid::make(1)
                             ->schema([
                                 TextEntry::make('revenue_distribution_planning')
-                                    ->label('Monthly Revenue Distribution')
+                                    ->label(__('Monthly Revenue Distribution'))
                                     ->html()
                                     ->state(function (Model $record) {
                                         $data = $record->revenue_distribution_planning;
@@ -173,50 +173,50 @@ class SalesPlanInfolist
                             ]),
                     ]),
 
-                Section::make('Governance')
+                Section::make(__('Governance'))
                     ->icon(Heroicon::OutlinedShieldCheck)
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('confidence_level')
                                     ->badge()
-                                    ->label('Confidence Level'),
+                                    ->label(__('Confidence Level')),
                                 TextEntry::make('created_at')
                                     ->dateTime()
-                                    ->label('Created At'),
+                                    ->label(__('Created At')),
                             ]),
                     ]),
 
-                Section::make('Document Tracking')
-                    ->description('Reference numbers for documents associated with this lead.')
+                Section::make(__('Document Tracking'))
+                    ->description(__('Reference numbers for documents associated with this lead.'))
                     ->icon(Heroicon::OutlinedTicket)
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('proposal_number')
-                                    ->label('Proposal #')
+                                    ->label(__('Proposal #'))
                                     ->copyable()
-                                    ->placeholder('N/A'),
+                                    ->placeholder(__('N/A')),
                                 TextEntry::make('contract_number')
-                                    ->label('Contract / PKS #')
+                                    ->label(__('Contract / PKS #'))
                                     ->copyable()
-                                    ->placeholder('N/A'),
+                                    ->placeholder(__('N/A')),
                                 TextEntry::make('po_number')
-                                    ->label('Purchase Order #')
+                                    ->label(__('Purchase Order #'))
                                     ->copyable()
-                                    ->placeholder('N/A'),
+                                    ->placeholder(__('N/A')),
                                 TextEntry::make('so_number')
-                                    ->label('Sales Order #')
+                                    ->label(__('Sales Order #'))
                                     ->copyable()
-                                    ->placeholder('N/A'),
+                                    ->placeholder(__('N/A')),
                                 TextEntry::make('wo_number')
-                                    ->label('Work Order / SPK #')
+                                    ->label(__('Work Order / SPK #'))
                                     ->copyable()
-                                    ->placeholder('N/A'),
+                                    ->placeholder(__('N/A')),
                                 TextEntry::make('ba_number')
-                                    ->label('BAPP / BA #')
+                                    ->label(__('BAPP / BA #'))
                                     ->copyable()
-                                    ->placeholder('N/A'),
+                                    ->placeholder(__('N/A')),
                             ]),
                     ]),
             ]);

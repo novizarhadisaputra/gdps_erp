@@ -16,10 +16,10 @@ class ProposalRevisionForm
         return $schema
             ->components([
                 TextInput::make('number')
-                    ->label('Document Number')
+                    ->label(__('Document Number'))
                     ->disabled(),
                 TextInput::make('sequence_number')
-                    ->label('Sequence #')
+                    ->label(__('Sequence #'))
                     ->disabled(),
                 TextInput::make('year')
                     ->disabled(),
@@ -27,17 +27,17 @@ class ProposalRevisionForm
                     ->columnSpanFull()
                     ->disabled(),
                 KeyValue::make('snapshot')
-                    ->label('Data Snapshot')
+                    ->label(__('Data Snapshot'))
                     ->columnSpanFull()
                     ->disabled()
                     ->dehydrated(false),
 
-                Section::make('Document Snapshots')
-                    ->description('Documents that were active at the time of this revision.')
+                Section::make(__('Document Snapshots'))
+                    ->description(__('Documents that were active at the time of this revision.'))
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('final_proposal')
                             ->collection('final_proposal')
-                            ->label('Draft Snapshot')
+                            ->label(__('Draft Snapshot'))
                             ->disk('s3')
                             ->visibility('private')
                             ->multiple()
@@ -45,7 +45,7 @@ class ProposalRevisionForm
                             ->dehydrated(false),
                         SpatieMediaLibraryFileUpload::make('signed_proposal')
                             ->collection('signed_proposal')
-                            ->label('Signed Snapshot')
+                            ->label(__('Signed Snapshot'))
                             ->disk('s3')
                             ->visibility('private')
                             ->multiple()

@@ -12,8 +12,8 @@ enum SalesOrderType: string implements HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Internal => 'Internal',
-            self::External => 'External',
+            self::Internal => __('Internal'),
+            self::External => __('External'),
         };
     }
 }

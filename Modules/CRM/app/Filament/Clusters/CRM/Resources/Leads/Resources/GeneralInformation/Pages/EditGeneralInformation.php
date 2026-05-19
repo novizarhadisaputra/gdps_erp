@@ -26,7 +26,7 @@ class EditGeneralInformation extends EditRecord
 
         if ($this->getRecord()->isLocked()) {
             \Filament\Notifications\Notification::make()
-                ->title('Access Locked')
+                ->title(__('Access Locked'))
                 ->body('General Information that has been submitted or approved cannot be modified.')
                 ->warning()
                 ->send();

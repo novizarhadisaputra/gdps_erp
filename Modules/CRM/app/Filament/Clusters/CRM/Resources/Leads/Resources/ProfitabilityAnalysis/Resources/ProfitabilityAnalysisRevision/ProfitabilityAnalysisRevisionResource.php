@@ -22,11 +22,24 @@ class ProfitabilityAnalysisRevisionResource extends Resource
 
     protected static ?string $parentResource = ProfitabilityAnalysisResource::class;
 
-    protected static ?string $navigationLabel = 'Revision History';
-
     protected static ?string $slug = 'revisions';
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClock;
+
+    public static function getModelLabel(): string
+    {
+        return __('Profitability Analysis Revision');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Profitability Analysis Revisions');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Revision History');
+    }
 
     public static function shouldRegisterNavigation(): bool
     {

@@ -20,24 +20,24 @@ class WorkOrdersTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                    ->label('Number')
+                    ->label(__('Number'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.name')
-                    ->label('Customer')
+                    ->label(__('Customer'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('proposal.number')
-                    ->label('Proposal')
+                    ->label(__('Proposal'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('amount')
-                    ->label('Amount')
+                    ->label(__('Amount'))
                     ->money('IDR')
                     ->sortable()
                     ->alignRight(),
                 TextColumn::make('order_date')
-                    ->label('Date')
+                    ->label(__('Date'))
                     ->date()
                     ->sortable(),
                 TextColumn::make('status')

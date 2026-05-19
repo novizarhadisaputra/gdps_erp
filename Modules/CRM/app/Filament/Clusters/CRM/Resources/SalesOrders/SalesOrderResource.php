@@ -30,6 +30,21 @@ class SalesOrderResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getModelLabel(): string
+    {
+        return __('Sales Order');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Sales Orders');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Sales Orders');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return SalesOrderForm::configure($schema);

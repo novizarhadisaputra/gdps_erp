@@ -20,27 +20,27 @@ class MinutesOfAgreementsTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                    ->label('Number')
+                    ->label(__('Number'))
                     ->searchable()
                     ->sortable()
                     ->copyable(),
                 TextColumn::make('customer.name')
-                    ->label('Customer')
+                    ->label(__('Customer'))
                     ->searchable()
                     ->sortable()
-                    ->placeholder('-'),
+                    ->placeholder(__('-')),
                 TextColumn::make('proposal.number') // Standardized
-                    ->label('Proposal')
-                    ->placeholder('-')
+                    ->label(__('Proposal'))
+                    ->placeholder(__('-'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('amount')
-                    ->label('Amount')
+                    ->label(__('Amount'))
                     ->money('IDR')
                     ->sortable()
                     ->alignRight(),
                 TextColumn::make('negotiation_date')
-                    ->label('Date')
+                    ->label(__('Date'))
                     ->date()
                     ->sortable(),
                 TextColumn::make('status')

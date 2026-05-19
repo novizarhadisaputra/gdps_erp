@@ -15,40 +15,40 @@ class PurchaseOrderForm
     {
         return $schema
             ->components([
-                Section::make('General Information')
-                    ->description('Basic identification and source of the purchase order.')
+                Section::make(__('General Information'))
+                    ->description(__('Basic identification and source of the purchase order.'))
                     ->icon('heroicon-m-information-circle')
                     ->schema([
                         TextInput::make('number')
-                            ->label('PO Number')
-                            ->placeholder('Auto-generated')
+                            ->label(__('PO Number'))
+                            ->placeholder(__('Auto-generated'))
                             ->disabled()
                             ->hiddenOn(['create'])
                             ->dehydrated(false),
                         Select::make('proposal_id')
-                            ->label('Source Proposal')
+                            ->label(__('Source Proposal'))
                             ->relationship('proposal', 'number', fn ($query, $record) => $query->where('lead_id', $record?->lead_id))
                             ->searchable()
                             ->preload()
                             ->live()
                             ->required(),
                         DatePicker::make('order_date')
-                            ->label('Order Date')
+                            ->label(__('Order Date'))
                             ->default(now())
                             ->required()
                             ->native(false),
                         TextInput::make('amount')
-                            ->label('Total Amount')
+                            ->label(__('Total Amount'))
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->required(),
                     ])->columns(2),
-                Section::make('Attachments')
-                    ->description('Supporting documentation for this PO.')
+                Section::make(__('Attachments'))
+                    ->description(__('Supporting documentation for this PO.'))
                     ->icon('heroicon-m-paper-clip')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('attachment')
-                            ->label('PO Document')
+                            ->label(__('PO Document'))
                             ->collection('po_attachment')
                             ->disk('s3')
                             ->visibility('private')

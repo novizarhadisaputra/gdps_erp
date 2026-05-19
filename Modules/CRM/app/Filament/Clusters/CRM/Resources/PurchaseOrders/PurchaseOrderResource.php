@@ -25,6 +25,21 @@ class PurchaseOrderResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
+    public static function getModelLabel(): string
+    {
+        return __('Purchase Order');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Purchase Orders');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Purchase Orders');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PurchaseOrderForm::configure($schema);

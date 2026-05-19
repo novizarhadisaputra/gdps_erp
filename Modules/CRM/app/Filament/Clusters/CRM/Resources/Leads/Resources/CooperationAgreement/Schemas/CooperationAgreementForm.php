@@ -15,40 +15,40 @@ class CooperationAgreementForm
     {
         return $schema
             ->components([
-                Section::make('General Information')
-                    ->description('Basic identification and source of the cooperation agreement.')
+                Section::make(__('General Information'))
+                    ->description(__('Basic identification and source of the cooperation agreement.'))
                     ->icon('heroicon-m-information-circle')
                     ->schema([
                         TextInput::make('number')
-                            ->label('PKS Number')
-                            ->placeholder('Auto-generated')
+                            ->label(__('PKS Number'))
+                            ->placeholder(__('Auto-generated'))
                             ->disabled()
                             ->hiddenOn(['create'])
                             ->dehydrated(false),
                         Select::make('proposal_id')
-                            ->label('Source Proposal')
+                            ->label(__('Source Proposal'))
                             ->relationship('proposal', 'number', fn ($query, $record) => $query->where('lead_id', $record?->lead_id))
                             ->searchable()
                             ->preload()
                             ->live()
                             ->required(),
                         DatePicker::make('agreement_date')
-                            ->label('Agreement Date')
+                            ->label(__('Agreement Date'))
                             ->default(now())
                             ->required()
                             ->native(false),
                         TextInput::make('amount')
-                            ->label('Total Amount')
+                            ->label(__('Total Amount'))
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->required(),
                     ])->columns(2),
-                Section::make('Attachments')
-                    ->description('Supporting documentation for this PKS.')
+                Section::make(__('Attachments'))
+                    ->description(__('Supporting documentation for this PKS.'))
                     ->icon('heroicon-m-paper-clip')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('attachment')
-                            ->label('PKS Document')
+                            ->label(__('PKS Document'))
                             ->collection('pks_attachment')
                             ->disk('s3')
                             ->visibility('private')

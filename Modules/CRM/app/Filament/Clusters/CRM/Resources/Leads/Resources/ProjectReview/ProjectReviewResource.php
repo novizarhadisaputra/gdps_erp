@@ -26,13 +26,24 @@ class ProjectReviewResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClipboardDocumentCheck;
 
-    protected static ?string $navigationLabel = 'Project Reviews';
-
-    protected static ?string $title = 'Project Review';
-
     protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'project-reviews';
+
+    public static function getModelLabel(): string
+    {
+        return __('Project Review');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Project Reviews');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Project Reviews');
+    }
 
     public static function form(Schema $schema): Schema
     {

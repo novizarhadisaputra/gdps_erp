@@ -22,7 +22,25 @@ class CustomerResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Partners & Relations';
+    public static function getModelLabel(): string
+    {
+        return __('Customer');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Customers');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Customers');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Partners & Relations');
+    }
 
     public static function form(Schema $schema): Schema
     {

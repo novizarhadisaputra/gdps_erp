@@ -23,15 +23,15 @@ class SalesOrdersTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                    ->label('SO Number')
+                    ->label(__('SO Number'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.name')
-                    ->label('Customer')
+                    ->label(__('Customer'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('amount')
-                    ->label('Total Amount')
+                    ->label(__('Total Amount'))
                     ->money('IDR')
                     ->sortable()
                     ->summarize(

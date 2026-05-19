@@ -13,8 +13,8 @@ enum ProrationMethod: string implements HasColor, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Equal => 'Equal Monthly',
-            self::Daily => 'Daily Prorated',
+            self::Equal => __('Equal Monthly'),
+            self::Daily => __('Daily Prorated'),
         };
     }
 

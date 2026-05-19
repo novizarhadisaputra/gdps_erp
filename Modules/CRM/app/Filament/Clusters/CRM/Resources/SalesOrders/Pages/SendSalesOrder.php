@@ -36,7 +36,7 @@ class SendSalesOrder extends Page
 
         if ($this->record->type === SalesOrderType::Internal) {
             Notification::make()
-                ->title('Email Action Not Required')
+                ->title(__('Email Action Not Required'))
                 ->body('Internal Sales Orders do not require email dispatch to customers.')
                 ->warning()
                 ->send();
@@ -81,7 +81,7 @@ class SendSalesOrder extends Page
         return $schema
             ->schema([
                 Select::make('recipient_contact')
-                    ->label('Select Contact')
+                    ->label(__('Select Contact'))
                     ->options(fn () => $this->getContactOptions())
                     ->live()
                     ->createOptionForm([
@@ -104,7 +104,7 @@ class SendSalesOrder extends Page
                         }
                     }),
                 TextInput::make('recipient_email')
-                    ->label('Recipient Email')
+                    ->label(__('Recipient Email'))
                     ->email()
                     ->required()
                     ->live(onBlur: false),
@@ -121,8 +121,8 @@ class SendSalesOrder extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('back')
-                ->label('Back to Sales Order')
+            Action::make(__('back'))
+                ->label(__('Back to Sales Order'))
                 ->color('gray')
                 ->url(fn () => $this->getResource()::getUrl('view', ['record' => $this->record])),
         ];
@@ -130,8 +130,8 @@ class SendSalesOrder extends Page
 
     public function sendEmailAction(): Action
     {
-        return Action::make('sendEmail')
-            ->label('Send Email Now')
+        return Action::make(__('sendEmail'))
+            ->label(__('Send Email Now'))
             ->icon('heroicon-o-paper-airplane')
             ->color('primary')
             ->requiresConfirmation()
@@ -226,14 +226,14 @@ class SendSalesOrder extends Page
             ]);
 
             Notification::make()
-                ->title('Email Sent Successfully')
+                ->title(__('Email Sent Successfully'))
                 ->success()
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
         } catch (\Exception $e) {
             Notification::make()
-                ->title('Failed to Send Email')
+                ->title(__('Failed to Send Email'))
                 ->body($e->getMessage())
                 ->danger()
                 ->send();

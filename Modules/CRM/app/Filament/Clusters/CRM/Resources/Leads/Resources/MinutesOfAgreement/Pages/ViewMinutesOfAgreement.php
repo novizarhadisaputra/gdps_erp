@@ -28,13 +28,13 @@ class ViewMinutesOfAgreement extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('pdf')
-                ->label('Export PDF')
+            Action::make(__('pdf'))
+                ->label(__('Export PDF'))
                 ->color('gray')
                 ->icon(Heroicon::OutlinedArrowDownTray)
                 ->schema([
                     Select::make('language')
-                        ->label('Select Document Language')
+                        ->label(__('Select Document Language'))
                         ->options([
                             'id' => 'Indonesia (Bahasa)',
                             'en' => 'English',
@@ -54,17 +54,17 @@ class ViewMinutesOfAgreement extends ViewRecord
 
                     return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                 }),
-            Action::make('sign')
-                ->label('Digital Signature')
+            Action::make(__('sign'))
+                ->label(__('Digital Signature'))
                 ->color('primary')
                 ->icon(Heroicon::OutlinedPencilSquare)
                 ->modalWidth('md')
                 ->schema([
                     TextInput::make('pin')
-                        ->label('Signature PIN')
+                        ->label(__('Signature PIN'))
                         ->password()
                         ->required()
-                        ->helperText('Enter your digital signature PIN to approve this MoA.'),
+                        ->helperText(__('Enter your digital signature PIN to approve this MoA.')),
                 ])
                 ->action(function (array $data) {
                     $user = auth()->user();
@@ -72,7 +72,7 @@ class ViewMinutesOfAgreement extends ViewRecord
 
                     if (! $service->verifyPin($user, $data['pin'])) {
                         Notification::make()
-                            ->title('Incorrect PIN')
+                            ->title(__('Incorrect PIN'))
                             ->danger()
                             ->send();
 
@@ -84,7 +84,7 @@ class ViewMinutesOfAgreement extends ViewRecord
 
                     if (! $matchingRule) {
                         Notification::make()
-                            ->title('Access Denied')
+                            ->title(__('Access Denied'))
                             ->body('You do not have the authority to sign this document based on the current approval rules.')
                             ->warning()
                             ->send();
@@ -95,7 +95,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                     // Check if signature already exists for this rule
                     if ($this->record->isRuleSatisfied($matchingRule)) {
                         Notification::make()
-                            ->title('Already Signed')
+                            ->title(__('Already Signed'))
                             ->body('This document has already been signed by the appropriate role(s) you represent.')
                             ->warning()
                             ->send();
@@ -122,7 +122,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                     $service->notifyOwnerOnSignature($this->record, $user, $matchingRule->signature_type);
 
                     Notification::make()
-                        ->title('Document Successfully Signed')
+                        ->title(__('Document Successfully Signed'))
                         ->success()
                         ->send();
 
@@ -130,22 +130,22 @@ class ViewMinutesOfAgreement extends ViewRecord
                         $this->record->update(['status' => MoAStatus::Approved]);
 
                         Notification::make()
-                            ->title('MoA Fully Approved')
+                            ->title(__('MoA Fully Approved'))
                             ->success()
                             ->send();
                     }
                 })
                 ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Submitted),
 
-            Action::make('incompleteWarning')
-                ->label('Submit')
+            Action::make(__('incompleteWarning'))
+                ->label(__('Submit'))
                 ->color('gray')
                 ->icon(Heroicon::OutlinedExclamationTriangle)
                 ->disabled()
-                ->tooltip('Harap lengkapi semua data wajib (Required) MoA untuk dapat melakukan Submit.')
+                ->tooltip(__('Harap lengkapi semua data wajib (Required) MoA untuk dapat melakukan Submit.'))
                 ->visible(fn () => $this->record->status === MoAStatus::Draft && ! $this->record->isComplete()),
 
-            Action::make('Submit')
+            Action::make(__('Submit'))
                 ->color('info')
                 ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
@@ -155,8 +155,8 @@ class ViewMinutesOfAgreement extends ViewRecord
                     $this->refreshFormData(['status']);
                 })
                 ->visible(fn () => $this->record->status === MoAStatus::Draft && $this->record->isComplete()),
-            Action::make('convertToPKS')
-                ->label('Convert to PKS')
+            Action::make(__('convertToPKS'))
+                ->label(__('Convert to PKS'))
                 ->icon(Heroicon::OutlinedDocumentDuplicate)
                 ->color('primary')
                 ->visible(fn (MinutesOfAgreement $record) => $record->status === MoAStatus::Approved && ! $record->proposal?->cooperationAgreements()->exists())
@@ -170,21 +170,21 @@ class ViewMinutesOfAgreement extends ViewRecord
                     ]);
 
                     Notification::make()
-                        ->title('MoA Converted to Cooperation Agreement (PKS)')
+                        ->title(__('MoA Converted to Cooperation Agreement (PKS)'))
                         ->success()
                         ->send();
 
                     // Note: We need to make sure CooperationAgreementResource exists and has the correct path
                     $this->redirect(CooperationAgreementResource::getUrl('view', ['record' => $pks->id, 'lead' => $record->lead_id]));
                 }),
-            Action::make('Reject')
+            Action::make(__('Reject'))
                 ->color('danger')
                 ->icon(Heroicon::OutlinedXMark)
                 ->requiresConfirmation()
-                ->modalHeading('Reject MoA')
+                ->modalHeading(__('Reject MoA'))
                 ->schema([
                     TextInput::make('reason')
-                        ->label('Reason for Rejection')
+                        ->label(__('Reason for Rejection'))
                         ->required(),
                 ])
                 ->action(function (array $data) {
@@ -193,7 +193,7 @@ class ViewMinutesOfAgreement extends ViewRecord
                     $this->refreshFormData(['status']);
 
                     Notification::make()
-                        ->title('MoA Rejected')
+                        ->title(__('MoA Rejected'))
                         ->warning()
                         ->send();
                 })

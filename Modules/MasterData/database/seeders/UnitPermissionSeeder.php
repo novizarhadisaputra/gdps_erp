@@ -33,7 +33,7 @@ class UnitPermissionSeeder extends Seeder
             'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
             'ViewAny:Comment', 'View:Comment',
             'View:CRMCluster', 'View:FinanceCluster', 'View:ProjectCluster', 'View:MasterDataCluster',
-            'View:CRMAnalyticsPage', 'View:ProjectAnalyticsPage', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
+            'View:CRMAnalyticsPage', 'View:ProjectAnalyticsPage', 'View:ProjectDashboard',
             'View:ProjectBoard', 'View:SummaryProfitabilityAnalysis',
             'View:AuditProposalRevision', 'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
         ];
@@ -54,7 +54,7 @@ class UnitPermissionSeeder extends Seeder
             'ViewAny:ProfitabilityAnalysisRevision', 'View:ProfitabilityAnalysisRevision',
             'ViewAny:SalesOrderAmendment', 'View:SalesOrderAmendment',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
-            'View:CRMCluster', 'View:CRMAnalyticsPage', 'View:ProjectReviewDashboard',
+            'View:CRMCluster', 'View:CRMAnalyticsPage',
             'View:SummaryProfitabilityAnalysis',
             'View:AuditProposalRevision', 'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
         ];
@@ -76,7 +76,7 @@ class UnitPermissionSeeder extends Seeder
             'ViewAny:Proposal', 'View:Proposal', 'ViewAny:ProposalRevision', 'View:ProposalRevision',
             'ViewAny:GeneralInformation', 'View:GeneralInformation',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
-            'View:FinanceCluster', 'View:CRMCluster', 'View:ProjectReviewDashboard',
+            'View:FinanceCluster', 'View:CRMCluster',
             'View:SummaryProfitabilityAnalysis',
             'View:AuditProposalRevision', 'View:AuditProfitabilityAnalysisRevision', 'View:AuditAmendment',
         ];
@@ -96,7 +96,7 @@ class UnitPermissionSeeder extends Seeder
             'ViewAny:MinutesOfAgreement', 'View:MinutesOfAgreement',
             'ViewAny:GeneralInformation', 'View:GeneralInformation',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
-            'View:ProjectCluster', 'View:CRMCluster', 'View:FinanceCluster', 'View:ProjectDashboard', 'View:ProjectReviewDashboard',
+            'View:ProjectCluster', 'View:CRMCluster', 'View:FinanceCluster', 'View:ProjectDashboard',
             'View:ProjectBoard', 'View:SummaryProfitabilityAnalysis',
             'View:AuditProposalRevision', 'View:AuditAmendment',
         ];
@@ -108,7 +108,7 @@ class UnitPermissionSeeder extends Seeder
             'ViewAny:Lead', 'View:Lead',
             'ViewAny:ProjectReview', 'View:ProjectReview',
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
-            'View:CRMCluster', 'View:MasterDataCluster', 'View:ProjectReviewDashboard',
+            'View:CRMCluster', 'View:MasterDataCluster',
         ];
 
         $salesPermissions = [
@@ -132,7 +132,7 @@ class UnitPermissionSeeder extends Seeder
             'ViewAny:Comment', 'View:Comment', 'Create:Comment', 'Update:Comment', 'Delete:Comment',
             'ViewAny:ItemCategory', 'View:ItemCategory',
             'ViewAny:Item', 'View:Item',
-            'View:CRMCluster', 'View:CRMAnalyticsPage', 'View:ProjectReviewDashboard',
+            'View:CRMCluster', 'View:CRMAnalyticsPage',
             'View:SummaryProfitabilityAnalysis', 'View:MasterDataCluster',
         ];
 

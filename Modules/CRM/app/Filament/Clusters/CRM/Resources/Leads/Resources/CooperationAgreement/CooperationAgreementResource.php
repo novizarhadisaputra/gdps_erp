@@ -23,6 +23,21 @@ class CooperationAgreementResource extends Resource
 
     protected static ?string $parentRouteParameterName = 'lead';
 
+    public static function getModelLabel(): string
+    {
+        return __('Cooperation Agreement');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Cooperation Agreements');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Cooperation Agreements');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return CooperationAgreementForm::configure($schema);

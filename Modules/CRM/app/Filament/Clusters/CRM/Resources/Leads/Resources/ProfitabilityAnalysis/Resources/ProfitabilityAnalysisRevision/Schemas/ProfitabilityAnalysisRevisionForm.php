@@ -14,10 +14,10 @@ class ProfitabilityAnalysisRevisionForm
         return $schema
             ->components([
                 TextInput::make('revision_number')
-                    ->label('Revision #')
+                    ->label(__('Revision #'))
                     ->disabled(),
                 TextInput::make('sequence_number')
-                    ->label('Sequence #')
+                    ->label(__('Sequence #'))
                     ->disabled(),
                 TextInput::make('year')
                     ->disabled(),
@@ -25,7 +25,7 @@ class ProfitabilityAnalysisRevisionForm
                     ->columnSpanFull()
                     ->disabled(),
                 KeyValue::make('snapshot')
-                    ->label('Data Snapshot')
+                    ->label(__('Data Snapshot'))
                     ->columnSpanFull()
                     ->disabled()
                     ->dehydrated(false),

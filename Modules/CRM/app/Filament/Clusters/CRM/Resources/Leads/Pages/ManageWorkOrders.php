@@ -39,13 +39,13 @@ class ManageWorkOrders extends ManageRelatedRecords
     {
         return WorkOrderResource::table($table)
             ->headerActions([
-                Action::make('bookingCode')
-                    ->label('Booking SPK Code')
+                Action::make(__('bookingCode'))
+                    ->label(__('Booking SPK Code'))
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Booking Work Order (SPK) Code')
-                    ->modalDescription('This will generate a new SPK record with an auto-generated code. You can upload the documentation later.')
+                    ->modalHeading(__('Booking Work Order (SPK) Code'))
+                    ->modalDescription(__('This will generate a new SPK record with an auto-generated code. You can upload the documentation later.'))
                     ->action(function () {
                         $lead = $this->getOwnerRecord();
 
@@ -59,7 +59,7 @@ class ManageWorkOrders extends ManageRelatedRecords
                         ]);
 
                         Notification::make()
-                            ->title('SPK code booked successfully')
+                            ->title(__('SPK code booked successfully'))
                             ->success()
                             ->send();
                     }),

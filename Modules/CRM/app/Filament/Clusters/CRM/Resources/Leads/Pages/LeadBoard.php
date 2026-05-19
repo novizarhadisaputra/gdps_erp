@@ -36,12 +36,12 @@ class LeadBoard extends BoardResourcePage
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('list')
-                ->label('List View')
+            Action::make(__('list'))
+                ->label(__('List View'))
                 ->icon(Heroicon::OutlinedTableCells)
                 ->url(LeadResource::getUrl('list')),
             CreateAction::make()
-                ->label('New Lead')
+                ->label(__('New Lead'))
                 ->model(Lead::class)
                 ->schema(fn (Schema $schema) => LeadForm::configure($schema)),
         ];
@@ -67,39 +67,39 @@ class LeadBoard extends BoardResourcePage
             ->columnIdentifier('status')
             ->positionIdentifier('position')
             ->columns([
-                Column::make('lead')->label('Lead')->color('gray'),
-                Column::make('approach')->label('Approach')->color('info'),
-                Column::make('proposal')->label('Proposal')->color('primary'),
-                Column::make('negotiation')->label('Negotiation')->color('warning'),
-                Column::make('contract')->label('Contract')->color('success'),
-                Column::make('won')->label('Won')->color('success'),
-                Column::make('closed_lost')->label('Closed Lost')->color('danger'),
-                Column::make('cancelled')->label('Cancelled')->color('danger'),
-                Column::make('postponed')->label('Postponed')->color('warning'),
+                Column::make('lead')->label(__('Lead'))->color('gray'),
+                Column::make('approach')->label(__('Approach'))->color('info'),
+                Column::make('proposal')->label(__('Proposal'))->color('primary'),
+                Column::make('negotiation')->label(__('Negotiation'))->color('warning'),
+                Column::make('contract')->label(__('Contract'))->color('success'),
+                Column::make('won')->label(__('Won'))->color('success'),
+                Column::make('closed_lost')->label(__('Closed Lost'))->color('danger'),
+                Column::make('cancelled')->label(__('Cancelled'))->color('danger'),
+                Column::make('postponed')->label(__('Postponed'))->color('warning'),
             ])
             ->cardActions([
                 ViewAction::make()->url(fn (Lead $record) => LeadResource::getUrl('view', ['record' => $record])),
-                Action::make('salesPlan')
-                    ->label('Setup Sales Plan')
+                Action::make(__('salesPlan'))
+                    ->label(__('Setup Sales Plan'))
                     ->visible(fn (Lead $record) => $record->status === LeadStatus::Approach && $record->salesPlan()->doesntExist())
                     ->icon(Heroicon::OutlinedPresentationChartLine)
                     ->color('info')
                     ->action(function (Lead $record) {
                         return redirect(LeadResource::getUrl('sales-plans', ['record' => $record]));
                     }),
-                Action::make('setupGI')
-                    ->label('Setup General Info')
+                Action::make(__('setupGI'))
+                    ->label(__('Setup General Info'))
                     ->visible(fn (Lead $record) => $record->status === LeadStatus::Approach && $record->salesPlan()->exists() && $record->generalInformations()->doesntExist())
                     ->icon(Heroicon::OutlinedClipboardDocumentList)
                     ->color('success')
                     ->requiresConfirmation()
-                    ->modalHeading('Setup General Information')
-                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
+                    ->modalHeading(__('Setup General Information'))
+                    ->modalDescription(__('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?'))
                     ->action(function (Lead $record) {
                         $record->salesPlan->toGeneralInformation();
 
                         Notification::make()
-                            ->title('General Information Created')
+                            ->title(__('General Information Created'))
                             ->body('Data has been synced from Sales Plan.')
                             ->success()
                             ->send();
@@ -127,7 +127,7 @@ class LeadBoard extends BoardResourcePage
         // Except for special states (weight 99) which can be accessed from anywhere
         if ($targetStatus->weight() < $currentStatus->weight() && $targetStatus->weight() !== 99) {
             Notification::make()
-                ->title('Validation Failed')
+                ->title(__('Validation Failed'))
                 ->body("Cannot move lead back to {$targetStatus->getLabel()} from {$currentStatus->getLabel()}.")
                 ->danger()
                 ->send();
@@ -156,7 +156,7 @@ class LeadBoard extends BoardResourcePage
             };
 
             Notification::make()
-                ->title('Validation Failed')
+                ->title(__('Validation Failed'))
                 ->body($message)
                 ->danger()
                 ->send();

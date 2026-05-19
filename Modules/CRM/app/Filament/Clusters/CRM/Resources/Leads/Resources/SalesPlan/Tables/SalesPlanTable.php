@@ -20,28 +20,28 @@ class SalesPlanTable
         return $table
             ->columns([
                 TextColumn::make('lead.title')
-                    ->label('Lead')
+                    ->label(__('Lead'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('ams.name')
-                    ->label('AMS')
+                    ->label(__('AMS'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('revenueSegment.name')
-                    ->label('Segment')
+                    ->label(__('Segment'))
                     ->sortable(),
                 TextColumn::make('productCluster.name')
-                    ->label('Cluster')
+                    ->label(__('Cluster'))
                     ->sortable(),
                 TextColumn::make('paymentTerm.name')
-                    ->label('ToP')
+                    ->label(__('ToP'))
                     ->sortable(),
                 TextColumn::make('estimated_value')
-                    ->label('Value')
+                    ->label(__('Value'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('confidence_level')
-                    ->label('Confidence')
+                    ->label(__('Confidence'))
                     ->badge()
                     ->color(fn (ConfidenceLevel $state): string => match ($state) {
                         ConfidenceLevel::Optimistic => 'success',
@@ -54,14 +54,14 @@ class SalesPlanTable
                     ->date()
                     ->sortable(),
                 TextColumn::make('so_number')
-                    ->label('SO #')
+                    ->label(__('SO #'))
                     ->searchable()
-                    ->placeholder('N/A')
+                    ->placeholder(__('N/A'))
                     ->toggleable(),
                 TextColumn::make('ba_number')
-                    ->label('BAPP #')
+                    ->label(__('BAPP #'))
                     ->searchable()
-                    ->placeholder('N/A')
+                    ->placeholder(__('N/A'))
                     ->toggleable(),
             ])
             ->recordActions([

@@ -39,13 +39,13 @@ class ManageCooperationAgreements extends ManageRelatedRecords
     {
         return CooperationAgreementResource::table($table)
             ->headerActions([
-                Action::make('bookingCode')
-                    ->label('Booking PKS Code')
+                Action::make(__('bookingCode'))
+                    ->label(__('Booking PKS Code'))
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Booking Cooperation Agreement (PKS) Code')
-                    ->modalDescription('This will generate a new PKS record with an auto-generated code. You can upload the documentation later.')
+                    ->modalHeading(__('Booking Cooperation Agreement (PKS) Code'))
+                    ->modalDescription(__('This will generate a new PKS record with an auto-generated code. You can upload the documentation later.'))
                     ->action(function () {
                         $lead = $this->getOwnerRecord();
 
@@ -59,7 +59,7 @@ class ManageCooperationAgreements extends ManageRelatedRecords
                         ]);
 
                         Notification::make()
-                            ->title('PKS code booked successfully')
+                            ->title(__('PKS code booked successfully'))
                             ->success()
                             ->send();
                     }),

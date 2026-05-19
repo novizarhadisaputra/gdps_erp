@@ -37,12 +37,12 @@ class LeadForm
     public static function schema(): array
     {
         return [
-            Section::make('Lead Details')
-                ->description('Basic information about the sales lead.')
+            Section::make(__('Lead Details'))
+                ->description(__('Basic information about the sales lead.'))
                 ->schema([
                     Select::make('customer_id')
                         ->relationship('customer', 'name')
-                        ->label('Customer')
+                        ->label(__('Customer'))
                         ->searchable()
                         ->preload()
                         ->required()
@@ -55,7 +55,7 @@ class LeadForm
                                 }
                             }
                         })
-                        ->placeholder('Select customer')
+                        ->placeholder(__('Select customer'))
                         ->createOptionForm(CustomerForm::schema(isCreateOption: true))
                         ->createOptionAction(fn (Action $action) => $action->slideOver())
                         ->createOptionUsing(fn (array $data) => Customer::create($data)->id)
@@ -64,25 +64,25 @@ class LeadForm
                     TextInput::make('title')
                         ->required()
                         ->maxLength(255)
-                        ->placeholder('Example: IT Support Outsourcing or Laptop Procurement')
+                        ->placeholder(__('Example: IT Support Outsourcing or Laptop Procurement'))
                         ->live(onBlur: true),
                     Textarea::make('description')
                         ->rows(3)
-                        ->placeholder('Provide a brief description of the scope of work or the purpose of this project')
+                        ->placeholder(__('Provide a brief description of the scope of work or the purpose of this project'))
                         ->columnSpanFull(),
                     Grid::make(2)
                         ->columnSpanFull()
                         ->schema([
                             Select::make('job_positions')
-                                ->label('Job Positions')
+                                ->label(__('Job Positions'))
                                 ->multiple()
                                 ->options(JobPosition::where('is_active', true)->pluck('name', 'id'))
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select required positions')
-                                ->helperText('Select one or more positions to be placed in this project.'),
+                                ->placeholder(__('Select required positions'))
+                                ->helperText(__('Select one or more positions to be placed in this project.')),
                             Select::make('pic_costing_id')
-                                ->label('Costing PIC')
+                                ->label(__('Costing PIC'))
                                 ->relationship('picCosting', 'name')
                                 ->options(function () {
                                     return User::where('id', auth()->id())
@@ -92,46 +92,46 @@ class LeadForm
                                 ->searchable()
                                 ->preload()
                                 ->default(auth()->id())
-                                ->placeholder('Select Costing PIC')
-                                ->helperText('User responsible for preparing the costing template.'),
+                                ->placeholder(__('Select Costing PIC'))
+                                ->helperText(__('User responsible for preparing the costing template.')),
                         ]),
                 ])
                 ->columnSpanFull()
                 ->columns(2),
 
-            Section::make('Categorization')
-                ->description('Early identification of project type and segment.')
+            Section::make(__('Categorization'))
+                ->description(__('Early identification of project type and segment.'))
                 ->schema([
                     Grid::make(3)
                         ->schema([
                             Select::make('revenue_segment_id')
-                                ->label('Revenue Segment')
+                                ->label(__('Revenue Segment'))
                                 ->relationship('revenueSegment', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select revenue segment')
+                                ->placeholder(__('Select revenue segment'))
                                 ->createOptionForm(RevenueSegmentForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id)
                                 ->editOptionForm(RevenueSegmentForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('product_cluster_id')
-                                ->label('Product Cluster')
+                                ->label(__('Product Cluster'))
                                 ->relationship('productCluster', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select product cluster')
+                                ->placeholder(__('Select product cluster'))
                                 ->createOptionForm(ProductClusterForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ProductCluster::create($data)->id)
                                 ->editOptionForm(ProductClusterForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('project_type_id')
-                                ->label('Project Type')
+                                ->label(__('Project Type'))
                                 ->relationship('projectType', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select project type')
+                                ->placeholder(__('Select project type'))
                                 ->createOptionForm(ProjectTypeForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => ProjectType::create($data)->id)
@@ -141,18 +141,18 @@ class LeadForm
                     Grid::make(3)
                         ->schema([
                             Select::make('industrial_sector_id')
-                                ->label('Industrial Sector')
+                                ->label(__('Industrial Sector'))
                                 ->relationship('industrialSector', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select industrial sector')
+                                ->placeholder(__('Select industrial sector'))
                                 ->createOptionForm(IndustrialSectorForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
                                 ->createOptionUsing(fn (array $data) => IndustrialSector::create($data)->id)
                                 ->editOptionForm(IndustrialSectorForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('project_area_id')
-                                ->label('Project Area')
+                                ->label(__('Project Area'))
                                 ->relationship(
                                     name: 'projectArea',
                                     titleAttribute: 'name',
@@ -160,7 +160,7 @@ class LeadForm
                                 )
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select project area')
+                                ->placeholder(__('Select project area'))
                                 ->visible(fn (Get $get) => filled($get('customer_id')))
                                 ->createOptionForm(ProjectAreaForm::schema())
                                 ->createOptionAction(fn (Action $action) => $action->slideOver())
@@ -176,49 +176,49 @@ class LeadForm
                                 ->editOptionForm(ProjectAreaForm::schema())
                                 ->editOptionAction(fn (Action $action) => $action->slideOver()),
                             Select::make('tax_id')
-                                ->label('Tax')
+                                ->label(__('Tax'))
                                 ->relationship('tax', 'name')
                                 ->searchable()
                                 ->preload()
-                                ->placeholder('Select tax configuration')
-                                ->helperText('Standard tax scheme applied to this lead (e.g. VAT 12%).'),
+                                ->placeholder(__('Select tax configuration'))
+                                ->helperText(__('Standard tax scheme applied to this lead (e.g. VAT 12%).')),
                         ]),
                 ])
                 ->columnSpanFull(),
 
-            Section::make('Pipeline & Forecast')
-                ->description('Status and financial projections.')
+            Section::make(__('Pipeline & Forecast'))
+                ->description(__('Status and financial projections.'))
                 ->schema([
                     Select::make('confidence_level')
                         ->options(ConfidenceLevel::class)
-                        ->placeholder('Select confidence level')
+                        ->placeholder(__('Select confidence level'))
                         ->native(false),
                     TextInput::make('estimated_amount')
                         ->prefix('IDR')
                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                         ->maxValue(2147483647)
                         ->default(0)
-                        ->placeholder('1.000.000.000')
-                        ->helperText('Estimated total project value during the contract duration.')
+                        ->placeholder(__('1.000.000.000'))
+                        ->helperText(__('Estimated total project value during the contract duration.'))
                         ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                         ->nullable(),
                     DatePicker::make('start_date')
-                        ->label('Estimated Start Date')
+                        ->label(__('Estimated Start Date'))
                         ->native(false)
-                        ->placeholder('Select start date')
+                        ->placeholder(__('Select start date'))
                         ->nullable()
-                        ->helperText('Anticipated project kick-off date.'),
+                        ->helperText(__('Anticipated project kick-off date.')),
                     DatePicker::make('end_date')
-                        ->label('Estimated End Date')
+                        ->label(__('Estimated End Date'))
                         ->native(false)
-                        ->placeholder('Select end date')
+                        ->placeholder(__('Select end date'))
                         ->nullable()
-                        ->helperText('Expected completion or contract expiration date.'),
+                        ->helperText(__('Expected completion or contract expiration date.')),
                     DatePicker::make('expected_closing_date')
                         ->native(false)
-                        ->placeholder('Select closing date')
+                        ->placeholder(__('Select closing date'))
                         ->nullable()
-                        ->helperText('Target date for winning the deal.'),
+                        ->helperText(__('Target date for winning the deal.')),
                 ])
                 ->columnSpanFull()
                 ->columns(2),

@@ -24,9 +24,20 @@ class ProfitabilityAnalysisMonthlyResource extends Resource
 
     protected static ?string $slug = 'monthly-performance';
 
-    protected static ?string $label = 'Monthly Performance';
+    public static function getModelLabel(): string
+    {
+        return __('Monthly Performance');
+    }
 
-    protected static ?string $pluralLabel = 'Monthly Performance';
+    public static function getPluralModelLabel(): string
+    {
+        return __('Monthly Performance');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Monthly Performance');
+    }
 
     public static function form(Schema $schema): Schema
     {

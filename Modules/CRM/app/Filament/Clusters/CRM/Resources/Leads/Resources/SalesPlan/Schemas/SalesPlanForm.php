@@ -51,43 +51,43 @@ class SalesPlanForm
     {
         return [
             Wizard::make([
-                Step::make('Service Categorization')
+                Step::make(__('Service Categorization'))
 
-                    ->description('Classify the project into master data segments.')
+                    ->description(__('Classify the project into master data segments.'))
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 Select::make('revenue_segment_id')
-                                    ->label('Revenue Segment')
+                                    ->label(__('Revenue Segment'))
                                     ->relationship('revenueSegment', 'name')
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->helperText('The category of the revenue segment.')
+                                    ->helperText(__('The category of the revenue segment.'))
                                     ->createOptionForm(RevenueSegmentForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->createOptionUsing(fn (array $data) => RevenueSegment::create($data)->id)
                                     ->editOptionForm(RevenueSegmentForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('product_cluster_id')
-                                    ->label('Product Cluster')
+                                    ->label(__('Product Cluster'))
                                     ->relationship('productCluster', 'name')
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->helperText('The grouping of the product or service.')
+                                    ->helperText(__('The grouping of the product or service.'))
                                     ->createOptionForm(ProductClusterForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->createOptionUsing(fn (array $data) => ProductCluster::create($data)->id)
                                     ->editOptionForm(ProductClusterForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('project_type_id')
-                                    ->label('Project Type')
+                                    ->label(__('Project Type'))
                                     ->relationship('projectType', 'name')
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->helperText('The contractual type of the project.')
+                                    ->helperText(__('The contractual type of the project.'))
                                     ->createOptionForm(ProjectTypeForm::schema())
                                     ->createOptionAction(fn (Action $action) => $action->slideOver())
                                     ->createOptionUsing(fn (array $data) => ProjectType::create($data)->id)
@@ -97,7 +97,7 @@ class SalesPlanForm
                         Grid::make(3)
                             ->schema([
                                 Select::make('skill_category_id')
-                                    ->label('Skill Category')
+                                    ->label(__('Skill Category'))
                                     ->relationship('skillCategory', 'name')
                                     ->required()
                                     ->searchable()
@@ -108,7 +108,7 @@ class SalesPlanForm
                                     ->editOptionForm(SkillCategoryForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('industrial_sector_id')
-                                    ->label('Industrial Sector')
+                                    ->label(__('Industrial Sector'))
                                     ->relationship('industrialSector', 'name')
                                     ->required()
                                     ->searchable()
@@ -119,7 +119,7 @@ class SalesPlanForm
                                     ->editOptionForm(IndustrialSectorForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver()),
                                 Select::make('project_area_id')
-                                    ->label('Project Area')
+                                    ->label(__('Project Area'))
                                     ->relationship(
                                         name: 'projectArea',
                                         titleAttribute: 'name',
@@ -153,8 +153,8 @@ class SalesPlanForm
                             ]),
                     ]),
 
-                Step::make('Financials & Timeline')
-                    ->description('Set project dates and estimated revenue.')
+                Step::make(__('Financials & Timeline'))
+                    ->description(__('Set project dates and estimated revenue.'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -162,28 +162,28 @@ class SalesPlanForm
                                     ->native(false)
                                     ->required()
                                     ->live()
-                                    ->helperText('Expected starting date.'),
+                                    ->helperText(__('Expected starting date.')),
                                 DatePicker::make('end_date')
                                     ->native(false)
                                     ->required()
                                     ->live()
-                                    ->helperText('Expected completion date.'),
+                                    ->helperText(__('Expected completion date.')),
                                 TextInput::make('cutoff_day')
-                                    ->label('Cut-off Day')
+                                    ->label(__('Cut-off Day'))
                                     ->numeric()
                                     ->minValue(1)
                                     ->maxValue(28)
                                     ->default(25)
                                     ->required()
                                     ->live()
-                                    ->helperText('Day of the month to cut off the revenue cycle (e.g., 25th).'),
+                                    ->helperText(__('Day of the month to cut off the revenue cycle (e.g., 25th).')),
                                 Select::make('proration_method')
-                                    ->label('Proration Method')
+                                    ->label(__('Proration Method'))
                                     ->options(ProrationMethod::class)
                                     ->default(ProrationMethod::Equal)
                                     ->required()
                                     ->live()
-                                    ->helperText('How to distribute revenue across the timeline.'),
+                                    ->helperText(__('How to distribute revenue across the timeline.')),
                             ]),
                         Grid::make(3)
                             ->schema([
@@ -194,25 +194,25 @@ class SalesPlanForm
                                     ->default(0)
                                     ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                     ->live()
-                                    ->helperText('Total estimated contract value.'),
+                                    ->helperText(__('Total estimated contract value.')),
                                 TextInput::make('management_fee_percentage')
                                     ->numeric()
                                     ->suffix('%')
                                     ->default(0)
                                     ->required()
-                                    ->helperText('Management fee % charged internally.'),
+                                    ->helperText(__('Management fee % charged internally.')),
                                 TextInput::make('npm_percentage')
                                     ->numeric()
                                     ->suffix('%')
                                     ->default(0)
                                     ->required()
                                     ->hidden()
-                                    ->helperText('Target profit margin percentage. Automatically populated from Profitability Analysis.'),
+                                    ->helperText(__('Target profit margin percentage. Automatically populated from Profitability Analysis.')),
                             ]),
                         Grid::make(2)
                             ->schema([
                                 Select::make('payment_term_id')
-                                    ->label('Payment Term')
+                                    ->label(__('Payment Term'))
                                     ->relationship('paymentTerm', 'name')
                                     ->searchable()
                                     ->preload()
@@ -226,22 +226,22 @@ class SalesPlanForm
                                             $set('top_days', $term->days);
                                         }
                                     })
-                                    ->helperText('Select from master data to auto-fill days.'),
+                                    ->helperText(__('Select from master data to auto-fill days.')),
                                 TextInput::make('top_days')
-                                    ->label('ToP (Days)')
+                                    ->label(__('ToP (Days)'))
                                     ->numeric()
                                     ->default(30)
                                     ->readOnly()
                                     ->dehydrated()
-                                    ->helperText('Terms of Payment (days from invoice).'),
+                                    ->helperText(__('Terms of Payment (days from invoice).')),
                             ]),
                     ]),
 
-                Step::make('Revenue Distribution')
-                    ->description('Define resource needs and monthly breakdown.')
+                Step::make(__('Revenue Distribution'))
+                    ->description(__('Define resource needs and monthly breakdown.'))
                     ->schema([
-                        Section::make('Job Positions')
-                            ->description('Required resource types for this project.')
+                        Section::make(__('Job Positions'))
+                            ->description(__('Required resource types for this project.'))
                             ->schema([
                                 Select::make('job_positions')
                                     ->multiple()
@@ -254,12 +254,12 @@ class SalesPlanForm
                                     ->createOptionUsing(fn (array $data) => JobPosition::create($data)->id)
                                     ->editOptionForm(JobPositionForm::schema())
                                     ->editOptionAction(fn (Action $action) => $action->slideOver())
-                                    ->helperText('Select the required job positions for project headcount mapping.'),
+                                    ->helperText(__('Select the required job positions for project headcount mapping.')),
                             ]),
-                        Section::make('Revenue Distribution Planning')
+                        Section::make(__('Revenue Distribution Planning'))
                             ->headerActions([
-                                Action::make('generate')
-                                    ->label('Generate from Timeline')
+                                Action::make(__('generate'))
+                                    ->label(__('Generate from Timeline'))
                                     ->icon('heroicon-m-sparkles')
                                     ->action(function (Get $get, Set $set) {
                                         $startDateInput = $get('start_date');
@@ -386,25 +386,25 @@ class SalesPlanForm
                                         $set('revenue_distribution_planning', $distribution);
                                     }),
                             ])
-                            ->description('Monthly revenue breakdown. Use the button above to auto-generate based on dates and total value.')
+                            ->description(__('Monthly revenue breakdown. Use the button above to auto-generate based on dates and total value.'))
                             ->hiddenOn(operations: ['create'])
                             ->schema([
                                 Repeater::make('revenue_distribution_planning')
-                                    ->label('Monthly Breakdown')
+                                    ->label(__('Monthly Breakdown'))
                                     ->schema([
                                         TextInput::make('month')
-                                            ->label('Month')
+                                            ->label(__('Month'))
                                             ->readOnly()
                                             ->required(),
                                         TextInput::make('budget_amount')
-                                            ->label('Budget (IDR)')
+                                            ->label(__('Budget (IDR)'))
                                             ->prefix('IDR')
                                             ->required()
                                             ->default(0)
                                             ->dehydrateStateUsing(fn ($state) => self::parseCurrency($state))
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 2),
                                         TextInput::make('forecast_amount')
-                                            ->label('Forecast (IDR)')
+                                            ->label(__('Forecast (IDR)'))
                                             ->prefix('IDR')
                                             ->required()
                                             ->default(0)
@@ -416,43 +416,43 @@ class SalesPlanForm
                             ]),
                     ]),
 
-                Step::make('Governance')
-                    ->description('Review confidence levels.')
+                Step::make(__('Governance'))
+                    ->description(__('Review confidence levels.'))
                     ->schema([
                         Grid::make(1)
                             ->schema([
                                 Select::make('confidence_level')
                                     ->options(ConfidenceLevel::class)
                                     ->required()
-                                    ->helperText('The degree of confidence or probability of success for this project.'),
-                                Section::make('Document Tracking')
-                                    ->description('Reference numbers for generated documents. Automatically synced from respective modules.')
+                                    ->helperText(__('The degree of confidence or probability of success for this project.')),
+                                Section::make(__('Document Tracking'))
+                                    ->description(__('Reference numbers for generated documents. Automatically synced from respective modules.'))
                                     ->icon(Heroicon::OutlinedDocumentCheck)
                                     ->schema([
                                         Grid::make(3)
                                             ->schema([
                                                 TextEntry::make('proposal_number')
-                                                    ->label('Proposal Number')
+                                                    ->label(__('Proposal Number'))
                                                     ->state(fn (SalesPlan $record): ?string => $record->proposal?->number ?? $record->proposal_number ?? 'Pending...'),
 
                                                 TextEntry::make('contract_number')
-                                                    ->label('Contract / PKS Number')
+                                                    ->label(__('Contract / PKS Number'))
                                                     ->state(fn (SalesPlan $record): ?string => $record->agreement?->number ?? $record->contract_number ?? 'Pending...'),
 
                                                 TextEntry::make('po_number')
-                                                    ->label('Purchase Order Number')
+                                                    ->label(__('Purchase Order Number'))
                                                     ->state(fn (SalesPlan $record): ?string => $record->purchaseOrder?->number ?? $record->po_number ?? 'Pending...'),
 
                                                 TextEntry::make('so_number')
-                                                    ->label('Sales Order Number')
+                                                    ->label(__('Sales Order Number'))
                                                     ->state(fn (SalesPlan $record): ?string => $record->salesOrder?->number ?? $record->so_number ?? 'Pending...'),
 
                                                 TextEntry::make('wo_number')
-                                                    ->label('Work Order / SPK Number')
+                                                    ->label(__('Work Order / SPK Number'))
                                                     ->state(fn (SalesPlan $record): ?string => $record->workOrder?->number ?? $record->wo_number ?? 'Pending...'),
 
                                                 TextEntry::make('ba_number')
-                                                    ->label('BAPP / BA Number')
+                                                    ->label(__('BAPP / BA Number'))
                                                     ->state(fn (SalesPlan $record): ?string => $record->ba_number ?? 'Pending...'),
                                             ]),
                                     ]),

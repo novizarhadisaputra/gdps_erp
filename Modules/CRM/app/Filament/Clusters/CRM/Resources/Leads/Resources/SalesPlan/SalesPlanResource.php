@@ -26,6 +26,21 @@ class SalesPlanResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedPresentationChartLine;
 
+    public static function getModelLabel(): string
+    {
+        return __('Sales Plan');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Sales Plans');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Sales Plans');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return SalesPlanForm::configure($schema);

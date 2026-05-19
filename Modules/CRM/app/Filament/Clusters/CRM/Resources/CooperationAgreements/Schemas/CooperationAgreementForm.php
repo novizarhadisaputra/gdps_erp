@@ -17,38 +17,38 @@ class CooperationAgreementForm
     {
         return $schema
             ->components([
-                Section::make('General Information')
+                Section::make(__('General Information'))
                     ->schema([
                         TextInput::make('number')
-                            ->label('PKS Number')
+                            ->label(__('PKS Number'))
                             ->disabled()
                             ->dehydrated(false)
-                            ->placeholder('Auto-generated'),
+                            ->placeholder(__('Auto-generated')),
                         DatePicker::make('document_date')
-                            ->label('Document Date')
+                            ->label(__('Document Date'))
                             ->required()
                             ->default(now()),
                         Select::make('customer_id')
-                            ->label('Customer')
+                            ->label(__('Customer'))
                             ->options(Customer::all()->pluck('name', 'id'))
                             ->searchable()
                             ->required()
                             ->live(),
                         TextInput::make('amount')
-                            ->label('Total Amount')
+                            ->label(__('Total Amount'))
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->readonly()
                             ->afterStateHydrated(fn ($set, $get) => $set('amount', collect($get('items'))->sum('total_price'))),
                     ])->columns(2),
 
-                Section::make('Line Items')
+                Section::make(__('Line Items'))
                     ->schema([
                         Repeater::make('items')
                             ->schema([
                                 Grid::make(3)->schema([
                                     TextInput::make('item_name')
-                                        ->label('Item Name')
+                                        ->label(__('Item Name'))
                                         ->required()
                                         ->columnSpanFull(),
                                     TextInput::make('quantity')
@@ -57,7 +57,7 @@ class CooperationAgreementForm
                                         ->live()
                                         ->afterStateUpdated(fn ($get, $set) => $set('total_price', floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0))),
                                     TextInput::make('uom')
-                                        ->label('Unit')
+                                        ->label(__('Unit'))
                                         ->required(),
                                     TextInput::make('unit_price')
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)

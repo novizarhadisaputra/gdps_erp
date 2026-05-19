@@ -25,12 +25,12 @@ class ManpowerTemplatesTable
                 TextColumn::make('name')
                     ->searchable(),
                 TextColumn::make('projectArea.name')
-                    ->label('Project Area')
+                    ->label(__('Project Area'))
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('items_count')
                     ->counts('items')
-                    ->label('Positions'),
+                    ->label(__('Positions')),
                 ToggleColumn::make('is_active'),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -45,8 +45,8 @@ class ManpowerTemplatesTable
                 //
             ])
             ->recordActions([
-                Action::make('pdf')
-                    ->label('Export PDF')
+                Action::make(__('pdf'))
+                    ->label(__('Export PDF'))
                     ->color('gray')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function ($record) {

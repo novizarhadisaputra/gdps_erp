@@ -37,8 +37,8 @@ class ViewProjectReview extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('pdf')
-                ->label('Download PDF')
+            Action::make(__('pdf'))
+                ->label(__('Download PDF'))
                 ->icon(Heroicon::OutlinedArrowDownTray)
                 ->color('gray')
                 ->action(function () {
@@ -81,26 +81,26 @@ class ViewProjectReview extends ViewRecord
 
     public function approveProjectAction(): Action
     {
-        return Action::make('approveProject')
-            ->label('Authorize Margin')
+        return Action::make(__('approveProject'))
+            ->label(__('Authorize Margin'))
             ->icon(Heroicon::CheckBadge)
             ->color('success')
             ->size('xs')
             ->extraAttributes(['class' => 'flex-1'])
             ->record($this->record)
-            ->modalHeading('Authorize Margin')
-            ->modalDescription('Please verify the project profitability before authorizing the margin. Your digital signature will be recorded.')
-            ->modalSubmitActionLabel('Authorize')
+            ->modalHeading(__('Authorize Margin'))
+            ->modalDescription(__('Please verify the project profitability before authorizing the margin. Your digital signature will be recorded.'))
+            ->modalSubmitActionLabel(__('Authorize'))
             ->schema([
                 TextInput::make('pin')
-                    ->label('Signature PIN')
+                    ->label(__('Signature PIN'))
                     ->password()
                     ->required(),
             ])
             ->action(function (array $data, $record) {
                 $pa = $record->profitabilityAnalysis;
                 if (! $pa) {
-                    Notification::make()->title('Profitability Analysis not found')->danger()->send();
+                    Notification::make()->title(__('Profitability Analysis not found'))->danger()->send();
 
                     return;
                 }
@@ -108,7 +108,7 @@ class ViewProjectReview extends ViewRecord
                 $service = app(SignatureService::class);
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                    Notification::make()->title('Incorrect PIN')->danger()->send();
+                    Notification::make()->title(__('Incorrect PIN'))->danger()->send();
 
                     return;
                 }
@@ -119,7 +119,7 @@ class ViewProjectReview extends ViewRecord
                 $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                 if ($eligibleRules->isEmpty()) {
-                    Notification::make()->title('Access Denied')->body('You do not have the authority to approve margin.')->warning()->send();
+                    Notification::make()->title(__('Access Denied'))->body('You do not have the authority to approve margin.')->warning()->send();
 
                     return;
                 }
@@ -127,7 +127,7 @@ class ViewProjectReview extends ViewRecord
                 $matchingRule = $eligibleRules->first(fn ($rule) => ! $pa->isRuleSatisfied($rule));
 
                 if (! $matchingRule) {
-                    Notification::make()->title('Already Signed')->body('You have already signed this margin approval step.')->warning()->send();
+                    Notification::make()->title(__('Already Signed'))->body('You have already signed this margin approval step.')->warning()->send();
 
                     return;
                 }
@@ -152,7 +152,7 @@ class ViewProjectReview extends ViewRecord
                 // Notify owner
                 $service->notifyOwnerOnSignature($pa, auth()->user(), ApprovalSignatureType::MarginApproval->value);
 
-                Notification::make()->title('Project Approved Successfully')->success()->send();
+                Notification::make()->title(__('Project Approved Successfully'))->success()->send();
             })
             ->visible(function ($record) {
                 $pa = $record->profitabilityAnalysis;
@@ -180,8 +180,8 @@ class ViewProjectReview extends ViewRecord
 
     public function rejectProjectAction(): Action
     {
-        return Action::make('rejectProject')
-            ->label('Reject Margin')
+        return Action::make(__('rejectProject'))
+            ->label(__('Reject Margin'))
             ->outlined()
             ->icon(Heroicon::XCircle)
             ->color('danger')
@@ -189,18 +189,18 @@ class ViewProjectReview extends ViewRecord
             ->extraAttributes(['class' => 'flex-1'])
             ->record($this->record)
             ->requiresConfirmation()
-            ->modalHeading('Reject Margin Authorization')
-            ->modalDescription('Are you sure you want to reject the margin for this project? This will notify the project owner for revision.')
-            ->modalSubmitActionLabel('Reject Margin')
+            ->modalHeading(__('Reject Margin Authorization'))
+            ->modalDescription(__('Are you sure you want to reject the margin for this project? This will notify the project owner for revision.'))
+            ->modalSubmitActionLabel(__('Reject Margin'))
             ->schema([
                 TextInput::make('reason')
-                    ->label('Reason for Rejection')
+                    ->label(__('Reason for Rejection'))
                     ->required(),
             ])
             ->action(function (array $data, $record) {
                 $pa = $record->profitabilityAnalysis;
                 if (! $pa) {
-                    Notification::make()->title('Profitability Analysis not found')->danger()->send();
+                    Notification::make()->title(__('Profitability Analysis not found'))->danger()->send();
 
                     return;
                 }
@@ -209,7 +209,7 @@ class ViewProjectReview extends ViewRecord
 
                 app(SignatureService::class)->notifyOwnerOnRejection($pa, $data['reason']);
 
-                Notification::make()->title('Project (Margin) Rejected')->success()->send();
+                Notification::make()->title(__('Project (Margin) Rejected'))->success()->send();
             })
             ->visible(function ($record) {
                 $pa = $record->profitabilityAnalysis;
@@ -238,39 +238,39 @@ class ViewProjectReview extends ViewRecord
     public function approveGIAction(): Action
     {
         return $this->getApprovalAction('approveGI', 'generalInformation', 'General Info')
-            ->label('Verify General Info')
+            ->label(__('Verify General Info'))
             ->extraAttributes(['class' => 'flex-1']);
     }
 
     public function rejectGIAction(): Action
     {
         return $this->getRejectionAction('rejectGI', 'generalInformation', 'General Info')
-            ->label('Reject General Info');
+            ->label(__('Reject General Info'));
     }
 
     public function approvePAAction(): Action
     {
         return $this->getApprovalAction('approvePA', 'profitabilityAnalysis', 'Profitability')
-            ->label('Approve Profitability')
+            ->label(__('Approve Profitability'))
             ->extraAttributes(['class' => 'flex-1']);
     }
 
     public function rejectPAAction(): Action
     {
         return $this->getRejectionAction('rejectPA', 'profitabilityAnalysis', 'Profitability')
-            ->label('Reject Profitability');
+            ->label(__('Reject Profitability'));
     }
 
     public function approveProposalAction(): Action
     {
         return $this->getApprovalAction('approveProposal', 'proposal', 'Proposal')
-            ->label('Approve Proposal');
+            ->label(__('Approve Proposal'));
     }
 
     public function rejectProposalAction(): Action
     {
         return $this->getRejectionAction('rejectProposal', 'proposal', 'Proposal')
-            ->label('Reject Proposal');
+            ->label(__('Reject Proposal'));
     }
 
     protected function getApprovalAction(string $name, string $relation, string $label): Action
@@ -283,17 +283,17 @@ class ViewProjectReview extends ViewRecord
             ->record($this->record)
             ->modalHeading(fn () => "Approve {$label}")
             ->modalDescription(fn () => "You are about to approve the {$label} document. Please enter your PIN to sign.")
-            ->modalSubmitActionLabel('Approve & Sign')
+            ->modalSubmitActionLabel(__('Approve & Sign'))
             ->schema([
                 TextInput::make('pin')
-                    ->label('Signature PIN')
+                    ->label(__('Signature PIN'))
                     ->password()
                     ->required(),
             ])
             ->action(function (array $data, $record) use ($relation, $label) {
                 $subRecord = $record->{$relation};
                 if (! $subRecord) {
-                    Notification::make()->title('Document not found')->danger()->send();
+                    Notification::make()->title(__('Document not found'))->danger()->send();
 
                     return;
                 }
@@ -301,7 +301,7 @@ class ViewProjectReview extends ViewRecord
                 $service = app(SignatureService::class);
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                    Notification::make()->title('Incorrect PIN')->danger()->send();
+                    Notification::make()->title(__('Incorrect PIN'))->danger()->send();
 
                     return;
                 }
@@ -313,7 +313,7 @@ class ViewProjectReview extends ViewRecord
                 $eligibleRules = $required->filter(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                 if ($eligibleRules->isEmpty()) {
-                    Notification::make()->title('Access Denied')->body('You do not have authorization for this document.')->warning()->send();
+                    Notification::make()->title(__('Access Denied'))->body('You do not have authorization for this document.')->warning()->send();
 
                     return;
                 }
@@ -321,7 +321,7 @@ class ViewProjectReview extends ViewRecord
                 $matchingRule = $eligibleRules->first(fn ($rule) => ! $subRecord->isRuleSatisfied($rule));
 
                 if (! $matchingRule) {
-                    Notification::make()->title('Already Signed')->body('You have already signed this approval step.')->warning()->send();
+                    Notification::make()->title(__('Already Signed'))->body('You have already signed this approval step.')->warning()->send();
 
                     return;
                 }
@@ -426,16 +426,16 @@ class ViewProjectReview extends ViewRecord
             ->requiresConfirmation()
             ->modalHeading(fn () => "Reject {$label}")
             ->modalDescription(fn () => "Are you sure you want to reject the {$label}? A notification will be sent to the owner for further revision.")
-            ->modalSubmitActionLabel('Reject Document')
+            ->modalSubmitActionLabel(__('Reject Document'))
             ->schema([
                 TextInput::make('reason')
-                    ->label('Reason for Rejection')
+                    ->label(__('Reason for Rejection'))
                     ->required(),
             ])
             ->action(function (array $data, $record) use ($relation, $label) {
                 $subRecord = $record->{$relation};
                 if (! $subRecord) {
-                    Notification::make()->title('Document not found')->danger()->send();
+                    Notification::make()->title(__('Document not found'))->danger()->send();
 
                     return;
                 }

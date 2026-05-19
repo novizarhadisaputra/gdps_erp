@@ -14,27 +14,27 @@ class GeneralInformationInfolist
     {
         return $schema
             ->components([
-                Section::make('General Information')
+                Section::make(__('General Information'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('number'),
                                 TextEntry::make('customer.name')
-                                    ->label('Customer'),
+                                    ->label(__('Customer')),
                                 TextEntry::make('status')
                                     ->badge(),
                                 TextEntry::make('scope_of_work')
                                     ->columnSpanFull(),
                                 TextEntry::make('location'),
                                 TextEntry::make('projectArea.name')
-                                    ->label('Project Area'),
+                                    ->label(__('Project Area')),
                                 TextEntry::make('workScheme.name')
-                                    ->label('Work Scheme'),
+                                    ->label(__('Work Scheme')),
                                 TextEntry::make('productCluster.name')
-                                    ->label('Product Cluster'),
+                                    ->label(__('Product Cluster')),
                                 TextEntry::make('salesPlan.project_code')
-                                    ->label('Source Sales Plan')
-                                    ->placeholder('No Project Code Linked'),
+                                    ->label(__('Source Sales Plan'))
+                                    ->placeholder(__('No Project Code Linked')),
                             ]),
                         TextEntry::make('description')
                             ->columnSpanFull(),
@@ -58,12 +58,12 @@ class GeneralInformationInfolist
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('Documentation')
+                Section::make(__('Documentation'))
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('tor')
-                                    ->label('ToR Document')
+                                    ->label(__('ToR Document'))
                                     ->state(fn ($record) => $record?->getFirstMedia('tor')?->file_name)
                                     ->url(function ($record) {
                                         $media = $record?->getFirstMedia('tor');
@@ -75,7 +75,7 @@ class GeneralInformationInfolist
                                     }, true)
                                     ->visible(fn ($record) => $record?->hasMedia('tor')),
                                 TextEntry::make('rfp')
-                                    ->label('RFP Document')
+                                    ->label(__('RFP Document'))
                                     ->state(fn ($record) => $record?->getFirstMedia('rfp')?->file_name)
                                     ->url(function ($record) {
                                         $media = $record?->getFirstMedia('rfp');
@@ -87,7 +87,7 @@ class GeneralInformationInfolist
                                     }, true)
                                     ->visible(fn ($record) => $record?->hasMedia('rfp')),
                                 TextEntry::make('rfq')
-                                    ->label('RFQ Document')
+                                    ->label(__('RFQ Document'))
                                     ->state(fn ($record) => $record?->getFirstMedia('rfq')?->file_name)
                                     ->url(function ($record) {
                                         $media = $record->getFirstMedia('rfq');
@@ -99,7 +99,7 @@ class GeneralInformationInfolist
                                     }, true)
                                     ->visible(fn ($record) => $record?->hasMedia('rfq')),
                                 TextEntry::make('other_documents')
-                                    ->label('Other Documents')
+                                    ->label(__('Other Documents'))
                                     ->html()
                                     ->formatStateUsing(function ($record) {
                                         if (! $record) {
@@ -116,38 +116,38 @@ class GeneralInformationInfolist
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('PICs')
+                Section::make(__('PICs'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('pics.name')
-                                    ->label('Name')
+                                    ->label(__('Name'))
                                     ->listWithLineBreaks()
                                     ->bulleted(),
                                 TextEntry::make('pics.jobPosition.name')
-                                    ->label('Job Position')
+                                    ->label(__('Job Position'))
                                     ->listWithLineBreaks()
                                     ->bulleted(),
                                 TextEntry::make('pics.contactRole.name')
-                                    ->label('Role')
+                                    ->label(__('Role'))
                                     ->listWithLineBreaks()
                                     ->bulleted(),
                                 TextEntry::make('pics.email')
-                                    ->label('Email')
+                                    ->label(__('Email'))
                                     ->listWithLineBreaks()
                                     ->bulleted(),
                                 TextEntry::make('pics.phone')
-                                    ->label('Phone')
+                                    ->label(__('Phone'))
                                     ->listWithLineBreaks()
                                     ->bulleted(),
                             ]),
                     ])->columnSpanFull(),
-                Section::make('Risk Register')
+                Section::make(__('Risk Register'))
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('rr_status')
-                                    ->label('RR Status')
+                                    ->label(__('RR Status'))
                                     ->badge()
                                     ->color(fn (?string $state): string => match ($state) {
                                         'approved' => 'success',
@@ -157,13 +157,13 @@ class GeneralInformationInfolist
                                     })
                                     ->formatStateUsing(fn (?string $state): string => $state ? ucfirst($state) : '-'),
                                 TextEntry::make('rr_document_number')
-                                    ->label('RR Document Number')
-                                    ->placeholder('-'),
+                                    ->label(__('RR Document Number'))
+                                    ->placeholder(__('-')),
                                 TextEntry::make('rr_submission_id')
-                                    ->label('RR Submission ID')
-                                    ->placeholder('-'),
+                                    ->label(__('RR Submission ID'))
+                                    ->placeholder(__('-')),
                                 TextEntry::make('rr_document_path')
-                                    ->label('RR Document')
+                                    ->label(__('RR Document'))
                                     ->icon('heroicon-o-arrow-down-tray')
                                     ->color('primary')
                                     ->formatStateUsing(fn () => 'Download Document')
@@ -172,18 +172,18 @@ class GeneralInformationInfolist
                             ]),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => filled($record?->rr_status)),
-                Section::make('Approval & Signatures')
+                Section::make(__('Approval & Signatures'))
                     ->schema([
                         DigitalSignatureEntry::make('signatures')
                             ->columnSpanFull(),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => $record?->signatures()->exists()),
 
-                Section::make('Remarks')
+                Section::make(__('Remarks'))
                     ->schema([
                         TextEntry::make('remarks')
                             ->hiddenLabel()
-                            ->placeholder('No additional remarks'),
+                            ->placeholder(__('No additional remarks')),
                     ])->columnSpanFull()
                     ->visible(fn ($record) => filled($record?->remarks)),
             ]);

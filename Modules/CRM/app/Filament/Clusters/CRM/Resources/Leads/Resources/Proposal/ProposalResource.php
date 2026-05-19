@@ -33,6 +33,21 @@ class ProposalResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedDocumentText;
 
+    public static function getModelLabel(): string
+    {
+        return __('Proposal');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Proposals');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Proposals');
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return false;

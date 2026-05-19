@@ -19,13 +19,22 @@ class ManpowerTemplateResource extends Resource
 
     protected static ?string $parentRouteParameterName = 'lead';
 
-    protected static ?string $navigationLabel = 'Manpower Costing';
-
-    protected static ?string $pluralLabel = 'Manpower Costing';
-
-    protected static ?string $singularLabel = 'Manpower Costing';
-
     protected static ?string $slug = 'manpower-costing';
+
+    public static function getModelLabel(): string
+    {
+        return __('Manpower Costing');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Manpower Costing');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Manpower Costing');
+    }
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedUsers;
 

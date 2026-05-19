@@ -23,6 +23,21 @@ class MinutesOfAgreementResource extends Resource
 
     protected static ?string $parentRouteParameterName = 'lead';
 
+    public static function getModelLabel(): string
+    {
+        return __('Minutes of Agreement');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Minutes of Agreement');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Minutes of Agreement');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return MinutesOfAgreementForm::configure($schema);

@@ -18,8 +18,8 @@ class CreateProposal extends CreateRecord
     {
         return $schema->components([
             TextInput::make('title')
-                ->label('Proposal Title')
-                ->placeholder('e.g. Outsourcing Services for April')
+                ->label(__('Proposal Title'))
+                ->placeholder(__('e.g. Outsourcing Services for April'))
                 ->required()
                 ->default(function () {
                     $lead = $this->parentRecord;

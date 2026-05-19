@@ -18,7 +18,7 @@ class CreateSalesOrder extends CreateRecord
                 Select::make('project_id')
                     ->relationship('project', 'number')
                     ->required()
-                    ->placeholder('Select project to generate SO...'),
+                    ->placeholder(__('Select project to generate SO...')),
             ]);
     }
 

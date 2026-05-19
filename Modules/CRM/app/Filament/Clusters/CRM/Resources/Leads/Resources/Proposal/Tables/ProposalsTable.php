@@ -27,7 +27,7 @@ class ProposalsTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                    ->label('Proposal Number')
+                    ->label(__('Proposal Number'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('title')
@@ -51,7 +51,7 @@ class ProposalsTable
             ])
             ->filters([
                 SelectFilter::make('customer_id')
-                    ->label('Customer')
+                    ->label(__('Customer'))
                     ->options(Customer::pluck('name', 'id'))
                     ->searchable()
                     ->preload(),

@@ -23,8 +23,8 @@ class ViewSalesPlan extends ViewRecord
             EditAction::make(),
 
             ActionGroup::make([
-                Action::make('pdf')
-                    ->label('Export PDF')
+                Action::make(__('pdf'))
+                    ->label(__('Export PDF'))
                     ->color('gray')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function () {
@@ -35,19 +35,19 @@ class ViewSalesPlan extends ViewRecord
                         return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
 
-                Action::make('generateGI')
-                    ->label('Convert to GI')
+                Action::make(__('generateGI'))
+                    ->label(__('Convert to GI'))
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('success')
                     ->visible(fn () => $this->record->lead->generalInformations()->doesntExist() && ! empty($this->record->revenue_distribution_planning))
                     ->requiresConfirmation()
-                    ->modalHeading('Generate General Information')
-                    ->modalDescription('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?')
+                    ->modalHeading(__('Generate General Information'))
+                    ->modalDescription(__('Apakah Anda yakin ingin membuat data General Information (GI) berdasarkan Sales Plan ini?'))
                     ->action(function () {
                         $this->record->toGeneralInformation();
 
                         Notification::make()
-                            ->title('General Information Created')
+                            ->title(__('General Information Created'))
                             ->body('Data has been synced from Sales Plan.')
                             ->success()
                             ->send();
@@ -55,7 +55,7 @@ class ViewSalesPlan extends ViewRecord
                         return redirect()->to(LeadResource::getUrl('general-informations', ['record' => $this->record->lead_id]));
                     }),
             ])
-                ->label('Actions')
+                ->label(__('Actions'))
                 ->icon(Heroicon::EllipsisVertical)
                 ->color('primary')
                 ->button(),

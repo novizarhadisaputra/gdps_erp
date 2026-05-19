@@ -23,6 +23,21 @@ class WorkOrderResource extends Resource
 
     protected static ?string $parentRouteParameterName = 'lead';
 
+    public static function getModelLabel(): string
+    {
+        return __('Work Order');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Work Orders');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Work Orders');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return WorkOrderForm::configure($schema);

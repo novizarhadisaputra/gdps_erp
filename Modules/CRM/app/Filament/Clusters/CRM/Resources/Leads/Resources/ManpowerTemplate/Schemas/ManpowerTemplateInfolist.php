@@ -23,48 +23,48 @@ class ManpowerTemplateInfolist
     public static function schema(): array
     {
         return [
-            Section::make('Costing Identification')
+            Section::make(__('Costing Identification'))
                 ->schema([
                     Grid::make(3)
                         ->schema([
                             TextEntry::make('code')
-                                ->label('Costing Code')
+                                ->label(__('Costing Code'))
                                 ->copyable(),
                             TextEntry::make('name')
-                                ->label('Costing Name'),
+                                ->label(__('Costing Name')),
                             TextEntry::make('projectArea.name')
-                                ->label('Project Area'),
+                                ->label(__('Project Area')),
                             TextEntry::make('contractType.name')
-                                ->label('Contract Type'),
+                                ->label(__('Contract Type')),
                             TextEntry::make('workScheme.name')
-                                ->label('Work Scheme'),
+                                ->label(__('Work Scheme')),
                             TextEntry::make('is_active')
-                                ->label('Status')
+                                ->label(__('Status'))
                                 ->badge()
                                 ->state(fn ($record) => $record->is_active ? 'Active' : 'Inactive')
                                 ->color(fn ($record) => $record->is_active ? 'success' : 'danger'),
                         ]),
                     TextEntry::make('description')
-                        ->label('Description')
+                        ->label(__('Description'))
                         ->markdown()
                         ->columnSpanFull(),
                 ]),
-            Section::make('Metadata')
+            Section::make(__('Metadata'))
                 ->schema([
                     Grid::make(2)
                         ->schema([
                             TextEntry::make('created_at')
                                 ->dateTime()
-                                ->label('Created At'),
+                                ->label(__('Created At')),
                             TextEntry::make('updated_at')
                                 ->dateTime()
-                                ->label('Last Updated'),
+                                ->label(__('Last Updated')),
                         ]),
                 ]),
-            Section::make('Personnel Composition & Cost Summary')
+            Section::make(__('Personnel Composition & Cost Summary'))
                 ->schema([
                     TextEntry::make('cost_simulation_table')
-                        ->label('Monthly Cost Breakdown')
+                        ->label(__('Monthly Cost Breakdown'))
                         ->html()
                         ->columnSpanFull()
                         ->state(function ($record) {

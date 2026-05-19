@@ -17,7 +17,7 @@ class CreateCooperationAgreement extends CreateRecord
         return $schema
             ->components([
                 Select::make('customer_id')
-                    ->label('Customer')
+                    ->label(__('Customer'))
                     ->options(Customer::all()->pluck('name', 'id'))
                     ->searchable()
                     ->required(),

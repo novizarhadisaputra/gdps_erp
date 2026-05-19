@@ -17,19 +17,19 @@ class WorkOrdersTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                    ->label('SPK Number')
+                    ->label(__('SPK Number'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.name')
-                    ->label('Customer')
+                    ->label(__('Customer'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('document_date')
-                    ->label('Date')
+                    ->label(__('Date'))
                     ->date()
                     ->sortable(),
                 TextColumn::make('amount')
-                    ->label('Total Amount')
+                    ->label(__('Total Amount'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('status')

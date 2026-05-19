@@ -13,9 +13,9 @@ enum ReminderStatus: string implements HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::SixMonths => '6 Months Before',
-            self::ThreeMonths => '3 Months Before',
-            self::OneMonth => '1 Month Before',
+            self::SixMonths => __('6 Months Before'),
+            self::ThreeMonths => __('3 Months Before'),
+            self::OneMonth => __('1 Month Before'),
         };
     }
 }

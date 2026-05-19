@@ -28,13 +28,22 @@ class ProfitabilityAnalysisResource extends Resource
 
     protected static ?string $parentResource = LeadResource::class;
 
-    protected static ?string $navigationLabel = 'Profitability Analysis';
-
-    protected static ?string $pluralLabel = 'Profitability Analysis';
-
-    protected static ?string $singularLabel = 'Profitability Analysis';
-
     protected static ?string $slug = 'profitability-analysis';
+
+    public static function getModelLabel(): string
+    {
+        return __('Profitability Analysis');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Profitability Analysis');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Profitability Analysis');
+    }
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedChartBar;
 

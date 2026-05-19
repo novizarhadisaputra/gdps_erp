@@ -64,7 +64,7 @@ class SendAmendment extends Page
         return $schema
             ->schema([
                 Select::make('recipient_contact')
-                    ->label('Select Contact')
+                    ->label(__('Select Contact'))
                     ->options(fn () => $this->getContactOptions())
                     ->live()
                     ->createOptionForm([
@@ -87,7 +87,7 @@ class SendAmendment extends Page
                         }
                     }),
                 TextInput::make('recipient_email')
-                    ->label('Recipient Email')
+                    ->label(__('Recipient Email'))
                     ->email()
                     ->required()
                     ->live(onBlur: false),
@@ -104,8 +104,8 @@ class SendAmendment extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('back')
-                ->label('Back to Amendment')
+            Action::make(__('back'))
+                ->label(__('Back to Amendment'))
                 ->color('gray')
                 ->url(fn () => $this->getResource()::getUrl('view', ['record' => $this->record, 'sales_order' => $this->record->sales_order_id])),
         ];
@@ -113,8 +113,8 @@ class SendAmendment extends Page
 
     public function sendEmailAction(): Action
     {
-        return Action::make('sendEmail')
-            ->label('Send Email Now')
+        return Action::make(__('sendEmail'))
+            ->label(__('Send Email Now'))
             ->icon('heroicon-o-paper-airplane')
             ->color('primary')
             ->requiresConfirmation()
@@ -197,7 +197,7 @@ class SendAmendment extends Page
             ]);
 
             Notification::make()
-                ->title('Email Sent Successfully')
+                ->title(__('Email Sent Successfully'))
                 ->success()
                 ->send();
 
@@ -209,7 +209,7 @@ class SendAmendment extends Page
             ]);
 
             Notification::make()
-                ->title('Failed to Send Email')
+                ->title(__('Failed to Send Email'))
                 ->body($e->getMessage())
                 ->danger()
                 ->send();

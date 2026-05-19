@@ -32,7 +32,7 @@ class ManageProfitabilityAnalysisMonthlies extends ManageRelatedRecords
         return ProfitabilityAnalysisMonthliesTable::configure($table)
             ->headerActions([
                 CreateAction::make()
-                    ->label('Add Monthly Record'),
+                    ->label(__('Add Monthly Record')),
             ]);
     }
 

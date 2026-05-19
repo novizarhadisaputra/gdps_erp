@@ -17,11 +17,22 @@ class CostingTemplateItemResource extends Resource
 {
     protected static ?string $model = CostingTemplateItem::class;
 
-    protected static ?string $label = 'Costing Tool & Equipment';
-
-    protected static ?string $pluralLabel = 'Costing Tools & Equipment';
-
     protected static bool $isNested = true;
+
+    public static function getModelLabel(): string
+    {
+        return __('Costing Tool & Equipment');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Costing Tools & Equipment');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Costing Tools & Equipment');
+    }
 
     protected static ?string $parentResource = CostingTemplateResource::class;
 

@@ -71,7 +71,7 @@ class SendProposal extends Page
         return $schema
             ->schema([
                 Select::make('recipient_contact')
-                    ->label('Select Contact')
+                    ->label(__('Select Contact'))
                     ->options(fn () => $this->getContactOptions())
                     ->live()
                     ->createOptionForm([
@@ -127,7 +127,7 @@ class SendProposal extends Page
                         }
                     }),
                 TextInput::make('recipient_email')
-                    ->label('Recipient Email')
+                    ->label(__('Recipient Email'))
                     ->email()
                     ->required()
                     ->live(onBlur: false),
@@ -146,8 +146,8 @@ class SendProposal extends Page
 
     public function sendEmailAction(): Action
     {
-        return Action::make('sendEmail')
-            ->label('Send Email')
+        return Action::make(__('sendEmail'))
+            ->label(__('Send Email'))
             ->icon('heroicon-o-paper-airplane')
             ->requiresConfirmation()
             ->action(fn () => $this->sendEmail());
@@ -254,7 +254,7 @@ class SendProposal extends Page
             ]);
 
             Notification::make()
-                ->title('Email Sent Successfully')
+                ->title(__('Email Sent Successfully'))
                 ->body('Proposal sent via External API and status updated.')
                 ->success()
                 ->send();
@@ -265,7 +265,7 @@ class SendProposal extends Page
             ]));
         } catch (\Exception $e) {
             Notification::make()
-                ->title('Failed to Send Email')
+                ->title(__('Failed to Send Email'))
                 ->body($e->getMessage())
                 ->danger()
                 ->send();
@@ -275,8 +275,8 @@ class SendProposal extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('back')
-                ->label('Back to Proposal')
+            Action::make(__('back'))
+                ->label(__('Back to Proposal'))
                 ->color('gray')
                 ->url(fn () => route('filament.admin.crm.resources.leads.proposals.view', [
                     'record' => $this->record->id,

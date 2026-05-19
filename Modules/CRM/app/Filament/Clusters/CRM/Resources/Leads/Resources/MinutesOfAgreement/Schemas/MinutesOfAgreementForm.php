@@ -18,81 +18,81 @@ class MinutesOfAgreementForm
     {
         return $schema
             ->components([
-                Section::make('General Information')
-                    ->description('Basic identification and source of the agreement.')
+                Section::make(__('General Information'))
+                    ->description(__('Basic identification and source of the agreement.'))
                     ->icon('heroicon-m-information-circle')
                     ->schema([
 
                         TextInput::make('number')
-                            ->label('MOA Number')
-                            ->placeholder('Auto-generated')
+                            ->label(__('MOA Number'))
+                            ->placeholder(__('Auto-generated'))
                             ->disabled()
-                            ->helperText('The unique reference number for this MOA.')
+                            ->helperText(__('The unique reference number for this MOA.'))
                             ->hiddenOn(operations: ['create'])
                             ->dehydrated(false),
                         Select::make('proposal_id')
-                            ->label('Source Proposal')
+                            ->label(__('Source Proposal'))
                             ->relationship('proposal', 'number', fn ($query, $record) => $query->where('lead_id', $record?->lead_id))
                             ->searchable()
                             ->preload()
                             ->live()
                             ->required()
-                            ->helperText('Select the proposal that this agreement is based on.'),
+                            ->helperText(__('Select the proposal that this agreement is based on.')),
                         DatePicker::make('negotiation_date')
-                            ->label('Negotiation Date')
+                            ->label(__('Negotiation Date'))
                             ->default(now())
                             ->required()
                             ->native(false)
-                            ->helperText('The date when the terms were agreed upon.'),
+                            ->helperText(__('The date when the terms were agreed upon.')),
 
                         TextInput::make('amount')
-                            ->label('Agreed Amount')
+                            ->label(__('Agreed Amount'))
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->required()
-                            ->helperText('The total value agreed in this MOA.'),
+                            ->helperText(__('The total value agreed in this MOA.')),
                         TextEntry::make('status')
-                            ->label('Current Status')
+                            ->label(__('Current Status'))
                             ->badge()
                             ->visibleOn('view'),
 
                     ])->columns(columns: 2),
-                Section::make('Agreement Details')
-                    ->description('Detailed terms, scope, and supporting documentation.')
+                Section::make(__('Agreement Details'))
+                    ->description(__('Detailed terms, scope, and supporting documentation.'))
                     ->icon('heroicon-m-document-text')
                     ->schema([
                         SpatieMediaLibraryFileUpload::make('attachment')
-                            ->label('MoA Document')
+                            ->label(__('MoA Document'))
                             ->collection('moa_attachment')
                             ->disk('s3')
                             ->visibility('private')
                             ->required()
                             ->columnSpanFull()
-                            ->helperText('Upload the signed or final agreement document.'),
+                            ->helperText(__('Upload the signed or final agreement document.')),
                         Grid::make(2)
                             ->schema([
                                 Textarea::make('scope_of_work')
-                                    ->label('Scope of Work')
+                                    ->label(__('Scope of Work'))
                                     ->rows(3)
-                                    ->placeholder('Define the project boundaries and deliverables...')
+                                    ->placeholder(__('Define the project boundaries and deliverables...'))
                                     ->columnSpanFull()
                                     ->translatable(),
                                 Textarea::make('timeline')
-                                    ->label('Timeline')
+                                    ->label(__('Timeline'))
                                     ->rows(3)
-                                    ->placeholder('Specify key dates or duration...')
+                                    ->placeholder(__('Specify key dates or duration...'))
                                     ->columnSpan(1)
                                     ->translatable(),
                                 Textarea::make('terms')
-                                    ->label('Terms & Conditions')
+                                    ->label(__('Terms & Conditions'))
                                     ->rows(3)
-                                    ->placeholder('Specific payment terms, duties, etc...')
+                                    ->placeholder(__('Specific payment terms, duties, etc...'))
                                     ->columnSpan(1)
                                     ->translatable(),
                                 Textarea::make('notes')
-                                    ->label('Additional Notes')
+                                    ->label(__('Additional Notes'))
                                     ->rows(3)
-                                    ->placeholder('Any other relevant details...')
+                                    ->placeholder(__('Any other relevant details...'))
                                     ->columnSpanFull()
                                     ->translatable(),
                             ]),

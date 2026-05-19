@@ -36,6 +36,21 @@ class GeneralInformationResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'scope_of_work';
 
+    public static function getModelLabel(): string
+    {
+        return __('General Information');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('General Information');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('General Information');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return GeneralInformationForm::configure($schema);

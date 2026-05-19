@@ -34,7 +34,7 @@ class LeadsTable
                     ->sortable(),
                 TextColumn::make('items_count')
                     ->counts('proposals')
-                    ->label('Proposals'),
+                    ->label(__('Proposals')),
             ])
             ->filters([
                 TrashedFilter::make(),

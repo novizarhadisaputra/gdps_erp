@@ -20,8 +20,8 @@ class EditManpowerTemplate extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('pdf')
-                ->label('Export PDF')
+            Action::make(__('pdf'))
+                ->label(__('Export PDF'))
                 ->color('gray')
                 ->icon(Heroicon::OutlinedArrowDownTray)
                 ->action(function () {

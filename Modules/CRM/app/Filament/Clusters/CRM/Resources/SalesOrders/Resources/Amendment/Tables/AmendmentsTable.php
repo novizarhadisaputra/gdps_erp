@@ -17,7 +17,7 @@ class AmendmentsTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                    ->label('Amendment Number')
+                    ->label(__('Amendment Number'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('reason')
@@ -25,7 +25,7 @@ class AmendmentsTable
                 TextColumn::make('status')
                     ->badge(),
                 TextColumn::make('created_at')
-                    ->label('Amendment Date')
+                    ->label(__('Amendment Date'))
                     ->dateTime()
                     ->sortable(),
             ])

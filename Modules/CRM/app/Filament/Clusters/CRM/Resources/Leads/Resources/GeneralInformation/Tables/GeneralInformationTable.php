@@ -21,7 +21,7 @@ class GeneralInformationTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('customer.name')
-                    ->label('Customer')
+                    ->label(__('Customer'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('scope_of_work')
@@ -31,14 +31,14 @@ class GeneralInformationTable
                     ->badge(),
                 TextColumn::make('estimated_start_date')
                     ->date()
-                    ->label('Start')
+                    ->label(__('Start'))
                     ->sortable(),
                 TextColumn::make('estimated_end_date')
                     ->date()
-                    ->label('End')
+                    ->label(__('End'))
                     ->sortable(),
                 IconColumn::make('tor')
-                    ->label('ToR')
+                    ->label(__('ToR'))
                     ->getStateUsing(fn ($record) => $record?->hasMedia('tor'))
                     ->boolean()
                     ->url(function ($record) {
@@ -50,7 +50,7 @@ class GeneralInformationTable
                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                     }, true),
                 IconColumn::make('rfp')
-                    ->label('RFP')
+                    ->label(__('RFP'))
                     ->getStateUsing(fn ($record) => $record?->hasMedia('rfp'))
                     ->boolean()
                     ->url(function ($record) {
@@ -62,7 +62,7 @@ class GeneralInformationTable
                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                     }, true),
                 IconColumn::make('rfq')
-                    ->label('RFQ')
+                    ->label(__('RFQ'))
                     ->getStateUsing(fn ($record) => $record?->hasMedia('rfq'))
                     ->boolean()
                     ->url(function ($record) {
@@ -74,7 +74,7 @@ class GeneralInformationTable
                         return $media->disk === 's3' ? $media->getTemporaryUrl(now()->addMinutes(30)) : $media->getUrl();
                     }, true),
                 IconColumn::make('rr_document_path')
-                    ->label('RR Doc')
+                    ->label(__('RR Doc'))
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->color('success')
                     ->url(fn ($record) => $record?->rr_document_path, true)

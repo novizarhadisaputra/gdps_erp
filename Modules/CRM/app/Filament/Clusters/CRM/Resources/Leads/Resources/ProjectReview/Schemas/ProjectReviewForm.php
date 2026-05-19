@@ -17,7 +17,7 @@ class ProjectReviewForm
     {
         return $schema
             ->components([
-                Section::make('Review Links')
+                Section::make(__('Review Links'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
@@ -34,20 +34,20 @@ class ProjectReviewForm
                         Grid::make(3)
                             ->schema([
                                 Select::make('general_information_id')
-                                    ->label('General Information')
+                                    ->label(__('General Information'))
                                     ->options(fn ($get) => GeneralInformation::where('lead_id', $get('lead_id'))->pluck('number', 'id'))
                                     ->searchable()
-                                    ->placeholder('Select GI'),
+                                    ->placeholder(__('Select GI')),
                                 Select::make('profitability_analysis_id')
-                                    ->label('Profitability Analysis')
+                                    ->label(__('Profitability Analysis'))
                                     ->options(fn ($get) => ProfitabilityAnalysis::where('lead_id', $get('lead_id'))->pluck('number', 'id'))
                                     ->searchable()
-                                    ->placeholder('Select PA'),
+                                    ->placeholder(__('Select PA')),
                                 Select::make('proposal_id')
-                                    ->label('Proposal')
+                                    ->label(__('Proposal'))
                                     ->options(fn ($get) => Proposal::where('lead_id', $get('lead_id'))->pluck('number', 'id'))
                                     ->searchable()
-                                    ->placeholder('Select Proposal'),
+                                    ->placeholder(__('Select Proposal')),
                             ]),
                     ]),
             ]);

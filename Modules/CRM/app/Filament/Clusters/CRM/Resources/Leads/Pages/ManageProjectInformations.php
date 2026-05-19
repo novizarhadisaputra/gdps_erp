@@ -60,7 +60,7 @@ class ManageProjectInformations extends ManageRelatedRecords
                 TextColumn::make('status')
                     ->badge(),
                 TextColumn::make('name')
-                    ->label('Project'),
+                    ->label(__('Project')),
                 TextColumn::make('start_date')->date(),
             ])
             ->filters([

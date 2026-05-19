@@ -22,13 +22,13 @@ enum ProposalStatus: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Draft => 'Draft',
-            self::Sent => 'Sent',
-            self::Submitted => 'Submitted',
-            self::Approved => 'Approved',
-            self::Rejected => 'Rejected',
-            self::Converted => 'Converted',
-            self::Cancelled => 'Cancelled',
+            self::Draft => __('Draft'),
+            self::Sent => __('Sent'),
+            self::Submitted => __('Submitted'),
+            self::Approved => __('Approved'),
+            self::Rejected => __('Rejected'),
+            self::Converted => __('Converted'),
+            self::Cancelled => __('Cancelled'),
         };
     }
 

@@ -49,29 +49,29 @@ class SalesOrderForm
             ->components([
                 Hidden::make('snapshot'),
                 Wizard::make([
-                    Step::make('General Information')
-                        ->description('Basic project details, reference documents, and document numbering.')
+                    Step::make(__('General Information'))
+                        ->description(__('Basic project details, reference documents, and document numbering.'))
                         ->schema([
                             Grid::make(3)
                                 ->schema([
                                     TextInput::make('number')
-                                        ->label('SO Number')
-                                        ->placeholder('e.g. GDPS/UB/SO-001/26')
-                                        ->helperText('The unique identifier for this Sales Order. Automatically generated upon creation.')
+                                        ->label(__('SO Number'))
+                                        ->placeholder(__('e.g. GDPS/UB/SO-001/26'))
+                                        ->helperText(__('The unique identifier for this Sales Order. Automatically generated upon creation.'))
                                         ->hidden(fn (string $operation): bool => $operation === 'create')
                                         ->disabled()
                                         ->unique(ignoreRecord: true),
                                     DatePicker::make('order_date')
-                                        ->label('Order Date')
+                                        ->label(__('Order Date'))
                                         ->required()
-                                        ->placeholder('Select order date')
+                                        ->placeholder(__('Select order date'))
                                         ->default(now())
-                                        ->helperText('The date this Sales Order is officially recorded.'),
+                                        ->helperText(__('The date this Sales Order is officially recorded.')),
                                     Select::make('project_id')
-                                        ->label('Project Reference')
+                                        ->label(__('Project Reference'))
                                         ->relationship('project', 'number')
-                                        ->placeholder('Search or select a project...')
-                                        ->helperText('Connect this SO to an existing project to retrieve financial and staffing data.')
+                                        ->placeholder(__('Search or select a project...'))
+                                        ->helperText(__('Connect this SO to an existing project to retrieve financial and staffing data.'))
                                         ->required()
                                         ->live()
                                         ->afterStateUpdated(function ($state, Set $set, Get $get) {
@@ -177,13 +177,13 @@ class SalesOrderForm
                                 ->schema([
                                     Select::make('customer_id')
                                         ->relationship('customer', 'name')
-                                        ->placeholder('Customer will be auto-filled...')
+                                        ->placeholder(__('Customer will be auto-filled...'))
                                         ->required()
                                         ->disabled()
                                         ->dehydrated(),
                                     Select::make('proposal_id')
                                         ->relationship('proposal', 'number')
-                                        ->placeholder('Proposal will be auto-filled...')
+                                        ->placeholder(__('Proposal will be auto-filled...'))
                                         ->required()
                                         ->disabled()
                                         ->dehydrated(),
@@ -196,20 +196,20 @@ class SalesOrderForm
                                         ->required()
                                         ->live(),
                                     Select::make('sourceable_type')
-                                        ->label('Source Document Type')
+                                        ->label(__('Source Document Type'))
                                         ->options([
                                             PurchaseOrder::class => 'Purchase Order (PO)',
                                             WorkOrder::class => 'Work Order (SPK)',
                                             CooperationAgreement::class => 'Cooperation Agreement (PKS)',
                                         ])
                                         ->live()
-                                        ->placeholder('Select type')
+                                        ->placeholder(__('Select type'))
                                         ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal)
                                         ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal)
                                         ->afterStateUpdated(fn ($set) => $set('sourceable_id', null)),
                                     Select::make('sourceable_id')
-                                        ->label('Source Document')
-                                        ->placeholder('Select document')
+                                        ->label(__('Source Document'))
+                                        ->placeholder(__('Select document'))
                                         ->searchable()
                                         ->preload()
                                         ->live()
@@ -228,15 +228,15 @@ class SalesOrderForm
                                         ->visible(fn (Get $get) => $get('type') === SalesOrderType::Internal && filled($get('sourceable_type')))
                                         ->required(fn (Get $get) => $get('type') === SalesOrderType::Internal)
                                         ->hintAction(
-                                            Action::make('createSource')
-                                                ->label('Create')
+                                            Action::make(__('createSource'))
+                                                ->label(__('Create'))
                                                 ->icon(Heroicon::Plus)
                                                 ->color('success')
-                                                ->tooltip('Auto-create source document from SO data')
+                                                ->tooltip(__('Auto-create source document from SO data'))
                                                 ->requiresConfirmation()
-                                                ->modalHeading('Auto-create Source Document?')
-                                                ->modalDescription('System will generate a new document using current SO amount and service type.')
-                                                ->modalSubmitActionLabel('Yes, Create')
+                                                ->modalHeading(__('Auto-create Source Document?'))
+                                                ->modalDescription(__('System will generate a new document using current SO amount and service type.'))
+                                                ->modalSubmitActionLabel(__('Yes, Create'))
                                                 ->action(function (Get $get, Set $set) {
                                                     $type = $get('sourceable_type');
                                                     $customerId = $get('customer_id');
@@ -245,7 +245,7 @@ class SalesOrderForm
 
                                                     if (! $type || ! $customerId) {
                                                         \Filament\Notifications\Notification::make()
-                                                            ->title('Missing Information')
+                                                            ->title(__('Missing Information'))
                                                             ->body('Please ensure Customer and Document Type are selected.')
                                                             ->danger()
                                                             ->send();
@@ -280,7 +280,7 @@ class SalesOrderForm
                                                     $set('sourceable_id', $record->id);
 
                                                     \Filament\Notifications\Notification::make()
-                                                        ->title('Document Created')
+                                                        ->title(__('Document Created'))
                                                         ->body("A new record has been generated: {$record->number}")
                                                         ->success()
                                                         ->send();
@@ -288,35 +288,35 @@ class SalesOrderForm
                                         ),
                                 ]),
                         ]),
-                    Step::make('Execution & Staffing')
-                        ->description('Personnel and project execution location.')
+                    Step::make(__('Execution & Staffing'))
+                        ->description(__('Personnel and project execution location.'))
                         ->schema([
                             Grid::make(2)
                                 ->schema([
                                     Select::make('sales_pic_id')
-                                        ->label('Sales PIC (AMS)')
-                                        ->placeholder('Select Sales Account Management...')
+                                        ->label(__('Sales PIC (AMS)'))
+                                        ->placeholder(__('Select Sales Account Management...'))
                                         ->relationship('salesPic', 'name')
                                         ->searchable(),
                                     Select::make('project_manager_id')
-                                        ->label('Project Manager (Oprep)')
-                                        ->placeholder('Select Project Manager...')
+                                        ->label(__('Project Manager (Oprep)'))
+                                        ->placeholder(__('Select Project Manager...'))
                                         ->relationship('projectManager', 'name')
                                         ->searchable(),
                                     TextInput::make('service_type')
-                                        ->label('Service Category')
-                                        ->placeholder('e.g. Manpower Supply, Cleaning Service')
-                                        ->helperText('The primary classification of services provided under this contract.')
+                                        ->label(__('Service Category'))
+                                        ->placeholder(__('e.g. Manpower Supply, Cleaning Service'))
+                                        ->helperText(__('The primary classification of services provided under this contract.'))
                                         ->live(),
                                     TextInput::make('job_location')
-                                        ->label('Execution Location')
-                                        ->placeholder('e.g. Soekarno-Hatta Airport')
-                                        ->helperText('The specific site or area where the project will be executed.'),
+                                        ->label(__('Execution Location'))
+                                        ->placeholder(__('e.g. Soekarno-Hatta Airport'))
+                                        ->helperText(__('The specific site or area where the project will be executed.')),
                                     TextInput::make('manpower_initial_qty')
-                                        ->label('Total Personnel (HC)')
+                                        ->label(__('Total Personnel (HC)'))
                                         ->numeric()
-                                        ->placeholder('0')
-                                        ->helperText('The total number of personnel committed in the contract.')
+                                        ->placeholder(__('0'))
+                                        ->helperText(__('The total number of personnel committed in the contract.'))
                                         ->default(0),
 
                                     Hidden::make('manpower_composition')
@@ -325,7 +325,7 @@ class SalesOrderForm
                                         ->live(),
 
                                     TextEntry::make('manpower_composition_preview')
-                                        ->label('Personnel Deployment Overview')
+                                        ->label(__('Personnel Deployment Overview'))
                                         ->columnSpanFull()
                                         ->state(function (Get $get) {
                                             $manpower = $get('content_config.manpower_details') ?? [];
@@ -379,7 +379,7 @@ class SalesOrderForm
                                         })
                                         ->html(),
                                     TextEntry::make('manpower_attachment_preview')
-                                        ->label('Original Manpower Budget File')
+                                        ->label(__('Original Manpower Budget File'))
                                         ->columnSpanFull()
                                         ->visible(function (Get $get) {
                                             $projectId = $get('project_id');
@@ -411,11 +411,11 @@ class SalesOrderForm
                                         ->html(),
                                 ]),
                         ]),
-                    Step::make('Item Details')
-                        ->description('Cost and manpower details retrieved from Profitability Analysis.')
+                    Step::make(__('Item Details'))
+                        ->description(__('Cost and manpower details retrieved from Profitability Analysis.'))
                         ->schema([
-                            Section::make('Source Documents (Manual Mode)')
-                                ->description('Manual calculation files uploaded to Profitability Analysis.')
+                            Section::make(__('Source Documents (Manual Mode)'))
+                                ->description(__('Manual calculation files uploaded to Profitability Analysis.'))
                                 ->visible(function (Get $get) {
                                     $projectId = $get('project_id');
                                     if (! $projectId) {
@@ -427,7 +427,7 @@ class SalesOrderForm
                                 })
                                 ->schema([
                                     TextEntry::make('operational_attachment_preview')
-                                        ->label('Backup Costing Tools & Equipment')
+                                        ->label(__('Backup Costing Tools & Equipment'))
                                         ->state(function (Get $get) {
                                             $projectId = $get('project_id');
                                             if (! $projectId) {
@@ -448,8 +448,8 @@ class SalesOrderForm
                                         })
                                         ->html(),
                                 ]),
-                            Section::make('Project Costs')
-                                ->description('Details of project cost components. Automatically retrieved from PA.')
+                            Section::make(__('Project Costs'))
+                                ->description(__('Details of project cost components. Automatically retrieved from PA.'))
                                 ->visible(function (Get $get) {
                                     $projectId = $get('project_id');
 
@@ -457,7 +457,7 @@ class SalesOrderForm
                                 })
                                 ->schema([
                                     TextEntry::make('items_details_preview')
-                                        ->label('Operational Cost Details')
+                                        ->label(__('Operational Cost Details'))
                                         ->state(function (Get $get) {
                                             $items = $get('content_config.items') ?? [];
                                             if (empty($items)) {
@@ -509,85 +509,85 @@ class SalesOrderForm
                                         ->html(),
                                 ]),
                         ]),
-                    Step::make('Financials & Terms')
-                        ->description('Financial targets and payment terms.')
+                    Step::make(__('Financials & Terms'))
+                        ->description(__('Financial targets and payment terms.'))
                         ->schema([
                             Grid::make(3)
                                 ->schema([
                                     TextInput::make('amount')
-                                        ->label('Monthly Gross Amount')
-                                        ->placeholder('0')
-                                        ->helperText('The total monthly revenue (before tax) for this project.')
+                                        ->label(__('Monthly Gross Amount'))
+                                        ->placeholder(__('0'))
+                                        ->helperText(__('The total monthly revenue (before tax) for this project.'))
                                         ->numeric()
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->required()
                                         ->live(),
                                     TextInput::make('management_fee_percentage')
-                                        ->label('Management Fee (%)')
+                                        ->label(__('Management Fee (%)'))
                                         ->numeric()
-                                        ->placeholder('10')
+                                        ->placeholder(__('10'))
                                         ->suffix('%')
-                                        ->helperText('The agreed fee percentage for managing the project.')
+                                        ->helperText(__('The agreed fee percentage for managing the project.'))
                                         ->default(10),
                                     Select::make('tax_id')
-                                        ->label('Tax Scheme (VAT/PPh)')
+                                        ->label(__('Tax Scheme (VAT/PPh)'))
                                         ->relationship('tax', 'name', fn ($query) => $query->where('category', 'sales')->where('is_active', true))
                                         ->required()
                                         ->live()
                                         ->afterStateUpdated(fn ($state, Set $set) => $set('tax_percentage', Tax::find($state)?->rate ?? 0))
                                         ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->id),
                                     TextInput::make('tax_percentage')
-                                        ->label('Tax Rate (%)')
+                                        ->label(__('Tax Rate (%)'))
                                         ->numeric()
                                         ->readOnly()
                                         ->default(fn () => Tax::where('category', 'sales')->where('is_default', true)->first()?->rate ?? 12.00),
                                 ]),
-                            Section::make('PDF Display Settings')
-                                ->description('Customize labels and display options for the generated PDF document.')
+                            Section::make(__('PDF Display Settings'))
+                                ->description(__('Customize labels and display options for the generated PDF document.'))
                                 ->collapsible()
                                 ->compact()
                                 ->schema([
                                     Grid::make(3)
                                         ->schema([
                                             TextInput::make('content_config.vat_label')
-                                                ->label('VAT Label (PDF)')
-                                                ->placeholder('e.g. PPN')
+                                                ->label(__('VAT Label (PDF)'))
+                                                ->placeholder(__('e.g. PPN'))
                                                 ->default('PPN'),
                                             TextInput::make('content_config.subtotal_label')
-                                                ->label('Subtotal Label (PDF)')
-                                                ->placeholder('e.g. Sub Total')
+                                                ->label(__('Subtotal Label (PDF)'))
+                                                ->placeholder(__('e.g. Sub Total'))
                                                 ->default('Sub Total'),
                                             TextInput::make('content_config.total_label')
-                                                ->label('Total Label (PDF)')
-                                                ->placeholder('e.g. Grand Total')
+                                                ->label(__('Total Label (PDF)'))
+                                                ->placeholder(__('e.g. Grand Total'))
                                                 ->default('Grand Total'),
                                         ]),
                                 ]),
-                            Section::make('Contractual Terms')
-                                ->description('Administrative terms and personnel replacement SLA.')
+                            Section::make(__('Contractual Terms'))
+                                ->description(__('Administrative terms and personnel replacement SLA.'))
                                 ->schema([
                                     Grid::make(2)
                                         ->schema([
                                             Textarea::make('payment_terms')
-                                                ->label('Terms of Payment')
-                                                ->placeholder('e.g. Monthly, 30 Days TOP after invoice')
-                                                ->helperText('Agreed payment system and scheduling.')
+                                                ->label(__('Terms of Payment'))
+                                                ->placeholder(__('e.g. Monthly, 30 Days TOP after invoice'))
+                                                ->helperText(__('Agreed payment system and scheduling.'))
                                                 ->rows(3),
                                             TextInput::make('probation_period')
-                                                ->placeholder('e.g. 3 Months')
+                                                ->placeholder(__('e.g. 3 Months'))
                                                 ->default('3 Months'),
                                             TextInput::make('replacement_sla')
-                                                ->label('Replacement SLA')
-                                                ->placeholder('e.g. 3 Working Days')
+                                                ->label(__('Replacement SLA'))
+                                                ->placeholder(__('e.g. 3 Working Days'))
                                                 ->default('3 Working Days'),
                                             TextInput::make('reporting_schedule')
-                                                ->placeholder('e.g. Every 25th of month')
+                                                ->placeholder(__('e.g. Every 25th of month'))
                                                 ->default('5th of each month'),
                                         ]),
                                 ]),
-                            Section::make('Official Document Attachments')
-                                ->description('Manage draft proposals and final signed contract documents. Note: Uploading the signed document will automatically activate the Sales Order.')
+                            Section::make(__('Official Document Attachments'))
+                                ->description(__('Manage draft proposals and final signed contract documents. Note: Uploading the signed document will automatically activate the Sales Order.'))
                                 ->schema([
                                     Grid::make(2)
                                         ->schema([
@@ -597,7 +597,7 @@ class SalesOrderForm
                                                     ? 'Internal Memo / ST / SPK (Internal)'
                                                     : 'Draft SO / Proposal Document'
                                                 )
-                                                ->placeholder('Click or drag file here...')
+                                                ->placeholder(__('Click or drag file here...'))
                                                 ->required(false)
                                                 ->helperText(fn (Get $get) => $get('type') === SalesOrderType::Internal
                                                     ? 'Upload the internal document memo/ST/SPK.'
@@ -610,10 +610,10 @@ class SalesOrderForm
                                                     ? 'Approved Internal Memo / ST / PO (Scan)'
                                                     : 'Signed SO / SPK / PO (Scan)'
                                                 )
-                                                ->placeholder('Click or drag file here...')
+                                                ->placeholder(__('Click or drag file here...'))
                                                 ->visible(fn (Get $get) => $get('status') !== SalesOrderStatus::Draft->value)
                                                 ->required(false)
-                                                ->helperText('Final signed document. Uploading this will automatically set the SO status to Approved.'),
+                                                ->helperText(__('Final signed document. Uploading this will automatically set the SO status to Approved.')),
                                         ]),
                                 ]),
                         ]),

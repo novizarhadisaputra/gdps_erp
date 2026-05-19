@@ -13,12 +13,18 @@ class CRMAnalyticsPage extends AnalyticsBasePage
 {
     public function getSubheading(): ?string
     {
-        return 'Visual insights and analytics for CRM data (Updated per April Sales Plan).';
+        return __('Visual insights and analytics for CRM data (Updated per April Sales Plan).');
     }
 
-    protected static ?string $navigationLabel = 'Analytics';
+    public static function getNavigationLabel(): string
+    {
+        return __('Analytics');
+    }
 
-    protected static ?string $title = 'CRM Analytics Dashboard';
+    public function getTitle(): string
+    {
+        return __('CRM Analytics Dashboard');
+    }
 
     protected static ?string $slug = 'crm-analytics';
 

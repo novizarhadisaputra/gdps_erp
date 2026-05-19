@@ -29,14 +29,14 @@ class ViewSalesOrder extends ViewRecord
             EditAction::make()
                 ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Draft),
 
-            Action::make('generateBapp')
-                ->label('Generate BAPP')
+            Action::make(__('generateBapp'))
+                ->label(__('Generate BAPP'))
                 ->icon(Heroicon::DocumentCheck)
                 ->color('success')
                 ->visible(fn (SalesOrder $record) => $record->status === SalesOrderStatus::Approved)
                 ->requiresConfirmation()
-                ->modalHeading('Generate Monthly BAPP')
-                ->modalDescription('This will create a new Work Completion Report draft based on this Sales Order.')
+                ->modalHeading(__('Generate Monthly BAPP'))
+                ->modalDescription(__('This will create a new Work Completion Report draft based on this Sales Order.'))
                 ->action(function (SalesOrder $record) {
                     // Map content_config to BAPP items structure
                     $config = $record->content_config ?? [];
@@ -148,12 +148,12 @@ class ViewSalesOrder extends ViewRecord
                     ]);
 
                     Notification::make()
-                        ->title('BAPP Draft Created')
+                        ->title(__('BAPP Draft Created'))
                         ->body("New BAPP {$bapp->number} has been successfully generated.")
                         ->success()
                         ->actions([
-                            Action::make('view')
-                                ->label('View BAPP')
+                            Action::make(__('view'))
+                                ->label(__('View BAPP'))
                                 ->button()
                                 ->url(WorkCompletionReportResource::getUrl('edit', [
                                     'project' => $record->project_id,
@@ -169,8 +169,8 @@ class ViewSalesOrder extends ViewRecord
                 }),
 
             ActionGroup::make([
-                Action::make('sendEmail')
-                    ->label('Send Email')
+                Action::make(__('sendEmail'))
+                    ->label(__('Send Email'))
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->visible(fn (SalesOrder $record) => $record->type === SalesOrderType::External &&
                         in_array($record->status, [SalesOrderStatus::Draft, SalesOrderStatus::Submitted]) &&
@@ -182,8 +182,8 @@ class ViewSalesOrder extends ViewRecord
                     )
                     ->url(fn (SalesOrder $record) => SalesOrderResource::getUrl('send', ['record' => $record])),
 
-                Action::make('submit')
-                    ->label('Submit')
+                Action::make(__('submit'))
+                    ->label(__('Submit'))
                     ->color('info')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
@@ -191,18 +191,18 @@ class ViewSalesOrder extends ViewRecord
                     ->action(function (SalesOrder $record) {
                         $record->update(['status' => SalesOrderStatus::Submitted]);
                         app(SignatureService::class)->notifyNextApprovers($record);
-                        Notification::make()->title('Order Submitted for Approval')->success()->send();
+                        Notification::make()->title(__('Order Submitted for Approval'))->success()->send();
                     }),
 
-                Action::make('revisi')
-                    ->label('Request Revision')
+                Action::make(__('revisi'))
+                    ->label(__('Request Revision'))
                     ->color('warning')
                     ->icon(Heroicon::OutlinedArrowPath)
                     ->visible(fn (SalesOrder $record) => in_array($record->status, [SalesOrderStatus::Submitted, SalesOrderStatus::Approved]))
                     ->action(function (SalesOrder $record) {
                         if ($record->status === SalesOrderStatus::Approved) {
                             Notification::make()
-                                ->title('Redirecting to Amendments')
+                                ->title(__('Redirecting to Amendments'))
                                 ->body('For approved orders, revisions must be managed via Amendments. If this is a financial change, please revise the Profitability Analysis first.')
                                 ->info()
                                 ->send();
@@ -213,32 +213,32 @@ class ViewSalesOrder extends ViewRecord
                         // For Sent status, we can still revert to Draft for simple fixes
                         $record->update(['status' => SalesOrderStatus::Draft]);
                         Notification::make()
-                            ->title('Order Reverted to Draft')
+                            ->title(__('Order Reverted to Draft'))
                             ->body('This document is now editable for revision.')
                             ->warning()
                             ->send();
                     }),
 
-                Action::make('cancel')
-                    ->label('Cancel Order')
+                Action::make(__('cancel'))
+                    ->label(__('Cancel Order'))
                     ->color('danger')
                     ->icon(Heroicon::OutlinedNoSymbol)
                     ->requiresConfirmation()
                     ->visible(fn (SalesOrder $record) => ! in_array($record->status, [SalesOrderStatus::Cancelled]))
                     ->action(function (SalesOrder $record) {
                         $record->update(['status' => SalesOrderStatus::Cancelled]);
-                        Notification::make()->title('Order Cancelled')->danger()->send();
+                        Notification::make()->title(__('Order Cancelled'))->danger()->send();
                     }),
 
-                Action::make('pdf')
-                    ->label('Export PDF')
+                Action::make(__('pdf'))
+                    ->label(__('Export PDF'))
                     ->color('gray')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function (SalesOrder $record) {
                         // 1. Validate Tax
                         if (! $record->tax_percentage) {
                             Notification::make()
-                                ->title('Incomplete Financial Data')
+                                ->title(__('Incomplete Financial Data'))
                                 ->body('Please ensure the Tax Percentage is set before exporting.')
                                 ->danger()
                                 ->send();
@@ -249,7 +249,7 @@ class ViewSalesOrder extends ViewRecord
                         // 2. Validate Data Source for Internal SO
                         if ($record->type === SalesOrderType::Internal && ! $record->sourceable_id) {
                             Notification::make()
-                                ->title('Missing Source Document')
+                                ->title(__('Missing Source Document'))
                                 ->body('Internal Sales Orders must reference a Source Document (PO/SPK/PKS).')
                                 ->danger()
                                 ->send();
@@ -261,7 +261,7 @@ class ViewSalesOrder extends ViewRecord
                         $config = $record->content_config ?? [];
                         if (empty($config['items'] ?? []) && empty($config['manpower_details'] ?? [])) {
                             Notification::make()
-                                ->title('No Items Found')
+                                ->title(__('No Items Found'))
                                 ->body('This Sales Order has no line items. Please select a Project reference to retrieve data.')
                                 ->danger()
                                 ->send();
@@ -276,7 +276,7 @@ class ViewSalesOrder extends ViewRecord
                         return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
             ])
-                ->label('Options')
+                ->label(__('Options'))
                 ->icon(Heroicon::OutlinedEllipsisVertical)
                 ->color('primary')
                 ->button(),

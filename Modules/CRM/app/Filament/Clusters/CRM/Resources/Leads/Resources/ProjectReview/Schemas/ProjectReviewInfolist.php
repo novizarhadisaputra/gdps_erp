@@ -20,26 +20,26 @@ class ProjectReviewInfolist
     {
         return $schema
             ->components([
-                Section::make('General Information')
-                    ->description('Project scope and basic details.')
+                Section::make(__('General Information'))
+                    ->description(__('Project scope and basic details.'))
                     ->aside()
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('generalInformation.number')
-                                    ->label('Document #')
-                                    ->placeholder('Not created yet'),
+                                    ->label(__('Document #'))
+                                    ->placeholder(__('Not created yet')),
                                 TextEntry::make('generalInformation.status')
-                                    ->label('Status')
+                                    ->label(__('Status'))
                                     ->badge()
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                                 TextEntry::make('generalInformation.customer.name')
-                                    ->label('Customer')
-                                    ->placeholder('-'),
+                                    ->label(__('Customer'))
+                                    ->placeholder(__('-')),
                                 TextEntry::make('generalInformation.scope_of_work')
-                                    ->label('Scope of Work')
+                                    ->label(__('Scope of Work'))
                                     ->columnSpanFull()
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                             ]),
                     ])
                     ->headerActions([
@@ -47,27 +47,27 @@ class ProjectReviewInfolist
                     ])
                     ->visible(fn ($record) => filled($record?->general_information_id)),
 
-                Section::make('Profitability Analysis')
-                    ->description('Financial analysis and margin calculations.')
+                Section::make(__('Profitability Analysis'))
+                    ->description(__('Financial analysis and margin calculations.'))
                     ->aside()
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('profitabilityAnalysis.number')
-                                    ->label('Document #')
-                                    ->placeholder('Not created yet'),
+                                    ->label(__('Document #'))
+                                    ->placeholder(__('Not created yet')),
                                 TextEntry::make('profitabilityAnalysis.status')
-                                    ->label('Status')
+                                    ->label(__('Status'))
                                     ->badge()
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                                 TextEntry::make('profitabilityAnalysis.revenue_per_month')
-                                    ->label('Monthly Revenue')
+                                    ->label(__('Monthly Revenue'))
                                     ->money('IDR')
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                                 TextEntry::make('profitabilityAnalysis.margin_percentage')
-                                    ->label('Margin')
+                                    ->label(__('Margin'))
                                     ->suffix('%')
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                             ]),
                     ])
                     ->headerActions([
@@ -76,27 +76,27 @@ class ProjectReviewInfolist
                     ])
                     ->visible(fn ($record) => filled($record?->profitability_analysis_id)),
 
-                Section::make('Proposal')
-                    ->description('Final proposal document and submission details.')
+                Section::make(__('Proposal'))
+                    ->description(__('Final proposal document and submission details.'))
                     ->aside()
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('proposal.number')
-                                    ->label('Proposal #')
-                                    ->placeholder('Not created yet'),
+                                    ->label(__('Proposal #'))
+                                    ->placeholder(__('Not created yet')),
                                 TextEntry::make('proposal.status')
-                                    ->label('Status')
+                                    ->label(__('Status'))
                                     ->badge()
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                                 TextEntry::make('proposal.amount')
-                                    ->label('Total Amount')
+                                    ->label(__('Total Amount'))
                                     ->money('IDR')
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                                 TextEntry::make('proposal.submission_date')
-                                    ->label('Submission Date')
+                                    ->label(__('Submission Date'))
                                     ->date()
-                                    ->placeholder('-'),
+                                    ->placeholder(__('-')),
                             ]),
                     ])
                     ->headerActions([
@@ -109,12 +109,12 @@ class ProjectReviewInfolist
     protected static function getApprovalAction(string $relation): Action
     {
         return Action::make("approve_{$relation}")
-            ->label('Approve Document')
+            ->label(__('Approve Document'))
             ->icon('heroicon-o-pencil-square')
             ->color('primary')
             ->schema([
                 TextInput::make('pin')
-                    ->label('Signature PIN')
+                    ->label(__('Signature PIN'))
                     ->password()
                     ->required(),
             ])
@@ -127,7 +127,7 @@ class ProjectReviewInfolist
                 $service = app(SignatureService::class);
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                    Notification::make()->title('Incorrect PIN')->danger()->send();
+                    Notification::make()->title(__('Incorrect PIN'))->danger()->send();
 
                     return;
                 }
@@ -136,13 +136,13 @@ class ProjectReviewInfolist
                 $matchingRule = $required->first(fn ($rule) => $service->isEligibleApprover($rule, auth()->user()));
 
                 if (! $matchingRule) {
-                    Notification::make()->title('Access Denied')->warning()->send();
+                    Notification::make()->title(__('Access Denied'))->warning()->send();
 
                     return;
                 }
 
                 if ($subRecord->isRuleSatisfied($matchingRule)) {
-                    Notification::make()->title('Already Signed')->warning()->send();
+                    Notification::make()->title(__('Already Signed'))->warning()->send();
 
                     return;
                 }
@@ -158,7 +158,7 @@ class ProjectReviewInfolist
                 $subRecord->addSignature(auth()->user(), $matchingRule->signature_type, $recordedRole);
                 $service->notifyNextApprovers($subRecord);
 
-                Notification::make()->title('Document Signed')->success()->send();
+                Notification::make()->title(__('Document Signed'))->success()->send();
 
                 if ($subRecord->isFullyApproved()) {
                     $status = match ($relation) {
@@ -210,13 +210,13 @@ class ProjectReviewInfolist
 
     protected static function getApproveMarginAction(): Action
     {
-        return Action::make('approve_margin')
-            ->label('Approve Margin')
+        return Action::make(__('approve_margin'))
+            ->label(__('Approve Margin'))
             ->icon('heroicon-o-check-badge')
             ->color('success')
             ->schema([
                 TextInput::make('pin')
-                    ->label('Signature PIN')
+                    ->label(__('Signature PIN'))
                     ->password()
                     ->required(),
             ])
@@ -225,7 +225,7 @@ class ProjectReviewInfolist
                 $service = app(SignatureService::class);
 
                 if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                    Notification::make()->title('Incorrect PIN')->danger()->send();
+                    Notification::make()->title(__('Incorrect PIN'))->danger()->send();
 
                     return;
                 }
@@ -233,7 +233,7 @@ class ProjectReviewInfolist
                 $pa->addSignature(auth()->user(), 'MarginApproval');
                 $pa->update(['is_margin_approved' => true]);
 
-                Notification::make()->title('Margin Approved')->success()->send();
+                Notification::make()->title(__('Margin Approved'))->success()->send();
             })
             ->visible(function ($record) {
                 if (! $record) {

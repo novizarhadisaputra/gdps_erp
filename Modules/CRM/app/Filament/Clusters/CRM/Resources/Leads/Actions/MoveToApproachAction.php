@@ -19,12 +19,12 @@ class MoveToApproachAction extends Action
     {
         parent::setUp();
 
-        $this->label('Move to Approach')
+        $this->label(__('Move to Approach'))
             ->icon('heroicon-o-chat-bubble-left-right')
             ->color('info')
             ->requiresConfirmation()
-            ->modalHeading('Move Lead to Approach')
-            ->modalDescription('Are you sure you want to move this lead to the Approach stage? This will enable Sales Plan and General Information modules.')
+            ->modalHeading(__('Move Lead to Approach'))
+            ->modalDescription(__('Are you sure you want to move this lead to the Approach stage? This will enable Sales Plan and General Information modules.'))
             ->visible(fn (Lead $record) => $record->status === LeadStatus::Lead)
             ->action(function (Lead $record) {
                 $record->update([
@@ -33,7 +33,7 @@ class MoveToApproachAction extends Action
                 ]);
 
                 Notification::make()
-                    ->title('Lead Moved to Approach')
+                    ->title(__('Lead Moved to Approach'))
                     ->body('The lead has been successfully transitioned. You can now set up the Sales Plan.')
                     ->success()
                     ->send();

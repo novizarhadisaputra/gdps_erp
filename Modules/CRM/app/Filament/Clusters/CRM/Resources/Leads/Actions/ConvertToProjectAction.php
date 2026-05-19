@@ -20,7 +20,7 @@ class ConvertToProjectAction extends Action
     {
         parent::setUp();
 
-        $this->label('Generate Project')
+        $this->label(__('Generate Project'))
             ->icon('heroicon-o-briefcase')
             ->color('success')
             ->requiresConfirmation()
@@ -31,13 +31,13 @@ class ConvertToProjectAction extends Action
             )
             ->schema([
                 TextInput::make('summary')
-                    ->label('Summary')
+                    ->label(__('Summary'))
                     ->default(fn ($record) => "You are about to generate a Project from the latest approved Profitability Analysis for '{$record->title}'.")
                     ->disabled()
                     ->dehydrated(false)
                     ->columnSpanFull(),
                 TextInput::make('project_name_override')
-                    ->label('Project Name (Optional)')
+                    ->label(__('Project Name (Optional)'))
                     ->placeholder(fn ($record) => $record->title),
             ])
             ->action(function (array $data, $record) {
@@ -45,7 +45,7 @@ class ConvertToProjectAction extends Action
                 // Find latest approved PA
                 $pa = $record->profitabilityAnalyses()->where('status', 'approved')->latest('created_at')->first();
                 if (! $pa) {
-                    Notification::make()->title('Operation failed: No Approved Profitability Analysis found.')->danger()->send();
+                    Notification::make()->title(__('Operation failed: No Approved Profitability Analysis found.'))->danger()->send();
 
                     return;
                 }
@@ -59,7 +59,7 @@ class ConvertToProjectAction extends Action
                 }
 
                 Notification::make()
-                    ->title('Project Generated Successfully')
+                    ->title(__('Project Generated Successfully'))
                     ->body("Project Code: {$project->number}")
                     ->success()
                     ->send();

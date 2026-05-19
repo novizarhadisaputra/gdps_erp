@@ -17,77 +17,77 @@ class WorkOrderForm
     {
         return $schema
             ->components([
-                Section::make('General Information')
-                    ->description('Primary details for the Work Order (SPK), including document date and customer reference.')
+                Section::make(__('General Information'))
+                    ->description(__('Primary details for the Work Order (SPK), including document date and customer reference.'))
                     ->schema([
                         TextInput::make('number')
-                            ->label('SPK Number')
+                            ->label(__('SPK Number'))
                             ->disabled()
                             ->dehydrated(false)
-                            ->placeholder('SPK-YYYYMM-XXXX')
-                            ->helperText('The unique identifier for this Work Order, automatically generated.'),
+                            ->placeholder(__('SPK-YYYYMM-XXXX'))
+                            ->helperText(__('The unique identifier for this Work Order, automatically generated.')),
                         DatePicker::make('document_date')
-                            ->label('Document Date')
+                            ->label(__('Document Date'))
                             ->required()
                             ->default(now())
-                            ->placeholder('Select date')
-                            ->helperText('The official date this Work Order was issued.'),
+                            ->placeholder(__('Select date'))
+                            ->helperText(__('The official date this Work Order was issued.')),
                         Select::make('customer_id')
-                            ->label('Customer')
+                            ->label(__('Customer'))
                             ->options(Customer::all()->pluck('name', 'id'))
                             ->searchable()
                             ->required()
                             ->live()
-                            ->placeholder('Select a customer...')
-                            ->helperText('The client for whom this work is being performed.'),
+                            ->placeholder(__('Select a customer...'))
+                            ->helperText(__('The client for whom this work is being performed.')),
                         TextInput::make('amount')
-                            ->label('Total Estimated Amount')
+                            ->label(__('Total Estimated Amount'))
                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                             ->prefix('IDR')
                             ->readonly()
-                            ->placeholder('0')
-                            ->helperText('The total value of all line items combined.')
+                            ->placeholder(__('0'))
+                            ->helperText(__('The total value of all line items combined.'))
                             ->afterStateHydrated(fn ($set, $get) => $set('amount', collect($get('items'))->sum('total_price'))),
                     ])->columns(2),
 
-                Section::make('Line Items')
-                    ->description('Detailed breakdown of the tasks, services, or goods provided under this SPK.')
+                Section::make(__('Line Items'))
+                    ->description(__('Detailed breakdown of the tasks, services, or goods provided under this SPK.'))
                     ->schema([
                         Repeater::make('items')
-                            ->label('Tasks & Services')
+                            ->label(__('Tasks & Services'))
                             ->schema([
                                 Grid::make(3)->schema([
                                     TextInput::make('item_name')
-                                        ->label('Item/Task Description')
+                                        ->label(__('Item/Task Description'))
                                         ->required()
-                                        ->placeholder('e.g. Maintenance of HVAC System')
-                                        ->helperText('Provide a clear description of the work or item.')
+                                        ->placeholder(__('e.g. Maintenance of HVAC System'))
+                                        ->helperText(__('Provide a clear description of the work or item.'))
                                         ->columnSpanFull(),
                                     TextInput::make('quantity')
-                                        ->label('Quantity')
+                                        ->label(__('Quantity'))
                                         ->numeric()
                                         ->required()
                                         ->live()
-                                        ->placeholder('1')
+                                        ->placeholder(__('1'))
                                         ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0)))),
                                     TextInput::make('uom')
-                                        ->label('Unit of Measure')
+                                        ->label(__('Unit of Measure'))
                                         ->required()
-                                        ->placeholder('e.g. Hour, Visit, Lot'),
+                                        ->placeholder(__('e.g. Hour, Visit, Lot')),
                                     TextInput::make('unit_price')
-                                        ->label('Unit Rate')
+                                        ->label(__('Unit Rate'))
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->required()
                                         ->live()
-                                        ->placeholder('0')
+                                        ->placeholder(__('0'))
                                         ->afterStateUpdated(fn ($get, $set) => $set('total_price', round(floatval($get('quantity') ?? 0) * floatval($get('unit_price') ?? 0)))),
                                     TextInput::make('total_price')
-                                        ->label('Line Total')
+                                        ->label(__('Line Total'))
                                         ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                         ->prefix('IDR')
                                         ->readonly()
-                                        ->placeholder('0'),
+                                        ->placeholder(__('0')),
                                 ]),
                             ])
                             ->live()

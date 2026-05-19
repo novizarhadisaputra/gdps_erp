@@ -50,8 +50,8 @@ class ViewAmendment extends ViewRecord
             EditAction::make()
                 ->visible(fn (SalesOrderAmendment $record) => $record->status === SalesOrderAmendmentStatus::Draft),
 
-            Action::make('submit')
-                ->label('Submit')
+            Action::make(__('submit'))
+                ->label(__('Submit'))
                 ->color('info')
                 ->icon(Heroicon::OutlinedPaperAirplane)
                 ->requiresConfirmation()
@@ -59,17 +59,17 @@ class ViewAmendment extends ViewRecord
                 ->action(function (SalesOrderAmendment $record) {
                     $record->update(['status' => SalesOrderAmendmentStatus::Submitted]);
                     app(SignatureService::class)->notifyNextApprovers($record);
-                    Notification::make()->title('Amendment Submitted for Approval')->success()->send();
+                    Notification::make()->title(__('Amendment Submitted for Approval'))->success()->send();
                 }),
 
             ActionGroup::make([
-                Action::make('sendEmail')
-                    ->label('Send Email to Customer')
+                Action::make(__('sendEmail'))
+                    ->label(__('Send Email to Customer'))
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->url(fn (SalesOrderAmendment $record) => AmendmentResource::getUrl('send', ['record' => $record, 'sales_order' => $record->sales_order_id])),
 
-                Action::make('cancel')
-                    ->label('Cancel Amendment')
+                Action::make(__('cancel'))
+                    ->label(__('Cancel Amendment'))
                     ->icon(Heroicon::OutlinedXMark)
                     ->color('danger')
                     ->requiresConfirmation()
@@ -78,13 +78,13 @@ class ViewAmendment extends ViewRecord
                         $record->update(['status' => SalesOrderAmendmentStatus::Cancelled]);
 
                         Notification::make()
-                            ->title('Amendment Cancelled')
+                            ->title(__('Amendment Cancelled'))
                             ->danger()
                             ->send();
                     }),
 
-                Action::make('pdf')
-                    ->label('Export SOA PDF')
+                Action::make(__('pdf'))
+                    ->label(__('Export SOA PDF'))
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->color('gray')
                     ->action(function (SalesOrderAmendment $record) {
@@ -97,7 +97,7 @@ class ViewAmendment extends ViewRecord
                         return response()->streamDownload(fn () => print ($pdf->output()), $fileName);
                     }),
             ])
-                ->label('More Actions')
+                ->label(__('More Actions'))
                 ->icon(Heroicon::EllipsisVertical)
                 ->button(),
         ];

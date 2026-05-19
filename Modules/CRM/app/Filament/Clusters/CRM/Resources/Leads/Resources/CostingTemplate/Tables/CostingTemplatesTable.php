@@ -25,10 +25,10 @@ class CostingTemplatesTable
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('pic.name')
-                    ->label('PIC')
+                    ->label(__('PIC'))
                     ->sortable(),
                 TextColumn::make('total_monthly_cost')
-                    ->label('Monthly Cost')
+                    ->label(__('Monthly Cost'))
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('created_at')
@@ -40,8 +40,8 @@ class CostingTemplatesTable
                 //
             ])
             ->recordActions([
-                Action::make('pdf')
-                    ->label('Export PDF')
+                Action::make(__('pdf'))
+                    ->label(__('Export PDF'))
                     ->color('gray')
                     ->icon(Heroicon::OutlinedArrowDownTray)
                     ->action(function ($record) {

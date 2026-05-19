@@ -39,13 +39,13 @@ class ManagePurchaseOrders extends ManageRelatedRecords
     {
         return PurchaseOrderResource::table($table)
             ->headerActions([
-                Action::make('bookingCode')
-                    ->label('Booking PO Code')
+                Action::make(__('bookingCode'))
+                    ->label(__('Booking PO Code'))
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Booking Purchase Order Code')
-                    ->modalDescription('This will generate a new PO record with an auto-generated code. You can upload the documentation later.')
+                    ->modalHeading(__('Booking Purchase Order Code'))
+                    ->modalDescription(__('This will generate a new PO record with an auto-generated code. You can upload the documentation later.'))
                     ->action(function () {
                         $lead = $this->getOwnerRecord();
 
@@ -59,7 +59,7 @@ class ManagePurchaseOrders extends ManageRelatedRecords
                         ]);
 
                         Notification::make()
-                            ->title('PO code booked successfully')
+                            ->title(__('PO code booked successfully'))
                             ->success()
                             ->send();
                     }),

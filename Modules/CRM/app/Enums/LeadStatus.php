@@ -24,15 +24,15 @@ enum LeadStatus: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Lead => 'Lead',
-            self::Approach => 'Approach',
-            self::Proposal => 'Proposal',
-            self::Negotiation => 'Negotiation',
-            self::Contract => 'Contract',
-            self::Won => 'Won',
-            self::ClosedLost => 'Closed Lost',
-            self::Postponed => 'Postponed',
-            self::Cancelled => 'Cancelled',
+            self::Lead => __('Lead'),
+            self::Approach => __('Approach'),
+            self::Proposal => __('Proposal'),
+            self::Negotiation => __('Negotiation'),
+            self::Contract => __('Contract'),
+            self::Won => __('Won'),
+            self::ClosedLost => __('Closed Lost'),
+            self::Postponed => __('Postponed'),
+            self::Cancelled => __('Cancelled'),
         };
     }
 

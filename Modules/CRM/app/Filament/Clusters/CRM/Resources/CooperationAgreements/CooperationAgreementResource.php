@@ -25,6 +25,21 @@ class CooperationAgreementResource extends Resource
 
     protected static ?int $navigationSort = 6;
 
+    public static function getModelLabel(): string
+    {
+        return __('Cooperation Agreement');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Cooperation Agreements');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Cooperation Agreements');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return CooperationAgreementForm::configure($schema);

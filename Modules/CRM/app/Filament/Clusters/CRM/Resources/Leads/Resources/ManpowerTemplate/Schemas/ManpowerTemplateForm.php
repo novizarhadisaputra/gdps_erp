@@ -51,7 +51,7 @@ class ManpowerTemplateForm
     {
         return [
             Wizard::make([
-                Step::make('Costing Identification')
+                Step::make(__('Costing Identification'))
                     ->label(__('Costing Identification'))
                     ->description(__('Define basic costing details and project area.'))
                     ->icon('heroicon-m-identification')
@@ -108,7 +108,7 @@ class ManpowerTemplateForm
                     ])
                     ->columns(2),
 
-                Step::make('Personnel Composition')
+                Step::make(__('Personnel Composition'))
                     ->label(__('Personnel Composition'))
                     ->description(__('Define personnel positions and associate them with Product Clusters (e.g., Aviation, FM) and basic salaries.'))
                     ->icon('heroicon-m-user-group')
@@ -225,7 +225,7 @@ class ManpowerTemplateForm
                                             ->columnSpan(1),
                                         TextInput::make('basic_salary')
                                             ->label(__('Basic Salary'))
-                                            ->placeholder('0.00')
+                                            ->placeholder(__('0.00'))
                                             ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                             ->prefix('IDR ')
                                             ->required()

@@ -13,8 +13,8 @@ enum ContractType: string implements HasColor, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Agreement => 'Agreement',
-            self::WorkOrder => 'Work Order',
+            self::Agreement => __('Agreement'),
+            self::WorkOrder => __('Work Order'),
         };
     }
 

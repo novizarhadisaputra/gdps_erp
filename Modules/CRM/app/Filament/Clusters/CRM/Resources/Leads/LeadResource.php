@@ -47,6 +47,21 @@ class LeadResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function getModelLabel(): string
+    {
+        return __('Lead');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Leads');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Leads');
+    }
+
     public static function getSubNavigationPosition(): SubNavigationPosition
     {
         return SubNavigationPosition::Start;
@@ -65,7 +80,7 @@ class LeadResource extends Resource
             ...collect($page->generateNavigationItems([
                 ManageSalesPlans::class,
             ]))->map(fn (NavigationItem $item) => $item
-                ->group('Stage 1: Planning (Approach)')
+                ->group(__('Stage 1: Planning (Approach)'))
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Approach,
                     LeadStatus::Proposal,
@@ -79,7 +94,7 @@ class LeadResource extends Resource
                 ManageManpowerTemplates::class,
                 ManageProfitabilityAnalyses::class,
             ]))->map(fn (NavigationItem $item) => $item
-                ->group('Stage 1: Planning (Approach)')
+                ->group(__('Stage 1: Planning (Approach)'))
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Approach,
                     LeadStatus::Proposal,
@@ -90,7 +105,7 @@ class LeadResource extends Resource
             ...collect($page->generateNavigationItems([
                 ManageProposals::class,
             ]))->map(fn (NavigationItem $item) => $item
-                ->group('Stage 2: Commercials (Proposal)')
+                ->group(__('Stage 2: Commercials (Proposal)'))
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Approach,
                     LeadStatus::Proposal,
@@ -102,7 +117,7 @@ class LeadResource extends Resource
             ...collect($page->generateNavigationItems([
                 ManageMinutesOfAgreements::class,
             ]))->map(fn (NavigationItem $item) => $item
-                ->group('Stage 3: Contracting (Negotiation)')
+                ->group(__('Stage 3: Contracting (Negotiation)'))
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Negotiation,
                     LeadStatus::Contract,
@@ -114,7 +129,7 @@ class LeadResource extends Resource
                 ManageWorkOrders::class,
                 ManageCooperationAgreements::class,
             ]))->map(fn (NavigationItem $item) => $item
-                ->group('Stage 3: Contracting (Negotiation)')
+                ->group(__('Stage 3: Contracting (Negotiation)'))
                 ->visible(fn () => in_array($record->status, [
                     LeadStatus::Negotiation,
                     LeadStatus::Contract,

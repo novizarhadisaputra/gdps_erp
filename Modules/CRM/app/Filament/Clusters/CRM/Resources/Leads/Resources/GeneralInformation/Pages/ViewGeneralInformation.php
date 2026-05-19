@@ -34,8 +34,8 @@ class ViewGeneralInformation extends ViewRecord
             EditAction::make()
                 ->visible(fn () => ! $this->getRecord()->isLocked() && $this->getRecord()->user_id === auth()->id()),
 
-            Action::make('pdf')
-                ->label('Export PDF')
+            Action::make(__('pdf'))
+                ->label(__('Export PDF'))
                 ->color('gray')
                 ->icon(Heroicon::OutlinedArrowDownTray)
                 ->action(function () {
@@ -49,7 +49,7 @@ class ViewGeneralInformation extends ViewRecord
                 }),
 
             ActionGroup::make([
-                Action::make('Submit')
+                Action::make(__('Submit'))
                     ->color('info')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
@@ -59,31 +59,31 @@ class ViewGeneralInformation extends ViewRecord
                         $this->refreshFormData(['status']);
 
                         Notification::make()
-                            ->title('General Information Submitted')
+                            ->title(__('General Information Submitted'))
                             ->body('You can now proceed to Sign and Approve this document.')
                             ->info()
                             ->send();
                     })
                     ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && $this->getRecord()->isComplete() && $this->getRecord()->user_id === auth()->id()),
 
-                Action::make('incompleteWarning')
-                    ->label('Submit')
+                Action::make(__('incompleteWarning'))
+                    ->label(__('Submit'))
                     ->color('gray')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->disabled()
-                    ->tooltip('Harap lengkapi semua data wajib (Required) dan minimal 1 PIC untuk dapat melakukan Submit.')
+                    ->tooltip(__('Harap lengkapi semua data wajib (Required) dan minimal 1 PIC untuk dapat melakukan Submit.'))
                     ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Draft && ! $this->getRecord()->isComplete()),
 
-                Action::make('Approve')
-                    ->label('Sign & Approve')
+                Action::make(__('Approve'))
+                    ->label(__('Sign & Approve'))
                     ->color('success')
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->requiresConfirmation()
-                    ->modalHeading('Sign & Approve General Information')
-                    ->modalDescription('As the creator, you are signing this document to finalize it.')
+                    ->modalHeading(__('Sign & Approve General Information'))
+                    ->modalDescription(__('As the creator, you are signing this document to finalize it.'))
                     ->schema([
                         TextInput::make('pin')
-                            ->label('Signature PIN')
+                            ->label(__('Signature PIN'))
                             ->password()
                             ->required(),
                     ])
@@ -92,7 +92,7 @@ class ViewGeneralInformation extends ViewRecord
                         $service = app(SignatureService::class);
 
                         if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                            Notification::make()->title('Incorrect PIN')->danger()->send();
+                            Notification::make()->title(__('Incorrect PIN'))->danger()->send();
 
                             return;
                         }
@@ -104,7 +104,7 @@ class ViewGeneralInformation extends ViewRecord
                         $record->update(['status' => GeneralInformationStatus::Approved]);
 
                         Notification::make()
-                            ->title('General Information Approved')
+                            ->title(__('General Information Approved'))
                             ->body('Document has been signed and finalized.')
                             ->success()
                             ->send();
@@ -113,18 +113,18 @@ class ViewGeneralInformation extends ViewRecord
                     })
                     ->visible(fn () => $this->getRecord()->status === GeneralInformationStatus::Submitted && $this->getRecord()->user_id === auth()->id()),
 
-                Action::make('revise')
-                    ->label('Revise')
+                Action::make(__('revise'))
+                    ->label(__('Revise'))
                     ->color('warning')
                     ->icon(Heroicon::OutlinedArrowPath)
                     ->requiresConfirmation()
-                    ->modalHeading('Move back to Draft')
+                    ->modalHeading(__('Move back to Draft'))
                     ->action(function () {
                         $this->getRecord()->update(['status' => GeneralInformationStatus::Draft]);
                         $this->refreshFormData(['status']);
 
                         Notification::make()
-                            ->title('Moved to Draft')
+                            ->title(__('Moved to Draft'))
                             ->success()
                             ->send();
                     })

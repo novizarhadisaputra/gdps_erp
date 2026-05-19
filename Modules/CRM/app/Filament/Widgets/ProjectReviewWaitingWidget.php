@@ -76,22 +76,22 @@ class ProjectReviewWaitingWidget extends TableWidget
             })
             ->columns([
                 TextColumn::make('lead.company_name')
-                    ->label('Company / Lead')
+                    ->label(__('Company / Lead'))
                     ->state(fn ($record) => $record->lead?->company_name ?? $record->lead?->title ?? 'Unnamed Lead')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('generalInformation.number')
-                    ->label('GI #')
-                    ->placeholder('-'),
+                    ->label(__('GI #'))
+                    ->placeholder(__('-')),
                 TextColumn::make('profitabilityAnalysis.number')
-                    ->label('PA #')
-                    ->placeholder('-'),
+                    ->label(__('PA #'))
+                    ->placeholder(__('-')),
                 TextColumn::make('proposal.number')
-                    ->label('Proposal #')
-                    ->placeholder('-'),
+                    ->label(__('Proposal #'))
+                    ->placeholder(__('-')),
                 TextColumn::make('status')
                     ->badge()
-                    ->label('Overall Status'),
+                    ->label(__('Overall Status')),
             ])
             ->recordActions([
                 ActionGroup::make([

@@ -19,10 +19,10 @@ enum GeneralInformationStatus: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Draft => 'Draft',
-            self::Submitted => 'Submitted',
-            self::Approved => 'Approved',
-            self::Rejected => 'Rejected',
+            self::Draft => __('Draft'),
+            self::Submitted => __('Submitted'),
+            self::Approved => __('Approved'),
+            self::Rejected => __('Rejected'),
         };
     }
 

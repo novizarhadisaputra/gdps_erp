@@ -39,13 +39,13 @@ class ManageMinutesOfAgreements extends ManageRelatedRecords
     {
         return MinutesOfAgreementResource::table($table)
             ->headerActions([
-                Action::make('bookingCode')
-                    ->label('Booking BAK Code')
+                Action::make(__('bookingCode'))
+                    ->label(__('Booking BAK Code'))
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Booking Minutes of Agreement (BAK) Code')
-                    ->modalDescription('This will generate a new BAK record with an auto-generated code. You can upload the documentation later.')
+                    ->modalHeading(__('Booking Minutes of Agreement (BAK) Code'))
+                    ->modalDescription(__('This will generate a new BAK record with an auto-generated code. You can upload the documentation later.'))
                     ->action(function () {
                         $lead = $this->getOwnerRecord();
 
@@ -59,7 +59,7 @@ class ManageMinutesOfAgreements extends ManageRelatedRecords
                         ]);
 
                         Notification::make()
-                            ->title('BAK code booked successfully')
+                            ->title(__('BAK code booked successfully'))
                             ->success()
                             ->send();
                     }),

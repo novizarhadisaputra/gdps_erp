@@ -23,82 +23,82 @@ class AmendmentForm
     {
         return $schema
             ->components([
-                Section::make('Documents')
-                    ->description('Download the draft amendment for signing, then upload the scanned signed document to process approval.')
+                Section::make(__('Documents'))
+                    ->description(__('Download the draft amendment for signing, then upload the scanned signed document to process approval.'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 SpatieMediaLibraryFileUpload::make('draft_soa')
-                                    ->label('Draft SOA (Unsigned)')
+                                    ->label(__('Draft SOA (Unsigned)'))
                                     ->collection('draft_soa')
                                     ->disk('s3')
                                     ->downloadable()
                                     ->openable()
-                                    ->helperText('System-generated draft document that is not yet signed.'),
+                                    ->helperText(__('System-generated draft document that is not yet signed.')),
 
                                 SpatieMediaLibraryFileUpload::make('signed_soa')
-                                    ->label('Signed SOA (Final Scan)')
+                                    ->label(__('Signed SOA (Final Scan)'))
                                     ->collection('signed_soa')
                                     ->disk('s3')
                                     ->downloadable()
                                     ->openable()
-                                    ->helperText('Upload the scanned document that has been signed by both parties.')
+                                    ->helperText(__('Upload the scanned document that has been signed by both parties.'))
                                     ->required(fn ($get) => $get('status') === SalesOrderAmendmentStatus::Submitted->value),
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('Amendment Metadata')
-                    ->description('Basic information about this amendment. This data is historical and immutable.')
+                Section::make(__('Amendment Metadata'))
+                    ->description(__('Basic information about this amendment. This data is historical and immutable.'))
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextInput::make('amendment_number')
-                                    ->label('Amendment Number')
-                                    ->helperText('Sequence number of the contract change.')
+                                    ->label(__('Amendment Number'))
+                                    ->helperText(__('Sequence number of the contract change.'))
                                     ->disabled(),
                                 DatePicker::make('amendment_date')
-                                    ->label('Amendment Date')
-                                    ->helperText('Approved date of the PA revision.')
+                                    ->label(__('Amendment Date'))
+                                    ->helperText(__('Approved date of the PA revision.'))
                                     ->disabled(),
                                 Select::make('status')
-                                    ->label('Status')
+                                    ->label(__('Status'))
                                     ->options(SalesOrderAmendmentStatus::class)
                                     ->disabled(),
                             ]),
                         Textarea::make('reason')
-                            ->label('Reason for Change')
-                            ->placeholder('Describe why this amendment is being made...')
-                            ->helperText('This justification will appear in the amendment document.')
+                            ->label(__('Reason for Change'))
+                            ->placeholder(__('Describe why this amendment is being made...'))
+                            ->helperText(__('This justification will appear in the amendment document.'))
                             ->disabled(fn ($record) => $record?->status !== SalesOrderAmendmentStatus::Draft)
                             ->required(),
                     ])->columnSpanFull(),
 
-                Section::make('Comparison: Manpower & Pricing')
-                    ->description('Detailed comparison between original contract data (Before) and revised contract data (After). Use this to verify changes in value or personnel count.')
+                Section::make(__('Comparison: Manpower & Pricing'))
+                    ->description(__('Detailed comparison between original contract data (Before) and revised contract data (After). Use this to verify changes in value or personnel count.'))
                     ->schema([
 
-                        Section::make('Before (Original)')
-                            ->description('A combined snapshot of the active Sales Order or previous amendment data.')
+                        Section::make(__('Before (Original)'))
+                            ->description(__('A combined snapshot of the active Sales Order or previous amendment data.'))
                             ->schema([
                                 TextEntry::make('original_snapshot_combined')
-                                    ->label('Original Contract Snapshot')
+                                    ->label(__('Original Contract Snapshot'))
                                     ->view('crm::filament.components.combined-snapshot-table', fn ($record) => [
                                         'items' => $record?->before_snapshot['items'] ?? [],
                                         'manpower' => $record?->before_snapshot['manpower_details'] ?? [],
                                     ]),
                             ]),
 
-                        Section::make('After (Revised)')
-                            ->description('Enter the new/revised data for this amendment. This will update the parent Sales Order once approved.')
+                        Section::make(__('After (Revised)'))
+                            ->description(__('Enter the new/revised data for this amendment. This will update the parent Sales Order once approved.'))
                             ->schema([
                                 Repeater::make('after_snapshot_unified')
-                                    ->label('Amendment Entries (Revised Data)')
+                                    ->label(__('Amendment Entries (Revised Data)'))
                                     ->schema([
                                         Grid::make(3) // 3 components per row for maximum clarity
                                             ->schema([
                                                 // Row 1: Primary Identification
                                                 Select::make('type')
-                                                    ->label('Category')
+                                                    ->label(__('Category'))
                                                     ->options([
                                                         'item' => 'Service Item',
                                                         'personnel' => 'Personnel',
@@ -110,7 +110,7 @@ class AmendmentForm
 
                                                 Select::make('description')
                                                     ->label(fn ($get) => $get('type') === 'personnel' ? 'Job Position' : 'Item Name')
-                                                    ->placeholder('Select item or position...')
+                                                    ->placeholder(__('Select item or position...'))
                                                     ->searchable()
                                                     ->preload()
                                                     ->options(function ($get) {
@@ -153,7 +153,7 @@ class AmendmentForm
                                                     ->columnSpan(1),
 
                                                 Select::make('uom')
-                                                    ->label('Unit')
+                                                    ->label(__('Unit'))
                                                     ->options(UnitOfMeasure::pluck('name', 'name')->toArray())
                                                     ->searchable()
                                                     ->preload()
@@ -163,7 +163,7 @@ class AmendmentForm
 
                                                 // Row 2: Comparison & Revision
                                                 TextEntry::make('old_qty')
-                                                    ->label('Qty (Original)')
+                                                    ->label(__('Qty (Original)'))
                                                     ->state(function ($get, $record) {
                                                         $type = $get('type');
                                                         $name = $get('description');
@@ -178,7 +178,7 @@ class AmendmentForm
                                                     ->columnSpan(1),
 
                                                 TextEntry::make('qty_change')
-                                                    ->label('Net Change')
+                                                    ->label(__('Net Change'))
                                                     ->state(function ($get, $record) {
                                                         $type = $get('type');
                                                         $name = $get('description');
@@ -196,7 +196,7 @@ class AmendmentForm
                                                     ->columnSpan(1),
 
                                                 TextInput::make('quantity')
-                                                    ->label('Qty (Revised)')
+                                                    ->label(__('Qty (Revised)'))
                                                     ->numeric()
                                                     ->required()
                                                     ->live(onBlur: true)
@@ -235,8 +235,8 @@ class AmendmentForm
                                                     ->columnSpan(1),
 
                                                 TextInput::make('note')
-                                                    ->label('Notes')
-                                                    ->placeholder('Reason for change...')
+                                                    ->label(__('Notes'))
+                                                    ->placeholder(__('Reason for change...'))
                                                     ->columnSpan(1),
                                             ]),
                                     ])
@@ -246,7 +246,7 @@ class AmendmentForm
                                     ->itemLabel(fn ($state) => ($state['type'] ?? 'New') === 'personnel' ? 'Personnel: '.($state['description'] ?? '...') : 'Item: '.($state['description'] ?? '...')),
 
                                 TextEntry::make('amendment_summary_live')
-                                    ->label('')
+                                    ->label(__(''))
                                     ->view('crm::filament.components.amendment-summary-table', fn ($get, $record) => [
                                         'before' => $record?->before_snapshot ?? [],
                                         'after' => $get('after_snapshot_unified') ?? [],

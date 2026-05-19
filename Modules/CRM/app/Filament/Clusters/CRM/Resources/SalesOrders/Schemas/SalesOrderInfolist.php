@@ -20,13 +20,13 @@ class SalesOrderInfolist
             ->components([
                 Grid::make(3)
                     ->schema([
-                        Section::make('General Information')
-                            ->description('Informasi dasar project dan dokumen referensi.')
+                        Section::make(__('General Information'))
+                            ->description(__('Informasi dasar project dan dokumen referensi.'))
                             ->schema([
                                 Grid::make(2)
                                     ->schema([
                                         TextEntry::make('number')
-                                            ->label('SO Number')
+                                            ->label(__('SO Number'))
                                             ->weight(FontWeight::Bold)
                                             ->copyable(),
                                         TextEntry::make('status')
@@ -36,61 +36,61 @@ class SalesOrderInfolist
                                         TextEntry::make('type')
                                             ->badge(),
                                         TextEntry::make('project.number')
-                                            ->label('Referenced Project')
+                                            ->label(__('Referenced Project'))
                                             ->color('primary'),
                                         TextEntry::make('proposal.number')
-                                            ->label('Referenced Proposal')
+                                            ->label(__('Referenced Proposal'))
                                             ->color('primary'),
                                         TextEntry::make('sourceable.number')
-                                            ->label('Source Document')
+                                            ->label(__('Source Document'))
                                             ->color('primary')
-                                            ->placeholder('-'),
+                                            ->placeholder(__('-')),
                                         TextEntry::make('customer.name')
-                                            ->label('Customer')
+                                            ->label(__('Customer'))
                                             ->columnSpanFull(),
                                     ]),
                             ])->columnSpan(2),
 
-                        Section::make('Execution & PIC')
+                        Section::make(__('Execution & PIC'))
                             ->schema([
                                 TextEntry::make('salesPic.name')
-                                    ->label('Sales PIC (AMS)'),
+                                    ->label(__('Sales PIC (AMS)')),
                                 TextEntry::make('projectManager.name')
-                                    ->label('Project Manager (Oprep)'),
+                                    ->label(__('Project Manager (Oprep)')),
                                 TextEntry::make('service_type')
-                                    ->label('Service Type'),
+                                    ->label(__('Service Type')),
                                 TextEntry::make('job_location')
-                                    ->label('Job Location'),
+                                    ->label(__('Job Location')),
                                 TextEntry::make('manpower_initial_qty')
-                                    ->label('Initial Manpower')
+                                    ->label(__('Initial Manpower'))
                                     ->numeric()
                                     ->suffix(' Personnel'),
                             ])->columnSpan(1),
                     ])->columnSpanFull(),
 
-                Section::make('Service Details (Snapshot)')
-                    ->description('Rincian komponen biaya dan personil pada saat Sales Order ini dibuat/diamandemen.')
+                Section::make(__('Service Details (Snapshot)'))
+                    ->description(__('Rincian komponen biaya dan personil pada saat Sales Order ini dibuat/diamandemen.'))
                     ->schema([
                         TextEntry::make('service_details_unified')
-                            ->label('')
+                            ->label(__(''))
                             ->view('crm::filament.components.combined-snapshot-table', fn (SalesOrder $record) => [
                                 'items' => $record->content_config['items'] ?? [],
                                 'manpower' => $record->content_config['manpower_details'] ?? [],
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('Financials & Terms')
+                Section::make(__('Financials & Terms'))
 
                     ->schema([
                         Grid::make(3)
                             ->schema([
                                 TextEntry::make('amount')
-                                    ->label('Total (Before Tax)')
+                                    ->label(__('Total (Before Tax)'))
                                     ->money('IDR')
                                     ->size(TextSize::Large)
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('grand_total_after_tax')
-                                    ->label('Grand Total (After Tax)')
+                                    ->label(__('Grand Total (After Tax)'))
                                     ->state(function (SalesOrder $record) {
                                         $subtotal = (float) $record->amount;
                                         $taxAmount = $record->tax ? $record->tax->calculateTax($subtotal) : floor($subtotal * (($record->tax_percentage ?? 12) / 100));
@@ -102,35 +102,35 @@ class SalesOrderInfolist
                                     ->weight(FontWeight::Bold)
                                     ->color('success'),
                                 TextEntry::make('management_fee_percentage')
-                                    ->label('Mgt. Fee Rate')
+                                    ->label(__('Mgt. Fee Rate'))
                                     ->suffix('%'),
                                 TextEntry::make('tax_percentage')
-                                    ->label('Tax (VAT)')
+                                    ->label(__('Tax (VAT)'))
                                     ->suffix('%'),
                             ]),
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('payment_terms')
-                                    ->label('Payment Terms')
+                                    ->label(__('Payment Terms'))
                                     ->state(fn (SalesOrder $record) => $record->payment_terms ?: ($record->content_config['payment_terms'] ?? '-')),
                                 TextEntry::make('replacement_sla')
-                                    ->label('Replacement SLA')
+                                    ->label(__('Replacement SLA'))
                                     ->state(fn (SalesOrder $record) => $record->replacement_sla ?: ($record->content_config['replacement_sla'] ?? '-')),
                                 TextEntry::make('probation_period')
-                                    ->label('Probation Period')
+                                    ->label(__('Probation Period'))
                                     ->state(fn (SalesOrder $record) => $record->probation_period ?: ($record->content_config['probation_period'] ?? '-')),
                                 TextEntry::make('reporting_schedule')
-                                    ->label('Reporting Schedule')
+                                    ->label(__('Reporting Schedule'))
                                     ->state(fn (SalesOrder $record) => $record->reporting_schedule ?: ($record->content_config['reporting_schedule'] ?? '-')),
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('Attachments')
+                Section::make(__('Attachments'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('draft_so')
-                                    ->label('Draft SO / Proposal Document')
+                                    ->label(__('Draft SO / Proposal Document'))
                                     ->state(function (SalesOrder $record) {
                                         $media = $record->getFirstMedia('draft_so');
                                         if (! $media) {
@@ -141,7 +141,7 @@ class SalesOrderInfolist
                                     })
                                     ->html(),
                                 TextEntry::make('signed_so')
-                                    ->label('Signed Sales Order Document')
+                                    ->label(__('Signed Sales Order Document'))
                                     ->state(function (SalesOrder $record) {
                                         $media = $record->getFirstMedia('signed_so');
                                         if (! $media) {
@@ -154,23 +154,23 @@ class SalesOrderInfolist
                             ]),
                     ])->columnSpanFull(),
 
-                Section::make('Communication History')
-                    ->description('Traceability of emails sent to the customer regarding this Sales Order.')
+                Section::make(__('Communication History'))
+                    ->description(__('Traceability of emails sent to the customer regarding this Sales Order.'))
                     ->schema([
                         RepeatableEntry::make('communicationLogs')
-                            ->label('Sent Emails')
+                            ->label(__('Sent Emails'))
                             ->schema([
                                 Grid::make(4)->schema([
                                     TextEntry::make('recipient_email')
-                                        ->label('Recipient')
+                                        ->label(__('Recipient'))
                                         ->icon('heroicon-m-envelope'),
                                     TextEntry::make('subject')
-                                        ->label('Subject'),
+                                        ->label(__('Subject')),
                                     TextEntry::make('sender.name')
-                                        ->label('Sent By')
+                                        ->label(__('Sent By'))
                                         ->state(fn ($record) => $record->sender?->name ?? $record->sender_email ?? '-'),
                                     TextEntry::make('sent_at')
-                                        ->label('Sent Date')
+                                        ->label(__('Sent Date'))
                                         ->dateTime()
                                         ->color('gray'),
                                 ]),

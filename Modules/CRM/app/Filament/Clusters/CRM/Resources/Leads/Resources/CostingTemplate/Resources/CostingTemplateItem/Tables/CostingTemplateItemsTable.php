@@ -20,7 +20,7 @@ class CostingTemplateItemsTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Item Name')
+                    ->label(__('Item Name'))
                     ->description(fn ($record) => $record->item?->code ?? '')
                     ->searchable()
                     ->sortable(),
@@ -33,44 +33,44 @@ class CostingTemplateItemsTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('unit')
-                    ->label('UOM')
+                    ->label(__('UOM'))
                     ->toggleable()
                     ->sortable(),
                 TextColumn::make('unit_price')
-                    ->label('Base Price')
+                    ->label(__('Base Price'))
                     ->money('IDR')
                     ->alignment(Alignment::End)
                     ->toggleable()
                     ->sortable(),
                 TextColumn::make('markup_percent')
-                    ->label('Markup')
+                    ->label(__('Markup'))
                     ->suffix('%')
                     ->color('info')
                     ->alignment(Alignment::End)
                     ->toggleable()
                     ->sortable(),
                 TextColumn::make('unit_price_markup')
-                    ->label('Price w/ Markup')
+                    ->label(__('Price w/ Markup'))
                     ->money('IDR')
                     ->alignment(Alignment::End)
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 TextColumn::make('total_price')
-                    ->label('Total Cost')
+                    ->label(__('Total Cost'))
                     ->money('IDR')
                     ->weight('bold')
                     ->alignment(Alignment::End)
-                    ->summarize(Sum::make()->label('Total')->money('IDR'))
+                    ->summarize(Sum::make()->label(__('Total'))->money('IDR'))
                     ->sortable(),
                 TextColumn::make('monthly_cost')
-                    ->label('Monthly Cost')
+                    ->label(__('Monthly Cost'))
                     ->money('IDR')
                     ->weight('bold')
                     ->alignment(Alignment::End)
-                    ->summarize(Sum::make()->label('Total Monthly')->money('IDR'))
+                    ->summarize(Sum::make()->label(__('Total Monthly'))->money('IDR'))
                     ->sortable(),
                 TextColumn::make('depreciation_months')
-                    ->label('Period')
+                    ->label(__('Period'))
                     ->suffix(' mos')
                     ->toggleable()
                     ->sortable(),
@@ -78,7 +78,7 @@ class CostingTemplateItemsTable
             ->defaultGroup('category')
             ->groups([
                 Group::make('category')
-                    ->label('Cost Category')
+                    ->label(__('Cost Category'))
                     ->collapsible(),
             ])
             ->recordActions([

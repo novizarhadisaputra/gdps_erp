@@ -31,7 +31,7 @@ class CustomersTable
                 TextColumn::make('phone')
                     ->searchable(),
                 TextColumn::make('contacts')
-                    ->label('Contacts')
+                    ->label(__('Contacts'))
                     ->formatStateUsing(fn ($state) => count($state ?? []).' Contacts')
                     ->badge(),
                 TextColumn::make('address')

@@ -17,13 +17,13 @@ enum CostingCategory: string implements HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::ToolsEquipment => 'Tools & Equipment',
-            self::MaterialConsumables => 'Material / Consumables',
-            self::ItSystem => 'IT System / Software',
-            self::Vehicle => 'Vehicle (Rental/Ops)',
-            self::Infrastructure => 'Infrastructure Support',
-            self::Manpower => 'Manpower / Labor',
-            self::Other => 'Other Operational Cost',
+            self::ToolsEquipment => __('Tools & Equipment'),
+            self::MaterialConsumables => __('Material / Consumables'),
+            self::ItSystem => __('IT System / Software'),
+            self::Vehicle => __('Vehicle (Rental/Ops)'),
+            self::Infrastructure => __('Infrastructure Support'),
+            self::Manpower => __('Manpower / Labor'),
+            self::Other => __('Other Operational Cost'),
         };
     }
 }

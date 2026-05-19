@@ -44,8 +44,8 @@ class ManageManpowerTemplates extends ManageRelatedRecords
         return ManpowerTemplateResource::table($table)
             ->headerActions([
                 ActionGroup::make([
-                    Action::make('manualUpload')
-                        ->label('Manual Upload (Reference)')
+                    Action::make(__('manualUpload'))
+                        ->label(__('Manual Upload (Reference)'))
                         ->icon(Heroicon::OutlinedDocumentPlus)
                         ->color('info')
                         ->schema([
@@ -54,7 +54,7 @@ class ManageManpowerTemplates extends ManageRelatedRecords
                                 ->visibility('private')
                                 ->required()
                                 ->columnSpanFull()
-                                ->helperText('Upload the original document as a valid data reference.'),
+                                ->helperText(__('Upload the original document as a valid data reference.')),
                         ])
                         ->action(function (array $data) {
                             $lead = $this->getOwnerRecord();
@@ -96,10 +96,10 @@ class ManageManpowerTemplates extends ManageRelatedRecords
 
                             $this->redirect(ManpowerTemplateResource::getUrl('view', ['lead' => $lead->id, 'record' => $record->id]));
                         })
-                        ->successNotificationTitle('Manual Manpower Costing created'),
+                        ->successNotificationTitle(__('Manual Manpower Costing created')),
                     CreateAction::make(),
                 ])
-                    ->label('Options')
+                    ->label(__('Options'))
                     ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->color('primary')
                     ->button(),

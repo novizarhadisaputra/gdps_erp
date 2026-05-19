@@ -16,26 +16,26 @@ class ProjectReviewTable
         return $table
             ->columns([
                 TextColumn::make('number')
-                    ->label('Review Code')
+                    ->label(__('Review Code'))
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
                     ->color('primary'),
                 TextColumn::make('lead.company_name')
-                    ->label('Lead / Company')
+                    ->label(__('Lead / Company'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('generalInformation.number')
-                    ->label('GI #')
-                    ->placeholder('-')
+                    ->label(__('GI #'))
+                    ->placeholder(__('-'))
                     ->searchable(),
                 TextColumn::make('profitabilityAnalysis.number')
-                    ->label('PA #')
-                    ->placeholder('-')
+                    ->label(__('PA #'))
+                    ->placeholder(__('-'))
                     ->searchable(),
                 TextColumn::make('proposal.number')
-                    ->label('Proposal #')
-                    ->placeholder('-')
+                    ->label(__('Proposal #'))
+                    ->placeholder(__('-'))
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge(),

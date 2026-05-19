@@ -14,36 +14,36 @@ class CostingTemplateInfolist
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('General Information')
+            Section::make(__('General Information'))
                 ->schema([
                     Grid::make(3)
                         ->schema([
                             TextEntry::make('code')
-                                ->label('Template Code')
+                                ->label(__('Template Code'))
                                 ->weight(FontWeight::Bold),
                             TextEntry::make('name')
-                                ->label('Template Name'),
+                                ->label(__('Template Name')),
                             TextEntry::make('pic.name')
-                                ->label('PIC'),
+                                ->label(__('PIC')),
                         ]),
                     Grid::make(2)
                         ->schema([
                             TextEntry::make('total_monthly_cost')
-                                ->label('Monthly Total')
+                                ->label(__('Monthly Total'))
                                 ->money('IDR')
                                 ->color('success')
                                 ->weight(FontWeight::Bold),
                             TextEntry::make('total_amount')
-                                ->label('Overall Total')
+                                ->label(__('Overall Total'))
                                 ->money('IDR')
                                 ->weight(FontWeight::Bold),
                         ]),
                     TextEntry::make('description')
-                        ->placeholder('No description provided.'),
+                        ->placeholder(__('No description provided.')),
                 ])->columnSpanFull(),
 
-            Section::make('Items & Costing Breakdown')
-                ->description('List of operational items extracted from the COGS document.')
+            Section::make(__('Items & Costing Breakdown'))
+                ->description(__('List of operational items extracted from the COGS document.'))
                 ->schema([
                     RepeatableEntry::make('costingTemplateItems')
                         ->label(false)
@@ -53,15 +53,15 @@ class CostingTemplateInfolist
                                     TextEntry::make('category')
                                         ->badge(),
                                     TextEntry::make('name')
-                                        ->label('Item Name')
+                                        ->label(__('Item Name'))
                                         ->columnSpan(2)
                                         ->weight(FontWeight::Bold),
                                     TextEntry::make('quantity')
                                         ->numeric(),
                                     TextEntry::make('unit')
-                                        ->label('UOM'),
+                                        ->label(__('UOM')),
                                     TextEntry::make('total_price')
-                                        ->label('Sub-Total Cost')
+                                        ->label(__('Sub-Total Cost'))
                                         ->money('IDR')
                                         ->weight(FontWeight::Bold)
                                         ->color('primary'),
@@ -69,13 +69,13 @@ class CostingTemplateInfolist
                             Grid::make(3)
                                 ->schema([
                                     TextEntry::make('unit_price')
-                                        ->label('Unit Price')
+                                        ->label(__('Unit Price'))
                                         ->money('IDR'),
                                     TextEntry::make('markup_percent')
-                                        ->label('Markup (%)')
+                                        ->label(__('Markup (%)'))
                                         ->suffix('%'),
                                     TextEntry::make('monthly_cost')
-                                        ->label('Monthly Impact')
+                                        ->label(__('Monthly Impact'))
                                         ->money('IDR'),
                                 ])
                                 ->visible(fn ($record) => $record?->unit_price > 0),

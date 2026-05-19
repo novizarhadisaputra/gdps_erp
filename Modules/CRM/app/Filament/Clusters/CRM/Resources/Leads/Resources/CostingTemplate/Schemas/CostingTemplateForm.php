@@ -48,8 +48,8 @@ class CostingTemplateForm
     {
         return [
             Wizard::make([
-                Step::make('Core Information')
-                    ->description('Basic template details')
+                Step::make(__('Core Information'))
+                    ->description(__('Basic template details'))
                     ->schema([
                         TextInput::make('code')
                             ->hidden(fn (string $operation): bool => $operation === 'create')
@@ -61,7 +61,7 @@ class CostingTemplateForm
                             ->required()
                             ->maxLength(255),
                         Select::make('pic_id')
-                            ->label('Costing PIC')
+                            ->label(__('Costing PIC'))
                             ->relationship('pic', 'name')
                             ->options(function () {
                                 return User::where('id', auth()->id())
@@ -76,8 +76,8 @@ class CostingTemplateForm
                             ->maxLength(255),
                     ]),
 
-                Step::make('Tools & Equipment Costing')
-                    ->description('Manage items and calculations')
+                Step::make(__('Tools & Equipment Costing'))
+                    ->description(__('Manage items and calculations'))
                     ->schema([
                         Livewire::make(ManageCostingItems::class)
                             ->lazy()
@@ -103,13 +103,13 @@ class CostingTemplateForm
                             }),
                     ]),
 
-                Step::make('Costing Summary')
-                    ->description('Review totals and submit')
+                Step::make(__('Costing Summary'))
+                    ->description(__('Review totals and submit'))
                     ->schema([
                         Grid::make(4)
                             ->schema([
                                 TextInput::make('total_cost_amount')
-                                    ->label('Total Cost (Modal)')
+                                    ->label(__('Total Cost (Modal)'))
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->readOnly()
@@ -119,7 +119,7 @@ class CostingTemplateForm
                                     })
                                     ->extraAttributes(['class' => 'bg-gray-50']),
                                 TextInput::make('total_amount')
-                                    ->label('Total Investment')
+                                    ->label(__('Total Investment'))
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->readOnly()
@@ -128,7 +128,7 @@ class CostingTemplateForm
                                         self::updateTotals($get, $set);
                                     }),
                                 TextInput::make('total_monthly_cost')
-                                    ->label('Total Monthly Cost')
+                                    ->label(__('Total Monthly Cost'))
                                     ->currencyMask(thousandSeparator: '.', decimalSeparator: ',', precision: 0)
                                     ->prefix('IDR ')
                                     ->readOnly()
@@ -137,7 +137,7 @@ class CostingTemplateForm
                                         self::updateTotals($get, $set);
                                     }),
                                 TextInput::make('margin_percentage')
-                                    ->label('Initial Margin')
+                                    ->label(__('Initial Margin'))
                                     ->numeric()
                                     ->suffix('%')
                                     ->default(0)
@@ -148,7 +148,7 @@ class CostingTemplateForm
                                     ->extraAttributes(['class' => 'bg-gray-50 font-bold text-primary-600']),
                             ]),
                         Textarea::make('notes')
-                            ->label('Finance Notes')
+                            ->label(__('Finance Notes'))
                             ->rows(3)
                             ->columnSpanFull(),
                     ]),

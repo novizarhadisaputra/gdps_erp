@@ -31,13 +31,13 @@ class ManageAmendments extends ManageRelatedRecords
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('proposeAmendment')
-                ->label('Propose New Amendment')
+            Action::make(__('proposeAmendment'))
+                ->label(__('Propose New Amendment'))
                 ->icon('heroicon-o-plus-circle')
                 ->color('primary')
                 ->requiresConfirmation()
-                ->modalHeading('Propose New Sales Order Amendment')
-                ->modalDescription('This will create a draft amendment using the current Sales Order state as the baseline. You can then edit the revised details manually.')
+                ->modalHeading(__('Propose New Sales Order Amendment'))
+                ->modalDescription(__('This will create a draft amendment using the current Sales Order state as the baseline. You can then edit the revised details manually.'))
                 ->action(function () {
                     $so = $this->getOwnerRecord();
 

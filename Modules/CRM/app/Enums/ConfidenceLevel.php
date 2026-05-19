@@ -13,9 +13,9 @@ enum ConfidenceLevel: string implements HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Optimistic => 'Optimistic',
-            self::Moderate => 'Moderate',
-            self::Pessimistic => 'Pessimistic',
+            self::Optimistic => __('Optimistic'),
+            self::Moderate => __('Moderate'),
+            self::Pessimistic => __('Pessimistic'),
         };
     }
 }

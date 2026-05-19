@@ -24,11 +24,24 @@ class AmendmentResource extends Resource
 
     protected static ?string $parentResource = SalesOrderResource::class;
 
-    protected static ?string $navigationLabel = 'Amendments';
-
     protected static ?string $slug = 'amendments';
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedClock;
+
+    public static function getModelLabel(): string
+    {
+        return __('Amendment');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Amendments');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Amendments');
+    }
 
     public static function shouldRegisterNavigation(): bool
     {

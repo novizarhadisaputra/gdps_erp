@@ -45,8 +45,8 @@ class ManageCostingTemplates extends ManageRelatedRecords
         return CostingTemplateResource::table($table)
             ->headerActions([
                 ActionGroup::make([
-                    Action::make('manualUpload')
-                        ->label('Manual Upload (Reference)')
+                    Action::make(__('manualUpload'))
+                        ->label(__('Manual Upload (Reference)'))
                         ->icon(Heroicon::OutlinedDocumentPlus)
                         ->color('info')
                         ->schema([
@@ -55,7 +55,7 @@ class ManageCostingTemplates extends ManageRelatedRecords
                                 ->visibility('private')
                                 ->required()
                                 ->columnSpanFull()
-                                ->helperText('Upload the original costing document as a valid data reference.'),
+                                ->helperText(__('Upload the original costing document as a valid data reference.')),
                         ])
                         ->action(function (array $data) {
                             $lead = $this->getOwnerRecord();
@@ -97,13 +97,13 @@ class ManageCostingTemplates extends ManageRelatedRecords
 
                             $this->redirect(CostingTemplateResource::getUrl('view', ['lead' => $lead->id, 'record' => $record->id]));
                         })
-                        ->successNotificationTitle('Manual Tools & Equipment Costing created'),
+                        ->successNotificationTitle(__('Manual Tools & Equipment Costing created')),
                     CreateAction::make()
                         ->schema(fn (Schema $schema) => CostingTemplateResource::form($schema))
                         ->fillForm(fn () => CostingTemplateForm::getAutoFillData($this->getOwnerRecord()))
                         ->after(fn (CostingTemplate $record) => $this->redirect(CostingTemplateResource::getUrl('view', ['lead' => $record->lead_id, 'record' => $record->id]))),
                 ])
-                    ->label('Options')
+                    ->label(__('Options'))
                     ->icon(Heroicon::OutlinedEllipsisVertical)
                     ->color('primary')
                     ->button(),

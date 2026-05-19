@@ -23,13 +23,22 @@ class CostingTemplateResource extends Resource
 
     protected static ?string $parentResource = LeadResource::class;
 
-    protected static ?string $navigationLabel = 'Tools & Equipment Costing';
-
-    protected static ?string $pluralLabel = 'Tools & Equipment Costing';
-
-    protected static ?string $singularLabel = 'Tools & Equipment Costing';
-
     protected static ?string $slug = 'tools-equipment-costing';
+
+    public static function getModelLabel(): string
+    {
+        return __('Tools & Equipment Costing');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Tools & Equipment Costing');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Tools & Equipment Costing');
+    }
 
     protected static \BackedEnum|string|null $navigationIcon = Heroicon::OutlinedBanknotes;
 

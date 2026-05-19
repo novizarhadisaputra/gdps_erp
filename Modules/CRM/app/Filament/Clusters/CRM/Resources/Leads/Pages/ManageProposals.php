@@ -42,13 +42,13 @@ class ManageProposals extends ManageRelatedRecords
     {
         return ProposalResource::table($table)
             ->headerActions([
-                Action::make('bookingCode')
-                    ->label('Booking Proposal Code')
+                Action::make(__('bookingCode'))
+                    ->label(__('Booking Proposal Code'))
                     ->icon(Heroicon::OutlinedDocumentPlus)
                     ->color('info')
                     ->requiresConfirmation()
-                    ->modalHeading('Booking Proposal Code')
-                    ->modalDescription('This will generate a new Proposal record with an auto-generated code and link it to this Lead. You can upload the documentation later.')
+                    ->modalHeading(__('Booking Proposal Code'))
+                    ->modalDescription(__('This will generate a new Proposal record with an auto-generated code and link it to this Lead. You can upload the documentation later.'))
                     ->action(function () {
                         $lead = $this->getOwnerRecord();
 
@@ -78,12 +78,12 @@ class ManageProposals extends ManageRelatedRecords
                         ]);
 
                         Notification::make()
-                            ->title('Proposal code booked successfully')
+                            ->title(__('Proposal code booked successfully'))
                             ->body('The lead title has been standardized for professionalism.')
                             ->success()
                             ->send();
                     })
-                    ->successNotificationTitle('Proposal Code Booked'),
+                    ->successNotificationTitle(__('Proposal Code Booked')),
             ]);
     }
 }

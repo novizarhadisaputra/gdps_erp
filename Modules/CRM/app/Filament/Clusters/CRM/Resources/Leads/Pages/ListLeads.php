@@ -22,8 +22,8 @@ class ListLeads extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\Action::make('kanban')
-                ->label('Kanban Board')
+            Actions\Action::make(__('kanban'))
+                ->label(__('Kanban Board'))
                 ->icon(Heroicon::ViewColumns)
                 ->url(LeadResource::getUrl('index')),
             Actions\CreateAction::make()
@@ -40,7 +40,7 @@ class ListLeads extends ListRecords
                 ->icon(Heroicon::OutlinedFunnel)
                 ->modifyQueryUsing(fn ($query) => $query->withoutTrashed()),
             'archived' => Tab::make()
-                ->label('Trash / Archived')
+                ->label(__('Trash / Archived'))
                 ->icon(Heroicon::OutlinedTrash)
                 ->modifyQueryUsing(fn ($query) => $query->onlyTrashed()),
         ];

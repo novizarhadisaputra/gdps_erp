@@ -14,16 +14,16 @@ class LeadInfolist
     {
         return $schema
             ->components([
-                Section::make('Lead Information')
+                Section::make(__('Lead Information'))
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextEntry::make('title')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('customer.name')
-                                    ->label('Customer'),
+                                    ->label(__('Customer')),
                                 TextEntry::make('workScheme.name')
-                                    ->label('Work Scheme'),
+                                    ->label(__('Work Scheme')),
                                 TextEntry::make('status')
                                     ->badge(),
                                 TextEntry::make('estimated_amount')
@@ -35,7 +35,7 @@ class LeadInfolist
                                 TextEntry::make('expected_closing_date')
                                     ->date(),
                                 TextEntry::make('user.name')
-                                    ->label('Sales PIC'),
+                                    ->label(__('Sales PIC')),
                             ]),
                         TextEntry::make('description')
                             ->columnSpanFull()

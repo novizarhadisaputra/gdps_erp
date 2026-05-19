@@ -30,8 +30,8 @@ class ViewProposal extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('downloadPdf')
-                ->label('Download Draft PDF')
+            Action::make(__('downloadPdf'))
+                ->label(__('Download Draft PDF'))
                 ->icon(Heroicon::OutlinedArrowDownTray)
                 ->color('gray')
                 ->action(function () {
@@ -66,22 +66,22 @@ class ViewProposal extends ViewRecord
                 }),
 
             ActionGroup::make([
-                Action::make('signProposal')
-                    ->label('Sign Proposal')
+                Action::make(__('signProposal'))
+                    ->label(__('Sign Proposal'))
                     ->color('success')
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->requiresConfirmation()
-                    ->modalHeading('Sign & Approve Proposal')
+                    ->modalHeading(__('Sign & Approve Proposal'))
                     ->schema([
                         TextInput::make('pin')
-                            ->label('Signature PIN')
+                            ->label(__('Signature PIN'))
                             ->password()
                             ->required(),
                     ])
                     ->action(function (array $data) {
                         $service = app(SignatureService::class);
                         if (! $service->verifyPin(auth()->user(), $data['pin'])) {
-                            Notification::make()->title('Incorrect PIN')->danger()->send();
+                            Notification::make()->title(__('Incorrect PIN'))->danger()->send();
 
                             return;
                         }
@@ -94,7 +94,7 @@ class ViewProposal extends ViewRecord
                         );
 
                         Notification::make()
-                            ->title('Proposal Signed')
+                            ->title(__('Proposal Signed'))
                             ->body('The signature has been successfully recorded.')
                             ->success()
                             ->send();
@@ -109,16 +109,16 @@ class ViewProposal extends ViewRecord
                         return $isSubmitted && $isOwner && ! $alreadySigned;
                     }),
 
-                Action::make('incompleteWarning')
-                    ->label('Submit')
+                Action::make(__('incompleteWarning'))
+                    ->label(__('Submit'))
                     ->color('gray')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->disabled()
-                    ->tooltip('Please complete all required fields, including uploading the Final Proposal and filling in the Meeting Date, before submitting.')
+                    ->tooltip(__('Please complete all required fields, including uploading the Final Proposal and filling in the Meeting Date, before submitting.'))
                     ->visible(fn () => $this->record->status === ProposalStatus::Draft && ! $this->isReadyToSubmit()),
 
-                Action::make('Submit')
-                    ->label('Submit')
+                Action::make(__('Submit'))
+                    ->label(__('Submit'))
                     ->color('info')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->requiresConfirmation()
@@ -126,12 +126,12 @@ class ViewProposal extends ViewRecord
                         $this->record->update(['status' => ProposalStatus::Submitted]);
                         app(SignatureService::class)->notifyNextApprovers($this->record);
 
-                        Notification::make()->title('Proposal Submitted Successfully')->success()->send();
+                        Notification::make()->title(__('Proposal Submitted Successfully'))->success()->send();
                     })
                     ->visible(fn () => $this->record->status === ProposalStatus::Draft && $this->isReadyToSubmit()),
 
-                Action::make('convertToMoA')
-                    ->label('Convert to MoA (BA)')
+                Action::make(__('convertToMoA'))
+                    ->label(__('Convert to MoA (BA)'))
                     ->icon(Heroicon::OutlinedDocumentDuplicate)
                     ->color('info')
                     ->visible(fn () => $this->record->status === ProposalStatus::Approved && ! $this->record->minutesOfAgreements()->exists())
@@ -160,7 +160,7 @@ class ViewProposal extends ViewRecord
                         ]);
 
                         Notification::make()
-                            ->title('Converted to Minutes of Agreement')
+                            ->title(__('Converted to Minutes of Agreement'))
                             ->body('Scope of work, timeline, and terms have been transferred from General Information.')
                             ->success()
                             ->send();
@@ -168,7 +168,7 @@ class ViewProposal extends ViewRecord
                         $this->redirect(MinutesOfAgreementResource::getUrl('edit', ['record' => $moa->id, 'lead' => $this->record->lead_id]));
                     }),
 
-                Action::make('sendEmail')
+                Action::make(__('sendEmail'))
                     ->label(fn () => $this->record->status === ProposalStatus::Sent ? 'Resend Email' : 'Send Email')
                     ->color('info')
                     ->icon(Heroicon::OutlinedEnvelope)
@@ -178,17 +178,17 @@ class ViewProposal extends ViewRecord
                     ]))
                     ->visible(fn () => in_array($this->record->status, [ProposalStatus::Submitted, ProposalStatus::Sent, ProposalStatus::Approved]) && ($this->record->profitabilityAnalysis?->is_margin_approved ?? true)),
 
-                Action::make('revise')
-                    ->label('Revise Proposal')
+                Action::make(__('revise'))
+                    ->label(__('Revise Proposal'))
                     ->color('warning')
                     ->icon(Heroicon::OutlinedArrowPath)
                     ->requiresConfirmation()
-                    ->modalHeading('Revise Proposal')
-                    ->modalDescription('This will move the proposal back to Draft stage, allowing you to make changes. A revision snapshot will be created, and the Lead status will be set back to Approach.')
+                    ->modalHeading(__('Revise Proposal'))
+                    ->modalDescription(__('This will move the proposal back to Draft stage, allowing you to make changes. A revision snapshot will be created, and the Lead status will be set back to Approach.'))
                     ->schema([
                         TextInput::make('reason')
-                            ->label('Reason for Revision')
-                            ->placeholder('Briefly explain why this proposal is being revised...')
+                            ->label(__('Reason for Revision'))
+                            ->placeholder(__('Briefly explain why this proposal is being revised...'))
                             ->required(),
                     ])
                     ->action(function (array $data) {
@@ -196,7 +196,7 @@ class ViewProposal extends ViewRecord
                         $this->record->update(['status' => ProposalStatus::Draft]);
 
                         Notification::make()
-                            ->title('Proposal Revision Started')
+                            ->title(__('Proposal Revision Started'))
                             ->body('The proposal has been moved back to Draft. You can now edit the details.')
                             ->success()
                             ->send();
@@ -212,14 +212,14 @@ class ViewProposal extends ViewRecord
                     ]))
                     ->visible(fn () => $this->record->status === ProposalStatus::Draft),
 
-                Action::make('Reject')
+                Action::make(__('Reject'))
                     ->color('danger')
                     ->icon(Heroicon::OutlinedXMark)
                     ->requiresConfirmation()
-                    ->modalHeading('Reject Proposal')
+                    ->modalHeading(__('Reject Proposal'))
                     ->schema([
                         TextInput::make('reason')
-                            ->label('Reason for Rejection')
+                            ->label(__('Reason for Rejection'))
                             ->required(),
                     ])
                     ->action(function (array $data) {
@@ -228,7 +228,7 @@ class ViewProposal extends ViewRecord
                         $this->refreshFormData(['status']);
 
                         Notification::make()
-                            ->title('Proposal Rejected')
+                            ->title(__('Proposal Rejected'))
                             ->warning()
                             ->send();
                     })

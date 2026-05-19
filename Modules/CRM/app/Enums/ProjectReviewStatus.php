@@ -21,12 +21,12 @@ enum ProjectReviewStatus: string implements HasColor, HasIcon, HasLabel
     public function getLabel(): ?string
     {
         return match ($this) {
-            self::Draft => 'Draft',
-            self::InProgress => 'In Progress',
-            self::Completed => 'Completed',
-            self::RevisionNeeded => 'Revision Needed',
-            self::Cancelled => 'Cancelled',
-            self::Review => 'Review',
+            self::Draft => __('Draft'),
+            self::InProgress => __('In Progress'),
+            self::Completed => __('Completed'),
+            self::RevisionNeeded => __('Revision Needed'),
+            self::Cancelled => __('Cancelled'),
+            self::Review => __('Review'),
         };
     }
 
