@@ -81,7 +81,7 @@ class ViewProjectReview extends ViewRecord
 
     public function approveProjectAction(): Action
     {
-        return Action::make(__('approveProject'))
+        return Action::make('approveProject')
             ->label(__('Authorize Margin'))
             ->icon(Heroicon::CheckBadge)
             ->color('success')
@@ -180,7 +180,7 @@ class ViewProjectReview extends ViewRecord
 
     public function rejectProjectAction(): Action
     {
-        return Action::make(__('rejectProject'))
+        return Action::make('rejectProject')
             ->label(__('Reject Margin'))
             ->outlined()
             ->icon(Heroicon::XCircle)
@@ -296,6 +296,18 @@ class ViewProjectReview extends ViewRecord
                     Notification::make()->title(__('Document not found'))->danger()->send();
 
                     return;
+                }
+
+                if ($relation === 'profitabilityAnalysis') {
+                    $proposal = $record->proposal;
+                    if (! $proposal || $proposal->status !== \Modules\CRM\Enums\ProposalStatus::Approved) {
+                        Notification::make()
+                            ->title(__('Proposal Not Approved'))
+                            ->body(__('Final PA approval signature can only be performed after the Proposal is signed (Approved) by the client.'))
+                            ->warning()
+                            ->send();
+                        return;
+                    }
                 }
 
                 $service = app(SignatureService::class);

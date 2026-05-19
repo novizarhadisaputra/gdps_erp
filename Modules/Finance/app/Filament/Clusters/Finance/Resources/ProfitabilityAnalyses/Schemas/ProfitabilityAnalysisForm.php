@@ -901,20 +901,29 @@ class ProfitabilityAnalysisForm
                                             ->helperText('The reference total used for percentage calculation.')
                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateIndirectCost($get, $set, '../../')),
                                         TextInput::make('unit_cost_price')
-                                            ->label(fn (Get $get) => $get('calculation_type') === 'percentage' ? 'Percentage (%)' : 'Category Total')
+                                            ->label('Category Total')
                                             ->numeric()
                                             ->currencyMask(
                                                 thousandSeparator: '.',
                                                 decimalSeparator: ',',
-                                                precision: 2
+                                                precision: 0
                                             )
                                             ->required()
                                             ->placeholder('0')
-                                            ->helperText('The value or rate for this indirect cost item.')
-                                            ->prefix(fn (Get $get) => $get('calculation_type') === 'percentage' ? null : 'IDR ')
-                                            ->suffix(fn (Get $get) => $get('calculation_type') === 'percentage' ? '%' : null)
-                                            ->required()
+                                            ->helperText('The total nominal value for this indirect cost category.')
+                                            ->prefix('IDR ')
                                             ->live(onBlur: true)
+                                            ->visible(fn (Get $get) => $get('calculation_type') === 'nominal' || ! $get('calculation_type'))
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateIndirectCost($get, $set, '../../')),
+                                        TextInput::make('unit_cost_price')
+                                            ->label('Percentage (%)')
+                                            ->numeric()
+                                            ->required()
+                                            ->placeholder('0.00')
+                                            ->helperText('The percentage value for this indirect cost category.')
+                                            ->suffix('%')
+                                            ->live(onBlur: true)
+                                            ->visible(fn (Get $get) => $get('calculation_type') === 'percentage')
                                             ->afterStateUpdated(fn (Get $get, Set $set) => self::calculateIndirectCost($get, $set, '../../')),
                                         TextInput::make('description')
                                             ->label('Description/Notes')

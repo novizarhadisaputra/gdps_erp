@@ -24,13 +24,10 @@ class ManpowerTemplatesTable
                     ->sortable(),
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('projectArea.name')
-                    ->label(__('Project Area'))
-                    ->sortable()
-                    ->searchable(),
                 TextColumn::make('items_count')
                     ->counts('items')
-                    ->label(__('Positions')),
+                    ->label(__('Positions'))
+                    ->suffix(' '.__('Positions')),
                 ToggleColumn::make('is_active'),
                 TextColumn::make('created_at')
                     ->dateTime()

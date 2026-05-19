@@ -33,7 +33,7 @@ class ManpowerCompositionDonut extends ApexChartWidget
         ];
 
         foreach ($items as $item) {
-            $calc = $service->calculate($item->toArray());
+            $calc = $service->calculateForTemplateItem($item);
             $totals['Basic Salary'] += $calc['total_monthly_salary'] ?? 0;
             $totals['BPJS'] += $calc['bpjs_total'] ?? 0;
             $totals['Tax (PPh 21)'] += $calc['pph21']['total'] ?? 0;

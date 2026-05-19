@@ -32,7 +32,7 @@ class ManpowerTemplateInfolist
                                 ->copyable(),
                             TextEntry::make('name')
                                 ->label(__('Costing Name')),
-                            TextEntry::make('projectArea.name')
+                            TextEntry::make('lead.projectArea.name')
                                 ->label(__('Project Area')),
                             TextEntry::make('contractType.name')
                                 ->label(__('Contract Type')),
